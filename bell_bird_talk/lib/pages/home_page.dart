@@ -116,10 +116,10 @@ class HomePage extends StatelessWidget {
             CircleAvatar(
               radius: 35,
               backgroundColor: Colors.white,
-              backgroundImage: user?.avatar != null
+              backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
                   ? NetworkImage(user!.avatar!)
                   : null,
-              child: user?.avatar == null
+              child: (user?.avatar == null || user!.avatar!.isEmpty)
                   ? const Icon(Icons.person, size: 40, color: Colors.blue)
                   : null,
             ),

@@ -121,7 +121,7 @@ class LoginController extends GetxController {
         id: '1',
         username: username,
         nickname: '测试用户',
-        avatar: 'https://via.placeholder.com/150',
+        avatar: '', // 使用空字符串，界面会显示默认头像图标
         phone: '13800138000',
         email: 'test@example.com',
         gender: 1,
