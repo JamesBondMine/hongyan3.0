@@ -57,6 +57,17 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
               ],
             ),
             
+            // C++ 数据传输
+            _buildSection(
+              title: '⚡ C++ 数据传输',
+              children: [
+                _buildButton('C++ 生成模拟数据', _generateCppData),
+                _buildButton('C++ 字符串加密', _processCppString),
+                _buildButton('C++ 统计计算', _calculateCppStatistics),
+                _buildButton('C++ 复杂数据传输', _simulateCppDataTransfer),
+              ],
+            ),
+            
             // iOS SDK 调用
             _buildSection(
               title: '🔧 iOS SDK 调用',
@@ -306,6 +317,57 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
       context,
       MaterialPageRoute(builder: (context) => const PlatformViewDemoPage()),
     );
+  }
+
+  // C++ 数据传输
+  Future<void> _generateCppData() async {
+    try {
+      final data = await _nativeService.generateCppData();
+      setState(() {
+        _result = 'C++ 生成的数据:\n${_formatJson(data)}';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _processCppString() async {
+    try {
+      const testString = 'Hello World from Flutter';
+      final processed = await _nativeService.processCppString(testString);
+      setState(() {
+        _result = 'C++ 字符串处理:\n'
+            '原始: $testString\n'
+            '加密: $processed';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _calculateCppStatistics() async {
+    try {
+      final numbers = [10, 25, 30, 15, 40, 35, 20, 50, 45, 55];
+      final stats = await _nativeService.calculateCppStatistics(numbers);
+      setState(() {
+        _result = 'C++ 统计计算:\n'
+            '数据: $numbers\n'
+            '结果:\n${_formatJson(stats)}';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _simulateCppDataTransfer() async {
+    try {
+      final data = await _nativeService.simulateCppDataTransfer(12345, 5);
+      setState(() {
+        _result = 'C++ 复杂数据传输:\n${_formatJson(data)}';
+      });
+    } catch (e) {
+      _showError(e);
+    }
   }
 
   // 辅助方法

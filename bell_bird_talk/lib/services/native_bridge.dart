@@ -140,5 +140,37 @@ class IOSNativeService {
       'messages': messages,
     });
   }
+  
+  // ---------- C++ 数据传输示例 ----------
+  
+  /// 从 C++ 生成模拟数据
+  Future<Map<String, dynamic>?> generateCppData() async {
+    final result = await _bridge.invokeMethod<Map>('generateCppData');
+    return result?.cast<String, dynamic>();
+  }
+  
+  /// 处理字符串（调用 C++ 加密方法）
+  Future<String?> processCppString(String input) async {
+    return await _bridge.invokeMethod<String>('processCppString', {
+      'input': input,
+    });
+  }
+  
+  /// 计算统计数据（调用 C++ 计算方法）
+  Future<Map<String, dynamic>?> calculateCppStatistics(List<int> numbers) async {
+    final result = await _bridge.invokeMethod<Map>('calculateCppStatistics', {
+      'numbers': numbers,
+    });
+    return result?.cast<String, dynamic>();
+  }
+  
+  /// 模拟数据传输（从 C++ 获取复杂结构化数据）
+  Future<Map<String, dynamic>?> simulateCppDataTransfer(int userId, int messageCount) async {
+    final result = await _bridge.invokeMethod<Map>('simulateCppDataTransfer', {
+      'userId': userId,
+      'messageCount': messageCount,
+    });
+    return result?.cast<String, dynamic>();
+  }
 }
 

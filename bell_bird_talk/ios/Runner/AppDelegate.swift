@@ -118,6 +118,19 @@ class NativeBridgeHandler: NSObject {
         case "syncChatData":
             syncChatData(call: call, result: result)
             
+        // ---------- C++ 数据传输 ----------
+        case "generateCppData":
+            generateCppData(result: result)
+            
+        case "processCppString":
+            processCppString(call: call, result: result)
+            
+        case "calculateCppStatistics":
+            calculateCppStatistics(call: call, result: result)
+            
+        case "simulateCppDataTransfer":
+            simulateCppDataTransfer(call: call, result: result)
+            
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -335,6 +348,66 @@ class NativeBridgeHandler: NSObject {
         UserDefaults.standard.synchronize()
         
         result(true)
+    }
+    
+    // MARK: - C++ 数据传输实现
+    
+    /// 从 C++ 生成模拟数据
+    private func generateCppData(result: @escaping FlutterResult) {
+        let jsonString = DataTransViewController.generateSimulationDataFromCPP()
+        
+        // 将 JSON 字符串转换为字典
+        if let data = jsonString.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+            result(json)
+        } else {
+            result(FlutterError(code: "PARSE_ERROR", message: "解析 C++ 数据失败", details: nil))
+        }
+    }
+    
+    /// 处理字符串（调用 C++ 加密）
+    private func processCppString(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let input = args["input"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let processed = DataTransViewController.processString(withCPP: input)
+        result(processed)
+    }
+    
+    /// 计算统计数据（调用 C++ 计算）
+    private func calculateCppStatistics(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let numbers = args["numbers"] as? [Int] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let numberObjects = numbers.map { NSNumber(value: $0) }
+        let stats = DataTransViewController.calculateStatistics(withCPP: numberObjects)
+        result(stats)
+    }
+    
+    /// 模拟数据传输（调用 C++ 获取复杂数据）
+    private func simulateCppDataTransfer(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let userId = args["userId"] as? Int,
+              let messageCount = args["messageCount"] as? Int else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let jsonString = DataTransViewController.simulateDataTransfer(withCPP: userId, messageCount: messageCount)
+        
+        // 将 JSON 字符串转换为字典
+        if let data = jsonString.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+            result(json)
+        } else {
+            result(FlutterError(code: "PARSE_ERROR", message: "解析 C++ 数据失败", details: nil))
+        }
     }
     
     // MARK: - BasicMessageChannel 处理
