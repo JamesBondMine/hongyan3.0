@@ -61,30 +61,35 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
 - (int)initSDKWithConfig:(NSString *)config {
     NSLog(@"🚀 初始化 IM SDK（按照官方文档顺序）");
     @try {
-        // ========== 步骤1: 初始化网络库（官方文档要求第一步）==========
-        NSLog(@"📝 步骤1: 调用 network_init()...");
+        // 步骤1: 初始化网络库
         int result = network_init();
-        NSLog(@"   network_init 结果: %d", result);
-        
         if (result != 0) {
             NSLog(@"❌ network_init 失败: %d", result);
             return result;
         }
         
-        // ========== 步骤2: 设置客户端信息 ==========
-        NSLog(@"📝 步骤2: 设置客户端信息...");
-        int clientResult = set_client_info("iOS", "16.0", "test-device-001", "Asia/Shanghai");
-        NSLog(@"   客户端信息结果: %d", clientResult);
+        // 步骤2: 设置客户端信息
+        set_client_info("iOS", "16.0", "test-device-001", "Asia/Shanghai");
         
-        // ========== 步骤3: 设置回调 ==========
-        NSLog(@"📝 步骤3: 设置回调...");
+        // 步骤3: 设置回调
         network_set_event_callback(GlobalEventCallback);
         network_set_data_callback(GlobalDataCallback);
-        NSLog(@"✅ 回调设置完成");
+        
+        // 步骤4: 启动网络服务
+        int startResult = network_start();
+        if (startResult != 0) {
+            NSLog(@"❌ network_start 失败: %d", startResult);
+            return startResult;
+        }
+        
+        // 步骤5: 启动网络检测
+        int checkResult = network_start_net_check("https://www.baidu.com");
+        if (checkResult != 0) {
+            NSLog(@"⚠️ network_start_net_check 失败: %d（不影响初始化）", checkResult);
+        }
         
         NSLog(@"✅ SDK 初始化成功");
-        return result;
-        
+        return 0;
     } @catch (NSException *exception) {
         NSLog(@"❌ SDK 初始化异常: %@", exception);
         return -9999;
@@ -179,15 +184,17 @@ static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
 }
 
 - (void)setNetworkEventCallback:(void (^)(uint8_t, NSString *))callback {
+    NSLog(@"📝 设置网络事件回调: callback=%p, isNil=%@", callback, callback ? @"NO" : @"YES");
     self.networkEventCallback = callback;
     network_set_event_callback(NetworkEventCallbackWrapper);
-    NSLog(@"✅ 网络事件回调已设置");
+    NSLog(@"✅ 网络事件回调已设置完成");
 }
 
 - (void)setDataReceivedCallback:(void (^)(NSString *))callback {
+    NSLog(@"📝 设置数据接收回调: callback=%p, isNil=%@", callback, callback ? @"NO" : @"YES");
     self.dataReceivedCallback = callback;
     network_set_data_callback(DataReceivedCallbackWrapper);
-    NSLog(@"✅ 数据接收回调已设置");
+    NSLog(@"✅ 数据接收回调已设置完成");
 }
 
 // ==================== 连接管理 ====================
