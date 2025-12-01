@@ -71,6 +71,11 @@ class HomePage extends StatelessWidget {
             
             const SizedBox(height: 16),
             
+            // IM SDK 状态卡片
+            _buildIMSDKStatusCard(globalCtrl),
+            
+            const SizedBox(height: 16),
+            
             // 功能网格
             _buildFunctionGrid(context),
             
@@ -183,6 +188,106 @@ class HomePage extends StatelessWidget {
     });
   }
 
+  /// 构建 IM SDK 状态卡片
+  Widget _buildIMSDKStatusCard(GlobalController globalCtrl) {
+    return Obx(() {
+      final status = globalCtrl.imsdkStatus.value;
+      final isInitialized = globalCtrl.isIMSDKInitialized.value;
+      
+      // 根据状态设置颜色和图标
+      Color statusColor;
+      IconData statusIcon;
+      
+      if (status.contains('运行中')) {
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle;
+      } else if (status.contains('初始化成功') || status.contains('启动成功')) {
+        statusColor = Colors.blue;
+        statusIcon = Icons.sync;
+      } else if (status.contains('失败') || status.contains('异常')) {
+        statusColor = Colors.red;
+        statusIcon = Icons.error;
+      } else if (status.contains('模拟器')) {
+        statusColor = Colors.orange;
+        statusIcon = Icons.warning;
+      } else {
+        statusColor = Colors.grey;
+        statusIcon = Icons.info;
+      }
+      
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // 状态图标
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                statusIcon,
+                color: statusColor,
+                size: 24,
+              ),
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // 状态信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'IM SDK 状态',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: statusColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // 重试按钮（如果初始化失败）
+            if (!isInitialized && !status.contains('正在'))
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 20),
+                onPressed: () async {
+                  // 重新初始化
+                  await globalCtrl.initializeIMSDK();
+                },
+                tooltip: '重试',
+              ),
+          ],
+        ),
+      );
+    });
+  }
+  
   /// 构建功能网格
   Widget _buildFunctionGrid(BuildContext context) {
     final functions = [

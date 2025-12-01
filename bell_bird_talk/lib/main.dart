@@ -55,9 +55,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 获取全局控制器检查登录状态
-    final globalCtrl = Get.find<GlobalController>();
-    
     return GetMaterialApp(
       title: '铃鸟聊天',
       theme: ThemeData(
@@ -73,10 +70,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      // 根据登录状态决定初始页面
-      home: Obx(() => globalCtrl.isLoggedIn.value 
-          ? const HomePage() 
-          : const LoginPage()),
+      // 使用启动页面
+      home: const SplashPage(),
       builder: EasyLoading.init(),
       // 路由配置
       getPages: [
@@ -93,5 +88,107 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// 原来的欢迎页面已被 LoginPage 和 HomePage 替代
-// 如果需要可以保留作为引导页
+/// 启动页面 - 处理初始化逻辑
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      // 等待一小段时间，确保 GetX 初始化完成
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 获取全局控制器
+      final globalCtrl = Get.find<GlobalController>();
+      
+      // 等待数据加载完成（最多等待 3 秒）
+      await Future.any([
+        Future.delayed(const Duration(seconds: 3)),
+        Future(() async {
+          while (globalCtrl.imsdkStatus.value == '正在初始化...' || 
+                 globalCtrl.imsdkStatus.value == '正在启动网络服务...') {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+        }),
+      ]);
+      
+      // 检查登录状态并跳转
+      if (globalCtrl.isLoggedIn.value) {
+        Get.off(() => const HomePage());
+      } else {
+        Get.off(() => const LoginPage());
+      }
+    } catch (e) {
+      print('❌ 初始化错误: $e');
+      // 出错也跳转到登录页
+      Get.off(() => const LoginPage());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.blue,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo 或 App 图标
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                size: 60,
+                color: Colors.blue,
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            // App 名称
+            const Text(
+              '铃鸟聊天',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            
+            const SizedBox(height: 48),
+            
+            // 加载指示器
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            const Text(
+              '正在初始化...',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

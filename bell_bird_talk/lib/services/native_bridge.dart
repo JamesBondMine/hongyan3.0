@@ -172,5 +172,56 @@ class IOSNativeService {
     });
     return result?.cast<String, dynamic>();
   }
+  
+  // ---------- IM SDK ----------
+  
+  /// 初始化 IM SDK
+  Future<bool> imInitialize() async {
+    final result = await _bridge.invokeMethod<bool>('imInitialize');
+    return result ?? false;
+  }
+  
+  /// 启动 IM 网络服务
+  Future<bool> imStart() async {
+    final result = await _bridge.invokeMethod<bool>('imStart');
+    return result ?? false;
+  }
+  
+  /// 启动网络检查
+  Future<bool> imStartNetCheck(String url) async {
+    final result = await _bridge.invokeMethod<bool>('imStartNetCheck', {
+      'url': url,
+    });
+    return result ?? false;
+  }
+  
+  /// 设置 IP 地址表
+  Future<bool> imSetIPTable(List<String> ips) async {
+    final result = await _bridge.invokeMethod<bool>('imSetIPTable', {
+      'ips': ips,
+    });
+    return result ?? false;
+  }
+  
+  /// 获取 IP 延迟状态
+  Future<List<int>> imGetIPStatus() async {
+    final result = await _bridge.invokeMethod<List>('imGetIPStatus');
+    return result?.cast<int>() ?? [];
+  }
+  
+  /// 添加目标服务器
+  Future<bool> imAddTarget(String ip, int port) async {
+    final result = await _bridge.invokeMethod<bool>('imAddTarget', {
+      'ip': ip,
+      'port': port,
+    });
+    return result ?? false;
+  }
+  
+  /// 停止 IM 网络服务
+  Future<bool> imStop() async {
+    final result = await _bridge.invokeMethod<bool>('imStop');
+    return result ?? false;
+  }
 }
 

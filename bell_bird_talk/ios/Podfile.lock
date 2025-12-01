@@ -26,8 +26,10 @@ PODS:
   - Mantle/extobjc (2.2.0)
   - objective_c (0.0.1):
     - Flutter
+  - OpenSSL-Universal (3.3.3001)
   - permission_handler_apple (9.3.0):
     - Flutter
+  - Protobuf (3.29.5)
   - SDWebImage (5.21.3):
     - SDWebImage/Core (= 5.21.3)
   - SDWebImage/Core (5.21.3)
@@ -54,7 +56,9 @@ DEPENDENCIES:
   - image_gallery_saver (from `.symlinks/plugins/image_gallery_saver/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - objective_c (from `.symlinks/plugins/objective_c/ios`)
+  - OpenSSL-Universal
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - Protobuf
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
@@ -65,6 +69,8 @@ SPEC REPOS:
   trunk:
     - libwebp
     - Mantle
+    - OpenSSL-Universal
+    - Protobuf
     - SDWebImage
     - SDWebImageWebPCoder
 
@@ -100,7 +106,9 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
+  OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  Protobuf: 164aea2ae380c3951abdc3e195220c01d17400e0
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
@@ -109,6 +117,6 @@ SPEC CHECKSUMS:
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: b3fdc952782fd4cb219e0331d52d5f1f07f5f592
 
 COCOAPODS: 1.16.2

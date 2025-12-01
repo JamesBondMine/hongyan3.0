@@ -3,6 +3,11 @@ import UIKit
 import Contacts
 import UserNotifications
 
+// IMSDK
+import netinet_in
+
+
+
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   
@@ -19,6 +24,14 @@ import UserNotifications
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+    
+    //C++通信
+    private func imsdkManagerConfig() {
+//        int ret = network_init();
+//        if (ret != 0) {
+//            // 初始化失败
+//        }
+    }
   
   private func setupNativeBridge() {
     guard let controller = window?.rootViewController as? FlutterViewController else {
@@ -130,6 +143,28 @@ class NativeBridgeHandler: NSObject {
             
         case "simulateCppDataTransfer":
             simulateCppDataTransfer(call: call, result: result)
+            
+        // ---------- IM SDK ----------
+        case "imInitialize":
+            imInitialize(result: result)
+            
+        case "imStart":
+            imStart(result: result)
+            
+        case "imStartNetCheck":
+            imStartNetCheck(call: call, result: result)
+            
+        case "imSetIPTable":
+            imSetIPTable(call: call, result: result)
+            
+        case "imGetIPStatus":
+            imGetIPStatus(result: result)
+            
+        case "imAddTarget":
+            imAddTarget(call: call, result: result)
+            
+        case "imStop":
+            imStop(result: result)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -408,6 +443,83 @@ class NativeBridgeHandler: NSObject {
         } else {
             result(FlutterError(code: "PARSE_ERROR", message: "解析 C++ 数据失败", details: nil))
         }
+    }
+    
+    // MARK: - IM SDK 实现
+    
+    /// 初始化 IM SDK---addTargetToGroupWithIP
+    private func imInitialize(result: @escaping FlutterResult) {
+        let code = IMSDKManager.shared().initializeNetwork()
+        
+        // 设置回调
+        IMSDKManager.shared().setNetworkEventCallback { [weak self] eventCode, eventDesc in
+            print("📡 网络事件: \(eventCode) - \(eventDesc)")
+            // 可以通过 EventChannel 发送到 Flutter
+            self?.eventSink?(["type": "network_event", "code": eventCode, "desc": eventDesc])
+        }
+        
+        IMSDKManager.shared().setDataReceivedCallback { [weak self] data in
+            print("📥 接收数据: \(data)")
+            // 可以通过 EventChannel 发送到 Flutter
+            self?.eventSink?(["type": "data_received", "data": data])
+        }
+        
+        result(code == 0 ? true : false)
+    }
+    
+    /// 启动网络服务
+    private func imStart(result: @escaping FlutterResult) {
+        let code = IMSDKManager.shared().startNetwork()
+        result(code == 0 ? true : false)
+    }
+    
+    /// 启动网络检查
+    private func imStartNetCheck(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let url = args["url"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let code = IMSDKManager.shared().startNetworkCheck(withURL: url)
+        result(code == 0 ? true : false)
+    }
+    
+    /// 设置 IP 地址表
+    private func imSetIPTable(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let ips = args["ips"] as? [String] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        IMSDKManager.shared().setIPTable(ips)
+        result(true)
+    }
+    
+    /// 获取 IP 延迟状态
+    private func imGetIPStatus(result: @escaping FlutterResult) {
+        let latencies = IMSDKManager.shared().getIPStatus()
+        result(latencies)
+    }
+    
+    /// 添加目标服务器
+    private func imAddTarget(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let ip = args["ip"] as? String,
+              let port = args["port"] as? Int else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        IMSDKManager.shared().addTargetToGroup(withIP: ip, port: Int32(port))
+        result(true)
+    }
+    
+    /// 停止网络服务
+    private func imStop(result: @escaping FlutterResult) {
+        IMSDKManager.shared().stopNetwork()
+        result(true)
     }
     
     // MARK: - BasicMessageChannel 处理

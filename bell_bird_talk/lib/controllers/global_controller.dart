@@ -5,6 +5,7 @@ import '../utils/storage_util.dart';
 import '../config/constants.dart';
 import '../network/http_client.dart';
 import '../network/websocket_client.dart';
+import '../services/native_bridge.dart';
 
 /// 全局控制器 - 管理应用全局状态
 class GlobalController extends GetxController {
@@ -32,11 +33,16 @@ class GlobalController extends GetxController {
   // 未读消息数
   final RxInt unreadCount = 0.obs;
   
+  // IM SDK 状态
+  final RxBool isIMSDKInitialized = false.obs;
+  final RxString imsdkStatus = '未初始化'.obs;
+  
   @override
   void onInit() {
     super.onInit();
     _loadLocalData();
     _listenWebSocketState();
+    initializeIMSDK(); // 初始化 IM SDK
   }
   
   // ==================== 用户相关 ====================
@@ -194,6 +200,60 @@ class GlobalController extends GetxController {
   /// 设置未读数
   void setUnreadCount(int count) {
     unreadCount.value = count.clamp(0, 999);
+  }
+  
+  // ==================== IM SDK 相关 ====================
+  
+  /// 初始化 IM SDK
+  Future<void> initializeIMSDK() async {
+    try {
+      print('🚀 开始初始化 IM SDK...');
+      imsdkStatus.value = '正在初始化...';
+      
+      final nativeService = IOSNativeService();
+      
+      // 1. 初始化（添加超时保护）
+      final initResult = await nativeService.imInitialize()
+          .timeout(const Duration(seconds: 5), onTimeout: () {
+        print('⚠️ IM SDK 初始化超时');
+        return false;
+      });
+      
+      if (initResult) {
+        print('✅ IM SDK 初始化成功');
+        isIMSDKInitialized.value = true;
+        imsdkStatus.value = '初始化成功';
+        
+        // 2. 启动网络服务（添加超时保护）
+        imsdkStatus.value = '正在启动网络服务...';
+        final startResult = await nativeService.imStart()
+            .timeout(const Duration(seconds: 5), onTimeout: () {
+          print('⚠️ IM SDK 网络服务启动超时');
+          return false;
+        });
+        
+        if (startResult) {
+          print('✅ IM SDK 网络服务启动成功');
+          imsdkStatus.value = '运行中';
+        } else {
+          print('❌ IM SDK 网络服务启动失败');
+          imsdkStatus.value = '启动失败';
+        }
+      } else {
+        print('❌ IM SDK 初始化失败');
+        imsdkStatus.value = '初始化失败';
+      }
+    } catch (e, stackTrace) {
+      print('❌ IM SDK 初始化异常: $e');
+      print('Stack trace: $stackTrace');
+      imsdkStatus.value = '初始化异常';
+      isIMSDKInitialized.value = false;
+    }
+  }
+  
+  /// 获取 IM SDK 状态
+  String getIMSDKStatus() {
+    return imsdkStatus.value;
   }
 }
 

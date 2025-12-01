@@ -68,6 +68,19 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
               ],
             ),
             
+            // IM SDK
+            _buildSection(
+              title: '💬 IM SDK (C++ 网络库)',
+              children: [
+                _buildButton('初始化 IM SDK', _imInitialize),
+                _buildButton('启动网络服务', _imStart),
+                _buildButton('设置 IP 地址表', _imSetIPTable),
+                _buildButton('获取 IP 延迟状态', _imGetIPStatus),
+                _buildButton('添加目标服务器', _imAddTarget),
+                _buildButton('停止网络服务', _imStop),
+              ],
+            ),
+            
             // iOS SDK 调用
             _buildSection(
               title: '🔧 iOS SDK 调用',
@@ -364,6 +377,79 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
       final data = await _nativeService.simulateCppDataTransfer(12345, 5);
       setState(() {
         _result = 'C++ 复杂数据传输:\n${_formatJson(data)}';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  // IM SDK
+  Future<void> _imInitialize() async {
+    try {
+      final success = await _nativeService.imInitialize();
+      setState(() {
+        _result = success ? '✅ IM SDK 初始化成功' : '❌ 初始化失败';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _imStart() async {
+    try {
+      final success = await _nativeService.imStart();
+      setState(() {
+        _result = success ? '✅ 网络服务启动成功' : '❌ 启动失败';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _imSetIPTable() async {
+    try {
+      // 示例 IP 地址
+      final ips = ['192.168.1.100', '192.168.1.101', '192.168.1.102'];
+      final success = await _nativeService.imSetIPTable(ips);
+      setState(() {
+        _result = success 
+            ? '✅ IP 地址表设置成功:\n${ips.join('\n')}'
+            : '❌ 设置失败';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _imGetIPStatus() async {
+    try {
+      final latencies = await _nativeService.imGetIPStatus();
+      setState(() {
+        _result = 'IP 延迟状态:\n${latencies.asMap().entries.map((e) => 'IP ${e.key + 1}: ${e.value}ms').join('\n')}';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _imAddTarget() async {
+    try {
+      final success = await _nativeService.imAddTarget('192.168.1.100', 8080);
+      setState(() {
+        _result = success 
+            ? '✅ 目标服务器添加成功:\n192.168.1.100:8080'
+            : '❌ 添加失败';
+      });
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _imStop() async {
+    try {
+      final success = await _nativeService.imStop();
+      setState(() {
+        _result = success ? '✅ 网络服务已停止' : '❌ 停止失败';
       });
     } catch (e) {
       _showError(e);
