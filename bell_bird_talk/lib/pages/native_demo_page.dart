@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/native_bridge.dart';
 import '../widgets/native_ui_widget.dart';
 
-/// 原生功能演示页面
+/// 原生功能演示页面--准备接入C++
 class NativeDemoPage extends StatefulWidget {
   const NativeDemoPage({super.key});
 
