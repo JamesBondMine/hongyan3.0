@@ -218,6 +218,7 @@ class GlobalController extends GetxController {
         print('⚠️ IM SDK 初始化超时');
         return false;
       });
+      return;
       
       if (initResult) {
         print('✅ IM SDK 初始化成功');

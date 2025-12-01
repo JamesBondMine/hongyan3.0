@@ -15,9 +15,16 @@ NS_ASSUME_NONNULL_BEGIN
 /// 单例实例
 + (instancetype)sharedManager;
 
+// ==================== SDK 初始化 ====================
+
+/// 初始化 SDK（推荐优先调用此方法）
+/// @param config SDK 配置（JSON 格式，可选）
+/// @return 0表示成功，其他为错误码
+- (int)initSDKWithConfig:(NSString *)config;
+
 // ==================== 网络库管理 ====================
 
-/// 初始化网络库（应用启动时调用一次）
+/// 初始化网络库（底层初始化，如果 initSDK 失败可尝试）
 /// @return 0表示成功，其他为错误码
 - (int)initializeNetwork;
 

@@ -447,22 +447,42 @@ class NativeBridgeHandler: NSObject {
     
     // MARK: - IM SDK 实现
     
-    /// 初始化 IM SDK---addTargetToGroupWithIP
+    /// 初始化 IM SDK
     private func imInitialize(result: @escaping FlutterResult) {
-        let code = IMSDKManager.shared().initializeNetwork()
+        print("🚀 开始初始化 IM SDK...")
+        var code = 0;
+        IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
         
-        // 设置回调
-        IMSDKManager.shared().setNetworkEventCallback { [weak self] eventCode, eventDesc in
-            print("📡 网络事件: \(eventCode) - \(eventDesc)")
-            // 可以通过 EventChannel 发送到 Flutter
-            self?.eventSink?(["type": "network_event", "code": eventCode, "desc": eventDesc])
-        }
+        // 方案1: 尝试调用高层 init_sdk（推荐）
+//        print("📝 方案1: 尝试调用 init_sdk（高层初始化）...")
+//        var code = IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
+//        
+//        // 如果高层初始化失败，尝试底层初始化
+//        if code != 0 {
+//            print("⚠️ init_sdk 失败 (code=\(code))，尝试底层 network_init...")
+//            code = IMSDKManager.shared().initializeNetwork()
+//        }
         
-        IMSDKManager.shared().setDataReceivedCallback { [weak self] data in
-            print("📥 接收数据: \(data)")
-            // 可以通过 EventChannel 发送到 Flutter
-            self?.eventSink?(["type": "data_received", "data": data])
-        }
+//        // 启动网络服务
+//        if code == 0 {
+//            print("✅ 初始化成功，启动网络服务...")
+//            IMSDKManager.shared().startNetwork()
+//        } else {
+//            print("❌ 初始化失败: code=\(code)")
+//        }
+        
+//        // 设置回调
+//        IMSDKManager.shared().setNetworkEventCallback { [weak self] eventCode, eventDesc in
+//            print("📡 网络事件: \(eventCode) - \(eventDesc)")
+//            // 可以通过 EventChannel 发送到 Flutter
+//            self?.eventSink?(["type": "network_event", "code": eventCode, "desc": eventDesc])
+//        }
+//        
+//        IMSDKManager.shared().setDataReceivedCallback { [weak self] data in
+//            print("📥 接收数据: \(data)")
+//            // 可以通过 EventChannel 发送到 Flutter
+//            self?.eventSink?(["type": "data_received", "data": data])
+//        }
         
         result(code == 0 ? true : false)
     }

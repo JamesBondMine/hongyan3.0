@@ -6,17 +6,9 @@
 //
 
 #import "IMSDKManager.h"
-
-// 仅在真机上引入 C++ SDK 头文件
-#if TARGET_OS_SIMULATOR
-    // 模拟器环境 - 不引入 C++ SDK
-    #warning "IM SDK 不支持模拟器，请在真机上测试 IM SDK 功能"
-#else
-    // 真机环境 - 引入 C++ SDK
-    #include "network_lib.h"
-    #include "callback_types.h"
-    #include "common_definitions.h"
-#endif
+#include "network_lib.h"
+#include "callback_types.h"
+#include "common_definitions.h"
 
 @interface IMSDKManager ()
 
@@ -46,171 +38,171 @@
     return self;
 }
 
+// ==================== SDK 初始化 ====================
+
+// 全局回调函数（C 函数，SDK 需要）
+static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint32_t length) {
+    NSLog(@"🔔 网络事件回调: code=%d, desc=%s", event_code, event_desc ? event_desc : "null");
+}
+
+static void GlobalDataCallback(const char* data, uint32_t length) {
+    NSLog(@"📥 数据回调: length=%d", length);
+}
+
+// SDK 初始化回调
+static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
+    NSLog(@"🔔 SDK 初始化回调: errorCode=%d, dataLen=%d", errorCode, dataLen);
+    if (data && dataLen > 0) {
+        NSString *dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+        NSLog(@"   数据: %@", dataStr);
+    }
+}
+
+- (int)initSDKWithConfig:(NSString *)config {
+    NSLog(@"🚀 初始化 IM SDK（按照官方文档顺序）");
+    @try {
+        // ========== 步骤1: 初始化网络库（官方文档要求第一步）==========
+        NSLog(@"📝 步骤1: 调用 network_init()...");
+        int result = network_init();
+        NSLog(@"   network_init 结果: %d", result);
+        
+        if (result != 0) {
+            NSLog(@"❌ network_init 失败: %d", result);
+            return result;
+        }
+        
+        // ========== 步骤2: 设置客户端信息 ==========
+        NSLog(@"📝 步骤2: 设置客户端信息...");
+        int clientResult = set_client_info("iOS", "16.0", "test-device-001", "Asia/Shanghai");
+        NSLog(@"   客户端信息结果: %d", clientResult);
+        
+        // ========== 步骤3: 设置回调 ==========
+        NSLog(@"📝 步骤3: 设置回调...");
+        network_set_event_callback(GlobalEventCallback);
+        network_set_data_callback(GlobalDataCallback);
+        NSLog(@"✅ 回调设置完成");
+        
+        NSLog(@"✅ SDK 初始化成功");
+        return result;
+        
+    } @catch (NSException *exception) {
+        NSLog(@"❌ SDK 初始化异常: %@", exception);
+        return -9999;
+    }
+}
+
 // ==================== 网络库管理 ====================
 
 - (int)initializeNetwork {
-    NSLog(@"🔧 初始化网络库");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK，请在真机上测试");
-    return 0; // 模拟器错误码
-// #else
-//     int result = network_init();
-//     NSLog(@"📊 初始化结果: %d", result);
-//     return result;
-// #endif
+    NSLog(@"🔧 初始化网络库（不推荐，请使用 initSDKWithConfig）");
+    return [self initSDKWithConfig:nil];
 }
 
 - (int)startNetwork {
     NSLog(@"🚀 启动网络服务");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-    return 0;
-// #else
-//     int result = network_start();
-//     NSLog(@"📊 启动结果: %d", result);
-//     return result;
-// #endif
+    int result = network_start();
+    NSLog(@"📊 启动结果: %d", result);
+    return result;
 }
 
 - (int)startNetworkCheckWithURL:(NSString *)url {
     NSLog(@"🔍 启动网络检查: %@", url);
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-    return 0;
-// #else
-//     const char *cUrl = [url UTF8String];
-//     int result = network_start_net_check(cUrl);
-//     NSLog(@"📊 检查结果: %d", result);
-//     return result;
-// #endif
+    const char *cUrl = [url UTF8String];
+    int result = network_start_net_check(cUrl);
+    NSLog(@"📊 检查结果: %d", result);
+    return result;
 }
 
 - (void)setIPTable:(NSArray<NSString *> *)ips {
     NSLog(@"🌐 设置 IP 地址表: %lu 个", (unsigned long)ips.count);
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-// #else
-//     // 转换 NSArray 为 C 字符串数组
-//     const char **cIps = (const char **)malloc(ips.count * sizeof(char *));
-//     for (NSUInteger i = 0; i < ips.count; i++) {
-//         cIps[i] = [ips[i] UTF8String];
-//     }
+    // 转换 NSArray 为 C 字符串数组
+    const char **cIps = (const char **)malloc(ips.count * sizeof(char *));
+    for (NSUInteger i = 0; i < ips.count; i++) {
+        cIps[i] = [ips[i] UTF8String];
+    }
     
-//     network_set_ip_table(cIps, (uint32_t)ips.count);
+    network_set_ip_table(cIps, (uint32_t)ips.count);
     
-//     free(cIps);
-// #endif
+    free(cIps);
 }
 
 - (NSArray<NSNumber *> *)getIPStatus {
     NSLog(@"📊 获取 IP 延迟状态");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-    return @[@(-999), @(-999), @(-999)]; // 返回模拟数据
-// #else
-//     // 假设最多支持 10 个 IP
-//     const int maxCount = 10;
-//     int latencies[maxCount];
+    // 假设最多支持 10 个 IP
+    const int maxCount = 10;
+    int latencies[maxCount];
     
-//     network_get_ip_status(latencies, maxCount);
+    network_get_ip_status(latencies, maxCount);
     
-//     NSMutableArray<NSNumber *> *result = [NSMutableArray array];
-//     for (int i = 0; i < maxCount; i++) {
-//         [result addObject:@(latencies[i])];
-//     }
+    NSMutableArray<NSNumber *> *result = [NSMutableArray array];
+    for (int i = 0; i < maxCount; i++) {
+        [result addObject:@(latencies[i])];
+    }
     
-//     return [result copy];
-// #endif
+    return [result copy];
 }
 
 - (void)stopNetwork {
     NSLog(@"🛑 停止网络服务");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-// #else
-//     network_stop();
-// #endif
+    network_stop();
 }
 
 - (void)cleanupNetwork {
     NSLog(@"🧹 清理网络库");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-// #else
-//     network_cleanup();
-// #endif
+    network_cleanup();
 }
 
 // ==================== 回调管理 ====================
 
-// #if !TARGET_OS_SIMULATOR
-// // C 函数回调 - 网络事件（仅真机）
-// static void NetworkEventCallbackWrapper(uint8_t event_code, const char* event_desc, uint32_t length) {
-//     IMSDKManager *manager = [IMSDKManager sharedManager];
-//     if (manager.networkEventCallback) {
-//         NSString *desc = event_desc ? [NSString stringWithUTF8String:event_desc] : @"";
-//         dispatch_async(dispatch_get_main_queue(), ^{
-//             manager.networkEventCallback(event_code, desc);
-//         });
-//     }
-// }
+// C 函数回调 - 网络事件
+static void NetworkEventCallbackWrapper(uint8_t event_code, const char* event_desc, uint32_t length) {
+    IMSDKManager *manager = [IMSDKManager sharedManager];
+    if (manager.networkEventCallback) {
+        NSString *desc = event_desc ? [NSString stringWithUTF8String:event_desc] : @"";
+        dispatch_async(dispatch_get_main_queue(), ^{
+            manager.networkEventCallback(event_code, desc);
+        });
+    }
+}
 
-// // C 函数回调 - 数据接收（仅真机）
-// static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
-//     IMSDKManager *manager = [IMSDKManager sharedManager];
-//     if (manager.dataReceivedCallback) {
-//         NSString *dataStr = [[NSString alloc] initWithBytes:data 
-//                                                      length:length 
-//                                                    encoding:NSUTF8StringEncoding];
-//         dispatch_async(dispatch_get_main_queue(), ^{
-//             manager.dataReceivedCallback(dataStr);
-//         });
-//     }
-// }
-// #endif
+// C 函数回调 - 数据接收
+static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
+    IMSDKManager *manager = [IMSDKManager sharedManager];
+    if (manager.dataReceivedCallback) {
+        NSString *dataStr = [[NSString alloc] initWithBytes:data 
+                                                     length:length 
+                                                   encoding:NSUTF8StringEncoding];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            manager.dataReceivedCallback(dataStr);
+        });
+    }
+}
 
 - (void)setNetworkEventCallback:(void (^)(uint8_t, NSString *))callback {
     self.networkEventCallback = callback;
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK 回调");
-// #else
-//     network_set_event_callback(NetworkEventCallbackWrapper);
-//     NSLog(@"✅ 网络事件回调已设置");
-// #endif
+    network_set_event_callback(NetworkEventCallbackWrapper);
+    NSLog(@"✅ 网络事件回调已设置");
 }
 
 - (void)setDataReceivedCallback:(void (^)(NSString *))callback {
     self.dataReceivedCallback = callback;
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK 回调");
-// #else
-//     network_set_data_callback(DataReceivedCallbackWrapper);
-//     NSLog(@"✅ 数据接收回调已设置");
-// #endif
+    network_set_data_callback(DataReceivedCallbackWrapper);
+    NSLog(@"✅ 数据接收回调已设置");
 }
 
 // ==================== 连接管理 ====================
 
 - (void)addTargetToGroupWithIP:(NSString *)ip port:(int)port {
     NSLog(@"➕ 添加目标服务器: %@:%d", ip, port);
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-// #else
-//     const char *cIp = [ip UTF8String];
-//     network_add_target_to_group(cIp, port);
-// #endif
+    const char *cIp = [ip UTF8String];
+    network_add_target_to_group(cIp, port);
 }
 
 - (int)triggerImmediateReconnect:(BOOL)resetRetryCount {
     NSLog(@"🔄 触发立即重连 (重置计数: %@)", resetRetryCount ? @"是" : @"否");
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-    return -999;
-// #else
-//     int result = network_trigger_immediate_reconnect(resetRetryCount);
-//     NSLog(@"📊 重连结果: %d", result);
-//     return result;
-// #endif
+    int result = network_trigger_immediate_reconnect(resetRetryCount);
+    NSLog(@"📊 重连结果: %d", result);
+    return result;
 }
 
 // ==================== 消息管理 ====================
@@ -222,25 +214,16 @@
               receiverId:(NSString *)receiverId {
     
     NSLog(@"📤 发送消息: %@ -> %@", senderId, receiverId);
-// #if TARGET_OS_SIMULATOR
-    NSLog(@"⚠️ 模拟器不支持 IM SDK");
-    return -999;
-// #else
-//     // 这里需要根据实际 SDK 的消息发送接口来实现
-//     // 示例代码，实际需要查看 network_lib.h 中的消息发送函数
-    
-//     return 0; // 返回发送结果
-// #endif
+    // 这里需要根据实际 SDK 的消息发送接口来实现
+    // 示例代码，实际需要查看 network_lib.h 中的消息发送函数
+    NSLog(@"⚠️ 消息发送功能待实现");
+    return 0;
 }
 
 // ==================== 事件循环 ====================
 
 - (void)runEventLoop {
-// #if TARGET_OS_SIMULATOR
-//     // 模拟器不执行事件循环
-// #else
-//     network_event_loop();
-// #endif
+    network_event_loop();
 }
 
 @end

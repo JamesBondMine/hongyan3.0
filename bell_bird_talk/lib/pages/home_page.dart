@@ -281,13 +281,13 @@ class HomePage extends StatelessWidget {
                   await globalCtrl.initializeIMSDK();
                 },
                 tooltip: '重试',
-              ),
+            ),
           ],
         ),
       );
     });
   }
-  
+
   /// 构建功能网格
   Widget _buildFunctionGrid(BuildContext context) {
     final functions = [

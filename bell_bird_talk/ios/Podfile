@@ -32,9 +32,8 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # IM SDK 依赖库
-  pod 'OpenSSL-Universal'
-  pod 'Protobuf'
+  # IM SDK 依赖库已在 ios_sdk_la 文件夹中提供
+  # 不需要通过 CocoaPods 引入，避免版本冲突
   
   target 'RunnerTests' do
     inherit! :search_paths
@@ -44,5 +43,20 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+  end
+  
+  # 为 IM SDK 添加必要的系统库
+  installer.pods_project.targets.each do |target|
+    if target.name == 'Runner'
+      target.build_configurations.each do |config|
+        # 添加系统库和框架
+        config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+        config.build_settings['OTHER_LDFLAGS'] << '-lc++'        # C++ 标准库
+        config.build_settings['OTHER_LDFLAGS'] << '-lz'          # 压缩库
+        config.build_settings['OTHER_LDFLAGS'] << '-lsqlite3'    # SQLite 数据库
+        config.build_settings['OTHER_LDFLAGS'] << '-lresolv'     # DNS 解析
+        config.build_settings['OTHER_LDFLAGS'] << '-framework Security'  # 安全框架
+      end
+    end
   end
 end
