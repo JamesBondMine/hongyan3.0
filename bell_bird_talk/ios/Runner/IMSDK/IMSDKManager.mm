@@ -40,24 +40,6 @@
 
 // ==================== SDK 初始化 ====================
 
-// 全局回调函数（C 函数，SDK 需要）
-static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint32_t length) {
-    NSLog(@"🔔 网络事件回调: code=%d, desc=%s", event_code, event_desc ? event_desc : "null");
-}
-
-static void GlobalDataCallback(const char* data, uint32_t length) {
-    NSLog(@"📥 数据回调: length=%d", length);
-}
-
-// SDK 初始化回调
-static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
-    NSLog(@"🔔 SDK 初始化回调: errorCode=%d, dataLen=%d", errorCode, dataLen);
-    if (data && dataLen > 0) {
-        NSString *dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
-        NSLog(@"   数据: %@", dataStr);
-    }
-}
-
 - (int)initSDKWithConfig:(NSString *)config {
     NSLog(@"🚀 初始化 IM SDK（按照官方文档顺序）");
     @try {
@@ -69,7 +51,7 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
         }
         
         // 步骤2: 设置客户端信息
-        set_client_info("iOS", "16.0", "test-device-001", "Asia/Shanghai");
+        set_client_info("ios", "16.0", "device321", "Asia/Shanghai");
         
         // 步骤3: 设置回调
         network_set_event_callback(GlobalEventCallback);
@@ -82,8 +64,13 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
             return startResult;
         }
         
+        // 步骤4.5: 添加目标服务器
+        NSLog(@"🌐 添加目标服务器: 175.178.227.41:8885");
+        network_add_target_to_group("175.178.227.41", 8885);
+        NSLog(@"✅ 目标服务器已添加");
+        
         // 步骤5: 启动网络检测
-        int checkResult = network_start_net_check("https://www.baidu.com");
+        int checkResult = network_start_net_check("https://106.55.129.121/");
         if (checkResult != 0) {
             NSLog(@"⚠️ network_start_net_check 失败: %d（不影响初始化）", checkResult);
         }
@@ -95,6 +82,77 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
         return -9999;
     }
 }
+
+// 全局回调函数（C 函数，SDK 需要）
+static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint32_t length) {
+    NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    NSLog(@"🔔 网络事件回调");
+    NSLog(@"   事件代码: %d", event_code);
+    NSLog(@"   描述长度: %u", length);
+    
+    if (event_desc && length > 0) {
+        // 使用 length 创建字符串，确保完整读取
+        NSString *descStr = [[NSString alloc] initWithBytes:event_desc 
+                                                     length:length 
+                                                   encoding:NSUTF8StringEncoding];
+        NSLog(@"   事件描述: %@", descStr);
+        
+        // 尝试解析为 JSON（如果是 JSON 格式）
+        NSData *jsonData = [descStr dataUsingEncoding:NSUTF8StringEncoding];
+        if (jsonData) {
+            NSError *error = nil;
+            id jsonObj = [NSJSONSerialization JSONObjectWithData:jsonData 
+                                                        options:0 
+                                                          error:&error];
+            if (!error && jsonObj) {
+                NSLog(@"   JSON 解析: %@", jsonObj);
+            }
+        }
+    } else {
+        NSLog(@"   事件描述: (空)");
+    }
+    NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+}
+
+static void GlobalDataCallback(const char* data, uint32_t length) {
+    NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    NSLog(@"📥 数据回调");
+    NSLog(@"   数据长度: %u", length);
+    
+    if (data && length > 0) {
+        // 使用 length 创建字符串
+        NSString *dataStr = [[NSString alloc] initWithBytes:data 
+                                                     length:length 
+                                                   encoding:NSUTF8StringEncoding];
+        NSLog(@"   数据内容: %@", dataStr);
+        
+        // 尝试解析为 JSON
+        NSData *jsonData = [dataStr dataUsingEncoding:NSUTF8StringEncoding];
+        if (jsonData) {
+            NSError *error = nil;
+            id jsonObj = [NSJSONSerialization JSONObjectWithData:jsonData 
+                                                        options:NSJSONReadingMutableContainers 
+                                                          error:&error];
+            if (!error && jsonObj) {
+                NSLog(@"   JSON 解析: %@", jsonObj);
+            }
+        }
+    } else {
+        NSLog(@"   数据内容: (空)");
+    }
+    NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+}
+
+// SDK 初始化回调
+static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
+    NSLog(@"🔔 SDK 初始化回调: errorCode=%d, dataLen=%d", errorCode, dataLen);
+    if (data && dataLen > 0) {
+        NSString *dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+        NSLog(@"   数据: %@", dataStr);
+    }
+}
+
+
 
 // ==================== 网络库管理 ====================
 
@@ -161,9 +219,15 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
 
 // C 函数回调 - 网络事件
 static void NetworkEventCallbackWrapper(uint8_t event_code, const char* event_desc, uint32_t length) {
+    // 1. 先调用全局日志回调（总是执行，用于调试）
+    GlobalEventCallback(event_code, event_desc, length);
+    
+    // 2. 如果有业务回调，再调用业务回调
     IMSDKManager *manager = [IMSDKManager sharedManager];
     if (manager.networkEventCallback) {
-        NSString *desc = event_desc ? [NSString stringWithUTF8String:event_desc] : @"";
+        NSString *desc = event_desc ? [[NSString alloc] initWithBytes:event_desc 
+                                                                length:length 
+                                                              encoding:NSUTF8StringEncoding] : @"";
         dispatch_async(dispatch_get_main_queue(), ^{
             manager.networkEventCallback(event_code, desc);
         });
@@ -172,6 +236,10 @@ static void NetworkEventCallbackWrapper(uint8_t event_code, const char* event_de
 
 // C 函数回调 - 数据接收
 static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
+    // 1. 先调用全局日志回调（总是执行，用于调试）
+    GlobalDataCallback(data, length);
+    
+    // 2. 如果有业务回调，再调用业务回调
     IMSDKManager *manager = [IMSDKManager sharedManager];
     if (manager.dataReceivedCallback) {
         NSString *dataStr = [[NSString alloc] initWithBytes:data 

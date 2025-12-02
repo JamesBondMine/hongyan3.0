@@ -6,6 +6,8 @@
 //
 
 #import "IMSDKAuthManager.h"
+#import "UserPb.pbobjc.h"
+#import "CaptchaPb.pbobjc.h"
 #include "network_lib.h"
 #include "callback_types.h"
 
@@ -229,14 +231,102 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
 
 // ==================== 用户注册 ====================
 
+- (int)registerWithDictionary:(NSDictionary *)registerDict
+                    completion:(IMSDKAuthCompletion)completion {
+    NSLog(@"📝 用户注册（字典）: %@", registerDict);
+    
+    if (!registerDict) {
+        NSLog(@"❌ 注册信息不能为空");
+        return -1;
+    }
+    
+    // 使用 protobuf 创建 CreateUser 对象
+    CreateUser *createUser = [[CreateUser alloc] init];
+    
+    // 必填字段
+    if (registerDict[@"account_id"]) {
+        createUser.accountId = registerDict[@"account_id"];
+    }
+    if (registerDict[@"password"]) {
+        createUser.password = registerDict[@"password"];
+    }
+    
+    // 可选字段 - 手机号
+    if (registerDict[@"phone"]) {
+        createUser.phone = registerDict[@"phone"];
+    }
+    
+    // 可选字段 - 邮箱
+    if (registerDict[@"email"]) {
+        createUser.email = registerDict[@"email"];
+    }
+    
+    // 可选字段 - 昵称
+    if (registerDict[@"nickname"]) {
+        createUser.nickname = registerDict[@"nickname"];
+    }
+    
+    // 可选字段 - 业务邀请码
+    if (registerDict[@"biz_code"]) {
+        createUser.bizCode = registerDict[@"biz_code"];
+    }
+    
+    // 可选字段 - 注册方式
+    if (registerDict[@"register_type"]) {
+        NSString *typeStr = registerDict[@"register_type"];
+        if ([typeStr isEqualToString:@"phone"]) {
+            createUser.registerType = RegisterType_PhoneSms;
+        } else if ([typeStr isEqualToString:@"account"]) {
+            createUser.registerType = RegisterType_UsernamePassword;
+        } else if ([typeStr isEqualToString:@"email"]) {
+            createUser.registerType = RegisterType_EmailVerify;
+        }
+    }
+    
+    // 可选字段 - 验证码信息
+    // CaptchaInfo 只有两个字段：captcha_id 和 answer
+    if (registerDict[@"captcha"]) {
+        NSDictionary *captchaDict = registerDict[@"captcha"];
+        CaptchaInfo *captcha = [[CaptchaInfo alloc] init];
+        
+        if (captchaDict[@"captcha_id"]) {
+            captcha.captchaId = captchaDict[@"captcha_id"];
+        }
+        if (captchaDict[@"captcha_code"] || captchaDict[@"answer"]) {
+            // Flutter 可能传 captcha_code 或 answer，映射到 protobuf 的 answer 字段
+            captcha.answer = captchaDict[@"captcha_code"] ?: captchaDict[@"answer"];
+        }
+        
+        createUser.captcha = captcha;
+    }
+    
+    // 序列化 protobuf 对象
+    NSData *serializedData = [createUser data];
+    NSLog(@"📦 Protobuf 序列化成功: %lu bytes", (unsigned long)serializedData.length);
+    
+    // 调用底层的序列化数据方法
+    return [self registerWithSerializedData:serializedData completion:completion];
+}
+
 - (int)registerWithSerializedData:(NSData *)serializedData
                         completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"📝 用户注册: dataLen=%lu", (unsigned long)serializedData.length);
+    NSLog(@"📝 用户注册（protobuf）: dataLen=%lu", (unsigned long)serializedData.length);
     
     if (!serializedData || serializedData.length == 0) {
         NSLog(@"❌ 序列化数据不能为空");
         return -1;
     }
+    
+    // 打印十六进制数据（用于验证 protobuf 格式）
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    NSUInteger printLen = MIN(serializedData.length, 64); // 打印前64字节
+    for (NSUInteger i = 0; i < printLen; i++) {
+        [hexString appendFormat:@"%02x ", bytes[i]];
+        if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
+    }
+    NSLog(@"🔍 Protobuf 十六进制格式:\n                        %@", hexString);
+    NSLog(@"✅ 这是正确的！Protobuf 是二进制格式，其中 string 字段以 UTF-8 存储");
     
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;

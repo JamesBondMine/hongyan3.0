@@ -223,5 +223,55 @@ class IOSNativeService {
     final result = await _bridge.invokeMethod<bool>('imStop');
     return result ?? false;
   }
+  
+  // ---------- IM SDK 认证相关 ----------
+  
+  /// 用户注册
+  /// @param registerData 注册数据
+  ///   - register_type: 'account' 或 'phone'
+  ///   - account_id: 账号（account 模式）
+  ///   - phone: 手机号（phone 模式）
+  ///   - captcha: 验证码（phone 模式）
+  ///   - password: 密码
+  ///   - biz_code: 邀请码（可选）
+  /// @return 注册结果
+  Future<Map<String, dynamic>> imRegister(Map<String, dynamic> registerData) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imRegister', registerData);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取验证码
+  /// @param phone 手机号
+  /// @return 验证码结果
+  Future<Map<String, dynamic>> imGetCaptcha(String phone) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetCaptcha', {
+        'phone': phone,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 用户登录
+  /// @param userId 用户ID
+  /// @param token 用户token
+  /// @return 登录结果
+  Future<Map<String, dynamic>> imLogin(String userId, String token) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imLogin', {
+        'userId': userId,
+        'token': token,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 

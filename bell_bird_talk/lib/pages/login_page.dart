@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/login_controller.dart';
+import 'register_page.dart';
 
 /// 登录页面
 class LoginPage extends StatelessWidget {
@@ -227,7 +228,8 @@ class LoginPage extends StatelessWidget {
             height: 50,
             child: OutlinedButton(
               onPressed: () {
-                EasyLoading.showInfo('注册功能开发中');
+                // 跳转到注册页面
+                Get.to(() => const RegisterPage());
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.blue,

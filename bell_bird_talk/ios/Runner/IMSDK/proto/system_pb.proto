@@ -1,0 +1,61 @@
+// system_pb.proto
+syntax = "proto3";
+package com.cloud.im.common.core.system;
+
+option java_package = "com.cloud.im.common.core.protocol.system";
+option java_outer_classname = "SystemProtos";
+
+//配置响应对象
+message ConfigResp {
+  map<string, string> data = 1;
+}
+
+// 错误响应对象
+message Error {
+  // 错误码，例如 400、500 等
+  int32 code = 1;
+  // 错误描述模板
+  string message = 2;
+  // 占位符列表，用于在客户端做动态替换
+  repeated string placeholders = 3;
+}
+
+// 通用空响应 - 用于所有业务模块的成功响应
+message EmptyResponse {
+  // 空消息，表示成功
+}
+
+// 通用分页对象
+message Page {
+  int32 page = 1;           // 页码（从1开始）
+  int32 size = 2;           // 每页大小
+  string sort_field = 3;    // 排序字段（可选）
+  string sort_order = 4;    // 排序方向：ASC/DESC（可选，默认ASC）
+  int32 total_count = 5;    // 总记录数
+  int32 total_pages = 6;    // 总页数
+  bool has_previous = 7;    // 是否有上一页
+  bool has_next = 8;        // 是否有下一页
+}
+
+// 错误码查询 - 查询操作
+message QueryErrorCode {
+  int32 code = 1;           // 完整错误码
+}
+
+// 错误码详情 - 查询结果
+message ErrorCodeDetail {
+  int32 code = 1;                   // 完整错误码
+  int32 biz_model_code = 2;         // 业务模型码（MMM，3位，第三位占位）
+  string biz_model_desc = 3;        // 业务模型描述
+  int32 module_code = 4;            // 模块码（PP，2位）
+  string module_desc = 5;           // 模块描述
+  int32 detail_code = 6;            // 详细错误码（SSS，3位）
+  string detail_desc = 7;           // 详细错误描述
+  string full_message = 8;          // 完整错误消息（格式：业务模型-模块-详细错误）
+  bool found = 9;                   // 是否找到错误码
+}
+
+// 通用参数请求 - 用于所有只需要一个字符串参数的请求（可以是各种ID）
+message Param {
+  string param = 1;  // 参数值（必填，具体含义由方法上下文决定，如community_id、channel_id等）
+}

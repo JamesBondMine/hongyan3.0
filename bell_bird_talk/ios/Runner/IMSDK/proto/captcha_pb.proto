@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package im.captcha;
+
+option java_package = "com.cloud.im.common.core.protocol.captcha";
+option java_outer_classname = "CaptchaProtos";
+
+// ============ 核心领域对象 ============
+
+// 验证码类型枚举
+enum CaptchaType {
+  IMAGE = 0;    // 图形验证码（默认值）
+  SMS = 1;      // 短信验证码
+  EMAIL = 2;    // 邮箱验证码
+}
+
+// 验证码信息（嵌入业务请求）
+message CaptchaInfo {
+  string captcha_id = 1;                // 验证码ID，最大长度: 100字符
+  string answer = 2;                    // 验证码答案，最大长度: 20字符
+}
+
+// ============ 查询操作 ============
+
+// 获取验证码 - 查询操作
+message GetCaptcha {
+  string scene = 1;                     // 使用场景：login/register/createGroup等，最大长度: 50字符（必填）
+  CaptchaType type = 2;                 // 验证码类型（必填）
+  string value = 3;                     // 目标值：SMS时为手机号，EMAIL时为邮箱，IMAGE时为空（可选）
+}
+
+// ============ 操作对象 ============
+
+// 验证验证码 - 操作对象
+message Verify {
+  string captcha_id = 1;                // 验证码ID，最大长度: 100字符（必填）
+  string answer = 2;                    // 用户输入答案，最大长度: 20字符（必填）
+}
+
+// ============ 结果对象 ============
+
+// 获取验证码结果 - 结果对象
+message GetResult {
+  string captcha_id = 1;                // 验证码唯一标识，最大长度: 100字符
+  CaptchaType type = 2;                 // 验证码类型
+  string image_data = 3;                // 图形验证码Base64数据，最大长度: 10KB（图形验证码时使用）
+  string phone_masked = 4;              // 手机号掩码显示，最大长度: 20字符（短信验证码时使用）
+  string email_masked = 5;              // 邮箱掩码显示，最大长度: 50字符（邮箱验证码时使用）
+  int32 expire_seconds = 6;             // 过期时间(秒)
+  map<string, string> extra = 7;        // 扩展信息
+}
+
+// 验证验证码结果 - 结果对象
+message VerifyResult {
+  bool success = 1;                     // 验证结果
+  string message = 2;                   // 提示信息，最大长度: 200字符
+  int32 remaining_attempts = 3;         // 剩余尝试次数
+}
+
+// 验证码挑战响应（限频时返回）- 结果对象
+message CaptchaChallenge {
+  string captcha_id = 1;                // 验证码ID，最大长度: 100字符
+  CaptchaType type = 2;                 // 验证码类型
+  string image_data = 3;                // 图形验证码Base64数据（如果是图形验证码）
+  string phone_masked = 4;              // 手机号掩码（如果是短信验证码）
+  string email_masked = 5;              // 邮箱掩码（如果是邮箱验证码）
+  int32 expire_seconds = 6;             // 过期时间(秒)
+  string scene = 7;                     // 验证场景，最大长度: 50字符
+  int32 retry_after = 8;                // 重试冷却时间(秒)
+}

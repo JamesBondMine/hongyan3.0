@@ -166,9 +166,114 @@ class NativeBridgeHandler: NSObject {
         case "imStop":
             imStop(result: result)
             
+        // ---------- IM SDK 认证 ----------
+        case "imRegister":
+            imRegister(call: call, result: result)
+            
+        case "imGetCaptcha":
+            imGetCaptcha(call: call, result: result)
+            
+        case "imLogin":
+            imLogin(call: call, result: result)
+            
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+    
+    // MARK: - 沙盒信息
+    
+    /// 打印沙盒路径和文件夹信息
+    private func printSandboxInfo() {
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("📂 iOS 沙盒路径信息")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        
+        let fileManager = FileManager.default
+        
+        // 1. 沙盒根目录（Home Directory）
+        let homeDir = NSHomeDirectory()
+        print("\n🏠 沙盒根目录:")
+        print("   \(homeDir)")
+        
+        // 2. Documents 目录（用户数据，会被 iCloud 备份）
+        if let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            print("\n📄 Documents 目录:")
+            print("   \(documentsDir.path)")
+            listDirectory(at: documentsDir.path, prefix: "   ")
+        }
+        
+        // 3. Library 目录
+        if let libraryDir = fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first {
+            print("\n📚 Library 目录:")
+            print("   \(libraryDir.path)")
+            listDirectory(at: libraryDir.path, prefix: "   ")
+        }
+        
+        // 4. Caches 目录（缓存，不会被备份）
+        if let cachesDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first {
+            print("\n💾 Caches 目录:")
+            print("   \(cachesDir.path)")
+            listDirectory(at: cachesDir.path, prefix: "   ")
+        }
+        
+        // 5. tmp 目录（临时文件）
+        let tmpDir = NSTemporaryDirectory()
+        print("\n🗑️ tmp 目录:")
+        print("   \(tmpDir)")
+        listDirectory(at: tmpDir, prefix: "   ")
+        
+        // 6. Application Support 目录
+        if let appSupportDir = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            print("\n⚙️ Application Support 目录:")
+            print("   \(appSupportDir.path)")
+            listDirectory(at: appSupportDir.path, prefix: "   ")
+        }
+        
+        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("✅ 沙盒信息打印完成")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+    }
+    
+    /// 列出目录内容
+    private func listDirectory(at path: String, prefix: String = "") {
+        let fileManager = FileManager.default
+        
+        do {
+            let contents = try fileManager.contentsOfDirectory(atPath: path)
+            
+            if contents.isEmpty {
+                print("\(prefix)   (空目录)")
+            } else {
+                for item in contents.sorted() {
+                    var isDir: ObjCBool = false
+                    let fullPath = (path as NSString).appendingPathComponent(item)
+                    fileManager.fileExists(atPath: fullPath, isDirectory: &isDir)
+                    
+                    if isDir.boolValue {
+                        print("\(prefix)   📁 \(item)/")
+                    } else {
+                        // 获取文件大小
+                        if let attrs = try? fileManager.attributesOfItem(atPath: fullPath),
+                           let size = attrs[.size] as? Int64 {
+                            let sizeStr = formatFileSize(size)
+                            print("\(prefix)   📄 \(item) (\(sizeStr))")
+                        } else {
+                            print("\(prefix)   📄 \(item)")
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("\(prefix)   ❌ 无法读取: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 格式化文件大小
+    private func formatFileSize(_ size: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: size)
     }
     
     // MARK: - 数据互通实现
@@ -453,6 +558,9 @@ class NativeBridgeHandler: NSObject {
         var code = 0;
         IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
         
+        // 打印沙盒路径信息
+        printSandboxInfo()
+        
         // 方案1: 尝试调用高层 init_sdk（推荐）
 //        print("📝 方案1: 尝试调用 init_sdk（高层初始化）...")
 //        var code = IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
@@ -540,6 +648,133 @@ class NativeBridgeHandler: NSObject {
     private func imStop(result: @escaping FlutterResult) {
         IMSDKManager.shared().stopNetwork()
         result(true)
+    }
+    
+    // MARK: - IM SDK 认证
+    
+    /// 用户注册
+    private func imRegister(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📝 注册请求: \(args)")
+        
+        // 调用 IMSDKAuthManager 注册（使用 protobuf）
+        let code = IMSDKAuthManager.shared().register(with: args) { errorCode, reqId, data in
+            print("✅ 注册回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "注册成功",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "注册失败",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "REGISTER_ERROR", 
+                              message: "注册请求发送失败: \(code)", 
+                              details: nil))
+        }
+    }
+    
+    /// 获取验证码
+    private func imGetCaptcha(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let phone = args["phone"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📱 获取验证码: phone=\(phone)")
+        
+        // 构建验证码请求数据
+        let captchaData: [String: Any] = [
+            "phone": phone,
+            "type": "register" // 注册类型验证码
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: captchaData) else {
+            result(FlutterError(code: "JSON_ERROR", message: "数据序列化失败", details: nil))
+            return
+        }
+        
+        // 调用 IMSDKAuthManager 获取验证码
+        let code = IMSDKAuthManager.shared().getCaptchaWithSerializedData(jsonData) { errorCode, reqId, data in
+            print("✅ 验证码回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "验证码已发送",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "获取验证码失败",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "CAPTCHA_ERROR", 
+                              message: "验证码请求发送失败: \(code)", 
+                              details: nil))
+        }
+    }
+    
+    /// 用户登录
+    private func imLogin(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let userId = args["userId"] as? String,
+              let token = args["token"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("👤 用户登录: userId=\(userId)")
+        
+        // 调用 IMSDKAuthManager 登录
+        let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
+            print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "登录成功",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "登录失败",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "LOGIN_ERROR", 
+                              message: "登录请求发送失败: \(code)", 
+                              details: nil))
+        }
     }
     
     // MARK: - BasicMessageChannel 处理

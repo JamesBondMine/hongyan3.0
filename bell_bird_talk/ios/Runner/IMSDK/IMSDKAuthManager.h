@@ -48,8 +48,15 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 
 // ==================== 用户注册 ====================
 
-/// 用户注册
-/// @param serializedData 序列化后的注册数据
+/// 用户注册（使用字典数据）
+/// @param registerDict 注册信息字典
+/// @param completion 注册结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)registerWithDictionary:(NSDictionary *)registerDict
+                    completion:(IMSDKAuthCompletion)completion;
+
+/// 用户注册（使用 protobuf 序列化数据）
+/// @param serializedData 序列化后的 CreateUser 数据
 /// @param completion 注册结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)registerWithSerializedData:(NSData *)serializedData

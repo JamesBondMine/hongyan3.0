@@ -32,8 +32,8 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # IM SDK 依赖库已在 ios_sdk_la 文件夹中提供
-  # 不需要通过 CocoaPods 引入，避免版本冲突
+  # Protobuf - 使用 3.x 版本（与 protoc 29.5 兼容）
+  pod 'Protobuf', '~> 3.25'
   
   target 'RunnerTests' do
     inherit! :search_paths
@@ -43,6 +43,13 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    
+    # Protobuf: 只用于提供头文件，不链接库（使用 SDK 的 libprotobuf.a）
+    if target.name == 'Protobuf'
+      target.build_configurations.each do |config|
+        config.build_settings['OTHER_LDFLAGS'] = ''
+      end
+    end
   end
   
   # 为 IM SDK 添加必要的系统库

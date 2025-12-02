@@ -1,0 +1,415 @@
+syntax = "proto3";
+package im.user;
+
+option java_package = "com.cloud.im.common.core.protocol.user";
+option java_outer_classname = "UserProtos";
+
+import "system_pb.proto";
+import "device_pb.proto";
+import "captcha_pb.proto";
+
+// ============ 枚举类型定义 ============
+
+// 用户性别枚举
+enum UserSex {
+  MALE = 0;           // 男
+  FEMALE = 1;         // 女
+}
+
+// 用户状态枚举
+enum UserStatus {
+  DISABLED = 0;       // 禁用
+  ACTIVE = 1;         // 启用
+}
+
+// 在线状态枚举
+enum OnlineStatus {
+  OFFLINE = 0;        // 离线
+  ONLINE = 1;         // 在线
+  BUSY = 2;           // 忙碌
+  AWAY = 3;           // 离开
+}
+
+// 显示离线状态枚举
+enum ShowOfflineStatus {
+  HIDE = 0;           // 隐藏离线状态
+  SHOW = 1;           // 显示离线状态
+}
+
+// 登录状态枚举
+enum LoginStatus {
+  LOGIN_SUCCESS = 0;          // 登录成功
+  LOGIN_FAILED = 1;           // 登录失败
+  LOGOUT = 2;                 // 正常登出
+  KICKED_OUT = 3;             // 被踢下线
+  TIMEOUT = 4;                // 超时下线
+  FORCE_LOGOUT = 5;           // 强制下线（如异地登录）
+}
+
+// 登录类型枚举
+enum LoginType {
+  PASSWORD = 0;               // 密码登录
+  SMS_CODE = 1;               // 短信验证码登录
+  QR_CODE = 2;                // 扫码登录
+  TOKEN = 3;                  // Token自动登录
+  OAUTH = 4;                  // 第三方OAuth登录
+  BIOMETRIC = 5;              // 生物识别登录（指纹/面容）
+  EMAIL_CODE = 6;             // 邮箱验证码登录
+}
+
+// 登出原因枚举
+enum LogoutReason {
+  USER_LOGOUT = 0;            // 用户主动登出
+  TOKEN_EXPIRED = 1;          // Token过期
+  KICKED_BY_ADMIN = 2;        // 管理员踢出
+  MULTI_LOGIN = 3;            // 异地登录（互踢）
+  ACCOUNT_BANNED = 4;         // 账号被封禁
+  DEVICE_CHANGED = 5;         // 设备变更
+  SESSION_TIMEOUT = 6;        // 会话超时
+  NETWORK_DISCONNECT = 7;     // 网络断开
+  APP_UNINSTALL = 8;          // 应用卸载
+  SYSTEM_MAINTENANCE = 9;     // 系统维护
+}
+
+// 注册方式枚举
+enum RegisterType {
+  USERNAME_PASSWORD = 0;        // 用户名密码注册（需图形验证码）
+  PHONE_SMS = 1;                // 手机号短信注册（需短信验证码）
+  EMAIL_VERIFY = 2;             // 邮箱注册（需邮箱验证码）
+  OAUTH_THIRD_PARTY = 3;        // 第三方登录注册（暂不支持）
+}
+
+// ============ 核心领域对象 ============
+
+// 用户信息 - 核心领域对象
+// 用于用户的基本信息存储和传输
+message User {
+  string user_id = 1;           // 用户ID（必填）
+  string account_id = 2;         // 账户ID（必填，最大长度50字符，用于用户名密码登录）
+  string nickname = 3;          // 昵称（可选，最大长度50字符）
+  string nickname_pinyin = 4;   // 昵称拼音（可选，最大长度255字符）
+  UserSex sex = 5;              // 性别（可选）
+  string phone = 6;             // 手机号（可选，最大长度20字符）
+  string email = 7;             // 邮箱（可选，最大长度50字符）
+  string signature = 8;         // 个性签名（可选，最大长度250字符）
+  string region = 9;            // 地区（可选，最大长度20字符）
+  string avatar = 10;           // 头像URL（可选，最大长度500字符）
+  string background_file = 11;  // 背景图片URL（可选，最大长度500字符）
+  string biz_code = 12;        // 业务邀请码（可选，6-8位Base62）
+  string security_code = 13;    // 安全码（可选，最大长度30字符）
+  UserStatus status = 14;       // 状态（必填）
+  OnlineStatus online_status = 15; // 在线状态（可选）
+  ShowOfflineStatus show_offline_status = 16; // 显示离线状态（可选）
+  bool is_voice_notice = 17;    // 是否语音通知（可选）
+  bool is_shake_notice = 18;    // 是否震动通知（可选）
+  bool is_new_msg_notify = 19;  // 是否新消息通知（可选）
+  string ip_limit = 20;         // IP限制（可选，最大长度500字符）
+  int32 update_num = 21;        // 更新次数（可选）
+  string ext_field = 22;        // 扩展字段（可选，JSON格式，最大长度1000字符）
+  string register_ip = 23;      // 注册IP（可选，最大长度50字符）
+  int64 register_time = 24;     // 注册时间（系统自动生成）
+  int64 latest_login_time = 25; // 最后登录时间（系统自动更新）
+  string latest_login_ip = 26;  // 最后登录IP（可选，最大长度50字符）
+  string latest_login_timezone = 27; // 最后登录时区（可选，最大长度50字符）
+  int64 last_line_time = 28;    // 最后在线时间（可选）
+  int64 account_close_time = 29; // 账户关闭时间（可选）
+  int64 created_at = 30;        // 创建时间（系统自动生成）
+  int64 updated_at = 31;        // 更新时间（系统自动更新）
+  
+  // 邀请关系字段
+  string invited_by_user_id = 32;        // 邀请者用户ID（可选）
+  string invited_by_biz_code = 33;      // 使用的业务邀请码（可选）
+  int64 invite_time = 34;               // 被邀请时间（可选）
+}
+
+// 服务器连接信息 - 核心领域对象
+// 用于服务器连接配置
+message ServerEndpoint {
+  string ip = 1;              // 服务器IP地址（必填）
+  int32 port = 2;             // 服务器端口（必填）
+  string host = 3;            // 服务器域名（可选）
+  string region = 4;          // 地区标识（可选，如: cn-north, us-east, eu-west等）
+  int32 ratio = 5;            // 权重比例（可选，用于负载均衡，值越大优先级越高）
+}
+
+
+// ============ 查询操作 ============
+
+// 获取用户 - 查询操作
+// 用于根据用户ID或账户ID查询用户信息
+message GetUser {
+  string user_id = 1;          // 用户ID（可选）
+  string account_id = 2;       // 账户ID（可选，最大长度50字符）
+}
+
+// 用户列表查询 - 查询操作
+// 用于分页查询用户列表
+message UserListQuery {
+  string keyword = 1;          // 搜索关键词（可选）
+  UserStatus status = 2;       // 状态过滤（可选）
+  OnlineStatus online_status = 3; // 在线状态过滤（可选）
+  com.cloud.im.common.core.system.Page page = 4;        // 分页参数（使用系统类型）
+}
+
+// 用户搜索 - 查询操作
+// 用于根据关键词搜索用户
+message SearchUser {
+  string keyword = 1;          // 搜索关键词（必填，最大长度50字符）
+  UserStatus status = 2;       // 状态过滤（可选）
+  OnlineStatus online_status = 3; // 在线状态过滤（可选）
+  UserSex sex = 4;             // 性别过滤（可选）
+  string region = 5;           // 地区过滤（可选，最大长度20字符）
+  com.cloud.im.common.core.system.Page page = 6;        // 分页参数（使用系统类型）
+}
+
+// 获取用户简介 - 查询操作
+// 用于获取用户的公开信息（昵称、头像等），不包含敏感信息
+message GetUserProfile {
+  string user_id = 1;          // 用户ID（必填）
+}
+
+
+// ============ 操作对象 ============
+
+// 用户认证 - 操作对象
+// 用于用户登录认证
+message AuthUser {
+  string account_id = 1;       // 账户ID（密码登录时必填，最大长度50字符）
+  string password = 2;         // 密码（密码登录时必填）或验证码（验证码登录时必填，最大长度100字符）
+  string client_ip = 3;        // 客户端IP（可选，最大长度50字符）
+  string device_id = 4;        // 设备ID（可选，最大长度100字符）
+  im.device.Device device = 5;  // 设备详细信息（可选）
+  string biz_code = 6;         // 业务邀请码（可选，6-8位Base62）
+  string system_code = 7;      // 系统邀请码（可选，4位Base62，用于验证统计）
+  map<string, string> params = 8; // Map参数（用于传递扩展参数）
+  LoginType login_type = 9;    // 登录类型（可选，默认为PASSWORD，保持向后兼容）
+  string phone = 10;          // 手机号（SMS_CODE登录时必填，最大长度20字符）
+  string email = 11;          // 邮箱（EMAIL_CODE登录时必填，最大长度50字符）
+  string captcha_id = 12;     // 验证码ID（验证码登录时必填，最大长度100字符）
+}
+
+// 创建用户 - 操作对象
+// 用于用户注册
+message CreateUser {
+  string account_id = 1;       // 账户ID（必填，最大长度50字符）
+  string password = 2;         // 密码（必填，最大长度100字符）
+  string nickname = 3;         // 昵称（可选，最大长度50字符）
+  UserSex sex = 4;             // 性别（可选）
+  string phone = 5;            // 手机号（可选，最大长度20字符）
+  string email = 6;            // 邮箱（可选，最大长度50字符）
+  string signature = 7;        // 个性签名（可选，最大长度250字符）
+  string region = 8;           // 地区（可选，最大长度20字符）
+  string avatar = 9;           // 头像URL（可选，最大长度500字符）
+  string background_file = 10; // 背景图片URL（可选，最大长度500字符）
+  string client_ip = 11;       // 客户端IP（可选，最大长度50字符）
+  
+  // 新增字段：验证码信息（验证码开关开启时必填）
+  im.captcha.CaptchaInfo captcha = 12; // 验证码信息（可选）
+  
+  // 新增字段：业务邀请码
+  string biz_code = 13;        // 业务邀请码（可选，6-8位Base62）
+  
+  // 新增字段：注册方式
+  RegisterType register_type = 14; // 注册方式（必填）
+}
+
+// 更新用户 - 操作对象
+// 用于更新用户信息
+message UpdateUser {
+  string user_id = 1;          // 用户ID（必填）
+  string nickname = 2;         // 昵称（可选，最大长度50字符）
+  UserSex sex = 3;             // 性别（可选）
+  string phone = 4;            // 手机号（可选，最大长度20字符）
+  string email = 5;            // 邮箱（可选，最大长度50字符）
+  string signature = 6;        // 个性签名（可选，最大长度250字符）
+  string region = 7;           // 地区（可选，最大长度20字符）
+  string avatar = 8;           // 头像URL（可选，最大长度500字符）
+  string background_file = 9;  // 背景图片URL（可选，最大长度500字符）
+  UserStatus status = 10;      // 状态（可选）
+  OnlineStatus online_status = 11; // 在线状态（可选）
+  bool is_voice_notice = 12;   // 是否语音通知（可选）
+  bool is_shake_notice = 13;   // 是否震动通知（可选）
+  bool is_new_msg_notify = 14; // 是否新消息通知（可选）
+  string ip_limit = 15;        // IP限制（可选，最大长度500字符）
+  string ext_field = 16;       // 扩展字段（可选，JSON格式，最大长度1000字符）
+}
+
+// 修改密码 - 操作对象
+// 用于用户修改密码
+message ChangePassword {
+  string user_id = 1;          // 用户ID（必填）
+  string old_password = 2;     // 旧密码（必填，最大长度100字符）
+  string new_password = 3;     // 新密码（必填，最大长度100字符）
+  string client_ip = 4;        // 客户端IP（可选，最大长度50字符）
+}
+
+// 重置密码 - 操作对象
+// 用于用户忘记密码时通过验证码重置密码
+message ResetPassword {
+  string phone = 1;            // 手机号（可选，与email二选一）
+  string email = 2;            // 邮箱（可选，与phone二选一）
+  string captcha_id = 3;       // 验证码ID（必填）
+  string captcha_code = 4;     // 验证码答案（必填）
+  string new_password = 5;     // 新密码（必填，最大长度100字符）
+  string client_ip = 6;        // 客户端IP（可选，最大长度50字符）
+}
+
+// 用户登出 - 操作对象
+// 用于用户主动登出
+message Logout {
+  string user_id = 1;          // 用户ID（必填）
+  string client_ip = 2;        // 客户端IP（可选，用于记录登出IP）
+  LogoutReason reason = 3;     // 登出原因（可选，默认USER_LOGOUT）
+}
+
+
+// ============ 结果对象 ============
+
+// 认证结果 - 结果对象
+// 用于用户登录、认证、注册成功响应
+// 
+// 字段说明：
+// - 核心字段（login/auth/register 响应）：user、token、refresh_token、expires_at、refresh_expires_at
+// - 服务器连接信息（connect 响应）：target_ip、target_port、target_host、proxy、timestamp
+//   这些字段通过 InnerResourceMessage 返回，能找到请求的连接
+message authResult {
+  User user = 1;               // 用户信息（必填）
+  string token = 2;            // Access Token（JWT，必填，最大长度255字符）
+  int64 expires_at = 3;        // Access Token过期时间戳（必填，Unix时间戳，单位：秒）
+  
+  // 服务器连接信息（可选，仅在 connect 流程中设置）
+  // 注意：这些字段在 proto 定义中始终存在，但只有 connect 响应会设置值
+  string target_ip = 4;        // 目标服务器IP（可选，仅在 connect 时设置）
+  int32 target_port = 5;       // 目标服务器端口（可选，仅在 connect 时设置）
+  string target_host = 6;      // 目标服务器域名（可选，仅在 connect 时设置）
+  repeated ServerEndpoint proxy = 7;  // 代理/加速节点列表（可选，仅在 connect 时设置）
+  int64 timestamp = 8;         // 响应时间戳（可选，仅在 connect 时设置）
+  
+  // Refresh Token 相关字段（必填，用于刷新 Access Token）
+  string refresh_token = 9;    // Refresh Token（必填，用于刷新 Access Token）
+  int64 refresh_expires_at = 10; // Refresh Token过期时间戳（必填，Unix时间戳，单位：秒）
+}
+
+// 用户列表 - 结果对象
+// 用于用户列表查询响应
+message UserList {
+  repeated User users = 1;     // 用户列表（必填）
+  com.cloud.im.common.core.system.Page page = 2;        // 分页元数据（使用系统类型）
+}
+
+// 用户简介信息 - 结果对象
+// 用于返回用户的公开信息，不包含敏感数据
+message UserProfile {
+  string user_id = 1;           // 用户ID（必填）
+  string nickname = 2;          // 昵称（可选）
+  string avatar = 3;            // 头像URL（可选）
+  string signature = 4;         // 个性签名（可选）
+  string region = 5;            // 地区（可选）
+  UserSex sex = 6;              // 性别（可选）
+  OnlineStatus online_status = 7; // 在线状态（可选）
+  int64 last_line_time = 8;     // 最后在线时间（可选）
+  int64 created_at = 9;         // 注册时间（可选）
+}
+
+
+// ============ 登录历史相关 ============
+
+// 登录历史记录 - 核心领域对象
+// 用于记录用户的登录和登出信息
+message LoginHistory {
+  string session_id = 1;        // 会话ID（必填，全局唯一）
+  string user_id = 2;           // 用户ID（必填）
+  string device_id = 3;         // 设备ID（可选）
+  im.device.DeviceType device_type = 4;  // 设备类型（可选）
+  string device_name = 5;       // 设备名称（可选）
+  
+  LoginType login_type = 6;     // 登录类型（必填）
+  LoginStatus login_status = 7; // 登录状态（必填）
+  int64 login_time = 8;         // 登录时间（必填）
+  int64 logout_time = 9;        // 登出时间（可选，NULL表示仍在线）
+  LogoutReason logout_reason = 10; // 登出原因（可选）
+  int64 online_duration = 11;   // 在线时长（秒）（可选）
+  
+  string login_ip = 12;         // 登录IP（必填）
+  string logout_ip = 13;        // 登出IP（可选）
+  string login_location = 14;   // 登录地理位置（可选，如：中国-北京-海淀区）
+  string isp = 15;              // 网络运营商（可选）
+  string network_type = 16;     // 网络类型（可选，WiFi/4G/5G）
+  
+  string app_version = 17;      // 应用版本（可选）
+  string system_name = 18;      // 系统名称（可选，iOS/Android/Windows等）
+  string system_version = 19;   // 系统版本（可选）
+  string browser_name = 20;     // 浏览器名称（可选，Web端）
+  string browser_version = 21;  // 浏览器版本（可选，Web端）
+  
+  bool is_suspicious = 22;      // 是否可疑登录（可选）
+  int32 risk_level = 23;        // 风险等级（0-10）（可选）
+  string risk_reason = 24;      // 风险原因（可选）
+  
+  string login_fail_reason = 25; // 登录失败原因（可选）
+  
+  int64 created_at = 26;        // 记录创建时间（必填）
+  int64 updated_at = 27;        // 记录更新时间（必填）
+}
+
+// 在线设备信息 - 结果对象
+// 用于返回用户当前在线的设备列表
+message OnlineDevice {
+  string session_id = 1;        // 会话ID（必填）
+  string device_id = 2;         // 设备ID（必填）
+  im.device.DeviceType device_type = 3;  // 设备类型（必填）
+  string device_name = 4;       // 设备名称（可选）
+  int64 login_time = 5;         // 登录时间（必填）
+  string login_ip = 6;          // 登录IP（必填）
+  string login_location = 7;    // 登录地理位置（可选）
+  string app_version = 8;       // 应用版本（可选）
+  int64 online_duration = 9;    // 在线时长（秒）（可选）
+}
+
+// 查询登录历史 - 查询操作
+// 用于查询用户的登录历史记录
+message GetLoginHistory {
+  string user_id = 1;           // 用户ID（必填）
+  int32 limit = 2;              // 查询数量（可选，默认10，最大100）
+  int64 start_time = 3;         // 开始时间（可选，时间戳）
+  int64 end_time = 4;           // 结束时间（可选，时间戳）
+  LoginStatus login_status = 5; // 状态过滤（可选）
+  im.device.DeviceType device_type = 6;  // 设备类型过滤（可选）
+}
+
+// 查询在线设备 - 查询操作
+// 用于查询用户当前在线的设备
+message GetOnlineDevices {
+  string user_id = 1;           // 用户ID（必填）
+}
+
+// 登录历史列表 - 结果对象
+// 用于返回登录历史查询结果
+message LoginHistoryList {
+  repeated LoginHistory histories = 1; // 登录历史列表（必填）
+  int32 total_count = 2;        // 总记录数（可选）
+}
+
+// 在线设备列表 - 结果对象
+// 用于返回在线设备查询结果
+message OnlineDeviceList {
+  repeated OnlineDevice devices = 1; // 在线设备列表（必填）
+  int32 total_count = 2;        // 总设备数（可选）
+}
+
+// 强制下线设备 - 操作对象
+// 用于强制下线指定设备或所有其他设备
+message KickDevice {
+  string user_id = 1;           // 用户ID（必填）
+  string session_id = 2;        // 要踢下线的会话ID（可选，为空则踢所有其他设备）
+  string current_session_id = 3; // 当前会话ID（可选，不被踢下线）
+  LogoutReason reason = 4;      // 踢下线原因（可选）
+}
+
+// 踢下线结果 - 结果对象
+// 用于返回强制下线操作的结果
+message KickDeviceResult {
+  int32 kicked_count = 1;       // 被踢下线的设备数量（必填）
+  repeated string kicked_session_ids = 2; // 被踢下线的会话ID列表（可选）
+}
+
