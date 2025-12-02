@@ -666,7 +666,7 @@ class NativeBridgeHandler: NSObject {
         let typeStr = args["type"] as? String ?? "SMS"      // SMS 或 EMAIL
         
         // CaptchaType 枚举值转换: IMAGE=0, SMS=1, EMAIL=2
-        let captchaType: Int
+        let captchaType: Int32
         switch typeStr.uppercased() {
         case "SMS":
             captchaType = 1
@@ -680,20 +680,12 @@ class NativeBridgeHandler: NSObject {
         
         print("📱 获取验证码: scene=\(scene), type=\(typeStr)(\(captchaType)), value=\(value)")
         
-        // 构建 GetCaptcha protobuf 请求数据
-        let captchaData: [String: Any] = [
-            "scene": scene,         // 使用场景：register/login 等
-            "type": captchaType,    // CaptchaType 枚举值
-            "value": value          // 目标值：手机号或邮箱
-        ]
-        
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: captchaData) else {
-            result(FlutterError(code: "JSON_ERROR", message: "数据序列化失败", details: nil))
-            return
-        }
-        
-        // 调用 IMSDKAuthManager 获取验证码
-        let code = IMSDKAuthManager.shared().getCaptchaWithSerializedData(jsonData) { errorCode, reqId, data in
+        // 调用 IMSDKAuthManager 获取验证码（使用 Protobuf 序列化）
+        let code = IMSDKAuthManager.shared().getCaptchaWithScene(
+            scene,
+            type: captchaType,
+            value: value
+        ) { errorCode, reqId, data in
             print("✅ 验证码回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             let message = typeStr.uppercased() == "EMAIL" ? "验证码已发送到邮箱" : "验证码已发送"

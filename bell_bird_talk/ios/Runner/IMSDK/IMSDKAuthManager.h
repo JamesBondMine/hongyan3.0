@@ -64,12 +64,23 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 
 // ==================== 验证码 ====================
 
-/// 获取验证码
+/// 获取验证码（已弃用，请使用 getCaptchaWithScene:type:value:completion:）
 /// @param serializedData 序列化后的 captcha_pb::GetCaptcha 数据
 /// @param completion 验证码结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)getCaptchaWithSerializedData:(NSData *)serializedData
-                          completion:(IMSDKAuthCompletion)completion;
+                          completion:(IMSDKAuthCompletion)completion __attribute__((deprecated("Use getCaptchaWithScene:type:value:completion: instead")));
+
+/// 获取验证码（使用 Protobuf 序列化）
+/// @param scene 使用场景：register/login 等
+/// @param type 验证码类型：1=SMS短信, 2=EMAIL邮箱
+/// @param value 目标值：手机号或邮箱
+/// @param completion 验证码结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getCaptchaWithScene:(NSString *)scene
+                      type:(int)type
+                     value:(NSString *)value
+                completion:(IMSDKAuthCompletion)completion;
 
 @end
 

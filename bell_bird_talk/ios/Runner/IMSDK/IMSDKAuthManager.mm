@@ -160,8 +160,17 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -2;
     }
     
-    const char *data = (const char *)jsonData.bytes;
-    int dataLen = (int)jsonData.length;
+    // 构建 packet：varint32长度头 + 数据（复刻 IOSTcpRaceManager.m）
+    NSData *body = jsonData;
+    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
+    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
+    [pkt appendData:body];
+    
+    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
+          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
+    
+    const char *data = (const char *)pkt.bytes;
+    int dataLen = (int)pkt.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -199,8 +208,17 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    const char *data = (const char *)serializedData.bytes;
-    int dataLen = (int)serializedData.length;
+    // 构建 packet：varint32长度头 + 数据（复刻 IOSTcpRaceManager.m）
+    NSData *body = serializedData;
+    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
+    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
+    [pkt appendData:body];
+    
+    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
+          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
+    
+    const char *data = (const char *)pkt.bytes;
+    int dataLen = (int)pkt.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -317,19 +335,27 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    // 打印十六进制数据（用于验证 protobuf 格式）
+    // 构建 packet：varint32长度头 + protobuf数据（复刻 IOSTcpRaceManager.m）
+    NSData *body = serializedData;
+    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
+    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
+    [pkt appendData:body];
+    
+    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
+          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
+    
+    // 打印十六进制数据（用于验证格式）
     NSMutableString *hexString = [NSMutableString string];
-    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
-    NSUInteger printLen = MIN(serializedData.length, 64); // 打印前64字节
+    const unsigned char *bytes = (const unsigned char *)pkt.bytes;
+    NSUInteger printLen = MIN(pkt.length, 64); // 打印前64字节
     for (NSUInteger i = 0; i < printLen; i++) {
         [hexString appendFormat:@"%02x ", bytes[i]];
         if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
     }
-    NSLog(@"🔍 Protobuf 十六进制格式:\n                        %@", hexString);
-    NSLog(@"✅ 这是正确的！Protobuf 是二进制格式，其中 string 字段以 UTF-8 存储");
+    NSLog(@"🔍 完整数据包 (HEX):\n                        %@", hexString);
     
-    const char *data = (const char *)serializedData.bytes;
-    int dataLen = (int)serializedData.length;
+    const char *data = (const char *)pkt.bytes;
+    int dataLen = (int)pkt.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -360,15 +386,113 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
 
 - (int)getCaptchaWithSerializedData:(NSData *)serializedData
                           completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"🔢 获取验证码: dataLen=%lu", (unsigned long)serializedData.length);
+    NSLog(@"🔢 获取验证码（旧方法）: dataLen=%lu", (unsigned long)serializedData.length);
+    NSLog(@"⚠️ 此方法已弃用，请使用 getCaptchaWithScene:type:value:completion:");
+    return -1;
+}
+
+/// 使用 Protobuf 序列化获取验证码
+/// @param scene 使用场景：register/login 等
+/// @param type 验证码类型：CaptchaType_SMS=1, CaptchaType_EMAIL=2
+/// @param value 目标值：手机号或邮箱
+/// @param completion 回调
+- (int)getCaptchaWithScene:(NSString *)scene
+                      type:(int)type
+                     value:(NSString *)value
+                completion:(IMSDKAuthCompletion)completion {
+    NSLog(@"🔢 获取验证码: scene=%@, type=%d, value=%@", scene, type, value);
     
-    if (!serializedData || serializedData.length == 0) {
-        NSLog(@"❌ 序列化数据不能为空");
+    // ⚠️ 数据格式测试开关（修改这个值来测试不同格式）
+    // 1 = 原始二进制（varint32头部 + protobuf）
+    // 2 = 十六进制字符串
+    // 3 = 纯 Protobuf（不带 varint32 头部）
+    int dataFormat = 2;  // 👈 修改这里切换格式
+    
+    NSLog(@"🧪 当前测试格式: %d (1=二进制+头部, 2=十六进制字符串, 3=纯Protobuf)", dataFormat);
+    
+    // 1. 创建 GetCaptcha Protobuf 对象
+    GetCaptcha *captchaRequest = [[GetCaptcha alloc] init];
+    captchaRequest.scene = scene ?: @"register";
+    captchaRequest.type = (CaptchaType)type;
+    captchaRequest.value = value ?: @"";
+    
+    // 2. 序列化为 Protobuf 二进制数据
+    NSData *protoBody = [captchaRequest data];
+    if (!protoBody || protoBody.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
         return -1;
     }
     
-    const char *data = (const char *)serializedData.bytes;
-    int dataLen = (int)serializedData.length;
+    NSLog(@"📦 Protobuf 原始数据长度: %lu 字节", (unsigned long)protoBody.length);
+    
+    // 打印 Protobuf 原始数据（十六进制）
+    NSMutableString *protoHex = [NSMutableString stringWithCapacity:protoBody.length * 2];
+    const unsigned char *protoBytes = (const unsigned char *)protoBody.bytes;
+    for (NSUInteger i = 0; i < protoBody.length; i++) {
+        [protoHex appendFormat:@"%02x", protoBytes[i]];
+    }
+    NSLog(@"📦 Protobuf 原始数据 (HEX): %@", protoHex);
+    
+    const char *data = NULL;
+    int dataLen = 0;
+    NSData *finalData = nil;
+    NSString *hexString = nil;
+    
+    switch (dataFormat) {
+        case 1: {
+            // ========== 格式1: 原始二进制（varint32头部 + protobuf）==========
+            NSLog(@"🔸 使用格式1: 原始二进制（varint32头部 + protobuf）");
+            NSData *hdr = [self encodeVarint32:(uint32_t)protoBody.length];
+            NSMutableData *pkt = [NSMutableData dataWithData:hdr];
+            [pkt appendData:protoBody];
+            
+            finalData = pkt;
+            data = (const char *)pkt.bytes;
+            dataLen = (int)pkt.length;
+            
+            NSLog(@"📦 头部长度: %lu, 总长度: %d", (unsigned long)hdr.length, dataLen);
+            break;
+        }
+        case 2: {
+            // ========== 格式2: 十六进制字符串 ==========
+            NSLog(@"🔸 使用格式2: 十六进制字符串");
+            
+            // 先构建带头部的数据
+            NSData *hdr = [self encodeVarint32:(uint32_t)protoBody.length];
+            NSMutableData *pkt = [NSMutableData dataWithData:hdr];
+            [pkt appendData:protoBody];
+            
+            // 转换为十六进制字符串
+            NSMutableString *hexData = [NSMutableString stringWithCapacity:pkt.length * 2];
+            const uint8_t *p = (const uint8_t *)pkt.bytes;
+            for (size_t i = 0; i < pkt.length; i++) {
+                [hexData appendFormat:@"%02x", p[i]];
+            }
+            
+            hexString = hexData;
+            data = [hexData UTF8String];
+            dataLen = (int)[hexData length];
+            
+            NSLog(@"📦 HEX 字符串: %@", hexData);
+            NSLog(@"📦 HEX 长度: %d", dataLen);
+            break;
+        }
+        case 3:
+        default: {
+            // ========== 格式3: 纯 Protobuf（不带 varint32 头部）==========
+            NSLog(@"🔸 使用格式3: 纯 Protobuf（不带 varint32 头部）");
+            
+            finalData = protoBody;
+            data = (const char *)protoBody.bytes;
+            dataLen = (int)protoBody.length;
+            
+            NSLog(@"📦 纯 Protobuf 长度: %d", dataLen);
+            break;
+        }
+    }
+    
+    NSLog(@"🚀 准备调用 get_captcha: data=%p, dataLen=%d", data, dataLen);
+    
     uint64_t reqId = 0;
     
     if (completion) {
@@ -393,6 +517,23 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     }
     
     return get_captcha(CaptchaCallback, data, dataLen, reqId);
+}
+
+// varint32 编码
+- (NSData *)encodeVarint32:(uint32_t)value {
+    NSMutableData *data = [NSMutableData data];
+    while (YES) {
+        if ((value & ~0x7F) == 0) {
+            uint8_t byte = (uint8_t)value;
+            [data appendBytes:&byte length:1];
+            break;
+        } else {
+            uint8_t byte = (uint8_t)((value & 0x7F) | 0x80);
+            [data appendBytes:&byte length:1];
+            value >>= 7;
+        }
+    }
+    return data;
 }
 
 @end
