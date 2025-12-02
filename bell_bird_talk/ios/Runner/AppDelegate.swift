@@ -554,45 +554,8 @@ class NativeBridgeHandler: NSObject {
     
     /// 初始化 IM SDK
     private func imInitialize(result: @escaping FlutterResult) {
-        print("🚀 开始初始化 IM SDK...")
-        var code = 0;
         IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
-        
-        // 打印沙盒路径信息
-        printSandboxInfo()
-        
-        // 方案1: 尝试调用高层 init_sdk（推荐）
-//        print("📝 方案1: 尝试调用 init_sdk（高层初始化）...")
-//        var code = IMSDKManager.shared().initSDK(withConfig: "{\"platform\":\"iOS\"}")
-//        
-//        // 如果高层初始化失败，尝试底层初始化
-//        if code != 0 {
-//            print("⚠️ init_sdk 失败 (code=\(code))，尝试底层 network_init...")
-//            code = IMSDKManager.shared().initializeNetwork()
-//        }
-        
-//        // 启动网络服务
-//        if code == 0 {
-//            print("✅ 初始化成功，启动网络服务...")
-//            IMSDKManager.shared().startNetwork()
-//        } else {
-//            print("❌ 初始化失败: code=\(code)")
-//        }
-        
-//        // 设置回调
-//        IMSDKManager.shared().setNetworkEventCallback { [weak self] eventCode, eventDesc in
-//            print("📡 网络事件: \(eventCode) - \(eventDesc)")
-//            // 可以通过 EventChannel 发送到 Flutter
-//            self?.eventSink?(["type": "network_event", "code": eventCode, "desc": eventDesc])
-//        }
-//        
-//        IMSDKManager.shared().setDataReceivedCallback { [weak self] data in
-//            print("📥 接收数据: \(data)")
-//            // 可以通过 EventChannel 发送到 Flutter
-//            self?.eventSink?(["type": "data_received", "data": data])
-//        }
-        
-        result(code == 0 ? true : false)
+        result(true)
     }
     
     /// 启动网络服务
@@ -689,20 +652,39 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 获取验证码
+    /// 获取验证码（支持短信和邮箱）
+    /// GetCaptcha protobuf: scene, type(CaptchaType), value
     private func imGetCaptcha(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
-              let phone = args["phone"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+              let value = args["value"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误: 缺少 value", details: nil))
             return
         }
         
-        print("📱 获取验证码: phone=\(phone)")
+        // 获取参数
+        let scene = args["scene"] as? String ?? "register"  // 使用场景
+        let typeStr = args["type"] as? String ?? "SMS"      // SMS 或 EMAIL
         
-        // 构建验证码请求数据
+        // CaptchaType 枚举值转换: IMAGE=0, SMS=1, EMAIL=2
+        let captchaType: Int
+        switch typeStr.uppercased() {
+        case "SMS":
+            captchaType = 1
+        case "EMAIL":
+            captchaType = 2
+        case "IMAGE":
+            captchaType = 0
+        default:
+            captchaType = 1 // 默认短信
+        }
+        
+        print("📱 获取验证码: scene=\(scene), type=\(typeStr)(\(captchaType)), value=\(value)")
+        
+        // 构建 GetCaptcha protobuf 请求数据
         let captchaData: [String: Any] = [
-            "phone": phone,
-            "type": "register" // 注册类型验证码
+            "scene": scene,         // 使用场景：register/login 等
+            "type": captchaType,    // CaptchaType 枚举值
+            "value": value          // 目标值：手机号或邮箱
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: captchaData) else {
@@ -714,11 +696,13 @@ class NativeBridgeHandler: NSObject {
         let code = IMSDKAuthManager.shared().getCaptchaWithSerializedData(jsonData) { errorCode, reqId, data in
             print("✅ 验证码回调: errorCode=\(errorCode), reqId=\(reqId)")
             
+            let message = typeStr.uppercased() == "EMAIL" ? "验证码已发送到邮箱" : "验证码已发送"
+            
             if errorCode == 0 {
                 result([
                     "errorCode": errorCode,
                     "reqId": reqId,
-                    "message": "验证码已发送",
+                    "message": message,
                     "data": data ?? ""
                 ])
             } else {

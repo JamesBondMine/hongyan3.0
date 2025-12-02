@@ -16,6 +16,7 @@ class RegisterPage extends StatefulWidget {
 enum RegisterType {
   accountPassword, // 账号密码注册
   phoneCode,       // 手机验证码注册
+  emailCode,       // 邮箱验证码注册
 }
 
 class _RegisterPageState extends State<RegisterPage> {
@@ -24,7 +25,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _verifyCodeController = TextEditingController();
+  final _emailVerifyCodeController = TextEditingController();
   final _inviteCodeController = TextEditingController();
   final _nativeService = IOSNativeService();
   
@@ -32,7 +35,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
   bool _agreeTerms = false;
   int _countdown = 0;
-  String? _captchaId; // 存储验证码 ID
+  int _emailCountdown = 0;
+  String? _captchaId; // 存储手机验证码 ID
+  String? _emailCaptchaId; // 存储邮箱验证码 ID
   RegisterType _registerType = RegisterType.phoneCode; // 默认手机验证码注册
 
   @override
@@ -41,7 +46,9 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _verifyCodeController.dispose();
+    _emailVerifyCodeController.dispose();
     _inviteCodeController.dispose();
     super.dispose();
   }
@@ -200,7 +207,19 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildTypeButton(
+              title: '邮箱注册',
+              isSelected: _registerType == RegisterType.emailCode,
+              onTap: () {
+                setState(() {
+                  _registerType = RegisterType.emailCode;
+                });
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: _buildTypeButton(
               title: '账号注册',
@@ -306,8 +325,31 @@ class _RegisterPageState extends State<RegisterPage> {
               
               const SizedBox(height: 20),
               
-              // 验证码输入框
+              // 手机验证码输入框
               _buildVerifyCodeField(),
+            ] else if (_registerType == RegisterType.emailCode) ...[
+              // 邮箱注册：邮箱
+              _buildTextField(
+                controller: _emailController,
+                label: '邮箱',
+                hint: '请输入邮箱地址',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '请输入邮箱';
+                  }
+                  if (!RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$').hasMatch(value)) {
+                    return '请输入正确的邮箱地址';
+                  }
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // 邮箱验证码输入框
+              _buildEmailVerifyCodeField(),
             ],
             
             const SizedBox(height: 20),
@@ -449,6 +491,77 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontSize: 14,
                     color: _countdown > 0 ? Colors.grey : Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// 邮箱验证码输入框（带获取按钮）
+  Widget _buildEmailVerifyCodeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '验证码',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _emailVerifyCodeController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: '请输入邮箱验证码',
+                  prefixIcon: const Icon(Icons.verified_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '请输入验证码';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 120,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _emailCountdown > 0 ? null : _getEmailVerifyCode,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  _emailCountdown > 0 ? '${_emailCountdown}s' : '获取验证码',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _emailCountdown > 0 ? Colors.grey : Colors.white,
                   ),
                 ),
               ),
@@ -609,8 +722,12 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       EasyLoading.show(status: '发送中...');
       
-      // 调用 Native 获取验证码接口
-      final result = await _nativeService.imGetCaptcha(_phoneController.text);
+      // 调用 Native 获取短信验证码接口
+      final result = await _nativeService.imGetCaptcha(
+        _phoneController.text,
+        type: 'SMS',           // CaptchaType: SMS=短信
+        scene: 'register',     // 使用场景: 注册
+      );
       
       EasyLoading.dismiss();
       
@@ -649,7 +766,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  /// 倒计时
+  /// 手机验证码倒计时
   void _startCountdown() {
     Future.delayed(const Duration(seconds: 1), () {
       if (_countdown > 0) {
@@ -657,6 +774,77 @@ class _RegisterPageState extends State<RegisterPage> {
           _countdown--;
         });
         _startCountdown();
+      }
+    });
+  }
+
+  /// 获取邮箱验证码
+  void _getEmailVerifyCode() async {
+    // 验证邮箱
+    if (_emailController.text.isEmpty) {
+      EasyLoading.showError('请先输入邮箱');
+      return;
+    }
+    
+    if (!RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$').hasMatch(_emailController.text)) {
+      EasyLoading.showError('请输入正确的邮箱地址');
+      return;
+    }
+    
+    try {
+      EasyLoading.show(status: '发送中...');
+      
+      // 调用 Native 获取邮箱验证码接口
+      final result = await _nativeService.imGetCaptcha(
+        _emailController.text,
+        type: 'EMAIL',         // CaptchaType: EMAIL=邮箱
+        scene: 'register',     // 使用场景: 注册
+      );
+      
+      EasyLoading.dismiss();
+      
+      final errorCode = result['errorCode'] ?? -1;
+      final message = result['message'] ?? '未知错误';
+      
+      if (errorCode == 0) {
+        // 保存 captcha_id
+        final data = result['data'];
+        if (data != null && data.isNotEmpty) {
+          try {
+            final dataMap = json.decode(data);
+            _emailCaptchaId = dataMap['captcha_id'];
+            print('✅ 获取到邮箱 captcha_id: $_emailCaptchaId');
+          } catch (e) {
+            print('⚠️ 解析邮箱 captcha_id 失败: $e');
+          }
+        }
+        
+        EasyLoading.showSuccess('验证码已发送到邮箱');
+        
+        // 开始倒计时
+        setState(() {
+          _emailCountdown = 60;
+        });
+        
+        _startEmailCountdown();
+      } else {
+        EasyLoading.showError('发送失败: $message (code: $errorCode)');
+      }
+      
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('发送失败: $e');
+    }
+  }
+
+  /// 邮箱验证码倒计时
+  void _startEmailCountdown() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_emailCountdown > 0) {
+        setState(() {
+          _emailCountdown--;
+        });
+        _startEmailCountdown();
       }
     });
   }
@@ -706,6 +894,26 @@ class _RegisterPageState extends State<RegisterPage> {
           registerData['captcha'] = {
             'captcha_id': _captchaId,
             'answer': _verifyCodeController.text,
+          };
+        }
+        
+        // 添加邀请码（如果有）
+        if (_inviteCodeController.text.isNotEmpty) {
+          registerData['biz_code'] = _inviteCodeController.text;
+        }
+      } else if (_registerType == RegisterType.emailCode) {
+        // 邮箱验证码注册
+        registerData = {
+          'register_type': 'email', // 注册方式：邮箱
+          'email': _emailController.text,
+          'password': _passwordController.text,
+        };
+        
+        // 添加验证码信息（如果有 captcha_id）
+        if (_emailCaptchaId != null && _emailVerifyCodeController.text.isNotEmpty) {
+          registerData['captcha'] = {
+            'captcha_id': _emailCaptchaId,
+            'answer': _emailVerifyCodeController.text,
           };
         }
         

@@ -245,12 +245,19 @@ class IOSNativeService {
   }
   
   /// 获取验证码
-  /// @param phone 手机号
+  /// @param value 目标值：SMS时为手机号，EMAIL时为邮箱
+  /// @param type 验证码类型：SMS（短信）、EMAIL（邮箱）
+  /// @param scene 使用场景：login/register/createGroup等
   /// @return 验证码结果
-  Future<Map<String, dynamic>> imGetCaptcha(String phone) async {
+  Future<Map<String, dynamic>> imGetCaptcha(String value, {
+    String type = 'SMS',      // SMS=短信, EMAIL=邮箱
+    String scene = 'register', // 使用场景
+  }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetCaptcha', {
-        'phone': phone,
+        'scene': scene,        // 使用场景：register/login 等
+        'type': type,          // 验证码类型：SMS/EMAIL
+        'value': value,        // 目标值：手机号或邮箱
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
