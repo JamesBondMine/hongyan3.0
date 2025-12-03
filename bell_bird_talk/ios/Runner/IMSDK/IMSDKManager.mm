@@ -10,6 +10,14 @@
 #include "callback_types.h"
 #include "common_definitions.h"
 
+// 网络连通性测试相关
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+
 @interface IMSDKManager ()
 
 @property (nonatomic, copy) void (^networkEventCallback)(uint8_t eventCode, NSString *eventDesc);
@@ -65,8 +73,20 @@
         }
         
         // 步骤4.5: 添加目标服务器
-        NSLog(@"🌐 添加目标服务器: 175.178.227.41:8885");
-        network_add_target_to_group("175.178.227.41", 8885);
+        NSString *serverIP = @"175.178.227.41";
+        int serverPort = 8885;
+        
+        // 先测试服务器连通性
+        NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
+        BOOL isReachable = [self pingHost:serverIP port:serverPort timeout:3.0];
+        if (isReachable) {
+            NSLog(@"✅ 服务器可达: %@:%d", serverIP, serverPort);
+        } else {
+            NSLog(@"⚠️ 服务器可能不可达: %@:%d（继续尝试连接）", serverIP, serverPort);
+        }
+        
+        NSLog(@"🌐 添加目标服务器: %@:%d", serverIP, serverPort);
+        network_add_target_to_group([serverIP UTF8String], serverPort);
         NSLog(@"✅ 目标服务器已添加");
         
         // 步骤5: 启动网络检测
@@ -266,6 +286,85 @@ static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
 }
 
 // ==================== 连接管理 ====================
+
+/// 测试服务器连通性（TCP端口测试）
+/// @param host 主机地址
+/// @param port 端口号
+/// @param timeout 超时时间（秒）
+/// @return YES 可达，NO 不可达
+- (BOOL)pingHost:(NSString *)host port:(int)port timeout:(NSTimeInterval)timeout {
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        NSLog(@"❌ 创建 socket 失败: %s", strerror(errno));
+        return NO;
+    }
+    
+    // 设置非阻塞模式
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+    
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    
+    if (inet_pton(AF_INET, [host UTF8String], &server_addr.sin_addr) <= 0) {
+        NSLog(@"❌ 无效的 IP 地址: %@", host);
+        close(sockfd);
+        return NO;
+    }
+    
+    // 尝试连接
+    int result = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    
+    if (result == 0) {
+        // 立即连接成功
+        close(sockfd);
+        return YES;
+    }
+    
+    if (errno != EINPROGRESS) {
+        NSLog(@"❌ 连接失败: %s", strerror(errno));
+        close(sockfd);
+        return NO;
+    }
+    
+    // 使用 select 等待连接完成
+    fd_set writefds;
+    FD_ZERO(&writefds);
+    FD_SET(sockfd, &writefds);
+    
+    struct timeval tv;
+    tv.tv_sec = (long)timeout;
+    tv.tv_usec = (long)((timeout - tv.tv_sec) * 1000000);
+    
+    result = select(sockfd + 1, NULL, &writefds, NULL, &tv);
+    
+    if (result > 0) {
+        // 检查连接是否成功
+        int error = 0;
+        socklen_t len = sizeof(error);
+        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+        
+        close(sockfd);
+        
+        if (error == 0) {
+            NSLog(@"✅ TCP 端口测试成功: %@:%d (延迟 < %.1f秒)", host, port, timeout);
+            return YES;
+        } else {
+            NSLog(@"❌ TCP 端口测试失败: %@:%d - %s", host, port, strerror(error));
+            return NO;
+        }
+    } else if (result == 0) {
+        NSLog(@"⏱️ TCP 端口测试超时: %@:%d (%.1f秒)", host, port, timeout);
+        close(sockfd);
+        return NO;
+    } else {
+        NSLog(@"❌ select 错误: %s", strerror(errno));
+        close(sockfd);
+        return NO;
+    }
+}
 
 - (void)addTargetToGroupWithIP:(NSString *)ip port:(int)port {
     NSLog(@"➕ 添加目标服务器: %@:%d", ip, port);

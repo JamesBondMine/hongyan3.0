@@ -404,11 +404,12 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     
     // ⚠️ 数据格式测试开关（修改这个值来测试不同格式）
     // 1 = 原始二进制（varint32头部 + protobuf）
-    // 2 = 十六进制字符串
-    // 3 = 纯 Protobuf（不带 varint32 头部）
-    int dataFormat = 2;  // 👈 修改这里切换格式
+    // 2 = 十六进制字符串（带 varint32 头部）
+    // 3 = 纯 Protobuf 二进制（不带 varint32 头部）
+    // 4 = 纯 Protobuf 转十六进制字符串（不带头部）👈 这个应该是正确的！
+    int dataFormat = 4;  // 👈 修改这里切换格式
     
-    NSLog(@"🧪 当前测试格式: %d (1=二进制+头部, 2=十六进制字符串, 3=纯Protobuf)", dataFormat);
+    NSLog(@"🧪 当前测试格式: %d (1=二进制+头部, 2=HEX+头部, 3=纯二进制, 4=纯Protobuf转HEX)", dataFormat);
     
     // 1. 创建 GetCaptcha Protobuf 对象
     GetCaptcha *captchaRequest = [[GetCaptcha alloc] init];
@@ -477,10 +478,9 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
             NSLog(@"📦 HEX 长度: %d", dataLen);
             break;
         }
-        case 3:
-        default: {
-            // ========== 格式3: 纯 Protobuf（不带 varint32 头部）==========
-            NSLog(@"🔸 使用格式3: 纯 Protobuf（不带 varint32 头部）");
+        case 3: {
+            // ========== 格式3: 纯 Protobuf 二进制（不带 varint32 头部）==========
+            NSLog(@"🔸 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）");
             
             finalData = protoBody;
             data = (const char *)protoBody.bytes;
@@ -489,9 +489,33 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
             NSLog(@"📦 纯 Protobuf 长度: %d", dataLen);
             break;
         }
+        case 4:
+        default: {
+            // ========== 格式4: 纯 Protobuf 转十六进制字符串（不带头部）==========
+            // 这是根据用户示例确定的正确格式：
+            // 示例: data = "0a056c6f67696e10021a03313130"
+            // 解析: {"1": "login", "2": "2", "3": "110"}
+            NSLog(@"🔸 使用格式4: 纯 Protobuf 转十六进制字符串（不带头部）");
+            
+            // 直接将 Protobuf 二进制数据转换为十六进制字符串
+            NSMutableString *hexData = [NSMutableString stringWithCapacity:protoBody.length * 2];
+            const uint8_t *p = (const uint8_t *)protoBody.bytes;
+            for (size_t i = 0; i < protoBody.length; i++) {
+                [hexData appendFormat:@"%02x", p[i]];
+            }
+            
+            hexString = hexData;
+            data = [hexData UTF8String];
+            dataLen = (int)[hexData length];
+            
+            NSLog(@"📦 HEX 字符串: %@", hexData);
+            NSLog(@"📦 HEX 字符串长度: %d", dataLen);
+            NSLog(@"📦 原始 Protobuf 字节数: %lu", (unsigned long)protoBody.length);
+            break;
+        }
     }
     
-    NSLog(@"🚀 准备调用 get_captcha: data=%p, dataLen=%d", data, dataLen);
+   
     
     uint64_t reqId = 0;
     
@@ -500,6 +524,13 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         NSNumber *tempKey = @(tempId++);
         self.authCallbacks[tempKey] = completion;
         
+         NSLog(@"🚀 ============== 准备调用 get_captcha ==============");
+         NSLog(@"📍 data 指针: %p", data);
+         NSLog(@"📍 data 内容: %s", data);
+         NSLog(@"📍 dataLen: %d", dataLen);
+         NSLog(@"📍 reqId: %llu", reqId);
+         NSLog(@"🚀 ================================================");
+
         int result = get_captcha(CaptchaCallback, data, dataLen, reqId);
         
         if (result == 0) {
