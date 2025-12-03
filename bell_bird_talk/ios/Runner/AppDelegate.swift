@@ -175,6 +175,12 @@ class NativeBridgeHandler: NSObject {
             
         case "imLogin":
             imLogin(call: call, result: result)
+        
+        // ---------- 云存储 ----------
+        case "initAliyunOSS", "initTencentCOS", "initAWSS3",
+             "uploadToAliyun", "uploadToTencent", "uploadToAWS",
+             "downloadFile":
+            CloudStorageManager.shared.handleMethodCall(call, result: result)
             
         default:
             result(FlutterMethodNotImplemented)
