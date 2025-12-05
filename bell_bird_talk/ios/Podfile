@@ -32,7 +32,7 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # Protobuf - 使用 3.x 版本（与 protoc 29.5 兼容）
+  # Protobuf - 使用 3.x 版本（与 protoc 3.21.12 兼容）
   pod 'Protobuf', '~> 3.25'
   
   # ==================== 云存储 SDK ====================

@@ -904,6 +904,7 @@ class _RegisterPageState extends State<RegisterPage> {
       } else if (_registerType == RegisterType.emailCode) {
         // 邮箱验证码注册
         registerData = {
+          'account_id': _emailController.text,
           'register_type': 'email', // 注册方式：邮箱
           'email': _emailController.text,
           'password': _passwordController.text,
