@@ -1,7 +1,7 @@
+import 'package:bell_bird_talk/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../controllers/login_controller.dart';
 import 'register_page.dart';
 
 /// 登录页面

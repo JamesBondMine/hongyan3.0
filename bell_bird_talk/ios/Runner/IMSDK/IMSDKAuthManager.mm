@@ -160,17 +160,13 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -2;
     }
     
-    // 构建 packet：varint32长度头 + 数据（复刻 IOSTcpRaceManager.m）
-    NSData *body = jsonData;
-    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
-    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
-    [pkt appendData:body];
+    // ✅ 使用纯数据格式（不带 varint32 头部）
+    // 与 getCaptcha 验证通过的格式保持一致
+    NSLog(@"📦 使用纯数据格式（不带 varint32 头部）");
+    NSLog(@"📦 数据长度: %lu 字节", (unsigned long)jsonData.length);
     
-    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
-          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
-    
-    const char *data = (const char *)pkt.bytes;
-    int dataLen = (int)pkt.length;
+    const char *data = (const char *)jsonData.bytes;
+    int dataLen = (int)jsonData.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -208,17 +204,14 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    // 构建 packet：varint32长度头 + 数据（复刻 IOSTcpRaceManager.m）
-    NSData *body = serializedData;
-    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
-    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
-    [pkt appendData:body];
+    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+    // 与 getCaptcha 验证通过的格式保持一致
+    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
     
-    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
-          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
-    
-    const char *data = (const char *)pkt.bytes;
-    int dataLen = (int)pkt.length;
+    // 直接使用纯 Protobuf 二进制数据，不添加 varint32 头部
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -335,27 +328,24 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    // 构建 packet：varint32长度头 + protobuf数据（复刻 IOSTcpRaceManager.m）
-    NSData *body = serializedData;
-    NSData *hdr = [self encodeVarint32:(uint32_t)body.length];
-    NSMutableData *pkt = [NSMutableData dataWithData:hdr];
-    [pkt appendData:body];
-    
-    NSLog(@"📦 准备发送数据包，总长度: %lu字节 (头部: %lu字节, 消息体: %lu字节)",
-          (unsigned long)pkt.length, (unsigned long)hdr.length, (unsigned long)body.length);
+    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+    // 与 getCaptcha 验证通过的格式保持一致
+    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
     
     // 打印十六进制数据（用于验证格式）
     NSMutableString *hexString = [NSMutableString string];
-    const unsigned char *bytes = (const unsigned char *)pkt.bytes;
-    NSUInteger printLen = MIN(pkt.length, 64); // 打印前64字节
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    NSUInteger printLen = MIN(serializedData.length, 64); // 打印前64字节
     for (NSUInteger i = 0; i < printLen; i++) {
         [hexString appendFormat:@"%02x ", bytes[i]];
         if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
     }
-    NSLog(@"🔍 完整数据包 (HEX):\n                        %@", hexString);
+    NSLog(@"🔍 Protobuf 数据 (HEX):\n                        %@", hexString);
     
-    const char *data = (const char *)pkt.bytes;
-    int dataLen = (int)pkt.length;
+    // 直接使用纯 Protobuf 二进制数据，不添加 varint32 头部
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
     
     if (completion) {
@@ -407,7 +397,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     // 2 = 十六进制字符串（带 varint32 头部）
     // 3 = 纯 Protobuf 二进制（不带 varint32 头部）
     // 4 = 纯 Protobuf 转十六进制字符串（不带头部）👈 这个应该是正确的！
-    int dataFormat = 4;  // 👈 修改这里切换格式
+    int dataFormat = 3;  // 👈 修改这里切换格式
     
     NSLog(@"🧪 当前测试格式: %d (1=二进制+头部, 2=HEX+头部, 3=纯二进制, 4=纯Protobuf转HEX)", dataFormat);
     

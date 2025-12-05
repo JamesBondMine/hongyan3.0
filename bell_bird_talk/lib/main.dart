@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'pages/native_demo_page.dart';
 import 'pages/framework_test_page.dart';
-import 'pages/login_page.dart';
+import 'pages/login/login_page.dart';
 import 'pages/home_page.dart';
 import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';
