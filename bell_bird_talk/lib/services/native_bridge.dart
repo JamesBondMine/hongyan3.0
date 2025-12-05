@@ -265,20 +265,97 @@ class IOSNativeService {
     }
   }
   
-  /// 用户登录
-  /// @param userId 用户ID
-  /// @param token 用户token
+  /// 用户登录（支持多种登录方式）
+  /// @param loginType 登录类型：password（密码）、sms_code（短信）、email_code（邮箱）、token
+  /// @param accountId 账户ID（密码登录必填）
+  /// @param password 密码（密码登录）或验证码答案（验证码登录）
+  /// @param phone 手机号（短信登录必填）
+  /// @param email 邮箱（邮箱登录必填）
+  /// @param captchaId 验证码ID（验证码登录必填）
+  /// @param deviceId 设备ID（可选）
+  /// @param bizCode 业务邀请码（可选）
   /// @return 登录结果
-  Future<Map<String, dynamic>> imLogin(String userId, String token) async {
+  Future<Map<String, dynamic>> imLogin({
+    required String loginType,
+    String? accountId,
+    String? password,
+    String? phone,
+    String? email,
+    String? captchaId,
+    String? deviceId,
+    String? bizCode,
+    String? token,
+  }) async {
     try {
-      final result = await _bridge.invokeMethod<Map>('imLogin', {
-        'userId': userId,
-        'token': token,
-      });
+      final Map<String, dynamic> params = {
+        'login_type': loginType,
+      };
+      
+      // 根据登录类型添加必要参数
+      if (accountId != null) params['account_id'] = accountId;
+      if (password != null) params['password'] = password;
+      if (phone != null) params['phone'] = phone;
+      if (email != null) params['email'] = email;
+      if (captchaId != null) params['captcha_id'] = captchaId;
+      if (deviceId != null) params['device_id'] = deviceId;
+      if (bizCode != null) params['biz_code'] = bizCode;
+      if (token != null) params['token'] = token;
+      
+      final result = await _bridge.invokeMethod<Map>('imLogin', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};
     }
+  }
+  
+  /// 密码登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithPassword({
+    required String accountId,
+    required String password,
+  }) async {
+    return imLogin(
+      loginType: 'password',
+      accountId: accountId,
+      password: password,
+    );
+  }
+  
+  /// 短信验证码登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithSMS({
+    required String phone,
+    required String code,
+    required String captchaId,
+  }) async {
+    return imLogin(
+      loginType: 'sms_code',
+      phone: phone,
+      password: code,
+      captchaId: captchaId,
+    );
+  }
+  
+  /// 邮箱验证码登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithEmail({
+    required String email,
+    required String code,
+    required String captchaId,
+  }) async {
+    return imLogin(
+      loginType: 'email_code',
+      email: email,
+      password: code,
+      captchaId: captchaId,
+    );
+  }
+  
+  /// Token 登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithToken({
+    required String token,
+  }) async {
+    return imLogin(
+      loginType: 'token',
+      token: token,
+    );
   }
 }
 

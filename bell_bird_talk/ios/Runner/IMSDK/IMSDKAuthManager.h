@@ -23,14 +23,29 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 
 // ==================== 用户登录 ====================
 
-/// 使用用户ID登录
+/// 使用字典数据登录（推荐，支持多种登录方式）
+/// @param loginDict 登录信息字典，支持以下字段：
+///   - account_id: 账户ID（密码登录必填）
+///   - password: 密码（密码登录必填）或验证码答案（验证码登录必填）
+///   - login_type: 登录类型（password/sms_code/email_code）
+///   - phone: 手机号（短信登录必填）
+///   - email: 邮箱（邮箱登录必填）
+///   - captcha_id: 验证码ID（验证码登录必填）
+///   - device_id: 设备ID（可选）
+///   - biz_code: 业务邀请码（可选）
+/// @param completion 登录结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)loginWithDictionary:(NSDictionary *)loginDict
+                completion:(IMSDKAuthCompletion)completion;
+
+/// 使用用户ID登录（已弃用，请使用 loginWithDictionary:completion:）
 /// @param userId 用户ID
 /// @param token 用户token
 /// @param completion 登录结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)loginWithUserId:(NSString *)userId
                  token:(NSString *)token
-            completion:(IMSDKAuthCompletion)completion;
+            completion:(IMSDKAuthCompletion)completion __attribute__((deprecated("Use loginWithDictionary:completion: instead")));
 
 /// 使用Token快速登录
 /// @param token 用户token

@@ -97,95 +97,219 @@ class HomePage extends StatelessWidget {
     return Obx(() {
       final user = globalCtrl.currentUser.value;
       
-      return Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade400, Colors.blue.shade600],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      return GestureDetector(
+        onTap: () => _showUserInfoDialog(Get.context!, globalCtrl),
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade400, Colors.blue.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // 头像
-            CircleAvatar(
-              radius: 35,
-              backgroundColor: Colors.white,
-              backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
-                  ? NetworkImage(user!.avatar!)
-                  : null,
-              child: (user?.avatar == null || user!.avatar!.isEmpty)
-                  ? const Icon(Icons.person, size: 40, color: Colors.blue)
-                  : null,
-            ),
-            
-            const SizedBox(width: 16),
-            
-            // 用户信息
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user?.nickname ?? '未知用户',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.signature ?? '这个人很懒，什么都没留下',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'ID: ${user?.id ?? 'N/A'}',
+          child: Row(
+            children: [
+              // 头像
+              CircleAvatar(
+                radius: 35,
+                backgroundColor: Colors.white,
+                backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
+                    ? NetworkImage(user!.avatar!)
+                    : null,
+                child: (user?.avatar == null || user!.avatar!.isEmpty)
+                    ? const Icon(Icons.person, size: 40, color: Colors.blue)
+                    : null,
+              ),
+              
+              const SizedBox(width: 16),
+              
+              // 用户信息
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.nickname ?? '未知用户',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    // 显示邮箱或手机号
+                    if (user?.email != null && user!.email!.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(Icons.email_outlined, size: 14, color: Colors.white.withOpacity(0.9)),
+                          const SizedBox(width: 4),
+                          Text(
+                            user!.email!,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (user?.phone != null && user!.phone!.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(Icons.phone_outlined, size: 14, color: Colors.white.withOpacity(0.9)),
+                          const SizedBox(width: 4),
+                          Text(
+                            user!.phone!,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        user?.signature ?? '点击查看详情',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'ID: ${user?.id ?? 'N/A'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            // 箭头
-            const Icon(
-              Icons.chevron_right,
-              color: Colors.white,
-              size: 30,
-            ),
-          ],
+              
+              // 箭头
+              const Icon(
+                Icons.chevron_right,
+                color: Colors.white,
+                size: 30,
+              ),
+            ],
+          ),
         ),
       );
     });
+  }
+  
+  /// 显示用户信息对话框
+  void _showUserInfoDialog(BuildContext context, GlobalController globalCtrl) {
+    final user = globalCtrl.currentUser.value;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('用户信息'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 头像居中
+            Center(
+              child: CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.blue.shade100,
+                backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
+                    ? NetworkImage(user!.avatar!)
+                    : null,
+                child: (user?.avatar == null || user!.avatar!.isEmpty)
+                    ? const Icon(Icons.person, size: 50, color: Colors.blue)
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            _buildInfoRow(Icons.person, '昵称', user?.nickname ?? '未设置'),
+            _buildInfoRow(Icons.badge, '用户名', user?.username ?? '未设置'),
+            _buildInfoRow(Icons.fingerprint, 'ID', user?.id ?? '未知'),
+            _buildInfoRow(Icons.email, '邮箱', user?.email ?? '未绑定'),
+            _buildInfoRow(Icons.phone, '手机', user?.phone ?? '未绑定'),
+            _buildInfoRow(Icons.wc, '性别', _getGenderText(user?.gender)),
+            _buildInfoRow(Icons.edit, '签名', user?.signature ?? '未设置'),
+            _buildInfoRow(Icons.access_time, '注册时间', 
+              user?.createdAt?.toString().substring(0, 19) ?? '未知'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 构建信息行
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 60,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 获取性别文本
+  String _getGenderText(int? gender) {
+    switch (gender) {
+      case 1: return '男';
+      case 2: return '女';
+      default: return '未设置';
+    }
   }
 
   /// 构建 IM SDK 状态卡片

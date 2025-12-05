@@ -720,19 +720,121 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 用户登录
+    /// 用户登录（支持多种登录方式）
+    /// 参数说明：
+    /// - login_type: 登录类型 (password/sms_code/email_code/token)
+    /// - account_id: 账户ID（密码登录必填）
+    /// - password: 密码（密码登录）或验证码答案（验证码登录）
+    /// - phone: 手机号（短信登录必填）
+    /// - email: 邮箱（邮箱登录必填）
+    /// - captcha_id: 验证码ID（验证码登录必填）
+    /// - device_id: 设备ID（可选）
+    /// - biz_code: 业务邀请码（可选）
     private func imLogin(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let userId = args["userId"] as? String,
-              let token = args["token"] as? String else {
+        guard let args = call.arguments as? [String: Any] else {
             result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
             return
         }
         
-        print("👤 用户登录: userId=\(userId)")
+        // 获取登录类型
+        let loginType = args["login_type"] as? String ?? "password"
+        print("🔐 用户登录: login_type=\(loginType)")
         
-        // 调用 IMSDKAuthManager 登录
-        let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
+        // 构建登录字典
+        var loginDict: [String: Any] = [:]
+        
+        // 登录类型
+        loginDict["login_type"] = loginType
+        
+        // 根据登录类型设置必要字段
+        switch loginType {
+        case "password":
+            // 密码登录：需要 account_id + password
+            if let accountId = args["account_id"] as? String {
+                loginDict["account_id"] = accountId
+            }
+            if let password = args["password"] as? String {
+                loginDict["password"] = password
+            }
+            print("📋 密码登录: account_id=\(loginDict["account_id"] ?? "nil")")
+            
+        case "sms_code":
+            // 短信验证码登录：需要 phone + password(验证码) + captcha_id
+            if let phone = args["phone"] as? String {
+                loginDict["phone"] = phone
+            }
+            if let password = args["password"] as? String {
+                loginDict["password"] = password
+            }
+            if let captchaId = args["captcha_id"] as? String {
+                loginDict["captcha_id"] = captchaId
+            }
+            print("📋 短信登录: phone=\(loginDict["phone"] ?? "nil")")
+            
+        case "email_code":
+            // 邮箱验证码登录：需要 email + password(验证码) + captcha_id
+            if let email = args["email"] as? String {
+                loginDict["email"] = email
+            }
+            if let password = args["password"] as? String {
+                loginDict["password"] = password
+            }
+            if let captchaId = args["captcha_id"] as? String {
+                loginDict["captcha_id"] = captchaId
+            }
+            print("📋 邮箱登录: email=\(loginDict["email"] ?? "nil")")
+            
+        case "token":
+            // Token 登录
+            if let token = args["token"] as? String {
+                // 对于 token 登录，使用旧的方法
+                let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
+                    print("✅ Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+                    result([
+                        "errorCode": errorCode,
+                        "reqId": reqId,
+                        "message": errorCode == 0 ? "登录成功" : "登录失败",
+                        "data": data ?? ""
+                    ])
+                }
+                if code != 0 {
+                    result(FlutterError(code: "LOGIN_ERROR", message: "Token登录请求发送失败: \(code)", details: nil))
+                }
+                return
+            }
+            
+        default:
+            // 兼容旧的 userId + token 方式
+            if let userId = args["userId"] as? String, let token = args["token"] as? String {
+                let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
+                    print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+                    result([
+                        "errorCode": errorCode,
+                        "reqId": reqId,
+                        "message": errorCode == 0 ? "登录成功" : "登录失败",
+                        "data": data ?? ""
+                    ])
+                }
+                if code != 0 {
+                    result(FlutterError(code: "LOGIN_ERROR", message: "登录请求发送失败: \(code)", details: nil))
+                }
+                return
+            }
+        }
+        
+        // 可选字段
+        if let deviceId = args["device_id"] as? String {
+            loginDict["device_id"] = deviceId
+        }
+        if let bizCode = args["biz_code"] as? String {
+            loginDict["biz_code"] = bizCode
+        }
+        if let clientIp = args["client_ip"] as? String {
+            loginDict["client_ip"] = clientIp
+        }
+        
+        // 调用新的字典登录方法
+        let code = IMSDKAuthManager.shared().login(with: loginDict) { errorCode, reqId, data in
             print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {

@@ -1,24 +1,44 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-// import '../services/api_service.dart'; // 真实环境使用
 import '../models/user_model.dart';
 import '../utils/storage_util.dart';
-// import '../config/constants.dart'; // 真实环境使用
+import '../services/native_bridge.dart';
 import 'global_controller.dart';
+
+/// 登录方式枚举
+enum LoginType {
+  password,   // 账号密码登录
+  smsCode,    // 手机验证码登录
+  emailCode,  // 邮箱验证码登录
+}
 
 /// 登录控制器
 class LoginController extends GetxController {
   // 文本控制器
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController codeController = TextEditingController();
   
   // 状态
   final RxBool isLoading = false.obs;
   final RxBool obscurePassword = true.obs;
   final RxBool rememberPassword = false.obs;
   
+  // 登录方式
+  final Rx<LoginType> loginType = LoginType.password.obs;
+  
+  // 验证码相关
+  final RxInt countdown = 0.obs;
+  final RxBool isSendingCode = false.obs;
+  Timer? _countdownTimer;
+  String? _captchaId; // 验证码ID
+  
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  final IOSNativeService _nativeBridge = IOSNativeService();
 
   @override
   void onInit() {
@@ -30,6 +50,10 @@ class LoginController extends GetxController {
   void onClose() {
     usernameController.dispose();
     passwordController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    codeController.dispose();
+    _countdownTimer?.cancel();
     super.onClose();
   }
 
@@ -49,18 +73,122 @@ class LoginController extends GetxController {
   void togglePasswordVisibility() {
     obscurePassword.value = !obscurePassword.value;
   }
+  
+  /// 切换登录方式
+  void switchLoginType(LoginType type) {
+    loginType.value = type;
+    // 清空验证码相关
+    codeController.clear();
+    _captchaId = null;
+  }
+
+  /// 发送验证码
+  Future<void> sendVerificationCode() async {
+    String target = '';
+    String codeType = '';
+    
+    if (loginType.value == LoginType.smsCode) {
+      target = phoneController.text.trim();
+      codeType = 'SMS';
+      if (target.isEmpty) {
+        EasyLoading.showError('请输入手机号');
+        return;
+      }
+      if (!_isValidPhone(target)) {
+        EasyLoading.showError('请输入正确的手机号');
+        return;
+      }
+    } else if (loginType.value == LoginType.emailCode) {
+      target = emailController.text.trim();
+      codeType = 'EMAIL';
+      if (target.isEmpty) {
+        EasyLoading.showError('请输入邮箱');
+        return;
+      }
+      if (!_isValidEmail(target)) {
+        EasyLoading.showError('请输入正确的邮箱地址');
+        return;
+      }
+    }
+    
+    try {
+      isSendingCode.value = true;
+      EasyLoading.show(status: '发送验证码中...');
+      
+      // 调用原生发送验证码
+      final result = await _nativeBridge.imGetCaptcha(
+        target,
+        type: codeType,
+        scene: 'login', // 登录场景
+      );
+      
+      print('📬 验证码发送结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        // 保存验证码ID
+        _captchaId = result['captchaId'] as String?;
+        print('📝 验证码ID: $_captchaId');
+        
+        EasyLoading.showSuccess('验证码已发送');
+        _startCountdown();
+      } else {
+        EasyLoading.showError(result['message'] ?? '发送失败');
+      }
+    } catch (e) {
+      print('发送验证码错误: $e');
+      EasyLoading.showError('发送验证码失败');
+    } finally {
+      isSendingCode.value = false;
+    }
+  }
+  
+  /// 开始倒计时
+  void _startCountdown() {
+    countdown.value = 60;
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (countdown.value > 0) {
+        countdown.value--;
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+  
+  /// 验证手机号格式
+  bool _isValidPhone(String phone) {
+    return RegExp(r'^1[3-9]\d{9}$').hasMatch(phone);
+  }
+  
+  /// 验证邮箱格式
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
 
   /// 登录
   Future<void> login() async {
+    switch (loginType.value) {
+      case LoginType.password:
+        await _loginWithPassword();
+        break;
+      case LoginType.smsCode:
+        await _loginWithSMS();
+        break;
+      case LoginType.emailCode:
+        await _loginWithEmail();
+        break;
+    }
+  }
+  
+  /// 密码登录
+  Future<void> _loginWithPassword() async {
     final username = usernameController.text.trim();
     final password = passwordController.text.trim();
 
-    // 验证输入
     if (username.isEmpty) {
       EasyLoading.showError('请输入用户名');
       return;
     }
-
     if (password.isEmpty) {
       EasyLoading.showError('请输入密码');
       return;
@@ -70,37 +198,16 @@ class LoginController extends GetxController {
       isLoading.value = true;
       EasyLoading.show(status: '登录中...');
 
-      // 调用登录接口（这里使用模拟登录）
-      await _mockLogin(username, password);
-
-      // 真实环境取消注释下面的代码
-      // final result = await ApiService().login(
-      //   username: username,
-      //   password: password,
-      // );
-      //
-      // if (result.isSuccess) {
-      //   final token = result.data!['token'] as String;
-      //   final userData = result.data!['user'] as Map<String, dynamic>;
-      //   final user = UserModel.fromJson(userData);
-      //
-      //   // 保存登录信息
-      //   await _globalCtrl.saveLoginInfo(token, user);
-      //
-      //   // 保存账号密码
-      //   if (rememberPassword.value) {
-      //     await _saveCredentials(username, password);
-      //   } else {
-      //     await _clearCredentials();
-      //   }
-      //
-      //   EasyLoading.showSuccess('登录成功');
-      //
-      //   // 跳转到首页
-      //   Get.offAllNamed('/home');
-      // } else {
-      //   EasyLoading.showError(result.message);
-      // }
+      // 调用原生密码登录
+      final result = await _nativeBridge.imLoginWithPassword(
+        accountId: username,
+        password: password,
+      );
+      
+      print('🔐 密码登录结果: $result');
+      
+      await _handleLoginResult(result, username);
+      
     } catch (e) {
       print('登录错误: $e');
       EasyLoading.showError('登录失败，请稍后重试');
@@ -108,47 +215,141 @@ class LoginController extends GetxController {
       isLoading.value = false;
     }
   }
+  
+  /// 短信验证码登录
+  Future<void> _loginWithSMS() async {
+    final phone = phoneController.text.trim();
+    final code = codeController.text.trim();
 
-  /// 模拟登录（用于测试）
-  Future<void> _mockLogin(String username, String password) async {
-    // 模拟网络延迟
-    await Future.delayed(const Duration(seconds: 1));
+    if (phone.isEmpty) {
+      EasyLoading.showError('请输入手机号');
+      return;
+    }
+    if (code.isEmpty) {
+      EasyLoading.showError('请输入验证码');
+      return;
+    }
+    if (_captchaId == null) {
+      EasyLoading.showError('请先获取验证码');
+      return;
+    }
 
-    // 验证账号密码
-    if (username == 'test' && password == '123456') {
-      // 创建模拟用户
-      final user = UserModel(
-        id: '1',
-        username: username,
-        nickname: '测试用户',
-        avatar: '', // 使用空字符串，界面会显示默认头像图标
-        phone: '13800138000',
-        email: 'test@example.com',
-        gender: 1,
-        signature: '这是一个测试账号',
+    try {
+      isLoading.value = true;
+      EasyLoading.show(status: '登录中...');
+
+      // 调用原生短信登录
+      final result = await _nativeBridge.imLoginWithSMS(
+        phone: phone,
+        code: code,
+        captchaId: _captchaId!,
+      );
+      
+      print('📱 短信登录结果: $result');
+      
+      await _handleLoginResult(result, phone);
+      
+    } catch (e) {
+      print('登录错误: $e');
+      EasyLoading.showError('登录失败，请稍后重试');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  /// 邮箱验证码登录
+  Future<void> _loginWithEmail() async {
+    final email = emailController.text.trim();
+    final code = codeController.text.trim();
+
+    if (email.isEmpty) {
+      EasyLoading.showError('请输入邮箱');
+      return;
+    }
+    if (code.isEmpty) {
+      EasyLoading.showError('请输入验证码');
+      return;
+    }
+    if (_captchaId == null) {
+      EasyLoading.showError('请先获取验证码');
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      EasyLoading.show(status: '登录中...');
+
+      // 调用原生邮箱登录
+      final result = await _nativeBridge.imLoginWithEmail(
+        email: email,
+        code: code,
+        captchaId: _captchaId!,
+      );
+      
+      print('📧 邮箱登录结果: $result');
+      
+      await _handleLoginResult(result, email);
+      
+    } catch (e) {
+      print('登录错误: $e');
+      EasyLoading.showError('登录失败，请稍后重试');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  /// 处理登录结果
+  Future<void> _handleLoginResult(Map<String, dynamic> result, String account) async {
+    if (result['errorCode'] == 0) {
+      // 解析用户数据
+      final data = result['data'];
+      print('📦 登录返回数据: $data');
+      
+      // 尝试解析用户信息
+      UserModel? user;
+      String? token;
+      
+      if (data != null && data is String && data.isNotEmpty) {
+        try {
+          // 尝试解析 JSON
+          final jsonData = data;
+          // TODO: 根据实际返回格式解析
+          print('📝 返回的数据字符串: $jsonData');
+        } catch (e) {
+          print('解析用户数据失败: $e');
+        }
+      }
+      
+      // 如果没有解析到用户信息，创建一个基本的用户对象
+      user ??= UserModel(
+        id: result['reqId']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        username: account,
+        nickname: account,
+        avatar: '',
+        phone: loginType.value == LoginType.smsCode ? account : '',
+        email: loginType.value == LoginType.emailCode ? account : '',
+        gender: 0,
+        signature: '',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-
-      // 模拟 Token
-      final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-
+      
+      token ??= 'token_${DateTime.now().millisecondsSinceEpoch}';
+      
       // 保存登录信息
       await _globalCtrl.saveLoginInfo(token, user);
-
-      // 保存账号密码
-      if (rememberPassword.value) {
-        await _saveCredentials(username, password);
-      } else {
-        await _clearCredentials();
+      
+      // 保存账号（密码登录时保存密码）
+      if (loginType.value == LoginType.password && rememberPassword.value) {
+        await _saveCredentials(usernameController.text.trim(), passwordController.text.trim());
       }
-
+      
       EasyLoading.showSuccess('登录成功');
-
+      
       // 跳转到首页
       Get.offAllNamed('/home');
     } else {
-      throw Exception('用户名或密码错误');
+      EasyLoading.showError(result['message'] ?? '登录失败');
     }
   }
 
@@ -164,4 +365,3 @@ class LoginController extends GetxController {
     await StorageUtil().remove('saved_password');
   }
 }
-

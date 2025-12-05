@@ -112,6 +112,100 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
 
 // ==================== 用户登录 ====================
 
+- (int)loginWithDictionary:(NSDictionary *)loginDict
+                completion:(IMSDKAuthCompletion)completion {
+    NSLog(@"🔐 用户登录（字典）: %@", loginDict);
+    
+    if (!loginDict) {
+        NSLog(@"❌ 登录信息不能为空");
+        return -1;
+    }
+    
+    // 使用 protobuf 创建 AuthUser 对象
+    AuthUser *authUser = [[AuthUser alloc] init];
+    
+    // 登录类型（默认密码登录）
+    NSString *loginTypeStr = loginDict[@"login_type"];
+    if ([loginTypeStr isEqualToString:@"password"]) {
+        authUser.loginType = LoginType_Password;
+    } else if ([loginTypeStr isEqualToString:@"sms_code"]) {
+        authUser.loginType = LoginType_SmsCode;
+    } else if ([loginTypeStr isEqualToString:@"email_code"]) {
+        authUser.loginType = LoginType_EmailCode;
+    } else if ([loginTypeStr isEqualToString:@"token"]) {
+        authUser.loginType = LoginType_Token;
+    } else {
+        // 默认密码登录
+        authUser.loginType = LoginType_Password;
+    }
+    
+    NSLog(@"📋 登录类型: %@ -> %d", loginTypeStr, (int)authUser.loginType);
+    
+    // 账户ID（密码登录必填）
+    if (loginDict[@"account_id"]) {
+        authUser.accountId = loginDict[@"account_id"];
+        NSLog(@"📋 账户ID: %@", authUser.accountId);
+    }
+    
+    // 密码（密码登录时为密码，验证码登录时为验证码答案）
+    if (loginDict[@"password"]) {
+        authUser.password = loginDict[@"password"];
+        NSLog(@"📋 密码/验证码: [已设置]");
+    }
+    
+    // 手机号（短信验证码登录必填）
+    if (loginDict[@"phone"]) {
+        authUser.phone = loginDict[@"phone"];
+        NSLog(@"📋 手机号: %@", authUser.phone);
+    }
+    
+    // 邮箱（邮箱验证码登录必填）
+    if (loginDict[@"email"]) {
+        authUser.email = loginDict[@"email"];
+        NSLog(@"📋 邮箱: %@", authUser.email);
+    }
+    
+    // 验证码ID（验证码登录必填）
+    if (loginDict[@"captcha_id"]) {
+        authUser.captchaId = loginDict[@"captcha_id"];
+        NSLog(@"📋 验证码ID: %@", authUser.captchaId);
+    }
+    
+    // 设备ID（可选）
+    if (loginDict[@"device_id"]) {
+        authUser.deviceId = loginDict[@"device_id"];
+        NSLog(@"📋 设备ID: %@", authUser.deviceId);
+    }
+    
+    // 业务邀请码（可选）
+    if (loginDict[@"biz_code"]) {
+        authUser.bizCode = loginDict[@"biz_code"];
+        NSLog(@"📋 业务邀请码: %@", authUser.bizCode);
+    }
+    
+    // 客户端IP（可选）
+    if (loginDict[@"client_ip"]) {
+        authUser.clientIp = loginDict[@"client_ip"];
+    }
+    
+    // 序列化 protobuf 对象
+    NSData *serializedData = [authUser data];
+    NSLog(@"📦 Protobuf 序列化成功: %lu bytes", (unsigned long)serializedData.length);
+    
+    // 打印十六进制数据（用于调试）
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    NSUInteger printLen = MIN(serializedData.length, 64);
+    for (NSUInteger i = 0; i < printLen; i++) {
+        [hexString appendFormat:@"%02x ", bytes[i]];
+        if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
+    }
+    NSLog(@"🔍 Protobuf 数据 (HEX):\n                        %@", hexString);
+    
+    // 调用底层的序列化数据方法
+    return [self loginWithSerializedData:serializedData completion:completion];
+}
+
 - (int)loginWithUserId:(NSString *)userId
                  token:(NSString *)token
             completion:(IMSDKAuthCompletion)completion {
