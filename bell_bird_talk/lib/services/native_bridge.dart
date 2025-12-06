@@ -357,5 +357,31 @@ class IOSNativeService {
       token: token,
     );
   }
+  
+  // ---------- 用户查询 ----------
+  
+  /// 搜索用户
+  /// @param userId 用户ID（可选）
+  /// @param accountId 账户ID，可以是手机号、邮箱等（可选）
+  /// @return 搜索结果，包含用户信息
+  Future<Map<String, dynamic>> imSearchUser({
+    String? userId,
+    String? accountId,
+  }) async {
+    if (userId == null && accountId == null) {
+      return {'errorCode': -1, 'message': '必须提供 userId 或 accountId'};
+    }
+    
+    try {
+      final Map<String, dynamic> params = {};
+      if (userId != null) params['user_id'] = userId;
+      if (accountId != null) params['account_id'] = accountId;
+      
+      final result = await _bridge.invokeMethod<Map>('imSearchUser', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 

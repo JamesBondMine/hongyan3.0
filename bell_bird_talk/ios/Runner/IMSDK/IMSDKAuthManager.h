@@ -97,6 +97,17 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
                      value:(NSString *)value
                 completion:(IMSDKAuthCompletion)completion;
 
+// ==================== 用户查询 ====================
+
+/// 搜索用户（根据用户ID或账户ID）
+/// @param userId 用户ID（可选）
+/// @param accountId 账户ID（可选，可以是手机号、邮箱等）
+/// @param completion 查询结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)searchUserWithUserId:(NSString * _Nullable)userId
+                  accountId:(NSString * _Nullable)accountId
+                 completion:(IMSDKAuthCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

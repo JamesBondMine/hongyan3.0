@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
@@ -249,10 +250,10 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(),
             _buildInfoRow(Icons.person, '昵称', user?.nickname ?? '未设置'),
-            _buildInfoRow(Icons.badge, '用户名', user?.username ?? '未设置'),
-            _buildInfoRow(Icons.fingerprint, 'ID', user?.id ?? '未知'),
-            _buildInfoRow(Icons.email, '邮箱', user?.email ?? '未绑定'),
-            _buildInfoRow(Icons.phone, '手机', user?.phone ?? '未绑定'),
+            _buildInfoRow(Icons.badge, '用户名', user?.username ?? '未设置', canCopy: true),
+            _buildInfoRow(Icons.fingerprint, 'ID', user?.id ?? '未知', canCopy: true),
+            _buildInfoRow(Icons.email, '邮箱', user?.email ?? '未绑定', canCopy: true),
+            _buildInfoRow(Icons.phone, '手机', user?.phone ?? '未绑定', canCopy: true),
             _buildInfoRow(Icons.wc, '性别', _getGenderText(user?.gender)),
             _buildInfoRow(Icons.edit, '签名', user?.signature ?? '未设置'),
             _buildInfoRow(Icons.access_time, '注册时间', 
@@ -270,35 +271,51 @@ class HomePage extends StatelessWidget {
   }
   
   /// 构建信息行
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 60,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
+  /// [canCopy] 是否可以点击复制
+  Widget _buildInfoRow(IconData icon, String label, String value, {bool canCopy = false}) {
+    return InkWell(
+      onTap: canCopy && value.isNotEmpty && !value.contains('未')
+          ? () {
+              Clipboard.setData(ClipboardData(text: value));
+              EasyLoading.showSuccess('已复制: $value');
+            }
+          : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: Colors.grey[600]),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 60,
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            if (canCopy && value.isNotEmpty && !value.contains('未'))
+              Icon(
+                Icons.copy,
+                size: 16,
+                color: Colors.grey[400],
+              ),
+          ],
+        ),
       ),
     );
   }

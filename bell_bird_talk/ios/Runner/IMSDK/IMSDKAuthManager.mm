@@ -114,7 +114,7 @@ static void LoginCallback(int errorCode, const char* data, int dataLen, uint64_t
                     NSLog(@"⚠️ JSON 序列化失败: %@", jsonError);
                 }
             } else {
-                NSLog(@"⚠️ Protobuf 解析失败，尝试作为原始字符串处理: %@", parseError);
+//                NSLog(@"⚠️ Protobuf 解析失败，尝试作为原始字符串处理: %@", parseError);
                 // 尝试作为 UTF-8 字符串处理（向后兼容）
                 dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
             }
@@ -277,11 +277,8 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         NSLog(@"❌ 登录信息不能为空");
         return -1;
     }
-    
     // 使用 protobuf 创建 AuthUser 对象
     AuthUser *authUser = [[AuthUser alloc] init];
-    
-    // 登录类型（默认密码登录）
     NSString *loginTypeStr = loginDict[@"login_type"];
     if ([loginTypeStr isEqualToString:@"password"]) {
         authUser.loginType = LoginType_Password;
@@ -296,56 +293,41 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         authUser.loginType = LoginType_Password;
     }
     
-    NSLog(@"📋 登录类型: %@ -> %d", loginTypeStr, (int)authUser.loginType);
-    
     // 账户ID（密码登录必填）
     if (loginDict[@"account_id"]) {
         authUser.accountId = loginDict[@"account_id"];
-        NSLog(@"📋 账户ID: %@", authUser.accountId);
     }
-    
-    
-    
     // 手机号（短信验证码登录必填）
     if (loginDict[@"phone"]) {
         authUser.phone = loginDict[@"phone"];
-        NSLog(@"📋 手机号: %@", authUser.phone);
     }
-    
     // 邮箱（邮箱验证码登录必填）
     if (loginDict[@"email"]) {
         authUser.email = loginDict[@"email"];
-        NSLog(@"📋 邮箱: %@", authUser.email);
     }
-    
-    
     // 密码（密码登录时为密码，验证码登录时为验证码答案）
     if (loginDict[@"password"]) {
         authUser.password = loginDict[@"password"];
-        NSLog(@"📋 密码/验证码: %@",authUser.password);
     }
     // 验证码ID（验证码登录必填）
     if (loginDict[@"captcha_id"]) {
         authUser.captchaId = loginDict[@"captcha_id"];
-        NSLog(@"📋 验证码ID: %@", authUser.captchaId);
     }
-    
     // 设备ID（可选）
     if (loginDict[@"device_id"]) {
         authUser.deviceId = loginDict[@"device_id"];
-        NSLog(@"📋 设备ID: %@", authUser.deviceId);
     }
-    
     // 业务邀请码（可选）
     if (loginDict[@"biz_code"]) {
         authUser.bizCode = loginDict[@"biz_code"];
-        NSLog(@"📋 业务邀请码: %@", authUser.bizCode);
     }
-    
     // 客户端IP（可选）
     if (loginDict[@"client_ip"]) {
         authUser.clientIp = loginDict[@"client_ip"];
     }
+    NSLog(@"\n登录参数:===========================\n type=%@(%d),\n account=%@,\n phone=%@,\n email=%@,\n pwd=%@,\n captchaId=%@,\n deviceId=%@,\n bizCode=%@ \n===========================",
+          loginTypeStr, (int)authUser.loginType, authUser.accountId, authUser.phone,
+          authUser.email, authUser.password, authUser.captchaId, authUser.deviceId, authUser.bizCode);
     
     // 序列化 protobuf 对象
     NSData *serializedData = [authUser data];
@@ -791,6 +773,138 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     }
     
     return get_captcha(CaptchaCallback, data, dataLen, reqId);
+}
+
+// ==================== 用户查询 ====================
+
+// 用户查询回调函数
+static void GetUserCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔔 用户查询回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    IMSDKAuthManager *manager = [IMSDKAuthManager sharedManager];
+    NSNumber *reqIdKey = @(reqId);
+    
+    IMSDKAuthCompletion completion = manager.authCallbacks[reqIdKey];
+    if (completion) {
+        NSString *dataStr = nil;
+        
+        if (data && dataLen > 0) {
+            // 尝试解析为 User Protobuf 对象
+            NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+            NSError *parseError = nil;
+            User *user = [User parseFromData:responseData error:&parseError];
+            
+            if (user && !parseError) {
+                // 成功解析 Protobuf，转换为 JSON 字典
+                NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+                
+                if (user.userId.length > 0) jsonDict[@"user_id"] = user.userId;
+                if (user.accountId.length > 0) jsonDict[@"account_id"] = user.accountId;
+                if (user.nickname.length > 0) jsonDict[@"nickname"] = user.nickname;
+                if (user.phone.length > 0) jsonDict[@"phone"] = user.phone;
+                if (user.email.length > 0) jsonDict[@"email"] = user.email;
+                if (user.avatar.length > 0) jsonDict[@"avatar"] = user.avatar;
+                if (user.signature.length > 0) jsonDict[@"signature"] = user.signature;
+                jsonDict[@"sex"] = @(user.sex);
+                jsonDict[@"status"] = @(user.status);
+                jsonDict[@"created_at"] = @(user.createdAt);
+                jsonDict[@"updated_at"] = @(user.updatedAt);
+                
+                // 转换为 JSON 字符串
+                NSError *jsonError = nil;
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&jsonError];
+                if (jsonData && !jsonError) {
+                    dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 用户查询响应解析成功: %@", dataStr);
+                } else {
+                    NSLog(@"⚠️ JSON 序列化失败: %@", jsonError);
+                }
+            } else {
+                NSLog(@"⚠️ Protobuf 解析失败，尝试作为原始字符串处理: %@", parseError);
+                dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+            }
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(errorCode, reqId, dataStr);
+        });
+        
+        [manager.authCallbacks removeObjectForKey:reqIdKey];
+    }
+}
+
+- (int)searchUserWithUserId:(NSString * _Nullable)userId
+                  accountId:(NSString * _Nullable)accountId
+                 completion:(IMSDKAuthCompletion)completion {
+    NSLog(@"🔍 搜索用户: userId=%@, accountId=%@", userId, accountId);
+    
+    if (!userId && !accountId) {
+        NSLog(@"❌ 必须提供 userId 或 accountId");
+        return -1;
+    }
+    
+    // 创建 GetUser Protobuf 对象
+    GetUser *getUser = [[GetUser alloc] init];
+    if (userId && userId.length > 0) {
+        getUser.userId = userId;
+    }
+    if (accountId && accountId.length > 0) {
+        getUser.accountId = accountId;
+    }
+    
+    // 序列化为 Protobuf 二进制数据
+    NSData *serializedData = [getUser data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+    // 与注册、验证码等接口保持一致
+    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
+    
+    // 打印十六进制数据（用于验证格式）
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    NSUInteger printLen = MIN(serializedData.length, 64); // 打印前64字节
+    for (NSUInteger i = 0; i < printLen; i++) {
+        [hexString appendFormat:@"%02x ", bytes[i]];
+        if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
+    }
+    NSLog(@"🔍 Protobuf 数据 (HEX):\n                        %@", hexString);
+    
+    // 直接使用纯 Protobuf 二进制数据，不添加 varint32 头部
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 5000;
+        NSNumber *tempKey = @(tempId++);
+        self.authCallbacks[tempKey] = completion;
+        
+        NSLog(@"🚀 调用 get_user...");
+        NSLog(@"📍 data 指针: %p", data);
+        NSLog(@"📍 dataLen: %d", dataLen);
+        
+        int result = get_user(GetUserCallback, data, dataLen, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 用户查询请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.authCallbacks[@(reqId)] = completion;
+                [self.authCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 用户查询请求失败: %d", result);
+            [self.authCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return get_user(GetUserCallback, data, dataLen, reqId);
 }
 
 // varint32 编码

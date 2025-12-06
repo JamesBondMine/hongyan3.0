@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../../services/native_bridge.dart';
 
 /// 添加好友页面
 class AddFriendPage extends StatefulWidget {
@@ -13,6 +15,7 @@ class AddFriendPage extends StatefulWidget {
 class _AddFriendPageState extends State<AddFriendPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final IOSNativeService _nativeService = IOSNativeService();
   
   bool _isSearching = false;
   List<SearchResultItem> _searchResults = [];
@@ -28,36 +31,84 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Future<void> _searchUser() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      EasyLoading.showError('请输入用户ID或手机号');
+      EasyLoading.showError('请输入用户ID或手机号/邮箱');
       return;
     }
 
     setState(() {
       _isSearching = true;
+      _searchResults = [];
     });
 
-    // 模拟网络请求
-    await Future.delayed(const Duration(seconds: 1));
-
-    // 模拟搜索结果
-    setState(() {
-      _isSearching = false;
-      if (query == '123456' || query.contains('@')) {
-        _searchResults = [
-          SearchResultItem(
-            id: 'user_001',
-            nickname: '搜索到的用户',
-            avatar: null,
-            signature: '这是我的签名',
-          ),
-        ];
+    try {
+      // 判断输入类型：邮箱、手机号还是用户ID
+      String? userId;
+      String? accountId;
+      
+      accountId = query;
+      userId = query;
+      // if (query.contains('@')) {
+      //   // 邮箱作为账户ID
+      //   accountId = query;
+      // } else if (RegExp(r'^\d{11}$').hasMatch(query)) {
+      //   // 11位数字作为手机号（账户ID）
+      //   accountId = query;
+      // } else {
+      //   // 其他作为用户ID
+      //   userId = query;
+      // }
+      
+      print('🔍 搜索用户: userId=$userId, accountId=$accountId');
+      
+      // 调用原生搜索接口
+      final result = await _nativeService.imSearchUser(
+        userId: userId,
+        accountId: accountId,
+      );
+      
+      print('📬 搜索结果: $result');
+      
+      final errorCode = result['errorCode'] ?? -1;
+      final message = result['message'] ?? '未知错误';
+      final data = result['data'];
+      
+      if (errorCode == 0 && data != null && data.isNotEmpty) {
+        // 解析返回的用户数据
+        try {
+          final userMap = json.decode(data) as Map<String, dynamic>;
+          
+          setState(() {
+            _searchResults = [
+              SearchResultItem(
+                id: userMap['user_id'] ?? '',
+                nickname: userMap['nickname'] ?? '未知用户',
+                avatar: userMap['avatar'],
+                signature: userMap['signature'],
+                accountId: userMap['account_id'],
+                email: userMap['email'],
+                phone: userMap['phone'],
+              ),
+            ];
+          });
+          
+          print('✅ 找到用户: ${_searchResults.first.nickname}');
+        } catch (e) {
+          print('⚠️ 解析用户数据失败: $e');
+          EasyLoading.showError('解析数据失败');
+        }
       } else {
-        _searchResults = [];
+        setState(() {
+          _searchResults = [];
+        });
+        EasyLoading.showInfo(message);
       }
-    });
-
-    if (_searchResults.isEmpty) {
-      EasyLoading.showInfo('未找到用户');
+    } catch (e) {
+      print('❌ 搜索用户错误: $e');
+      EasyLoading.showError('搜索失败: $e');
+    } finally {
+      setState(() {
+        _isSearching = false;
+      });
     }
   }
 
@@ -476,12 +527,18 @@ class SearchResultItem {
   final String nickname;
   final String? avatar;
   final String? signature;
+  final String? accountId;
+  final String? email;
+  final String? phone;
 
   SearchResultItem({
     required this.id,
     required this.nickname,
     this.avatar,
     this.signature,
+    this.accountId,
+    this.email,
+    this.phone,
   });
 }
 

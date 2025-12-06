@@ -175,6 +175,9 @@ class NativeBridgeHandler: NSObject {
             
         case "imLogin":
             imLogin(call: call, result: result)
+            
+        case "imSearchUser":
+            imSearchUser(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -857,6 +860,53 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "LOGIN_ERROR", 
                               message: "登录请求发送失败: \(code)", 
+                              details: nil))
+        }
+    }
+    
+    /// 搜索用户
+    /// 参数说明：
+    /// - user_id: 用户ID（可选）
+    /// - account_id: 账户ID，可以是手机号、邮箱等（可选）
+    private func imSearchUser(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let userId = args["user_id"] as? String
+        let accountId = args["account_id"] as? String
+        
+        if userId == nil && accountId == nil {
+            result(FlutterError(code: "INVALID_ARGS", message: "必须提供 user_id 或 account_id", details: nil))
+            return
+        }
+        
+        print("🔍 搜索用户: user_id=\(userId ?? "nil"), account_id=\(accountId ?? "nil")")
+        
+        let code = IMSDKAuthManager.shared().searchUser(withUserId: userId, accountId: accountId) { errorCode, reqId, data in
+            print("✅ 用户搜索回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "搜索成功",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "未找到用户",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEARCH_ERROR",
+                              message: "搜索请求发送失败: \(code)",
                               details: nil))
         }
     }

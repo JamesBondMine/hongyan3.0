@@ -122,14 +122,14 @@
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		CS0001000000000000000001 /* CloudStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000001 /* CloudStorageManager.swift */; };
-		CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000002 /* AliyunOSSUploader.swift */; };
-		CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000003 /* TencentCOSUploader.swift */; };
-		CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000004 /* AWSS3Uploader.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		ACF058EFEC1029AADC02FD34 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C55DF34A4D253A3BAA102D9D /* Pods_Runner.framework */; };
+		CS0001000000000000000001 /* CloudStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000001 /* CloudStorageManager.swift */; };
+		CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000002 /* AliyunOSSUploader.swift */; };
+		CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000003 /* TencentCOSUploader.swift */; };
+		CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CS0002000000000000000004 /* AWSS3Uploader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -287,10 +287,6 @@
 		566FE7BE1DFB144D25F18E7F /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		CS0002000000000000000001 /* CloudStorageManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudStorageManager.swift; sourceTree = "<group>"; };
-		CS0002000000000000000002 /* AliyunOSSUploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AliyunOSSUploader.swift; sourceTree = "<group>"; };
-		CS0002000000000000000003 /* TencentCOSUploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TencentCOSUploader.swift; sourceTree = "<group>"; };
-		CS0002000000000000000004 /* AWSS3Uploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AWSS3Uploader.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		801ED5436C6B1A6769B2AC98 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
@@ -302,6 +298,10 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B6F96CCAFDFA53BE8F5A8F04 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		C55DF34A4D253A3BAA102D9D /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CS0002000000000000000001 /* CloudStorageManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudStorageManager.swift; sourceTree = "<group>"; };
+		CS0002000000000000000002 /* AliyunOSSUploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AliyunOSSUploader.swift; sourceTree = "<group>"; };
+		CS0002000000000000000003 /* TencentCOSUploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TencentCOSUploader.swift; sourceTree = "<group>"; };
+		CS0002000000000000000004 /* AWSS3Uploader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AWSS3Uploader.swift; sourceTree = "<group>"; };
 		E10365078F869EF8199BC442 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		F0B717D92B889185F8FFEEAC /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -883,23 +883,23 @@
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-		files = (
-			74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
-			CS0001000000000000000001 /* CloudStorageManager.swift in Sources */,
-			CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
-			CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
-			CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,
-			1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
-			2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
-			2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,
-			2AE9F1A02EDD500000000001 /* IMSDKManager.mm in Sources */,
-			2AE9F1A42EDD500000000004 /* IMSDKAuthManager.mm in Sources */,
-			2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */,
-			2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */,
-			2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */,
-			2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */,
-		);
-		runOnlyForDeploymentPostprocessing = 0;
+			files = (
+				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				CS0001000000000000000001 /* CloudStorageManager.swift in Sources */,
+				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
+				CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
+				CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,
+				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
+				2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,
+				2AE9F1A02EDD500000000001 /* IMSDKManager.mm in Sources */,
+				2AE9F1A42EDD500000000004 /* IMSDKAuthManager.mm in Sources */,
+				2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */,
+				2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */,
+				2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */,
+				2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -989,6 +989,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "";
@@ -999,29 +1000,29 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-			LIBRARY_SEARCH_PATHS = (
-				"$(inherited)",
-				"$(PROJECT_DIR)/Runner/IMSDK",
-				"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
-			);
-			OTHER_LDFLAGS = (
-				"$(inherited)",
-				"-lc++",
-				"-lz",
-				"-lsqlite3",
-				"-lresolv",
-				"-framework",
-				Security,
-			);
-			PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
-			PRODUCT_NAME = "$(TARGET_NAME)";
-			PROVISIONING_PROFILE_SPECIFIER = "";
-			"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
-			SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
-			SWIFT_VERSION = 5.0;
-			VERSIONING_SYSTEM = "apple-generic";
-		};
-		name = Profile;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Runner/IMSDK",
+					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lc++",
+					"-lz",
+					"-lsqlite3",
+					"-lresolv",
+					"-framework",
+					Security,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Profile;
 		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1190,6 +1191,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "";
@@ -1200,30 +1202,30 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-			LIBRARY_SEARCH_PATHS = (
-				"$(inherited)",
-				"$(PROJECT_DIR)/Runner/IMSDK",
-				"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
-			);
-			OTHER_LDFLAGS = (
-				"$(inherited)",
-				"-lc++",
-				"-lz",
-				"-lsqlite3",
-				"-lresolv",
-				"-framework",
-				Security,
-			);
-			PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
-			PRODUCT_NAME = "$(TARGET_NAME)";
-			PROVISIONING_PROFILE_SPECIFIER = "";
-			"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
-			SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
-			SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-			SWIFT_VERSION = 5.0;
-			VERSIONING_SYSTEM = "apple-generic";
-		};
-		name = Debug;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Runner/IMSDK",
+					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lc++",
+					"-lz",
+					"-lsqlite3",
+					"-lresolv",
+					"-framework",
+					Security,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
 		};
 		97C147071CF9000F007C117D /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1231,6 +1233,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "";
@@ -1241,29 +1244,29 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-			LIBRARY_SEARCH_PATHS = (
-				"$(inherited)",
-				"$(PROJECT_DIR)/Runner/IMSDK",
-				"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
-			);
-			OTHER_LDFLAGS = (
-				"$(inherited)",
-				"-lc++",
-				"-lz",
-				"-lsqlite3",
-				"-lresolv",
-				"-framework",
-				Security,
-			);
-			PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
-			PRODUCT_NAME = "$(TARGET_NAME)";
-			PROVISIONING_PROFILE_SPECIFIER = "";
-			"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
-			SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
-			SWIFT_VERSION = 5.0;
-			VERSIONING_SYSTEM = "apple-generic";
-		};
-		name = Release;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Runner/IMSDK",
+					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lc++",
+					"-lz",
+					"-lsqlite3",
+					"-lresolv",
+					"-framework",
+					Security,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.codeappyang.idnumberft;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ft1026dev;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
