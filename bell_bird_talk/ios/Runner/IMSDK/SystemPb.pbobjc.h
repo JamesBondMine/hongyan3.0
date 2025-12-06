@@ -27,6 +27,8 @@
 
 CF_EXTERN_C_BEGIN
 
+@class AreaCode;
+
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - SystemPbRoot
@@ -217,6 +219,128 @@ GPB_FINAL @interface Param : GPBMessage
 
 /** 参数值（必填，具体含义由方法上下文决定，如community_id、channel_id等） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *param;
+
+@end
+
+#pragma mark - AreaCode
+
+typedef GPB_ENUM(AreaCode_FieldNumber) {
+  AreaCode_FieldNumber_Code = 1,
+  AreaCode_FieldNumber_CountryCode = 2,
+  AreaCode_FieldNumber_CountryName = 3,
+  AreaCode_FieldNumber_CountryNameEn = 4,
+  AreaCode_FieldNumber_Flag = 5,
+  AreaCode_FieldNumber_PhoneLength = 6,
+  AreaCode_FieldNumber_PhonePattern = 7,
+};
+
+/**
+ * 区号信息
+ **/
+GPB_FINAL @interface AreaCode : GPBMessage
+
+/** 区号，如 +86 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *code;
+
+/** 国家代码，如 CN */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryCode;
+
+/** 国家名称，如 中国 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryName;
+
+/** 国家名称（英文） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryNameEn;
+
+/** 国旗emoji，如 🇨🇳 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *flag;
+
+/** 手机号长度（可选） */
+@property(nonatomic, readwrite) int32_t phoneLength;
+
+/** 手机号格式正则表达式（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *phonePattern;
+
+@end
+
+#pragma mark - AreaCodeList
+
+typedef GPB_ENUM(AreaCodeList_FieldNumber) {
+  AreaCodeList_FieldNumber_AreaCodesArray = 1,
+};
+
+/**
+ * 区号列表响应
+ **/
+GPB_FINAL @interface AreaCodeList : GPBMessage
+
+/** 区号列表 */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<AreaCode*> *areaCodesArray;
+/** The number of items in @c areaCodesArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger areaCodesArray_Count;
+
+@end
+
+#pragma mark - IpLocationRequest
+
+typedef GPB_ENUM(IpLocationRequest_FieldNumber) {
+  IpLocationRequest_FieldNumber_Ip = 1,
+};
+
+/**
+ * IP定位请求
+ **/
+GPB_FINAL @interface IpLocationRequest : GPBMessage
+
+/** IP地址（可选，如果不提供则从连接上下文获取） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *ip;
+
+@end
+
+#pragma mark - IpLocationResponse
+
+typedef GPB_ENUM(IpLocationResponse_FieldNumber) {
+  IpLocationResponse_FieldNumber_Ip = 1,
+  IpLocationResponse_FieldNumber_AreaCode = 2,
+  IpLocationResponse_FieldNumber_CountryCode = 3,
+  IpLocationResponse_FieldNumber_CountryName = 4,
+  IpLocationResponse_FieldNumber_CountryNameEn = 5,
+  IpLocationResponse_FieldNumber_Flag = 6,
+  IpLocationResponse_FieldNumber_Region = 7,
+  IpLocationResponse_FieldNumber_City = 8,
+  IpLocationResponse_FieldNumber_Found = 9,
+};
+
+/**
+ * IP定位响应
+ **/
+GPB_FINAL @interface IpLocationResponse : GPBMessage
+
+/** IP地址 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *ip;
+
+/** 区号，如 +86 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *areaCode;
+
+/** 国家代码，如 CN */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryCode;
+
+/** 国家名称，如 中国 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryName;
+
+/** 国家名称（英文） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *countryNameEn;
+
+/** 国旗emoji，如 🇨🇳 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *flag;
+
+/** 地区信息（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *region;
+
+/** 城市信息（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *city;
+
+/** 是否找到定位信息 */
+@property(nonatomic, readwrite) BOOL found;
 
 @end
 

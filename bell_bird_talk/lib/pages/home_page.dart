@@ -101,53 +101,53 @@ class HomePage extends StatelessWidget {
       return GestureDetector(
         onTap: () => _showUserInfoDialog(Get.context!, globalCtrl),
         child: Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade400, Colors.blue.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade400, Colors.blue.shade600],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Row(
-            children: [
-              // 头像
-              CircleAvatar(
-                radius: 35,
-                backgroundColor: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // 头像
+            CircleAvatar(
+              radius: 35,
+              backgroundColor: Colors.white,
                 backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
-                    ? NetworkImage(user!.avatar!)
-                    : null,
+                  ? NetworkImage(user!.avatar!)
+                  : null,
                 child: (user?.avatar == null || user!.avatar!.isEmpty)
-                    ? const Icon(Icons.person, size: 40, color: Colors.blue)
-                    : null,
-              ),
-              
-              const SizedBox(width: 16),
-              
-              // 用户信息
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.nickname ?? '未知用户',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ? const Icon(Icons.person, size: 40, color: Colors.blue)
+                  : null,
+            ),
+            
+            const SizedBox(width: 16),
+            
+            // 用户信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user?.nickname ?? '未知用户',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 4),
+                  ),
+                  const SizedBox(height: 4),
                     // 显示邮箱或手机号
                     if (user?.email != null && user!.email!.isNotEmpty)
                       Row(
@@ -178,42 +178,42 @@ class HomePage extends StatelessWidget {
                         ],
                       )
                     else
-                      Text(
+                  Text(
                         user?.signature ?? '点击查看详情',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
                           fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'ID: ${user?.id ?? 'N/A'}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'ID: ${user?.id ?? 'N/A'}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              
-              // 箭头
-              const Icon(
-                Icons.chevron_right,
-                color: Colors.white,
-                size: 30,
+            ),
+            
+            // 箭头
+            const Icon(
+              Icons.chevron_right,
+              color: Colors.white,
+              size: 30,
               ),
             ],
           ),

@@ -24,6 +24,7 @@
 // Forward declarations of Objective C classes that we can use as
 // static values in struct initializers.
 // We don't use [Foo class] because it is not a static value.
+GPBObjCClassDeclaration(AreaCode);
 GPBObjCClassDeclaration(ConfigResp);
 
 #pragma mark - SystemPbRoot
@@ -524,6 +525,339 @@ typedef struct Param__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(Param__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - AreaCode
+
+@implementation AreaCode
+
+@dynamic code;
+@dynamic countryCode;
+@dynamic countryName;
+@dynamic countryNameEn;
+@dynamic flag;
+@dynamic phoneLength;
+@dynamic phonePattern;
+
+typedef struct AreaCode__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t phoneLength;
+  NSString *code;
+  NSString *countryCode;
+  NSString *countryName;
+  NSString *countryNameEn;
+  NSString *flag;
+  NSString *phonePattern;
+} AreaCode__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "code",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_Code,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, code),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryCode",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_CountryCode,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, countryCode),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryName",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_CountryName,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, countryName),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryNameEn",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_CountryNameEn,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, countryNameEn),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "flag",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_Flag,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, flag),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "phoneLength",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_PhoneLength,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, phoneLength),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "phonePattern",
+        .dataTypeSpecific.clazz = Nil,
+        .number = AreaCode_FieldNumber_PhonePattern,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(AreaCode__storage_, phonePattern),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[AreaCode class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(AreaCode__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - AreaCodeList
+
+@implementation AreaCodeList
+
+@dynamic areaCodesArray, areaCodesArray_Count;
+
+typedef struct AreaCodeList__storage_ {
+  uint32_t _has_storage_[1];
+  NSMutableArray *areaCodesArray;
+} AreaCodeList__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "areaCodesArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(AreaCode),
+        .number = AreaCodeList_FieldNumber_AreaCodesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(AreaCodeList__storage_, areaCodesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[AreaCodeList class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(AreaCodeList__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - IpLocationRequest
+
+@implementation IpLocationRequest
+
+@dynamic ip;
+
+typedef struct IpLocationRequest__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *ip;
+} IpLocationRequest__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "ip",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationRequest_FieldNumber_Ip,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(IpLocationRequest__storage_, ip),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[IpLocationRequest class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(IpLocationRequest__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - IpLocationResponse
+
+@implementation IpLocationResponse
+
+@dynamic ip;
+@dynamic areaCode;
+@dynamic countryCode;
+@dynamic countryName;
+@dynamic countryNameEn;
+@dynamic flag;
+@dynamic region;
+@dynamic city;
+@dynamic found;
+
+typedef struct IpLocationResponse__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *ip;
+  NSString *areaCode;
+  NSString *countryCode;
+  NSString *countryName;
+  NSString *countryNameEn;
+  NSString *flag;
+  NSString *region;
+  NSString *city;
+} IpLocationResponse__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "ip",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_Ip,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, ip),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "areaCode",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_AreaCode,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, areaCode),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryCode",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_CountryCode,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, countryCode),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryName",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_CountryName,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, countryName),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "countryNameEn",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_CountryNameEn,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, countryNameEn),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "flag",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_Flag,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, flag),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "region",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_Region,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, region),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "city",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_City,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(IpLocationResponse__storage_, city),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "found",
+        .dataTypeSpecific.clazz = Nil,
+        .number = IpLocationResponse_FieldNumber_Found,
+        .hasIndex = 8,
+        .offset = 9,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeBool,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[IpLocationResponse class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(IpLocationResponse__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
