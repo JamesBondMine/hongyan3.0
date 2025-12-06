@@ -2,3 +2,4 @@
 #import "DataTrans/DataTransViewController.h"
 #import "IMSDK/IMSDKManager.h"
 #import "IMSDK/IMSDKAuthManager.h"
+#import "IMSDK/IMSDKContactManager.h"

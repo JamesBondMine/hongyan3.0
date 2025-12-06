@@ -179,6 +179,18 @@ class NativeBridgeHandler: NSObject {
         case "imSearchUser":
             imSearchUser(call: call, result: result)
         
+        // ---------- 联系人管理 ----------
+        case "imAddContact":
+            imAddContact(call: call, result: result)
+        case "imDeleteContact":
+            imDeleteContact(call: call, result: result)
+        case "imBlockContact":
+            imBlockContact(call: call, result: result)
+        case "imUnblockContact":
+            imUnblockContact(call: call, result: result)
+        case "imGetContactList":
+            imGetContactList(call: call, result: result)
+        
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
@@ -913,6 +925,172 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEARCH_ERROR",
                               message: "搜索请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 联系人管理
+    
+    /// 添加联系人（发送好友申请）
+    private func imAddContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let targetUserId = args["target_user_id"] as? String, !targetUserId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "目标用户ID不能为空", details: nil))
+            return
+        }
+        
+        print("👥 添加联系人: \(args)")
+        
+        let code = IMSDKContactManager.shared().addContact(withParams: args) { errorCode, reqId, data in
+            print("✅ 添加联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "好友申请已发送",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "发送好友申请失败",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "ADD_CONTACT_ERROR",
+                              message: "添加联系人请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 删除联系人
+    private func imDeleteContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
+            return
+        }
+        
+        print("🗑️ 删除联系人: \(userId)")
+        
+        let code = IMSDKContactManager.shared().deleteContact(withUserId: userId) { errorCode, reqId, data in
+            print("✅ 删除联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "删除成功" : "删除失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_CONTACT_ERROR",
+                              message: "删除联系人请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 拉黑用户
+    private func imBlockContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
+            return
+        }
+        
+        print("🚫 拉黑用户: \(userId)")
+        
+        let code = IMSDKContactManager.shared().blockContact(withUserId: userId) { errorCode, reqId, data in
+            print("✅ 拉黑用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "拉黑成功" : "拉黑失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "BLOCK_CONTACT_ERROR",
+                              message: "拉黑用户请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 取消拉黑
+    private func imUnblockContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
+            return
+        }
+        
+        print("✅ 取消拉黑用户: \(userId)")
+        
+        let code = IMSDKContactManager.shared().unblockContact(withUserId: userId) { errorCode, reqId, data in
+            print("✅ 取消拉黑回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "取消拉黑成功" : "取消拉黑失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "UNBLOCK_CONTACT_ERROR",
+                              message: "取消拉黑请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取联系人列表
+    private func imGetContactList(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 20
+        
+        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("✅ 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_CONTACT_LIST_ERROR",
+                              message: "获取联系人列表请求发送失败: \(code)",
                               details: nil))
         }
     }

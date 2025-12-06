@@ -385,5 +385,112 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+  
+  // ---------- 联系人管理 ----------
+  
+  /// 添加联系人（发送好友申请）
+  /// @param targetUserId 目标用户ID（必填）
+  /// @param channel 添加渠道：0=用户ID, 1=用户名, 2=手机号, 3=邮箱, 4=邀请码, 5=二维码
+  /// @param message 验证消息（可选）
+  /// @param targetValue 目标值（用户ID/手机号/邮箱等）
+  /// @return 添加结果
+  Future<Map<String, dynamic>> imAddContact({
+    required String targetUserId,
+    int channel = 0,
+    String? message,
+    String? targetValue,
+    String? targetPhone,
+    String? targetEmail,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'target_user_id': targetUserId,
+        'target_value': targetValue ?? targetUserId,
+        'channel': channel,
+      };
+      
+      if (message != null && message.isNotEmpty) {
+        params['message'] = message;
+      }
+      if (targetPhone != null && targetPhone.isNotEmpty) {
+        params['target_phone'] = targetPhone;
+      }
+      if (targetEmail != null && targetEmail.isNotEmpty) {
+        params['target_email'] = targetEmail;
+      }
+      
+      final result = await _bridge.invokeMethod<Map>('imAddContact', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 删除联系人
+  /// @param userId 要删除的好友用户ID
+  /// @return 删除结果
+  Future<Map<String, dynamic>> imDeleteContact({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imDeleteContact', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 拉黑用户
+  /// @param userId 要拉黑的用户ID
+  /// @return 拉黑结果
+  Future<Map<String, dynamic>> imBlockContact({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imBlockContact', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 取消拉黑
+  /// @param userId 要取消拉黑的用户ID
+  /// @return 取消拉黑结果
+  Future<Map<String, dynamic>> imUnblockContact({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imUnblockContact', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取联系人列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 联系人列表
+  Future<Map<String, dynamic>> imGetContactList({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetContactList', {
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 

@@ -299,6 +299,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   /// 发送好友请求
   void _sendFriendRequest(SearchResultItem user) {
+    final TextEditingController messageController = TextEditingController();
+    
     Get.dialog(
       AlertDialog(
         title: const Text('发送好友请求'),
@@ -308,14 +310,19 @@ class _AddFriendPageState extends State<AddFriendPage> {
             CircleAvatar(
               radius: 30,
               backgroundColor: Colors.blue[100],
-              child: Text(
-                user.nickname[0].toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
+              backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
+                  ? NetworkImage(user.avatar!)
+                  : null,
+              child: user.avatar == null || user.avatar!.isEmpty
+                  ? Text(
+                      user.nickname.isNotEmpty ? user.nickname[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(height: 12),
             Text(
@@ -325,9 +332,22 @@ class _AddFriendPageState extends State<AddFriendPage> {
                 fontWeight: FontWeight.w500,
               ),
             ),
+            if (user.accountId != null && user.accountId!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '账号: ${user.accountId}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
             TextField(
+              controller: messageController,
               maxLines: 2,
+              maxLength: 100,
               decoration: InputDecoration(
                 hintText: '请输入验证消息（选填）',
                 border: OutlineInputBorder(
@@ -344,15 +364,76 @@ class _AddFriendPageState extends State<AddFriendPage> {
             child: const Text('取消'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back();
-              EasyLoading.showSuccess('好友请求已发送');
+              await _doAddContact(user, messageController.text.trim());
             },
             child: const Text('发送'),
           ),
         ],
       ),
     );
+  }
+  
+  /// 执行添加联系人操作
+  Future<void> _doAddContact(SearchResultItem user, String message) async {
+    EasyLoading.show(status: '发送中...');
+    
+    try {
+      // 确定添加渠道
+      int channel = 0; // 默认用户ID
+      String? targetPhone;
+      String? targetEmail;
+      
+      if (user.phone != null && user.phone!.isNotEmpty) {
+        channel = 2; // 手机号
+        targetPhone = user.phone;
+      } else if (user.email != null && user.email!.isNotEmpty) {
+        channel = 3; // 邮箱
+        targetEmail = user.email;
+      }
+      
+      print('👥 发送好友申请: userId=${user.id}, channel=$channel, message=$message');
+      
+      final result = await _nativeService.imAddContact(
+        targetUserId: user.id,
+        channel: channel,
+        message: message.isNotEmpty ? message : null,
+        targetValue: user.id,
+        targetPhone: targetPhone,
+        targetEmail: targetEmail,
+      );
+      
+      print('📬 好友申请结果: $result');
+      
+      final errorCode = result['errorCode'] ?? -1;
+      final resultMessage = result['message'] ?? '未知错误';
+      
+      if (errorCode == 0) {
+        EasyLoading.showSuccess('好友请求已发送');
+        
+        // 解析返回数据
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
+            final requiresApproval = dataMap['requires_approval'] as bool? ?? true;
+            
+            if (!requiresApproval) {
+              // 不需要对方确认，直接添加成功
+              EasyLoading.showSuccess('添加好友成功');
+            }
+          } catch (e) {
+            print('⚠️ 解析返回数据失败: $e');
+          }
+        }
+      } else {
+        EasyLoading.showError(resultMessage);
+      }
+    } catch (e) {
+      print('❌ 发送好友申请错误: $e');
+      EasyLoading.showError('发送失败: $e');
+    }
   }
 
   @override

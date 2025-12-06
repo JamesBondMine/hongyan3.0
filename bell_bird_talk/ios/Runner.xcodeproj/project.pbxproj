@@ -8,6 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		2A0BE5F12EE428A1001FF039 /* CommunityPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */; };
 		2A7ADB6C2EDD2A6F00D0B045 /* libnet_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */; };
 		2A7ADED02EDD7AAF00D0B045 /* libabsl_random_distributions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEA62EDD7AAF00D0B045 /* libabsl_random_distributions.a */; };
 		2A7ADED12EDD7AAF00D0B045 /* libabsl_scoped_set_env.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEB32EDD7AAF00D0B045 /* libabsl_scoped_set_env.a */; };
@@ -118,6 +124,7 @@
 		2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */; };
 		31EB8EEFDBA90F6F0A55D7D2 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -159,6 +166,18 @@
 		0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		2A0BE5E92EE428A1001FF039 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
+		2A0BE5EB2EE428A1001FF039 /* CommunityPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CommunityPb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CommunityPb.pbobjc.m; sourceTree = "<group>"; };
+		2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContactPb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
+		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessagePb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessagePb.pbobjc.m; sourceTree = "<group>"; };
+		2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKContactManager.mm; sourceTree = "<group>"; };
+		2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
 		2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnet_core.a; sourceTree = "<group>"; };
 		2A7ADB702EDD3E6B00D0B045 /* callback_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callback_types.h; sourceTree = "<group>"; };
 		2A7ADB712EDD3E6B00D0B045 /* common_definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_definitions.h; sourceTree = "<group>"; };
@@ -280,6 +299,8 @@
 		2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000CEDDCCA7E0000000C /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptchaPb.pbobjc.h; sourceTree = "<group>"; };
+		2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKContactManager.mm; sourceTree = "<group>"; };
+		2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -430,6 +451,18 @@
 		2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */ = {
 			isa = PBXGroup;
 			children = (
+				2A0BE5E92EE428A1001FF039 /* ChatPb.pbobjc.h */,
+				2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */,
+				2A0BE5EB2EE428A1001FF039 /* CommunityPb.pbobjc.h */,
+				2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */,
+				2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */,
+				2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */,
+				2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */,
+				2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */,
+				2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */,
+				2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */,
+				2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */,
+				2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */,
 				2A7ADECF2EDD7AAF00D0B045 /* ios_sdk_la */,
 				2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */,
 				2A7ADB702EDD3E6B00D0B045 /* callback_types.h */,
@@ -889,6 +922,12 @@
 				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
 				CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
 				CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,
+				2A0BE5F12EE428A1001FF039 /* CommunityPb.pbobjc.m in Sources */,
+				2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */,
+				2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */,
+				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
+				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
+				2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
 				2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,
