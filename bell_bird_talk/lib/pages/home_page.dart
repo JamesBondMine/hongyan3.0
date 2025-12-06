@@ -422,10 +422,10 @@ class HomePage extends StatelessWidget {
         'onTap': () => EasyLoading.showInfo('聊天功能开发中'),
       },
       {
-        'icon': Icons.contacts_outlined,
-        'title': '通讯录',
+        'icon': Icons.people_outline,
+        'title': '好友',
         'color': Colors.green,
-        'onTap': () => EasyLoading.showInfo('通讯录功能开发中'),
+        'onTap': () => Get.toNamed('/friends'),
       },
       {
         'icon': Icons.person_outline,
@@ -612,8 +612,8 @@ class HomePage extends StatelessWidget {
           label: '消息',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.contacts_outlined),
-          label: '通讯录',
+          icon: Icon(Icons.people_outline),
+          label: '好友',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.explore_outlined),
@@ -625,8 +625,22 @@ class HomePage extends StatelessWidget {
         ),
       ],
       onTap: (index) {
-        if (index != 0) {
-          EasyLoading.showInfo('功能开发中');
+        switch (index) {
+          case 0:
+            // 消息 - 当前页面
+            break;
+          case 1:
+            // 好友 - 跳转到好友列表
+            Get.toNamed('/friends');
+            break;
+          case 2:
+            // 发现
+            EasyLoading.showInfo('发现功能开发中');
+            break;
+          case 3:
+            // 我的
+            EasyLoading.showInfo('个人中心开发中');
+            break;
         }
       },
     );

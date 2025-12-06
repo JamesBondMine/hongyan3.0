@@ -6,6 +6,8 @@ import 'pages/native_demo_page.dart';
 import 'pages/framework_test_page.dart';
 import 'pages/login/login_page.dart';
 import 'pages/home_page.dart';
+import 'pages/friends/friends_page.dart';
+import 'pages/friends/add_friend_page.dart';
 import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';
 
@@ -77,6 +79,8 @@ class MyApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/login', page: () => const LoginPage()),
         GetPage(name: '/home', page: () => const HomePage()),
+        GetPage(name: '/friends', page: () => const FriendsPage()),
+        GetPage(name: '/add-friend', page: () => const AddFriendPage()),
         GetPage(name: '/demo', page: () => const NativeDemoPage()),
         GetPage(name: '/test', page: () => const FrameworkTestPage()),
       ],
