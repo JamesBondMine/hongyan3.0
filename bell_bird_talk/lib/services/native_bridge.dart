@@ -328,6 +328,7 @@ class IOSNativeService {
   }) async {
     return imLogin(
       loginType: 'sms_code',
+      accountId: phone,  // 手机号也作为账户ID
       phone: phone,
       password: code,
       captchaId: captchaId,
@@ -342,6 +343,7 @@ class IOSNativeService {
   }) async {
     return imLogin(
       loginType: 'email_code',
+      accountId: email,  // 邮箱也作为账户ID
       email: email,
       password: code,
       captchaId: captchaId,

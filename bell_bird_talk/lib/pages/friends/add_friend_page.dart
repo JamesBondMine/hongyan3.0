@@ -77,21 +77,25 @@ class _AddFriendPageState extends State<AddFriendPage> {
         try {
           final userMap = json.decode(data) as Map<String, dynamic>;
           
+          final user = SearchResultItem(
+            id: userMap['user_id'] ?? '',
+            nickname: userMap['nickname'] ?? '未知用户',
+            avatar: userMap['avatar'],
+            signature: userMap['signature'],
+            accountId: userMap['account_id'],
+            email: userMap['email'],
+            phone: userMap['phone'],
+          );
+          
           setState(() {
-            _searchResults = [
-              SearchResultItem(
-                id: userMap['user_id'] ?? '',
-                nickname: userMap['nickname'] ?? '未知用户',
-                avatar: userMap['avatar'],
-                signature: userMap['signature'],
-                accountId: userMap['account_id'],
-                email: userMap['email'],
-                phone: userMap['phone'],
-              ),
-            ];
+            _searchResults = [user];
           });
           
-          print('✅ 找到用户: ${_searchResults.first.nickname}');
+          print('✅ 找到用户: ${user.nickname}');
+          
+          // 显示用户详情弹窗
+          _showUserDetailDialog(user);
+          
         } catch (e) {
           print('⚠️ 解析用户数据失败: $e');
           EasyLoading.showError('解析数据失败');
@@ -110,6 +114,187 @@ class _AddFriendPageState extends State<AddFriendPage> {
         _isSearching = false;
       });
     }
+  }
+
+  /// 显示用户详情弹窗
+  void _showUserDetailDialog(SearchResultItem user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖动指示器
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // 用户头像
+              CircleAvatar(
+                radius: 45,
+                backgroundColor: Colors.blue[100],
+                backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
+                    ? NetworkImage(user.avatar!)
+                    : null,
+                child: user.avatar == null || user.avatar!.isEmpty
+                    ? Text(
+                        user.nickname.isNotEmpty ? user.nickname[0].toUpperCase() : '?',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              
+              // 昵称
+              Text(
+                user.nickname,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              
+              // 签名
+              if (user.signature != null && user.signature!.isNotEmpty)
+                Text(
+                  user.signature!,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              
+              const SizedBox(height: 20),
+              
+              // 用户信息卡片
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildInfoItem(Icons.fingerprint, '用户ID', user.id),
+                    if (user.accountId != null && user.accountId!.isNotEmpty)
+                      _buildInfoItem(Icons.badge, '账号', user.accountId!),
+                    if (user.phone != null && user.phone!.isNotEmpty)
+                      _buildInfoItem(Icons.phone, '手机号', _maskPhone(user.phone!)),
+                    if (user.email != null && user.email!.isNotEmpty)
+                      _buildInfoItem(Icons.email, '邮箱', _maskEmail(user.email!)),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // 添加好友按钮
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _sendFriendRequest(user);
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('添加好友', style: TextStyle(fontSize: 16)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // 取消按钮
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    '取消',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 构建信息项
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 隐藏手机号中间4位
+  String _maskPhone(String phone) {
+    if (phone.length >= 11) {
+      return '${phone.substring(0, 3)}****${phone.substring(7)}';
+    }
+    return phone;
+  }
+
+  /// 隐藏邮箱
+  String _maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length == 2) {
+      final name = parts[0];
+      final domain = parts[1];
+      if (name.length > 2) {
+        return '${name.substring(0, 2)}***@$domain';
+      }
+    }
+    return email;
   }
 
   /// 发送好友请求

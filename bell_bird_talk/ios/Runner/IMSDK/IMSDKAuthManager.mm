@@ -8,6 +8,7 @@
 #import "IMSDKAuthManager.h"
 #import "UserPb.pbobjc.h"
 #import "CaptchaPb.pbobjc.h"
+#import <UIKit/UIKit.h>
 #include "network_lib.h"
 #include "callback_types.h"
 
@@ -300,10 +301,12 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     // 手机号（短信验证码登录必填）
     if (loginDict[@"phone"]) {
         authUser.phone = loginDict[@"phone"];
+        authUser.loginType = LoginType_SmsCode;
     }
     // 邮箱（邮箱验证码登录必填）
     if (loginDict[@"email"]) {
         authUser.email = loginDict[@"email"];
+        authUser.loginType = LoginType_EmailCode;
     }
     // 密码（密码登录时为密码，验证码登录时为验证码答案）
     if (loginDict[@"password"]) {
@@ -313,9 +316,12 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     if (loginDict[@"captcha_id"]) {
         authUser.captchaId = loginDict[@"captcha_id"];
     }
-    // 设备ID（可选）
+    // 设备ID（使用 UUID）
     if (loginDict[@"device_id"]) {
         authUser.deviceId = loginDict[@"device_id"];
+    } else {
+        // 自动获取设备 UUID
+        authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     }
     // 业务邀请码（可选）
     if (loginDict[@"biz_code"]) {
@@ -325,25 +331,12 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     if (loginDict[@"client_ip"]) {
         authUser.clientIp = loginDict[@"client_ip"];
     }
-    NSLog(@"\n登录参数:===========================\n type=%@(%d),\n account=%@,\n phone=%@,\n email=%@,\n pwd=%@,\n captchaId=%@,\n deviceId=%@,\n bizCode=%@ \n===========================",
+    NSLog(@"\n登录参数:\n===========================\n loginType=%@(%d),\n account=%@,\n phone=%@,\n email=%@,\n pwd=%@,\n captchaId=%@,\n deviceId=%@,\n bizCode=%@ \n===========================",
           loginTypeStr, (int)authUser.loginType, authUser.accountId, authUser.phone,
           authUser.email, authUser.password, authUser.captchaId, authUser.deviceId, authUser.bizCode);
     
-    // 序列化 protobuf 对象
+    // 序列化并调用登录
     NSData *serializedData = [authUser data];
-//    NSLog(@"📦 Protobuf 序列化成功: %lu bytes", (unsigned long)serializedData.length);
-    
-    // 打印十六进制数据（用于调试）
-    NSMutableString *hexString = [NSMutableString string];
-    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
-    NSUInteger printLen = MIN(serializedData.length, 64);
-    for (NSUInteger i = 0; i < printLen; i++) {
-        [hexString appendFormat:@"%02x ", bytes[i]];
-        if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
-    }
-//    NSLog(@"🔍 Protobuf 数据 (HEX):\n                        %@", hexString);
-    
-    // 调用底层的序列化数据方法
     return [self loginWithSerializedData:serializedData completion:completion];
 }
 
@@ -562,11 +555,6 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         NSLog(@"❌ 序列化数据不能为空");
         return -1;
     }
-    
-    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
-    // 与 getCaptcha 验证通过的格式保持一致
-    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
-    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
     
     // 打印十六进制数据（用于验证格式）
     NSMutableString *hexString = [NSMutableString string];

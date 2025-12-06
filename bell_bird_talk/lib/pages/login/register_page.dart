@@ -141,28 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Column(
       children: [
         // Logo
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.person_add,
-            size: 40,
-            color: Colors.blue.shade700,
-          ),
-        ),
-        
-        const SizedBox(height: 20),
+ 
         
         // 标题
         const Text(

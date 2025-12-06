@@ -57,28 +57,7 @@ class LoginPage extends StatelessWidget {
     return Column(
       children: [
         // Logo
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.chat_bubble_outline,
-            size: 50,
-            color: Colors.blue,
-          ),
-        ),
-        
-        const SizedBox(height: 24),
+  
         
         // 标题
         const Text(

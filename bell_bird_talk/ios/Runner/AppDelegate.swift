@@ -772,6 +772,9 @@ class NativeBridgeHandler: NSObject {
             if let captchaId = args["captcha_id"] as? String {
                 loginDict["captcha_id"] = captchaId
             }
+//            if let accountId = args["account_id"] as? String {
+//                            loginDict["account_id"] = accountId
+//                        }
             print("📋 短信登录: phone=\(loginDict["phone"] ?? "nil")")
             
         case "email_code":
@@ -785,6 +788,9 @@ class NativeBridgeHandler: NSObject {
             if let captchaId = args["captcha_id"] as? String {
                 loginDict["captcha_id"] = captchaId
             }
+//            if let accountId = args["account_id"] as? String {
+//                                        loginDict["account_id"] = accountId
+//                                    }
             print("📋 邮箱登录: email=\(loginDict["email"] ?? "nil")")
             
         case "token":
