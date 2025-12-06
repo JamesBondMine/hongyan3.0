@@ -101,6 +101,8 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  String _statusText = '正在初始化...';
+  
   @override
   void initState() {
     super.initState();
@@ -115,7 +117,8 @@ class _SplashPageState extends State<SplashPage> {
       // 获取全局控制器
       final globalCtrl = Get.find<GlobalController>();
       
-      // 等待数据加载完成（最多等待 3 秒）
+      // 等待 SDK 初始化完成（最多等待 3 秒）
+      setState(() => _statusText = '正在初始化 SDK...');
       await Future.any([
         Future.delayed(const Duration(seconds: 3)),
         Future(() async {
@@ -126,10 +129,30 @@ class _SplashPageState extends State<SplashPage> {
         }),
       ]);
       
-      // 检查登录状态并跳转
-      if (globalCtrl.isLoggedIn.value) {
-        Get.off(() => const HomePage());
+      // 检查是否需要自动登录
+      if (globalCtrl.needAutoLogin()) {
+        // 有保存的 Token，尝试自动登录
+        setState(() => _statusText = '正在自动登录...');
+        print('📱 检测到本地 Token，开始自动登录...');
+        
+        final autoLoginSuccess = await globalCtrl.autoLoginWithToken();
+        
+        if (autoLoginSuccess) {
+          // 自动登录成功，跳转首页
+          print('✅ 自动登录成功，跳转首页');
+          setState(() => _statusText = '登录成功');
+          await Future.delayed(const Duration(milliseconds: 300));
+          Get.off(() => const HomePage());
+        } else {
+          // 自动登录失败，跳转登录页
+          print('❌ 自动登录失败，跳转登录页');
+          setState(() => _statusText = '登录已过期');
+          await Future.delayed(const Duration(milliseconds: 500));
+          Get.off(() => const LoginPage());
+        }
       } else {
+        // 没有保存的 Token，直接跳转登录页
+        print('📱 没有本地 Token，跳转登录页');
         Get.off(() => const LoginPage());
       }
     } catch (e) {
@@ -183,9 +206,9 @@ class _SplashPageState extends State<SplashPage> {
             
             const SizedBox(height: 16),
             
-            const Text(
-              '正在初始化...',
-              style: TextStyle(
+            Text(
+              _statusText,
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.white70,
               ),

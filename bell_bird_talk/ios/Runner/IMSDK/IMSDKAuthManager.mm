@@ -292,6 +292,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     } else {
         // 默认密码登录
         authUser.loginType = LoginType_Password;
+        
     }
     
     // 账户ID（密码登录必填）
@@ -376,25 +377,28 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    // 构造 token 登录数据
-    NSDictionary *authData = @{
-        @"token": token
-    };
+    // 使用 protobuf 创建 AuthUser 对象（与 loginWithDictionary 保持一致）
+    AuthUser *authUser = [[AuthUser alloc] init];
+    authUser.loginType = LoginType_Token;
+    // 设备ID（使用 UUID）
+    authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     
-    NSError *error = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:authData options:0 error:&error];
-    if (error) {
-        NSLog(@"❌ JSON 序列化失败: %@", error);
+    NSLog(@"\nToken登录参数:\n===========================\n loginType=token(%d),\n deviceId=%@ \n===========================",
+          (int)authUser.loginType, authUser.deviceId);
+    
+    // 序列化为 Protobuf 二进制数据
+    NSData *serializedData = [authUser data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
         return -2;
     }
     
-    // ✅ 使用纯数据格式（不带 varint32 头部）
-    // 与 getCaptcha 验证通过的格式保持一致
-    NSLog(@"📦 使用纯数据格式（不带 varint32 头部）");
-    NSLog(@"📦 数据长度: %lu 字节", (unsigned long)jsonData.length);
+    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
     
-    const char *data = (const char *)jsonData.bytes;
-    int dataLen = (int)jsonData.length;
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
     
     if (completion) {

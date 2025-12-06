@@ -244,27 +244,31 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         contact.targetAccountId = targetAccountId;
     }
     
-    // 序列化为 Protobuf 二进制数据（格式3：纯 Protobuf）
-    NSData *protoBody = [contact data];
-    if (!protoBody || protoBody.length == 0) {
+    // 序列化为 Protobuf 二进制数据
+    NSData *serializedData = [contact data];
+    if (!serializedData || serializedData.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
         return -1;
     }
     
-    NSLog(@"📦 Contact Protobuf 数据长度: %lu 字节", (unsigned long)protoBody.length);
+    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+    // 与注册、登录、搜索用户等接口保持一致
+    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
     
-    // 打印十六进制数据（用于调试）
+    // 打印十六进制数据（用于验证格式）
     NSMutableString *hexString = [NSMutableString string];
-    const unsigned char *bytes = (const unsigned char *)protoBody.bytes;
-    NSUInteger printLen = MIN(protoBody.length, 64);
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    NSUInteger printLen = MIN(serializedData.length, 64); // 打印前64字节
     for (NSUInteger i = 0; i < printLen; i++) {
         [hexString appendFormat:@"%02x ", bytes[i]];
         if ((i + 1) % 16 == 0) [hexString appendString:@"\n                        "];
     }
     NSLog(@"🔍 Protobuf 数据 (HEX):\n                        %@", hexString);
     
-    const char *data = (const char *)protoBody.bytes;
-    int dataLen = (int)protoBody.length;
+    // 直接使用纯 Protobuf 二进制数据，不添加 varint32 头部
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
     const char *targetId = [targetUserId UTF8String];
     uint64_t reqId = 0;
     
@@ -274,6 +278,10 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         self.contactCallbacks[tempKey] = completion;
         
         NSLog(@"🚀 调用 add_contact...");
+        NSLog(@"📍 data 指针: %p", data);
+        NSLog(@"📍 dataLen: %d", dataLen);
+        NSLog(@"📍 targetId: %s", targetId);
+        
         int result = add_contact(AddContactCallback, data, dataLen, targetId, reqId);
         
         if (result == 0) {

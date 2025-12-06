@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../network/http_client.dart';
-import '../network/websocket_client.dart';
 import '../utils/storage_util.dart';
 import '../utils/encrypt_util.dart';
 import '../utils/file_util.dart';
@@ -172,7 +171,7 @@ class _FrameworkTestPageState extends State<FrameworkTestPage> {
     }
   }
 
-  /// 测试 WebSocket
+  /// 测试 WebSocket（已移除，长连接由 SDK 管理）
   Future<void> _testWebSocket() async {
     try {
       EasyLoading.show(status: '测试中...');
@@ -180,11 +179,13 @@ class _FrameworkTestPageState extends State<FrameworkTestPage> {
       final result = StringBuffer();
       result.writeln('✅ WebSocket 测试\n');
       
-      // 测试连接状态
-      result.writeln('当前状态: ${WebSocketClient().state}');
-      result.writeln('是否连接: ${WebSocketClient().isConnected}');
+      // 长连接已由 SDK 统一管理
+      result.writeln('📍 长连接已由 IM SDK 统一管理');
+      result.writeln('📍 请使用 IM SDK 状态查看连接情况');
       
-      result.writeln('\n提示: WebSocket 需要配置正确的服务器地址后才能连接');
+      final globalController = Get.find<GlobalController>();
+      result.writeln('\nIM SDK 状态: ${globalController.imsdkStatus.value}');
+      result.writeln('是否初始化: ${globalController.isIMSDKInitialized.value}');
       
       setState(() => _testResult = result.toString());
       EasyLoading.showSuccess('测试完成');

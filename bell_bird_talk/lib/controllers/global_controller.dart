@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
 import '../utils/storage_util.dart';
 import '../config/constants.dart';
 import '../network/http_client.dart';
-import '../network/websocket_client.dart';
 import '../services/native_bridge.dart';
 
 /// 全局控制器 - 管理应用全局状态
@@ -27,7 +27,7 @@ class GlobalController extends GetxController {
   // 网络状态
   final RxBool isOnline = true.obs;
   
-  // WebSocket 连接状态
+  // SDK 连接状态（由 SDK 管理）
   final RxBool isWsConnected = false.obs;
   
   // 未读消息数
@@ -41,7 +41,6 @@ class GlobalController extends GetxController {
   void onInit() {
     super.onInit();
     _loadLocalData();
-    _listenWebSocketState();
     initializeIMSDK(); // 初始化 IM SDK
   }
   
@@ -95,17 +94,11 @@ class GlobalController extends GetxController {
     // 更新 HTTP 客户端的 Token
     HttpClient().updateToken(newToken);
     
-    // 连接 WebSocket
-    await connectWebSocket();
-    
     print('✅ 用户登录成功: ${user.nickname}');
   }
   
   /// 退出登录
   Future<void> logout() async {
-    // 断开 WebSocket
-    await WebSocketClient().disconnect();
-    
     // 清空状态
     token.value = '';
     currentUser.value = null;
@@ -154,32 +147,6 @@ class GlobalController extends GetxController {
     // Get.updateLocale(Locale(lang));
   }
   
-  // ==================== WebSocket 相关 ====================
-  
-  /// 连接 WebSocket
-  Future<void> connectWebSocket() async {
-    if (token.value.isEmpty) {
-      print('⚠️ 未登录，无法连接 WebSocket');
-      return;
-    }
-    
-    await WebSocketClient().connect(
-      headers: {'token': token.value},
-    );
-  }
-  
-  /// 断开 WebSocket
-  Future<void> disconnectWebSocket() async {
-    await WebSocketClient().disconnect();
-  }
-  
-  /// 监听 WebSocket 状态
-  void _listenWebSocketState() {
-    WebSocketClient().stateStream.listen((state) {
-      isWsConnected.value = state == WebSocketState.connected;
-    });
-  }
-  
   // ==================== 未读消息相关 ====================
   
   /// 增加未读数
@@ -218,7 +185,6 @@ class GlobalController extends GetxController {
         print('⚠️ IM SDK 初始化超时');
         return false;
       });
-      return;
       
       if (initResult) {
         print('✅ IM SDK 初始化成功');
@@ -255,6 +221,96 @@ class GlobalController extends GetxController {
   /// 获取 IM SDK 状态
   String getIMSDKStatus() {
     return imsdkStatus.value;
+  }
+  
+  // ==================== Token 自动登录 ====================
+  
+  /// Token 自动登录状态
+  final RxBool isAutoLogging = false.obs;
+  final RxString autoLoginStatus = ''.obs;
+  
+  /// 使用 Token 自动登录
+  /// 返回 true 表示登录成功，false 表示登录失败
+  Future<bool> autoLoginWithToken() async {
+    // 检查本地是否有保存的 Token
+    final savedToken = StorageUtil().getString(AppConstants.keyToken);
+    if (savedToken == null || savedToken.isEmpty) {
+      print('⚠️ 没有保存的 Token，跳过自动登录');
+      return false;
+    }
+    
+    print('🔐 开始 Token 自动登录...');
+    isAutoLogging.value = true;
+    autoLoginStatus.value = '正在自动登录...';
+    
+    try {
+      final nativeService = IOSNativeService();
+      
+      // 调用 Token 登录
+      final result = await nativeService.imLoginWithToken(token: savedToken)
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        print('⚠️ Token 登录超时');
+        return {'errorCode': -408, 'message': '登录超时'};
+      });
+      
+      print('📊 Token 登录结果: $result');
+      
+      final errorCode = result['errorCode'] as int? ?? -1;
+      
+      if (errorCode == 0) {
+        // 登录成功
+        print('✅ Token 自动登录成功');
+        autoLoginStatus.value = '登录成功';
+        
+        // 解析返回的用户数据（如果有）
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
+            
+            // 更新 Token（如果服务器返回新 Token）
+            final newToken = dataMap['token'] as String?;
+            if (newToken != null && newToken.isNotEmpty) {
+              token.value = newToken;
+              await StorageUtil().setString(AppConstants.keyToken, newToken);
+            }
+            
+            // 更新用户信息（如果有）
+            if (dataMap.containsKey('user')) {
+              final userMap = dataMap['user'] as Map<String, dynamic>;
+              final user = UserModel.fromJson(userMap);
+              currentUser.value = user;
+              await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
+            }
+          } catch (e) {
+            print('⚠️ 解析登录数据失败: $e');
+          }
+        }
+        
+        isLoggedIn.value = true;
+        return true;
+      } else {
+        // 登录失败
+        print('❌ Token 自动登录失败: ${result['message']}');
+        autoLoginStatus.value = '登录失败';
+        
+        // Token 无效，清除本地登录信息
+        await logout();
+        return false;
+      }
+    } catch (e) {
+      print('❌ Token 自动登录异常: $e');
+      autoLoginStatus.value = '登录异常';
+      return false;
+    } finally {
+      isAutoLogging.value = false;
+    }
+  }
+  
+  /// 检查是否需要自动登录
+  bool needAutoLogin() {
+    final savedToken = StorageUtil().getString(AppConstants.keyToken);
+    return savedToken != null && savedToken.isNotEmpty;
   }
 }
 

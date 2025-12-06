@@ -320,12 +320,22 @@ class LoginController extends GetxController {
       
       if (data != null && data is String && data.isNotEmpty) {
         try {
-          // 尝试解析 JSON
-          final jsonData = data;
-          // TODO: 根据实际返回格式解析
-          print('📝 返回的数据字符串: $jsonData');
+          // 解析 JSON 数据
+          final dataMap = json.decode(data) as Map<String, dynamic>;
+          print('📝 登录返回数据解析: $dataMap');
+          
+          // 获取 token
+          token = dataMap['token'] as String?;
+          print('🔑 Token: $token');
+          
+          // 获取用户信息
+          final userMap = dataMap['user'] as Map<String, dynamic>?;
+          if (userMap != null) {
+            user = UserModel.fromJson(userMap);
+            print('👤 用户信息: ${user.nickname}');
+          }
         } catch (e) {
-          print('解析用户数据失败: $e');
+          print('⚠️ 解析登录数据失败: $e');
         }
       }
       
