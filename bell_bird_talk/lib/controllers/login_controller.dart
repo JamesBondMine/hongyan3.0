@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -125,9 +126,17 @@ class LoginController extends GetxController {
       print('📬 验证码发送结果: $result');
       
       if (result['errorCode'] == 0) {
-        // 保存验证码ID
-        _captchaId = result['captchaId'] as String?;
-        print('📝 验证码ID: $_captchaId');
+        // 解析 data 字段获取 captcha_id
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
+            _captchaId = dataMap['captcha_id'] as String?;
+            print('📝 验证码ID: $_captchaId');
+          } catch (e) {
+            print('⚠️ 解析验证码数据失败: $e');
+          }
+        }
         
         EasyLoading.showSuccess('验证码已发送');
         _startCountdown();

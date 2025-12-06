@@ -25,22 +25,36 @@ class UserModel {
   });
   
   /// 从 JSON 创建
+  /// 支持两种格式：驼峰命名和下划线命名
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // 解析时间戳（可能是毫秒时间戳或 ISO 字符串）
+    DateTime? parseDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is int) {
+        // 毫秒时间戳
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      if (value is String) {
+        return DateTime.tryParse(value);
+      }
+      return null;
+    }
+    
     return UserModel(
-      id: json['id']?.toString() ?? '',
-      username: json['username'] as String? ?? '',
+      // 支持 id / user_id / userId
+      id: (json['id'] ?? json['user_id'] ?? json['userId'])?.toString() ?? '',
+      // 支持 username / account_id / accountId
+      username: (json['username'] ?? json['account_id'] ?? json['accountId']) as String? ?? '',
       nickname: json['nickname'] as String? ?? '',
       avatar: json['avatar'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
-      gender: json['gender'] as int?,
+      // 支持 gender / sex
+      gender: (json['gender'] ?? json['sex']) as int?,
       signature: json['signature'] as String?,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString())
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'].toString())
-          : null,
+      // 支持 createdAt / created_at（可能是时间戳或字符串）
+      createdAt: parseDateTime(json['createdAt'] ?? json['created_at']),
+      updatedAt: parseDateTime(json['updatedAt'] ?? json['updated_at']),
     );
   }
   

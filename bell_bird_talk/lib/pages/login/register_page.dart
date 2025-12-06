@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/services/native_bridge.dart';
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -922,6 +924,14 @@ class _RegisterPageState extends State<RegisterPage> {
         if (_inviteCodeController.text.isNotEmpty) {
           registerData['biz_code'] = _inviteCodeController.text;
         }
+
+        // 输出邮箱验证吗注册的参数
+        print('📝 邮箱验证码注册的参数: $_emailCaptchaId');
+        print('📝 邮箱验证码注册的参数: ${_emailVerifyCodeController.text}');
+        print('📝 邮箱验证码注册的参数: $registerData');
+        print('📝 邮箱验证码注册的参数: ${registerData['captcha']}');
+        print('📝 邮箱验证码注册的参数: ${registerData['captcha']['captcha_id']}');
+        print('📝 邮箱验证码注册的参数: ${registerData['captcha']['answer']}');
       }
       
       print('📝 注册数据: $registerData');
@@ -938,9 +948,41 @@ class _RegisterPageState extends State<RegisterPage> {
       print('📊 注册结果: errorCode=$errorCode, message=$message, data=$data');
       
       if (errorCode == 0) {
-        EasyLoading.showSuccess('注册成功');
+        // 解析返回的数据
+        if (data != null && data.isNotEmpty) {
+          try {
+            final dataMap = json.decode(data) as Map<String, dynamic>;
+            
+            // 获取 token
+            final token = dataMap['token'] as String?;
+            
+            // 获取用户信息
+            final userMap = dataMap['user'] as Map<String, dynamic>?;
+            
+            if (token != null && userMap != null) {
+              // 创建用户模型
+              final user = UserModel.fromJson(userMap);
+              
+              // 保存登录信息到 GlobalController
+              final globalController = Get.find<GlobalController>();
+              await globalController.saveLoginInfo(token, user);
+              
+              print('✅ 注册成功，用户信息已保存: ${user.nickname}');
+              
+              EasyLoading.showSuccess('注册成功');
+              
+              // 延迟后跳转到首页
+              await Future.delayed(const Duration(milliseconds: 1000));
+              Get.offAllNamed('/home');
+              return;
+            }
+          } catch (e) {
+            print('⚠️ 解析注册返回数据失败: $e');
+          }
+        }
         
-        // 延迟返回登录页
+        // 如果解析失败，仍然提示成功并返回登录页
+        EasyLoading.showSuccess('注册成功，请登录');
         await Future.delayed(const Duration(milliseconds: 1500));
         Get.back();
       } else {
