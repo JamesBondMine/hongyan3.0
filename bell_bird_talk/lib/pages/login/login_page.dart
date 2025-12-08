@@ -1,8 +1,8 @@
 import 'package:bell_bird_talk/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
 
 /// 登录页面
 class LoginPage extends StatelessWidget {
@@ -260,12 +260,15 @@ class LoginPage extends StatelessWidget {
             const Spacer(),
             TextButton(
               onPressed: () {
-                EasyLoading.showInfo('请联系管理员重置密码');
+                Get.to(() => const ForgotPasswordPage());
               },
               child: const Text('忘记密码？'),
             ),
           ],
         ),
+        
+        // 邀请码输入框
+        _buildInviteCodeInput(controller),
       ],
     );
   }
@@ -294,6 +297,11 @@ class LoginPage extends StatelessWidget {
         
         // 验证码输入框 + 发送按钮
         _buildCodeInputRow(controller),
+        
+        const SizedBox(height: 16),
+        
+        // 邀请码输入框
+        _buildInviteCodeInput(controller),
       ],
     );
   }
@@ -322,7 +330,29 @@ class LoginPage extends StatelessWidget {
         
         // 验证码输入框 + 发送按钮
         _buildCodeInputRow(controller),
+        
+        const SizedBox(height: 16),
+        
+        // 邀请码输入框
+        _buildInviteCodeInput(controller),
       ],
+    );
+  }
+  
+  /// 邀请码输入框
+  Widget _buildInviteCodeInput(LoginController controller) {
+    return TextField(
+      controller: controller.inviteCodeController,
+      decoration: InputDecoration(
+        labelText: '邀请码',
+        hintText: '请输入邀请码（选填）',
+        prefixIcon: const Icon(Icons.card_giftcard_outlined),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+      ),
     );
   }
   

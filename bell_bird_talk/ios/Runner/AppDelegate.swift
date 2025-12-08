@@ -810,7 +810,7 @@ class NativeBridgeHandler: NSObject {
             if let token = args["token"] as? String {
                 // 对于 token 登录，使用旧的方法
                 let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
-                    print("✅ Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//                    print("✅ Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
                     result([
                         "errorCode": errorCode,
                         "reqId": reqId,
@@ -828,7 +828,7 @@ class NativeBridgeHandler: NSObject {
             // 兼容旧的 userId + token 方式
             if let userId = args["userId"] as? String, let token = args["token"] as? String {
                 let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
-                    print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//                    print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
                     result([
                         "errorCode": errorCode,
                         "reqId": reqId,
@@ -856,7 +856,7 @@ class NativeBridgeHandler: NSObject {
         
         // 调用新的字典登录方法
         let code = IMSDKAuthManager.shared().login(with: loginDict) { errorCode, reqId, data in
-            print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//            print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([

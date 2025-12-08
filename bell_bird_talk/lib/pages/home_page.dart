@@ -5,15 +5,42 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
 import 'native_demo_page.dart';
 import 'framework_test_page.dart';
+import 'friends/friends_page.dart';
 
-/// 首页
-class HomePage extends StatelessWidget {
+/// 首页（带底部 TabBar）
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final GlobalController globalCtrl = Get.find<GlobalController>();
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  int _currentIndex = 0;
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          // Tab 0: 消息页面
+          _buildMessagePage(),
+          // Tab 1: 好友页面
+          const FriendsPage(),
+          // Tab 2: 发现页面
+          _buildDiscoverPage(),
+          // Tab 3: 我的页面
+          _buildProfilePage(),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  /// 消息页面（原首页内容）
+  Widget _buildMessagePage() {
     return Scaffold(
       appBar: AppBar(
         title: const Text('铃鸟聊天'),
@@ -29,7 +56,7 @@ class HomePage extends StatelessWidget {
                   EasyLoading.showInfo('消息通知');
                 },
               ),
-              if (globalCtrl.unreadCount.value > 0)
+              if (_globalCtrl.unreadCount.value > 0)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -44,7 +71,7 @@ class HomePage extends StatelessWidget {
                       minHeight: 16,
                     ),
                     child: Text(
-                      '${globalCtrl.unreadCount.value > 99 ? '99+' : globalCtrl.unreadCount.value}',
+                      '${_globalCtrl.unreadCount.value > 99 ? '99+' : _globalCtrl.unreadCount.value}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -60,7 +87,7 @@ class HomePage extends StatelessWidget {
           // 设置按钮
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () => _showSettingsDialog(context, globalCtrl),
+            onPressed: () => _showSettingsDialog(context),
           ),
         ],
       ),
@@ -68,12 +95,12 @@ class HomePage extends StatelessWidget {
         child: Column(
           children: [
             // 用户信息卡片
-            _buildUserCard(globalCtrl),
+            _buildUserCard(),
             
             const SizedBox(height: 16),
             
             // IM SDK 状态卡片
-            _buildIMSDKStatusCard(globalCtrl),
+            _buildIMSDKStatusCard(),
             
             const SizedBox(height: 16),
             
@@ -84,22 +111,174 @@ class HomePage extends StatelessWidget {
             
             // 快速访问
             _buildQuickAccess(),
+            
+            const SizedBox(height: 16),
           ],
         ),
       ),
-      
-      // 底部导航栏
-      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  /// 发现页面
+  Widget _buildDiscoverPage() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('发现'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.explore_outlined, size: 80, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              '发现功能开发中...',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 我的页面
+  Widget _buildProfilePage() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('我的'),
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => _showSettingsDialog(context),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 用户信息卡片
+            _buildUserCard(),
+            
+            const SizedBox(height: 16),
+            
+            // 设置选项列表
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildSettingItem(Icons.person_outline, '个人资料', () {
+                    _showUserInfoDialog(context);
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.security, '账号安全', () {
+                    EasyLoading.showInfo('账号安全开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.notifications_outlined, '消息通知', () {
+                    EasyLoading.showInfo('消息通知开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.privacy_tip_outlined, '隐私设置', () {
+                    EasyLoading.showInfo('隐私设置开发中');
+                  }),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 其他选项
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildSettingItem(Icons.help_outline, '帮助与反馈', () {
+                    EasyLoading.showInfo('帮助与反馈开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.info_outline, '关于我们', () {
+                    EasyLoading.showInfo('关于我们开发中');
+                  }),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // 退出登录按钮
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _showLogoutDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '退出登录',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 设置项
+  Widget _buildSettingItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.grey[700]),
+      title: Text(title),
+      trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+      onTap: onTap,
     );
   }
 
   /// 构建用户信息卡片
-  Widget _buildUserCard(GlobalController globalCtrl) {
+  Widget _buildUserCard() {
     return Obx(() {
-      final user = globalCtrl.currentUser.value;
+      final user = _globalCtrl.currentUser.value;
       
       return GestureDetector(
-        onTap: () => _showUserInfoDialog(Get.context!, globalCtrl),
+        onTap: () => _showUserInfoDialog(context),
         child: Container(
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(20),
@@ -223,8 +402,8 @@ class HomePage extends StatelessWidget {
   }
   
   /// 显示用户信息对话框
-  void _showUserInfoDialog(BuildContext context, GlobalController globalCtrl) {
-    final user = globalCtrl.currentUser.value;
+  void _showUserInfoDialog(BuildContext context) {
+    final user = _globalCtrl.currentUser.value;
     
     showDialog(
       context: context,
@@ -330,10 +509,10 @@ class HomePage extends StatelessWidget {
   }
 
   /// 构建 IM SDK 状态卡片
-  Widget _buildIMSDKStatusCard(GlobalController globalCtrl) {
+  Widget _buildIMSDKStatusCard() {
     return Obx(() {
-      final status = globalCtrl.imsdkStatus.value;
-      final isInitialized = globalCtrl.isIMSDKInitialized.value;
+      final status = _globalCtrl.imsdkStatus.value;
+      final isInitialized = _globalCtrl.isIMSDKInitialized.value;
       
       // 根据状态设置颜色和图标
       Color statusColor;
@@ -419,7 +598,7 @@ class HomePage extends StatelessWidget {
                 icon: const Icon(Icons.refresh, size: 20),
                 onPressed: () async {
                   // 重新初始化
-                  await globalCtrl.initializeIMSDK();
+                  await _globalCtrl.initializeIMSDK();
                 },
                 tooltip: '重试',
             ),
@@ -442,13 +621,13 @@ class HomePage extends StatelessWidget {
         'icon': Icons.people_outline,
         'title': '好友',
         'color': Colors.green,
-        'onTap': () => Get.toNamed('/friends'),
+        'onTap': () => setState(() => _currentIndex = 1),  // 切换到好友 Tab
       },
       {
         'icon': Icons.person_outline,
         'title': '个人中心',
         'color': Colors.orange,
-        'onTap': () => EasyLoading.showInfo('个人中心开发中'),
+        'onTap': () => setState(() => _currentIndex = 3),  // 切换到我的 Tab
       },
       {
         'icon': Icons.build_outlined,
@@ -466,7 +645,7 @@ class HomePage extends StatelessWidget {
         'icon': Icons.settings_outlined,
         'title': '系统设置',
         'color': Colors.grey,
-        'onTap': () => EasyLoading.showInfo('设置功能开发中'),
+        'onTap': () => _showSettingsDialog(context),
       },
     ];
 
@@ -622,49 +801,39 @@ class HomePage extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.blue,
       unselectedItemColor: Colors.grey,
-      currentIndex: 0,
+      currentIndex: _currentIndex,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.chat_bubble_outline),
+          activeIcon: Icon(Icons.chat_bubble),
           label: '消息',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
+          activeIcon: Icon(Icons.people),
           label: '好友',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.explore_outlined),
+          activeIcon: Icon(Icons.explore),
           label: '发现',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
           label: '我的',
         ),
       ],
       onTap: (index) {
-        switch (index) {
-          case 0:
-            // 消息 - 当前页面
-            break;
-          case 1:
-            // 好友 - 跳转到好友列表
-            Get.toNamed('/friends');
-            break;
-          case 2:
-            // 发现
-            EasyLoading.showInfo('发现功能开发中');
-            break;
-          case 3:
-            // 我的
-            EasyLoading.showInfo('个人中心开发中');
-            break;
-        }
+        setState(() {
+          _currentIndex = index;
+        });
       },
     );
   }
 
   /// 显示设置对话框
-  void _showSettingsDialog(BuildContext context, GlobalController globalCtrl) {
+  void _showSettingsDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -676,8 +845,8 @@ class HomePage extends StatelessWidget {
               leading: const Icon(Icons.dark_mode_outlined),
               title: const Text('深色模式'),
               trailing: Obx(() => Switch(
-                value: globalCtrl.isDarkMode.value,
-                onChanged: (value) => globalCtrl.toggleTheme(),
+                value: _globalCtrl.isDarkMode.value,
+                onChanged: (value) => _globalCtrl.toggleTheme(),
               )),
             ),
             ListTile(
@@ -694,7 +863,7 @@ class HomePage extends StatelessWidget {
               title: const Text('退出登录', style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
-                _showLogoutDialog(context, globalCtrl);
+                _showLogoutDialog(context);
               },
             ),
           ],
@@ -710,7 +879,7 @@ class HomePage extends StatelessWidget {
   }
 
   /// 显示退出登录对话框
-  void _showLogoutDialog(BuildContext context, GlobalController globalCtrl) {
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -726,7 +895,7 @@ class HomePage extends StatelessWidget {
               Navigator.pop(context);
               EasyLoading.show(status: '退出中...');
               
-              await globalCtrl.logout();
+              await _globalCtrl.logout();
               
               EasyLoading.showSuccess('已退出登录');
               
@@ -743,4 +912,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-

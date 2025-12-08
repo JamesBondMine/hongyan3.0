@@ -7,6 +7,7 @@
 
 #import "IMSDKAuthManager.h"
 #import "UserPb.pbobjc.h"
+#import "SystemPb.pbobjc.h"
 #import "CaptchaPb.pbobjc.h"
 #import <UIKit/UIKit.h>
 #include "network_lib.h"
@@ -378,16 +379,19 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     }
     
     // 使用 protobuf 创建 AuthUser 对象（与 loginWithDictionary 保持一致）
-    AuthUser *authUser = [[AuthUser alloc] init];
-    authUser.loginType = LoginType_Token;
-    // 设备ID（使用 UUID）
-    authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    Param * p = [[Param alloc] init];
+    p.param = token;
     
-    NSLog(@"\nToken登录参数:\n===========================\n loginType=token(%d),\n deviceId=%@ \n===========================",
-          (int)authUser.loginType, authUser.deviceId);
-    
+//    AuthUser *authUser = [[AuthUser alloc] init];
+//    authUser.loginType = LoginType_Token;
+//    // 设备ID（使用 UUID）
+//    authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+//    
+//    NSLog(@"\nToken登录参数:\n===========================\n loginType=token(%d),\n deviceId=%@ \n===========================",
+//          (int)authUser.loginType, authUser.deviceId);
+//    
     // 序列化为 Protobuf 二进制数据
-    NSData *serializedData = [authUser data];
+    NSData *serializedData = [p data];
     if (!serializedData || serializedData.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
         return -2;

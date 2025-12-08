@@ -224,6 +224,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     NSString *message = params[@"message"];
     if (message && message.length > 0) {
         contact.message = message;
+        contact.remark = message;
     }
     
     // 设置目标手机号（可选）
@@ -242,6 +243,8 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     NSString *targetAccountId = params[@"target_account_id"];
     if (targetAccountId && targetAccountId.length > 0) {
         contact.targetAccountId = targetAccountId;
+    } else {
+        contact.targetAccountId = targetUserId;
     }
     
     // 序列化为 Protobuf 二进制数据
@@ -462,8 +465,8 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         NSNumber *tempKey = @(tempId++);
         self.contactCallbacks[tempKey] = completion;
         
-        // 使用 search_contact 代替 list_contacts（SDK 未提供 list_contacts 方法）
-        int result = search_contact(ContactListCallback, data, dataLen, "", reqId);
+        // 使用 get_contact_list 获取联系人列表
+        int result = get_contact_list(ContactListCallback, data, dataLen, reqId);
         
         if (result == 0 && reqId != 0) {
             self.contactCallbacks[@(reqId)] = completion;
@@ -475,7 +478,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         return result;
     }
     
-    return search_contact(ContactListCallback, data, dataLen, "", reqId);
+    return get_contact_list(ContactListCallback, data, dataLen, reqId);
 }
 
 - (int)searchContactWithKeyword:(NSString *)keyword

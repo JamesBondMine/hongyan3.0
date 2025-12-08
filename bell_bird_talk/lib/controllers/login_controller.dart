@@ -23,6 +23,7 @@ class LoginController extends GetxController {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
+  final TextEditingController inviteCodeController = TextEditingController();  // 邀请码
   
   // 状态
   final RxBool isLoading = false.obs;
@@ -54,6 +55,7 @@ class LoginController extends GetxController {
     phoneController.dispose();
     emailController.dispose();
     codeController.dispose();
+    inviteCodeController.dispose();
     _countdownTimer?.cancel();
     super.onClose();
   }
@@ -208,9 +210,13 @@ class LoginController extends GetxController {
       EasyLoading.show(status: '登录中...');
 
       // 调用原生密码登录
+      final inviteCode = inviteCodeController.text.trim();
+      print('🔐 密码登录: accountId=$username, password=$password, inviteCode=$inviteCode');
+      
       final result = await _nativeBridge.imLoginWithPassword(
         accountId: username,
         password: password,
+        bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
       
       print('🔐 密码登录结果: $result');
@@ -248,10 +254,14 @@ class LoginController extends GetxController {
       EasyLoading.show(status: '登录中...');
 
       // 调用原生短信登录
+      final inviteCode = inviteCodeController.text.trim();
+      print('📱 短信登录: phone=$phone, code=$code, captchaId=$_captchaId, inviteCode=$inviteCode');
+      
       final result = await _nativeBridge.imLoginWithSMS(
         phone: phone,
         code: code,
         captchaId: _captchaId!,
+        bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
       
       print('📱 短信登录结果: $result');
@@ -289,10 +299,14 @@ class LoginController extends GetxController {
       EasyLoading.show(status: '登录中...');
 
       // 调用原生邮箱登录
+      final inviteCode = inviteCodeController.text.trim();
+      print('📧 邮箱登录: email=$email, code=$code, captchaId=$_captchaId, inviteCode=$inviteCode');
+      
       final result = await _nativeBridge.imLoginWithEmail(
         email: email,
         code: code,
         captchaId: _captchaId!,
+        bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
       
       print('📧 邮箱登录结果: $result');

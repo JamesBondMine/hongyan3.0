@@ -312,11 +312,13 @@ class IOSNativeService {
   Future<Map<String, dynamic>> imLoginWithPassword({
     required String accountId,
     required String password,
+    String? bizCode,
   }) async {
     return imLogin(
       loginType: 'password',
       accountId: accountId,
       password: password,
+      bizCode: bizCode,
     );
   }
   
@@ -325,6 +327,7 @@ class IOSNativeService {
     required String phone,
     required String code,
     required String captchaId,
+    String? bizCode,
   }) async {
     return imLogin(
       loginType: 'sms_code',
@@ -332,6 +335,7 @@ class IOSNativeService {
       phone: phone,
       password: code,
       captchaId: captchaId,
+      bizCode: bizCode,
     );
   }
   
@@ -340,6 +344,7 @@ class IOSNativeService {
     required String email,
     required String code,
     required String captchaId,
+    String? bizCode,
   }) async {
     return imLogin(
       loginType: 'email_code',
@@ -347,6 +352,7 @@ class IOSNativeService {
       email: email,
       password: code,
       captchaId: captchaId,
+      bizCode: bizCode,
     );
   }
   
@@ -358,6 +364,49 @@ class IOSNativeService {
       loginType: 'token',
       token: token,
     );
+  }
+  
+  /// 重置密码
+  /// @param phone 手机号（和email二选一）
+  /// @param email 邮箱（和phone二选一）
+  /// @param code 验证码
+  /// @param captchaId 验证码ID
+  /// @param newPassword 新密码
+  Future<Map<String, dynamic>> imResetPassword({
+    String? phone,
+    String? email,
+    required String code,
+    required String captchaId,
+    required String newPassword,
+  }) async {
+    if (phone == null && email == null) {
+      return {'errorCode': -1, 'message': '必须提供手机号或邮箱'};
+    }
+    
+    try {
+      final Map<String, dynamic> params = {
+        'code': code,
+        'captcha_id': captchaId,
+        'new_password': newPassword,
+      };
+      
+      if (phone != null) {
+        params['phone'] = phone;
+        params['reset_type'] = 'sms';
+      }
+      if (email != null) {
+        params['email'] = email;
+        params['reset_type'] = 'email';
+      }
+      
+      print('🔐 重置密码请求: $params');
+      
+      final result = await _bridge.invokeMethod<Map>('imResetPassword', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('重置密码错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
   }
   
   // ---------- 用户查询 ----------
