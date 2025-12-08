@@ -266,7 +266,6 @@ class LoginPage extends StatelessWidget {
             ),
           ],
         ),
-        
         // 邀请码输入框
         _buildInviteCodeInput(controller),
       ],

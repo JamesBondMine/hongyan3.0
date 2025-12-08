@@ -3,3 +3,4 @@
 #import "IMSDK/IMSDKManager.h"
 #import "IMSDK/IMSDKAuthManager.h"
 #import "IMSDK/IMSDKContactManager.h"
+#import "IMSDK/IMSDKConversationManager.h"

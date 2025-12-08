@@ -6,6 +6,7 @@ import '../controllers/global_controller.dart';
 import 'native_demo_page.dart';
 import 'framework_test_page.dart';
 import 'friends/friends_page.dart';
+import 'chat/chat_list_page.dart';
 
 /// 首页（带底部 TabBar）
 class HomePage extends StatefulWidget {
@@ -29,9 +30,11 @@ class _HomePageState extends State<HomePage> {
           _buildMessagePage(),
           // Tab 1: 好友页面
           const FriendsPage(),
-          // Tab 2: 发现页面
+          // Tab 2: 聊天页面
+          const ChatListPage(),
+          // Tab 3: 发现页面
           _buildDiscoverPage(),
-          // Tab 3: 我的页面
+          // Tab 4: 我的页面
           _buildProfilePage(),
         ],
       ),
@@ -804,14 +807,19 @@ class _HomePageState extends State<HomePage> {
       currentIndex: _currentIndex,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline),
-          activeIcon: Icon(Icons.chat_bubble),
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
           label: '消息',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
           activeIcon: Icon(Icons.people),
           label: '好友',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat_bubble_outline),
+          activeIcon: Icon(Icons.chat_bubble),
+          label: '聊天',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.explore_outlined),

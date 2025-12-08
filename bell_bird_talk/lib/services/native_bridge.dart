@@ -541,5 +541,119 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+  
+  // ---------- 会话管理 ----------
+  
+  /// 获取会话列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @param convType 会话类型过滤（可选，-1表示不过滤）
+  /// @return 会话列表
+  Future<Map<String, dynamic>> imGetConversationList({
+    int page = 1,
+    int pageSize = 20,
+    int convType = -1,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetConversationList', {
+        'page': page,
+        'page_size': pageSize,
+        'conv_type': convType,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取单个会话
+  /// @param convId 会话ID
+  /// @return 会话详情
+  Future<Map<String, dynamic>> imGetConversation({
+    required String convId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetConversation', {
+        'conv_id': convId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 创建会话
+  /// @param convType 会话类型（0=单聊, 2=群聊）
+  /// @param targetId 目标ID（单聊为对方用户ID，群聊为群ID）
+  /// @param displayName 显示名称
+  /// @return 创建结果
+  Future<Map<String, dynamic>> imCreateConversation({
+    required int convType,
+    required String targetId,
+    required String displayName,
+    String? avatarUrl,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'conv_type': convType,
+        'target_id': targetId,
+        'display_name': displayName,
+      };
+      if (avatarUrl != null) params['avatar_url'] = avatarUrl;
+      
+      final result = await _bridge.invokeMethod<Map>('imCreateConversation', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 删除会话
+  /// @param convId 会话ID
+  /// @return 删除结果
+  Future<Map<String, dynamic>> imDeleteConversation({
+    required String convId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imDeleteConversation', {
+        'conv_id': convId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 标记会话已读
+  /// @param convId 会话ID
+  /// @return 标记结果
+  Future<Map<String, dynamic>> imMarkConversationRead({
+    required String convId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imMarkConversationRead', {
+        'conv_id': convId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 清空会话消息
+  /// @param convId 会话ID
+  /// @return 清空结果
+  Future<Map<String, dynamic>> imClearConversationMessages({
+    required String convId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imClearConversationMessages', {
+        'conv_id': convId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 

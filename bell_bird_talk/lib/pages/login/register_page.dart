@@ -948,11 +948,26 @@ class _RegisterPageState extends State<RegisterPage> {
               
               print('✅ 注册成功，用户信息已保存: ${user.nickname}');
               
-              EasyLoading.showSuccess('注册成功');
+              // 使用 Token 自动登录，确保 SDK 状态正确
+              EasyLoading.show(status: '正在登录...');
+              print('🔐 注册后使用 Token 自动登录...');
               
-              // 延迟后跳转到首页
-              await Future.delayed(const Duration(milliseconds: 1000));
-              Get.offAllNamed('/home');
+              final loginSuccess = await globalController.autoLoginWithToken();
+              EasyLoading.dismiss();
+              
+              if (loginSuccess) {
+                print('✅ Token 自动登录成功');
+                EasyLoading.showSuccess('注册成功');
+                
+                // 延迟后跳转到首页
+                await Future.delayed(const Duration(milliseconds: 800));
+                Get.offAllNamed('/home');
+              } else {
+                print('⚠️ Token 自动登录失败，仍跳转到首页');
+                EasyLoading.showSuccess('注册成功');
+                await Future.delayed(const Duration(milliseconds: 800));
+                Get.offAllNamed('/home');
+              }
               return;
             }
           } catch (e) {

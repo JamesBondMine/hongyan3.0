@@ -191,6 +191,20 @@ class NativeBridgeHandler: NSObject {
         case "imGetContactList":
             imGetContactList(call: call, result: result)
         
+        // ---------- 会话管理 ----------
+        case "imGetConversationList":
+            imGetConversationList(call: call, result: result)
+        case "imGetConversation":
+            imGetConversation(call: call, result: result)
+        case "imCreateConversation":
+            imCreateConversation(call: call, result: result)
+        case "imDeleteConversation":
+            imDeleteConversation(call: call, result: result)
+        case "imMarkConversationRead":
+            imMarkConversationRead(call: call, result: result)
+        case "imClearConversationMessages":
+            imClearConversationMessages(call: call, result: result)
+        
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
@@ -1091,6 +1105,187 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CONTACT_LIST_ERROR",
                               message: "获取联系人列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 会话管理
+    
+    /// 获取会话列表
+    private func imGetConversationList(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 20
+        let convType = args["conv_type"] as? Int ?? -1
+        
+        print("📋 获取会话列表: page=\(page), pageSize=\(pageSize), convType=\(convType)")
+        
+        let code = IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_CONVERSATION_LIST_ERROR",
+                              message: "获取会话列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取单个会话
+    private func imGetConversation(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convId = args["conv_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📋 获取会话: convId=\(convId)")
+        
+        let code = IMSDKConversationManager.shared().getConversationWithId(convId, completion: { errorCode, reqId, data in
+            print("✅ 获取会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_CONVERSATION_ERROR",
+                              message: "获取会话请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 创建会话
+    private func imCreateConversation(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convType = args["conv_type"] as? Int,
+              let targetId = args["target_id"] as? String,
+              let displayName = args["display_name"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📋 创建会话: convType=\(convType), targetId=\(targetId), displayName=\(displayName)")
+        
+        var params: [String: Any] = [
+            "conv_type": convType,
+            "target_id": targetId,
+            "display_name": displayName
+        ]
+        if let avatarUrl = args["avatar_url"] as? String {
+            params["avatar_url"] = avatarUrl
+        }
+        
+        let code = IMSDKConversationManager.shared().createConversation(withParams: params) { errorCode, reqId, data in
+            print("✅ 创建会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "CREATE_CONVERSATION_ERROR",
+                              message: "创建会话请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 删除会话
+    private func imDeleteConversation(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convId = args["conv_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📋 删除会话: convId=\(convId)")
+        
+        let code = IMSDKConversationManager.shared().deleteConversation(withId: convId) { errorCode, reqId, data in
+            print("✅ 删除会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "删除成功" : "删除失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_CONVERSATION_ERROR",
+                              message: "删除会话请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 标记会话已读
+    private func imMarkConversationRead(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convId = args["conv_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📋 标记会话已读: convId=\(convId)")
+        
+        let code = IMSDKConversationManager.shared().markConversationRead(withId: convId) { errorCode, reqId, data in
+            print("✅ 标记已读回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "标记成功" : "标记失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "MARK_READ_ERROR",
+                              message: "标记已读请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 清空会话消息
+    private func imClearConversationMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convId = args["conv_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📋 清空会话消息: convId=\(convId)")
+        
+        let code = IMSDKConversationManager.shared().clearConversationMessages(withId: convId) { errorCode, reqId, data in
+            print("✅ 清空消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "清空成功" : "清空失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "CLEAR_MESSAGES_ERROR",
+                              message: "清空消息请求发送失败: \(code)",
                               details: nil))
         }
     }
