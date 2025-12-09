@@ -61,6 +61,23 @@ typedef void (^IMSDKMessageCompletion)(int errorCode, uint64_t reqId, NSString *
             receiverId:(NSString *)receiverId
             completion:(IMSDKMessageCompletion)completion;
 
+// ==================== 拉取历史消息 ====================
+
+/// 拉取历史消息
+/// @param conversationId 会话ID
+/// @param convType 会话类型（0=单聊, 2=群聊）
+/// @param targetId 目标ID（单聊为对方用户ID）
+/// @param lastSeq 最后消息序号（0表示从最新开始拉取）
+/// @param limit 拉取数量限制
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)pullMessagesWithConversationId:(NSString *)conversationId
+                             convType:(int)convType
+                             targetId:(NSString *)targetId
+                              lastSeq:(int64_t)lastSeq
+                                limit:(int)limit
+                           completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 回调管理（内部使用） ====================
 
 /// 设置回调

@@ -28,10 +28,20 @@
 static void ConversationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📨 会话回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
+    // ⚠️ 立即打印原始数据 HEX（在任何异步操作之前）
+    if (data && dataLen > 0) {
+        NSMutableString *hexStr = [NSMutableString string];
+        for (int i = 0; i < MIN(dataLen, 100); i++) {
+            [hexStr appendFormat:@"%02x ", (unsigned char)data[i]];
+        }
+        NSLog(@"📦 原始数据 (HEX, 立即打印): %@", hexStr);
+    }
+    
     NSString *jsonString = nil;
     if (data && dataLen > 0) {
         // 尝试解析为 Protobuf 数据
         NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+        NSLog(@"📦 数据拷贝后长度: %lu", (unsigned long)responseData.length);
         
         // 尝试解析为 ConvList（会话列表响应）
         NSError *error = nil;

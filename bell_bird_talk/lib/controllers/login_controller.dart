@@ -33,6 +33,10 @@ class LoginController extends GetxController {
   // 登录方式
   final Rx<LoginType> loginType = LoginType.password.obs;
   
+  // 手机/邮箱登录模式：true=密码登录，false=验证码登录
+  final RxBool smsUsePassword = true.obs;      // 手机登录默认使用密码
+  final RxBool emailUsePassword = true.obs;    // 邮箱登录默认使用密码
+  
   // 验证码相关
   final RxInt countdown = 0.obs;
   final RxBool isSendingCode = false.obs;
@@ -81,6 +85,24 @@ class LoginController extends GetxController {
   void switchLoginType(LoginType type) {
     loginType.value = type;
     // 清空验证码相关
+    codeController.clear();
+    _captchaId = null;
+  }
+  
+  /// 切换手机登录模式（密码/验证码）
+  void toggleSmsLoginMode() {
+    smsUsePassword.value = !smsUsePassword.value;
+    // 清空相关字段
+    passwordController.clear();
+    codeController.clear();
+    _captchaId = null;
+  }
+  
+  /// 切换邮箱登录模式（密码/验证码）
+  void toggleEmailLoginMode() {
+    emailUsePassword.value = !emailUsePassword.value;
+    // 清空相关字段
+    passwordController.clear();
     codeController.clear();
     _captchaId = null;
   }
@@ -183,10 +205,18 @@ class LoginController extends GetxController {
         await _loginWithPassword();
         break;
       case LoginType.smsCode:
-        await _loginWithSMS();
+        if (smsUsePassword.value) {
+          await _loginWithPhonePassword();
+        } else {
+          await _loginWithSMS();
+        }
         break;
       case LoginType.emailCode:
-        await _loginWithEmail();
+        if (emailUsePassword.value) {
+          await _loginWithEmailPassword();
+        } else {
+          await _loginWithEmail();
+        }
         break;
     }
   }
@@ -222,6 +252,45 @@ class LoginController extends GetxController {
       print('🔐 密码登录结果: $result');
       
       await _handleLoginResult(result, username);
+      
+    } catch (e) {
+      print('登录错误: $e');
+      EasyLoading.showError('登录失败，请稍后重试');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  /// 手机+密码登录
+  Future<void> _loginWithPhonePassword() async {
+    final phone = phoneController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (phone.isEmpty) {
+      EasyLoading.showError('请输入手机号');
+      return;
+    }
+    if (password.isEmpty) {
+      EasyLoading.showError('请输入密码');
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      EasyLoading.show(status: '登录中...');
+
+      final inviteCode = inviteCodeController.text.trim();
+      print('📱 手机密码登录: phone=$phone, password=$password, inviteCode=$inviteCode');
+      
+      final result = await _nativeBridge.imLoginWithPhonePassword(
+        phone: phone,
+        password: password,
+        bizCode: inviteCode.isNotEmpty ? inviteCode : null,
+      );
+      
+      print('📱 手机密码登录结果: $result');
+      
+      await _handleLoginResult(result, phone);
       
     } catch (e) {
       print('登录错误: $e');
@@ -267,6 +336,45 @@ class LoginController extends GetxController {
       print('📱 短信登录结果: $result');
       
       await _handleLoginResult(result, phone);
+      
+    } catch (e) {
+      print('登录错误: $e');
+      EasyLoading.showError('登录失败，请稍后重试');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  /// 邮箱+密码登录
+  Future<void> _loginWithEmailPassword() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty) {
+      EasyLoading.showError('请输入邮箱');
+      return;
+    }
+    if (password.isEmpty) {
+      EasyLoading.showError('请输入密码');
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      EasyLoading.show(status: '登录中...');
+
+      final inviteCode = inviteCodeController.text.trim();
+      print('📧 邮箱密码登录: email=$email, password=$password, inviteCode=$inviteCode');
+      
+      final result = await _nativeBridge.imLoginWithEmailPassword(
+        email: email,
+        password: password,
+        bizCode: inviteCode.isNotEmpty ? inviteCode : null,
+      );
+      
+      print('📧 邮箱密码登录结果: $result');
+      
+      await _handleLoginResult(result, email);
       
     } catch (e) {
       print('登录错误: $e');

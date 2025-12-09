@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
+import 'chat_page.dart';
 
 /// 会话模型
 class ConversationModel {
@@ -681,9 +682,18 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 打开聊天
   void _openChat(ConversationModel conversation) {
-    EasyLoading.showInfo('打开会话: ${conversation.displayName}');
-    // TODO: 跳转到聊天详情页
-    // Get.to(() => ChatDetailPage(conversation: conversation));
+    // 跳转到聊天详情页
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          convId: conversation.convId,
+          displayName: conversation.displayName,
+          avatar: conversation.avatar,
+          targetUserId: conversation.targetId ?? '',
+        ),
+      ),
+    );
   }
 
   /// 显示会话选项

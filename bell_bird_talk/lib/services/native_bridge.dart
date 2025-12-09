@@ -339,6 +339,21 @@ class IOSNativeService {
     );
   }
   
+  /// 手机+密码登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithPhonePassword({
+    required String phone,
+    required String password,
+    String? bizCode,
+  }) async {
+    return imLogin(
+      loginType: 'password',
+      accountId: phone,  // 手机号作为账户ID
+      phone: phone,
+      password: password,
+      bizCode: bizCode,
+    );
+  }
+  
   /// 邮箱验证码登录（便捷方法）
   Future<Map<String, dynamic>> imLoginWithEmail({
     required String email,
@@ -352,6 +367,21 @@ class IOSNativeService {
       email: email,
       password: code,
       captchaId: captchaId,
+      bizCode: bizCode,
+    );
+  }
+  
+  /// 邮箱+密码登录（便捷方法）
+  Future<Map<String, dynamic>> imLoginWithEmailPassword({
+    required String email,
+    required String password,
+    String? bizCode,
+  }) async {
+    return imLogin(
+      loginType: 'password',
+      accountId: email,  // 邮箱作为账户ID
+      email: email,
+      password: password,
       bizCode: bizCode,
     );
   }
@@ -768,6 +798,34 @@ class IOSNativeService {
       if (ext != null) params['ext'] = ext;
       
       final result = await _bridge.invokeMethod<Map>('imSendTextMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 拉取历史消息
+  /// @param conversationId 会话ID
+  /// @param convType 会话类型（0=单聊, 2=群聊）
+  /// @param targetId 目标ID（单聊为对方用户ID）
+  /// @param lastSeq 最后消息序号（0表示从最新开始）
+  /// @param limit 拉取数量限制
+  /// @return 消息列表
+  Future<Map<String, dynamic>> imPullMessages({
+    required String conversationId,
+    int convType = 0,
+    String targetId = '',
+    int lastSeq = 0,
+    int limit = 50,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imPullMessages', {
+        'conversation_id': conversationId,
+        'conv_type': convType,
+        'target_id': targetId,
+        'last_seq': lastSeq,
+        'limit': limit,
+      });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};

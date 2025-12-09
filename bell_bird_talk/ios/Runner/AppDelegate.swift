@@ -218,6 +218,8 @@ class NativeBridgeHandler: NSObject {
         // ---------- 消息管理 ----------
         case "imSendTextMessage":
             imSendTextMessage(call: call, result: result)
+        case "imPullMessages":
+            imPullMessages(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -1455,6 +1457,45 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEND_MESSAGE_ERROR",
                               message: "发送消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 拉取历史消息
+    private func imPullMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let conversationId = args["conversation_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let convType = args["conv_type"] as? Int ?? 0
+        let targetId = args["target_id"] as? String ?? ""
+        let lastSeq = args["last_seq"] as? Int64 ?? 0
+        let limit = args["limit"] as? Int ?? 50
+        
+        print("📥 拉取历史消息: conversationId=\(conversationId), convType=\(convType), targetId=\(targetId), lastSeq=\(lastSeq), limit=\(limit)")
+        
+        let code = IMSDKMessageManager.shared().pullMessages(
+            withConversationId: conversationId,
+            convType: Int32(convType),
+            targetId: targetId,
+            lastSeq: lastSeq,
+            limit: Int32(limit)
+        ) { errorCode, reqId, data in
+            print("✅ 拉取消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "拉取成功" : "拉取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "PULL_MESSAGES_ERROR",
+                              message: "拉取消息请求失败: \(code)",
                               details: nil))
         }
     }

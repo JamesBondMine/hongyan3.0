@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
@@ -49,10 +50,91 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _loadHistory() async {
     setState(() => _isLoading = true);
     
-    // TODO: 调用 SDK 获取历史消息
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      // 使用 pull_messages 接口拉取历史消息
+      final result = await _nativeService.imPullMessages(
+        conversationId: widget.convId,
+        convType: 0,  // 单聊
+        targetId: widget.targetUserId,
+        lastSeq: 0,   // 0 表示从最新开始
+        limit: 50,
+      );
+      
+      print('📥 拉取历史消息结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        final data = result['data'];
+        if (data != null && data is String && data.isNotEmpty) {
+          try {
+            final dataMap = json.decode(data) as Map<String, dynamic>;
+            print('📥 历史消息数据: $dataMap');
+            
+            // 打印所有字段
+            print('📥 返回字段: ${dataMap.keys.toList()}');
+            
+            // 解析消息列表
+            final messages = dataMap['messages'] as List<dynamic>?;
+            if (messages != null && messages.isNotEmpty) {
+              print('📥 获取到 ${messages.length} 条历史消息');
+              _parseAndDisplayMessages(messages);
+            } else {
+              print('📥 暂无历史消息');
+            }
+            
+            // 打印统计信息
+            final totalCount = dataMap['total_count'];
+            final hasMore = dataMap['has_more'];
+            print('📥 总数: $totalCount, 还有更多: $hasMore');
+            
+          } catch (e) {
+            print('❌ 解析历史消息失败: $e');
+          }
+        }
+      } else {
+        print('❌ 拉取历史消息失败: ${result['message']}');
+      }
+    } catch (e) {
+      print('❌ 拉取历史消息异常: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  /// 解析并显示历史消息
+  void _parseAndDisplayMessages(List<dynamic> messages) {
+    final parsedMessages = <Map<String, dynamic>>[];
     
-    setState(() => _isLoading = false);
+    for (final msg in messages) {
+      if (msg is Map<String, dynamic>) {
+        // 尝试解析消息结构
+        final msgId = msg['msg_id'] ?? msg['message_id'] ?? msg['id'] ?? '';
+        final content = msg['content'] ?? msg['text'] ?? msg['body'] ?? '';
+        final senderId = msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
+        final timestamp = msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
+        
+        // 判断是否是自己发的消息
+        final isMine = senderId == widget.targetUserId ? false : true;
+        
+        parsedMessages.add({
+          'id': msgId.toString(),
+          'content': content.toString(),
+          'isMine': isMine,
+          'timestamp': timestamp is int ? timestamp : 0,
+          'status': 'sent',
+          'raw': msg, // 保留原始数据供调试
+        });
+        
+        print('📝 消息: content=$content, isMine=$isMine, senderId=$senderId');
+      }
+    }
+    
+    if (parsedMessages.isNotEmpty) {
+      setState(() {
+        _messages.clear();
+        _messages.addAll(parsedMessages);
+      });
+      _scrollToBottom();
+    }
   }
 
   /// 发送消息

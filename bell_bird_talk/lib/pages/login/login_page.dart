@@ -272,9 +272,9 @@ class LoginPage extends StatelessWidget {
     );
   }
   
-  /// 短信验证码登录表单
+  /// 短信登录表单（支持密码/验证码模式切换）
   Widget _buildSMSLoginForm(LoginController controller) {
-    return Column(
+    return Obx(() => Column(
       children: [
         // 手机号输入框
         TextField(
@@ -294,20 +294,64 @@ class LoginPage extends StatelessWidget {
         
         const SizedBox(height: 16),
         
-        // 验证码输入框 + 发送按钮
-        _buildCodeInputRow(controller),
+        // 根据模式显示密码或验证码
+        if (controller.smsUsePassword.value) ...[
+          // 密码输入框
+          TextField(
+            controller: controller.passwordController,
+            obscureText: controller.obscurePassword.value,
+            decoration: InputDecoration(
+              labelText: '密码',
+              hintText: '请输入密码',
+              prefixIcon: const Icon(Icons.lock_outline),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  controller.obscurePassword.value
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                ),
+                onPressed: controller.togglePasswordVisibility,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+          ),
+        ] else ...[
+          // 验证码输入框 + 发送按钮
+          _buildCodeInputRow(controller),
+        ],
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        
+        // 模式切换文字
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: controller.toggleSmsLoginMode,
+            child: Text(
+              controller.smsUsePassword.value ? '验证码登录' : '密码登录',
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
         
         // 邀请码输入框
         _buildInviteCodeInput(controller),
       ],
-    );
+    ));
   }
   
-  /// 邮箱验证码登录表单
+  /// 邮箱登录表单（支持密码/验证码模式切换）
   Widget _buildEmailLoginForm(LoginController controller) {
-    return Column(
+    return Obx(() => Column(
       children: [
         // 邮箱输入框
         TextField(
@@ -327,15 +371,59 @@ class LoginPage extends StatelessWidget {
         
         const SizedBox(height: 16),
         
-        // 验证码输入框 + 发送按钮
-        _buildCodeInputRow(controller),
+        // 根据模式显示密码或验证码
+        if (controller.emailUsePassword.value) ...[
+          // 密码输入框
+          TextField(
+            controller: controller.passwordController,
+            obscureText: controller.obscurePassword.value,
+            decoration: InputDecoration(
+              labelText: '密码',
+              hintText: '请输入密码',
+              prefixIcon: const Icon(Icons.lock_outline),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  controller.obscurePassword.value
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                ),
+                onPressed: controller.togglePasswordVisibility,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+          ),
+        ] else ...[
+          // 验证码输入框 + 发送按钮
+          _buildCodeInputRow(controller),
+        ],
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        
+        // 模式切换文字
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: controller.toggleEmailLoginMode,
+            child: Text(
+              controller.emailUsePassword.value ? '验证码登录' : '密码登录',
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
         
         // 邀请码输入框
         _buildInviteCodeInput(controller),
       ],
-    );
+    ));
   }
   
   /// 邀请码输入框
