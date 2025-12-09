@@ -1096,10 +1096,11 @@ class NativeBridgeHandler: NSObject {
         
         let page = args["page"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
+        let relationship = args["relationship"] as? Int ?? -1  // 默认 -1 表示获取全部
         
-        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize)")
+        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship)")
         
-        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship)) { errorCode, reqId, data in
             print("✅ 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([

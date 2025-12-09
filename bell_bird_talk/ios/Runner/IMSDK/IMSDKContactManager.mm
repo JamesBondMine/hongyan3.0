@@ -447,20 +447,34 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 
 - (int)getContactListWithPage:(int)page
                      pageSize:(int)pageSize
+                 relationship:(int)relationship
                    completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d", page, pageSize);
+    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d", page, pageSize, relationship);
     
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.page = page;
     query.pageSize = pageSize;
-    query.relationship = Relationship_Friend;  // 默认获取好友列表
+    
+    // relationship: 0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部（不设置）
+    if (relationship >= 0) {
+        query.relationship = (Relationship)relationship;
+    }
+    // 如果 relationship < 0，则不设置，表示获取全部
     
     NSData *protoBody = [query data];
     if (!protoBody || protoBody.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
         return -1;
     }
+    
+    // 打印序列化数据（调试用）
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)protoBody.bytes;
+    for (NSUInteger i = 0; i < MIN(protoBody.length, 32); i++) {
+        [hexString appendFormat:@"%02x ", bytes[i]];
+    }
+    NSLog(@"📤 ContactQuery 数据 (HEX): %@", hexString);
     
     const char *data = (const char *)protoBody.bytes;
     int dataLen = (int)protoBody.length;
@@ -473,6 +487,8 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         
         // 使用 get_contact_list 获取联系人列表
         int result = get_contact_list(ContactListCallback, data, dataLen, reqId);
+        
+        NSLog(@"📡 get_contact_list 返回: result=%d, reqId=%llu", result, reqId);
         
         if (result == 0 && reqId != 0) {
             self.contactCallbacks[@(reqId)] = completion;

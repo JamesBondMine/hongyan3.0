@@ -75,10 +75,12 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 /// 获取联系人列表
 /// @param page 页码（从1开始）
 /// @param pageSize 每页数量
+/// @param relationship 关系类型：0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)getContactListWithPage:(int)page
                      pageSize:(int)pageSize
+                 relationship:(int)relationship
                    completion:(IMSDKContactCompletion)completion;
 
 /// 搜索联系人

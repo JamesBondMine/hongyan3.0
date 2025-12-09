@@ -527,14 +527,20 @@ class IOSNativeService {
   /// @param page 页码（从1开始）
   /// @param pageSize 每页数量
   /// @return 联系人列表
+  /// 获取联系人列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @param relationship 关系类型：0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部
   Future<Map<String, dynamic>> imGetContactList({
     int page = 1,
     int pageSize = 20,
+    int relationship = -1,  // 默认获取全部
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetContactList', {
         'page': page,
         'page_size': pageSize,
+        'relationship': relationship,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
