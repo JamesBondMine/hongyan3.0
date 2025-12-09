@@ -27,42 +27,30 @@
 
 CF_EXTERN_C_BEGIN
 
-@class AcceptFriendMessage;
-@class AddFriendMessage;
 @class AnnouncementMessage;
 @class AtInfo;
 @class AtMessage;
 @class CardMessage;
-@class ChatAckMessage;
-@class ConvSyncInfo;
+@class ConvPull;
 @class CustomMessage;
-@class DeleteMessage;
 @class EditMessage;
 @class EncryptedMessage;
 @class FileMessage;
 @class ForwardMessage;
-@class GameStickerMessage;
-@class GroupNoticeMessage;
-@class GroupShockMessage;
 @class ImMessage;
 @class ImageMessage;
 @class LocationMessage;
 @class MessageMetadata;
-@class MessageStatusMessage;
 @class NetCallMessage;
+@class NotificationMessage;
 @class PollMessage;
-@class PresenceMessage;
-@class ReactionMessage;
-@class ReadAckMessage;
-@class RecallMessage;
 @class RedPacketMessage;
-@class RejectFriendMessage;
 @class ReplyMessage;
 @class ShareUrlMessage;
+@class StatusMessage;
 @class StickerMessage;
 @class SystemMessage;
 @class TextMessage;
-@class TypingMessage;
 @class VideoMessage;
 @class VoiceMessage;
 GPB_ENUM_FWD_DECLARE(ConversationType);
@@ -122,33 +110,36 @@ GPBEnumDescriptor *HistoryDirection_EnumDescriptor(void);
  **/
 BOOL HistoryDirection_IsValidValue(int32_t value);
 
-#pragma mark - Enum GameStickerType
+#pragma mark - Enum StickerType
 
-/** 游戏表情类型枚举 */
-typedef GPB_ENUM(GameStickerType) {
+/** 表情类型枚举 */
+typedef GPB_ENUM(StickerType) {
   /**
    * Value used if any message's field encounters a value that is not defined
    * by this enum. The message will also have C functions to get/set the rawValue
    * of the field.
    **/
-  GameStickerType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
-  /** 石头剪刀布（默认值） */
-  GameStickerType_GameStickerRockPaperScissors = 0,
+  StickerType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
+  /** 普通表情（默认值） */
+  StickerType_StickerNormal = 0,
 
-  /** 色子 */
-  GameStickerType_GameStickerDice = 1,
+  /** 游戏表情：石头剪刀布 */
+  StickerType_StickerGameRockPaperScissors = 1,
 
-  /** 其他 */
-  GameStickerType_GameStickerOther = 2,
+  /** 游戏表情：色子 */
+  StickerType_StickerGameDice = 2,
+
+  /** 游戏表情：其他 */
+  StickerType_StickerGameOther = 3,
 };
 
-GPBEnumDescriptor *GameStickerType_EnumDescriptor(void);
+GPBEnumDescriptor *StickerType_EnumDescriptor(void);
 
 /**
  * Checks to see if the given value is defined by the enum or was not known at
  * the time this source was generated.
  **/
-BOOL GameStickerType_IsValidValue(int32_t value);
+BOOL StickerType_IsValidValue(int32_t value);
 
 #pragma mark - Enum RedPacketType
 
@@ -280,31 +271,34 @@ GPBEnumDescriptor *ForwardType_EnumDescriptor(void);
  **/
 BOOL ForwardType_IsValidValue(int32_t value);
 
-#pragma mark - Enum CustomMessageType
+#pragma mark - Enum NotificationPosition
 
-/** 自定义消息类型枚举 */
-typedef GPB_ENUM(CustomMessageType) {
+/** 小黑条消息位置枚举 */
+typedef GPB_ENUM(NotificationPosition) {
   /**
    * Value used if any message's field encounters a value that is not defined
    * by this enum. The message will also have C functions to get/set the rawValue
    * of the field.
    **/
-  CustomMessageType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
-  /** 自定义消息（默认值，可以根据实际业务扩展） */
-  CustomMessageType_Custom = 0,
+  NotificationPosition_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
+  /** 顶部提示（默认值） */
+  NotificationPosition_NotificationTop = 0,
+
+  /** 底部提示 */
+  NotificationPosition_NotificationBottom = 1,
 };
 
-GPBEnumDescriptor *CustomMessageType_EnumDescriptor(void);
+GPBEnumDescriptor *NotificationPosition_EnumDescriptor(void);
 
 /**
  * Checks to see if the given value is defined by the enum or was not known at
  * the time this source was generated.
  **/
-BOOL CustomMessageType_IsValidValue(int32_t value);
+BOOL NotificationPosition_IsValidValue(int32_t value);
 
 #pragma mark - Enum SystemMessageType
 
-/** 系统消息类型枚举 */
+/** 系统消息类型枚举（用于UI展示样式） */
 typedef GPB_ENUM(SystemMessageType) {
   /**
    * Value used if any message's field encounters a value that is not defined
@@ -332,6 +326,43 @@ GPBEnumDescriptor *SystemMessageType_EnumDescriptor(void);
  * the time this source was generated.
  **/
 BOOL SystemMessageType_IsValidValue(int32_t value);
+
+#pragma mark - Enum StatusType
+
+/** 状态类型枚举 */
+typedef GPB_ENUM(StatusType) {
+  /**
+   * Value used if any message's field encounters a value that is not defined
+   * by this enum. The message will also have C functions to get/set the rawValue
+   * of the field.
+   **/
+  StatusType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
+  /** 正在输入 */
+  StatusType_StatusTyping = 0,
+
+  /** 在线状态 */
+  StatusType_StatusPresence = 1,
+
+  /** 消息反应 */
+  StatusType_StatusReaction = 2,
+
+  /** 已读回执 */
+  StatusType_StatusReadAck = 3,
+
+  /** 消息状态更新 */
+  StatusType_StatusMessageStatus = 4,
+
+  /** 聊天回执 */
+  StatusType_StatusChatAck = 5,
+};
+
+GPBEnumDescriptor *StatusType_EnumDescriptor(void);
+
+/**
+ * Checks to see if the given value is defined by the enum or was not known at
+ * the time this source was generated.
+ **/
+BOOL StatusType_IsValidValue(int32_t value);
 
 #pragma mark - Enum MessageStatus
 
@@ -479,8 +510,11 @@ BOOL ConversationNotificationType_IsValidValue(int32_t value);
  * 按照功能分组，使用连续编号，便于维护和扩展
  *
  * 【枚举值分配规则】
- * - 内容消息类型：0-33
- * - 状态消息类型：34-39
+ * - 内容消息类型：0-18（基础消息0-9，通用功能10-13，特殊展示14-18）
+ * - 系统消息类型：21
+ * - 状态消息类型：30
+ * - 特殊消息类型：33（ENCRYPTED）
+ * 注意：命令消息（撤回、删除、编辑等）由各模块处理，不在消息模块实现
  * - 40+: 可用于新增消息类型
  * 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息类型
  **/
@@ -524,7 +558,7 @@ typedef GPB_ENUM(ImMessage_MessageType) {
   /** 自定义消息 - JSON格式自定义内容 */
   ImMessage_MessageType_Custom = 9,
 
-  /** 业务消息类型 (10-24) */
+  /** 业务消息类型 (10-18) */
   ImMessage_MessageType_AtMessage = 10,
 
   /** 转发消息 - 转发其他消息 */
@@ -536,65 +570,29 @@ typedef GPB_ENUM(ImMessage_MessageType) {
   /** 编辑消息 - 编辑已发送的消息 */
   ImMessage_MessageType_Edit = 13,
 
-  /** 音视频通话 - 语音/视频通话相关 */
+  /** 音视频通话 - 语音/视频通话相关（命令类消息，改变客户端展示行为） */
   ImMessage_MessageType_NetCall = 14,
 
-  /** 游戏表情 - 石头剪刀布、色子等 */
-  ImMessage_MessageType_GameSticker = 15,
-
   /** 红包消息 - 红包相关消息 */
-  ImMessage_MessageType_RedPacket = 16,
+  ImMessage_MessageType_RedPacket = 15,
 
-  /** 群公告 - 群组公告消息 */
-  ImMessage_MessageType_GroupNotice = 17,
-
-  /** 群震消息 - 群组震动提醒 */
-  ImMessage_MessageType_GroupShock = 18,
-
-  /** 系统消息 - 系统通知消息 */
-  ImMessage_MessageType_System = 19,
+  /** 小黑条消息 - 群震、系统提示等（不占消息流，顶部/底部提示） */
+  ImMessage_MessageType_Notification = 16,
 
   /** 投票消息 - 群组投票 */
-  ImMessage_MessageType_Poll = 20,
+  ImMessage_MessageType_Poll = 17,
 
-  /** 公告消息 - 系统公告 */
-  ImMessage_MessageType_Announcement = 21,
+  /** 公告消息 - 系统公告和群公告 */
+  ImMessage_MessageType_Announcement = 18,
 
-  /** 好友申请 - 好友申请系统消息 */
-  ImMessage_MessageType_FriendRequest = 22,
+  /** ==================== 系统消息类型 ==================== */
+  ImMessage_MessageType_System = 21,
 
-  /** 好友接受 - 好友申请接受系统消息 */
-  ImMessage_MessageType_FriendAccepted = 23,
+  /** ==================== 状态消息类型 ==================== */
+  ImMessage_MessageType_Status = 30,
 
-  /** 好友拒绝 - 好友申请拒绝系统消息 */
-  ImMessage_MessageType_FriendRejected = 24,
-
-  /** 命令消息类型 (25-26, 33) */
-  ImMessage_MessageType_Recall = 25,
-
-  /** 删除消息 - 删除消息（双向删除） */
-  ImMessage_MessageType_Delete = 26,
-
-  /** 加密消息 - 端到端密文体 */
+  /** ==================== 特殊消息类型 ==================== */
   ImMessage_MessageType_Encrypted = 33,
-
-  /** ==================== 状态消息类型 (34-39) ==================== */
-  ImMessage_MessageType_ReadAck = 34,
-
-  /** 消息状态更新 - 消息发送状态更新 */
-  ImMessage_MessageType_MessageStatus = 35,
-
-  /** 正在输入 - 用户正在输入状态 */
-  ImMessage_MessageType_Typing = 36,
-
-  /** 在线状态 - 用户在线状态更新 */
-  ImMessage_MessageType_Presence = 37,
-
-  /** 消息反应 - 消息表情反应 */
-  ImMessage_MessageType_Reaction = 38,
-
-  /** 聊天回执 - 客户端回馈给服务端 */
-  ImMessage_MessageType_ChatAck = 39,
 };
 
 GPBEnumDescriptor *ImMessage_MessageType_EnumDescriptor(void);
@@ -705,25 +703,13 @@ typedef GPB_ENUM(ImMessage_FieldNumber) {
   ImMessage_FieldNumber_ReplyMessage = 21,
   ImMessage_FieldNumber_EditMessage = 22,
   ImMessage_FieldNumber_NetCallMessage = 23,
-  ImMessage_FieldNumber_GameStickerMessage = 24,
-  ImMessage_FieldNumber_RedPacketMessage = 25,
-  ImMessage_FieldNumber_GroupNoticeMessage = 26,
-  ImMessage_FieldNumber_GroupShockMessage = 27,
+  ImMessage_FieldNumber_RedPacketMessage = 24,
+  ImMessage_FieldNumber_NotificationMessage = 25,
+  ImMessage_FieldNumber_PollMessage = 26,
+  ImMessage_FieldNumber_AnnouncementMessage = 27,
   ImMessage_FieldNumber_SystemMessage = 28,
-  ImMessage_FieldNumber_PollMessage = 29,
-  ImMessage_FieldNumber_AnnouncementMessage = 30,
-  ImMessage_FieldNumber_AddFriendMessage = 31,
-  ImMessage_FieldNumber_AcceptFriendMessage = 32,
-  ImMessage_FieldNumber_RejectFriendMessage = 33,
-  ImMessage_FieldNumber_RecallMessage = 50,
-  ImMessage_FieldNumber_DeleteMessage = 51,
-  ImMessage_FieldNumber_EncryptedMessage = 52,
-  ImMessage_FieldNumber_ReadAck = 53,
-  ImMessage_FieldNumber_MessageStatus = 54,
-  ImMessage_FieldNumber_Typing = 55,
-  ImMessage_FieldNumber_Presence = 56,
-  ImMessage_FieldNumber_Reaction = 57,
-  ImMessage_FieldNumber_ChatAck = 58,
+  ImMessage_FieldNumber_StatusMessage = 30,
+  ImMessage_FieldNumber_EncryptedMessage = 33,
 };
 
 typedef GPB_ENUM(ImMessage_Body_OneOfCase) {
@@ -743,25 +729,13 @@ typedef GPB_ENUM(ImMessage_Body_OneOfCase) {
   ImMessage_Body_OneOfCase_ReplyMessage = 21,
   ImMessage_Body_OneOfCase_EditMessage = 22,
   ImMessage_Body_OneOfCase_NetCallMessage = 23,
-  ImMessage_Body_OneOfCase_GameStickerMessage = 24,
-  ImMessage_Body_OneOfCase_RedPacketMessage = 25,
-  ImMessage_Body_OneOfCase_GroupNoticeMessage = 26,
-  ImMessage_Body_OneOfCase_GroupShockMessage = 27,
+  ImMessage_Body_OneOfCase_RedPacketMessage = 24,
+  ImMessage_Body_OneOfCase_NotificationMessage = 25,
+  ImMessage_Body_OneOfCase_PollMessage = 26,
+  ImMessage_Body_OneOfCase_AnnouncementMessage = 27,
   ImMessage_Body_OneOfCase_SystemMessage = 28,
-  ImMessage_Body_OneOfCase_PollMessage = 29,
-  ImMessage_Body_OneOfCase_AnnouncementMessage = 30,
-  ImMessage_Body_OneOfCase_AddFriendMessage = 31,
-  ImMessage_Body_OneOfCase_AcceptFriendMessage = 32,
-  ImMessage_Body_OneOfCase_RejectFriendMessage = 33,
-  ImMessage_Body_OneOfCase_RecallMessage = 50,
-  ImMessage_Body_OneOfCase_DeleteMessage = 51,
-  ImMessage_Body_OneOfCase_EncryptedMessage = 52,
-  ImMessage_Body_OneOfCase_ReadAck = 53,
-  ImMessage_Body_OneOfCase_MessageStatus = 54,
-  ImMessage_Body_OneOfCase_Typing = 55,
-  ImMessage_Body_OneOfCase_Presence = 56,
-  ImMessage_Body_OneOfCase_Reaction = 57,
-  ImMessage_Body_OneOfCase_ChatAck = 58,
+  ImMessage_Body_OneOfCase_StatusMessage = 30,
+  ImMessage_Body_OneOfCase_EncryptedMessage = 33,
 };
 
 /**
@@ -802,15 +776,17 @@ GPB_FINAL @interface ImMessage : GPBMessage
  * 消息体 - 根据消息类型选择对应的消息内容
  *
  * 【字段编号分配规则】
- * - 内容消息类型 (0-33): 字段编号 9-52
- * - 状态消息类型 (34-39): 字段编号 53-58
- * - 59+: 可用于新增消息类型字段
+ * - 内容消息类型 (0-18): 字段编号 9-27
+ * - 系统消息类型 (21): 字段编号 28（避免与 reply_message=21 冲突）
+ * - 状态消息类型 (30): 字段编号 30
+ * - 特殊消息类型 (33): 字段编号 33
+ * - 40+: 可用于新增消息类型字段
  * 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息体字段
  **/
 @property(nonatomic, readonly) ImMessage_Body_OneOfCase bodyOneOfCase;
 
 /**
- * ==================== 内容消息类型 (0-33) ====================
+ * ==================== 内容消息类型 (0-18) ====================
  * 基础消息类型 (0-9)
  **/
 @property(nonatomic, readwrite, strong, null_resettable) TextMessage *textMessage;
@@ -842,7 +818,7 @@ GPB_FINAL @interface ImMessage : GPBMessage
 /** CUSTOM = 9 */
 @property(nonatomic, readwrite, strong, null_resettable) CustomMessage *customMessage;
 
-/** 业务消息类型 (10-24) */
+/** 业务消息类型 (10-18) */
 @property(nonatomic, readwrite, strong, null_resettable) AtMessage *atMessage;
 
 /** FORWARD = 11 */
@@ -857,62 +833,26 @@ GPB_FINAL @interface ImMessage : GPBMessage
 /** NET_CALL = 14 */
 @property(nonatomic, readwrite, strong, null_resettable) NetCallMessage *netCallMessage;
 
-/** GAME_STICKER = 15 */
-@property(nonatomic, readwrite, strong, null_resettable) GameStickerMessage *gameStickerMessage;
-
-/** RED_PACKET = 16 */
+/** RED_PACKET = 15 */
 @property(nonatomic, readwrite, strong, null_resettable) RedPacketMessage *redPacketMessage;
 
-/** GROUP_NOTICE = 17 */
-@property(nonatomic, readwrite, strong, null_resettable) GroupNoticeMessage *groupNoticeMessage;
+/** NOTIFICATION = 16 */
+@property(nonatomic, readwrite, strong, null_resettable) NotificationMessage *notificationMessage;
 
-/** GROUP_SHOCK = 18 */
-@property(nonatomic, readwrite, strong, null_resettable) GroupShockMessage *groupShockMessage;
-
-/** SYSTEM = 19 */
-@property(nonatomic, readwrite, strong, null_resettable) SystemMessage *systemMessage;
-
-/** POLL = 20 */
+/** POLL = 17 */
 @property(nonatomic, readwrite, strong, null_resettable) PollMessage *pollMessage;
 
-/** ANNOUNCEMENT = 21 */
+/** ANNOUNCEMENT = 18 */
 @property(nonatomic, readwrite, strong, null_resettable) AnnouncementMessage *announcementMessage;
 
-/** FRIEND_REQUEST = 22 */
-@property(nonatomic, readwrite, strong, null_resettable) AddFriendMessage *addFriendMessage;
+/** ==================== 系统消息类型 (21) ==================== */
+@property(nonatomic, readwrite, strong, null_resettable) SystemMessage *systemMessage;
 
-/** FRIEND_ACCEPTED = 23 */
-@property(nonatomic, readwrite, strong, null_resettable) AcceptFriendMessage *acceptFriendMessage;
+/** ==================== 状态消息类型 (30) ==================== */
+@property(nonatomic, readwrite, strong, null_resettable) StatusMessage *statusMessage;
 
-/** FRIEND_REJECTED = 24 */
-@property(nonatomic, readwrite, strong, null_resettable) RejectFriendMessage *rejectFriendMessage;
-
-/** 命令消息类型 (25-26, 33) */
-@property(nonatomic, readwrite, strong, null_resettable) RecallMessage *recallMessage;
-
-/** DELETE = 26 */
-@property(nonatomic, readwrite, strong, null_resettable) DeleteMessage *deleteMessage;
-
-/** ENCRYPTED = 33 */
+/** ==================== 特殊消息类型 (33) ==================== */
 @property(nonatomic, readwrite, strong, null_resettable) EncryptedMessage *encryptedMessage;
-
-/** ==================== 状态消息类型 (34-39) ==================== */
-@property(nonatomic, readwrite, strong, null_resettable) ReadAckMessage *readAck;
-
-/** MESSAGE_STATUS = 35 */
-@property(nonatomic, readwrite, strong, null_resettable) MessageStatusMessage *messageStatus;
-
-/** TYPING = 36 */
-@property(nonatomic, readwrite, strong, null_resettable) TypingMessage *typing;
-
-/** PRESENCE = 37 */
-@property(nonatomic, readwrite, strong, null_resettable) PresenceMessage *presence;
-
-/** REACTION = 38 */
-@property(nonatomic, readwrite, strong, null_resettable) ReactionMessage *reaction;
-
-/** CHAT_ACK = 39 */
-@property(nonatomic, readwrite, strong, null_resettable) ChatAckMessage *chatAck;
 
 @end
 
@@ -1233,62 +1173,6 @@ GPB_FINAL @interface ShareUrlMessage : GPBMessage
 
 @end
 
-#pragma mark - RecallMessage
-
-typedef GPB_ENUM(RecallMessage_FieldNumber) {
-  RecallMessage_FieldNumber_ServerMsgId = 1,
-  RecallMessage_FieldNumber_Reason = 2,
-  RecallMessage_FieldNumber_RecallTime = 3,
-  RecallMessage_FieldNumber_Ext = 4,
-};
-
-/**
- * 撤回消息 - 撤回已发送的消息
- **/
-GPB_FINAL @interface RecallMessage : GPBMessage
-
-/** 要撤回的消息服务端ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *serverMsgId;
-
-/** 撤回原因（可选） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *reason;
-
-/** 撤回时间戳 */
-@property(nonatomic, readwrite) int64_t recallTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-#pragma mark - DeleteMessage
-
-typedef GPB_ENUM(DeleteMessage_FieldNumber) {
-  DeleteMessage_FieldNumber_ServerMsgId = 1,
-  DeleteMessage_FieldNumber_Bilateral = 2,
-  DeleteMessage_FieldNumber_DeleteTime = 3,
-  DeleteMessage_FieldNumber_Ext = 4,
-};
-
-/**
- * 删除消息 - 删除消息（双向删除）
- **/
-GPB_FINAL @interface DeleteMessage : GPBMessage
-
-/** 要删除的消息服务端ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *serverMsgId;
-
-/** 是否双向删除（true:双向删除，false:仅自己删除） */
-@property(nonatomic, readwrite) BOOL bilateral;
-
-/** 删除时间戳 */
-@property(nonatomic, readwrite) int64_t deleteTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
 #pragma mark - AtMessage
 
 typedef GPB_ENUM(AtMessage_FieldNumber) {
@@ -1301,6 +1185,7 @@ typedef GPB_ENUM(AtMessage_FieldNumber) {
 };
 
 /**
+ * 撤回消息和删除消息已统一到 CommandMessage，通过 command_type 区分
  * \@用户消息(该消息为特殊消息，前后端一起定义)
  **/
 GPB_FINAL @interface AtMessage : GPBMessage
@@ -1348,50 +1233,6 @@ GPB_FINAL @interface AtInfo : GPBMessage
 @property(nonatomic, readwrite, copy, null_resettable) NSString *nickName;
 
 @end
-
-#pragma mark - GameStickerMessage
-
-typedef GPB_ENUM(GameStickerMessage_FieldNumber) {
-  GameStickerMessage_FieldNumber_Type = 1,
-  GameStickerMessage_FieldNumber_Result = 2,
-  GameStickerMessage_FieldNumber_GameId = 3,
-  GameStickerMessage_FieldNumber_GameTime = 4,
-  GameStickerMessage_FieldNumber_Ext = 5,
-};
-
-/**
- * 游戏表情消息 - 石头剪刀布、色子等游戏表情
- **/
-GPB_FINAL @interface GameStickerMessage : GPBMessage
-
-/** 游戏类型（使用枚举） */
-@property(nonatomic, readwrite) GameStickerType type;
-
-/** 游戏结果 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *result;
-
-/** 游戏ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *gameId;
-
-/** 游戏时间戳 */
-@property(nonatomic, readwrite) int64_t gameTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-/**
- * Fetches the raw value of a @c GameStickerMessage's @c type property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t GameStickerMessage_Type_RawValue(GameStickerMessage *message);
-/**
- * Sets the raw value of an @c GameStickerMessage's @c type property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetGameStickerMessage_Type_RawValue(GameStickerMessage *message, int32_t value);
 
 #pragma mark - RedPacketMessage
 
@@ -1601,85 +1442,62 @@ int32_t ForwardMessage_Type_RawValue(ForwardMessage *message);
  **/
 void SetForwardMessage_Type_RawValue(ForwardMessage *message, int32_t value);
 
-#pragma mark - GroupShockMessage
+#pragma mark - NotificationMessage
 
-typedef GPB_ENUM(GroupShockMessage_FieldNumber) {
-  GroupShockMessage_FieldNumber_GroupId = 1,
-  GroupShockMessage_FieldNumber_GroupName = 2,
-  GroupShockMessage_FieldNumber_OwnerName = 3,
-  GroupShockMessage_FieldNumber_BubbleMessage = 4,
-  GroupShockMessage_FieldNumber_TopMessage = 5,
-  GroupShockMessage_FieldNumber_ShockTime = 6,
-  GroupShockMessage_FieldNumber_Ext = 7,
+typedef GPB_ENUM(NotificationMessage_FieldNumber) {
+  NotificationMessage_FieldNumber_NotificationType = 1,
+  NotificationMessage_FieldNumber_Content = 2,
+  NotificationMessage_FieldNumber_Position = 3,
+  NotificationMessage_FieldNumber_NotificationTime = 4,
+  NotificationMessage_FieldNumber_Ext = 5,
 };
 
 /**
- * 群震消息 - 群组震动提醒
+ * 小黑条消息 - 群震、系统提示等（不占消息流，顶部/底部提示）
  **/
-GPB_FINAL @interface GroupShockMessage : GPBMessage
+GPB_FINAL @interface NotificationMessage : GPBMessage
 
-/** 群组ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *groupId;
+/** 提示类型（通过枚举或字符串标识，如 "GROUP_SHOCK", "SYSTEM_HINT" 等） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *notificationType;
 
-/** 群组名称 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *groupName;
+/**
+ * 提示内容（JSON格式，包含提示相关数据）
+ * 例如：群震 {"group_id":"xxx","group_name":"xxx","bubble_message":"xxx"}
+ **/
+@property(nonatomic, readwrite, copy, null_resettable) NSString *content;
 
-/** 群主名称 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ownerName;
+/** 提示位置（TOP/BOTTOM） */
+@property(nonatomic, readwrite) NotificationPosition position;
 
-/** 气泡消息内容 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *bubbleMessage;
-
-/** 弹框消息内容 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *topMessage;
-
-/** 震动时间戳 */
-@property(nonatomic, readwrite) int64_t shockTime;
+/** 提示时间戳 */
+@property(nonatomic, readwrite) int64_t notificationTime;
 
 /** 扩展字段 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
 
 @end
 
-#pragma mark - ReadAckMessage
-
-typedef GPB_ENUM(ReadAckMessage_FieldNumber) {
-  ReadAckMessage_FieldNumber_ServerMsgIdsArray = 1,
-  ReadAckMessage_FieldNumber_ReadTime = 2,
-  ReadAckMessage_FieldNumber_ConversationId = 3,
-  ReadAckMessage_FieldNumber_Ext = 4,
-};
-
 /**
- * 已读回执消息 - 消息已读状态
+ * Fetches the raw value of a @c NotificationMessage's @c position property, even
+ * if the value was not defined by the enum at the time the code was generated.
  **/
-GPB_FINAL @interface ReadAckMessage : GPBMessage
-
-/** 已读的消息服务端ID集合 */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<NSString*> *serverMsgIdsArray;
-/** The number of items in @c serverMsgIdsArray without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger serverMsgIdsArray_Count;
-
-/** 已读时间戳 */
-@property(nonatomic, readwrite) int64_t readTime;
-
-/** 会话ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *conversationId;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
+int32_t NotificationMessage_Position_RawValue(NotificationMessage *message);
+/**
+ * Sets the raw value of an @c NotificationMessage's @c position property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetNotificationMessage_Position_RawValue(NotificationMessage *message, int32_t value);
 
 #pragma mark - CustomMessage
 
 typedef GPB_ENUM(CustomMessage_FieldNumber) {
   CustomMessage_FieldNumber_Content = 1,
-  CustomMessage_FieldNumber_Type = 2,
   CustomMessage_FieldNumber_Ext = 3,
 };
 
 /**
+ * 已读回执消息已统一到 StatusMessage，通过 status_type=STATUS_READ_ACK 实现
  * 自定义消息
  **/
 GPB_FINAL @interface CustomMessage : GPBMessage
@@ -1687,25 +1505,10 @@ GPB_FINAL @interface CustomMessage : GPBMessage
 /** JSON格式的自定义内容 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *content;
 
-/** 自定义消息类型（使用枚举） */
-@property(nonatomic, readwrite) CustomMessageType type;
-
 /** 扩展字段 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
 
 @end
-
-/**
- * Fetches the raw value of a @c CustomMessage's @c type property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t CustomMessage_Type_RawValue(CustomMessage *message);
-/**
- * Sets the raw value of an @c CustomMessage's @c type property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetCustomMessage_Type_RawValue(CustomMessage *message, int32_t value);
 
 #pragma mark - StickerMessage
 
@@ -1718,11 +1521,13 @@ typedef GPB_ENUM(StickerMessage_FieldNumber) {
   StickerMessage_FieldNumber_ThumbnailURL = 6,
   StickerMessage_FieldNumber_ImageURL = 7,
   StickerMessage_FieldNumber_IsStickerSet = 8,
-  StickerMessage_FieldNumber_Ext = 9,
+  StickerMessage_FieldNumber_StickerType = 9,
+  StickerMessage_FieldNumber_Result = 10,
+  StickerMessage_FieldNumber_Ext = 11,
 };
 
 /**
- * 表情消息 - 表情包/贴纸
+ * 表情消息 - 表情包/贴纸（包含普通表情和游戏表情）
  **/
 GPB_FINAL @interface StickerMessage : GPBMessage
 
@@ -1750,35 +1555,65 @@ GPB_FINAL @interface StickerMessage : GPBMessage
 /** 是否是表情包（true:表情包，false:单个表情） */
 @property(nonatomic, readwrite) BOOL isStickerSet;
 
+/** 表情类型（普通表情/游戏表情） */
+@property(nonatomic, readwrite) StickerType stickerType;
+
+/** 游戏结果（仅游戏表情使用） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *result;
+
 /** 扩展字段 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
 
 @end
 
+/**
+ * Fetches the raw value of a @c StickerMessage's @c stickerType property, even
+ * if the value was not defined by the enum at the time the code was generated.
+ **/
+int32_t StickerMessage_StickerType_RawValue(StickerMessage *message);
+/**
+ * Sets the raw value of an @c StickerMessage's @c stickerType property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetStickerMessage_StickerType_RawValue(StickerMessage *message, int32_t value);
+
 #pragma mark - SystemMessage
 
 typedef GPB_ENUM(SystemMessage_FieldNumber) {
-  SystemMessage_FieldNumber_Title = 1,
-  SystemMessage_FieldNumber_Content = 2,
-  SystemMessage_FieldNumber_Type = 3,
-  SystemMessage_FieldNumber_ImagesArray = 4,
-  SystemMessage_FieldNumber_ExpireTime = 5,
-  SystemMessage_FieldNumber_Ext = 6,
+  SystemMessage_FieldNumber_BusinessType = 1,
+  SystemMessage_FieldNumber_Title = 2,
+  SystemMessage_FieldNumber_Content = 3,
+  SystemMessage_FieldNumber_Type = 4,
+  SystemMessage_FieldNumber_ImagesArray = 5,
+  SystemMessage_FieldNumber_ExpireTime = 6,
+  SystemMessage_FieldNumber_Ext = 7,
 };
 
 /**
- * 系统类消息
- * 系统消息 - 系统通知消息
+ * 系统消息 - 统一所有业务系统消息
+ * 所有业务系统消息（好友申请、群组加入等）都通过此消息类型发送
+ * 通过 business_type 字段区分具体业务，使用 BizModel.name() 的值
  **/
 GPB_FINAL @interface SystemMessage : GPBMessage
+
+/**
+ * 系统消息业务类型（使用 BizModel.name()，如 "CONTACT", "GROUP", "USER" 等）
+ * 用于路由到具体的业务处理器
+ **/
+@property(nonatomic, readwrite, copy, null_resettable) NSString *businessType;
 
 /** 系统消息标题 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *title;
 
-/** 系统消息内容 */
+/**
+ * 系统消息内容（JSON格式，包含业务相关数据）
+ * 例如：好友申请 {"requester_id":"xxx","requester_name":"xxx","message":"xxx"}
+ * 例如：群组加入 {"group_id":"xxx","group_name":"xxx","inviter_id":"xxx"}
+ **/
 @property(nonatomic, readwrite, copy, null_resettable) NSString *content;
 
-/** 系统消息类型（使用枚举） */
+/** 系统消息类型（用于UI展示样式） */
 @property(nonatomic, readwrite) SystemMessageType type;
 
 /** 相关图片URL列表 */
@@ -1805,6 +1640,53 @@ int32_t SystemMessage_Type_RawValue(SystemMessage *message);
  * was generated.
  **/
 void SetSystemMessage_Type_RawValue(SystemMessage *message, int32_t value);
+
+#pragma mark - StatusMessage
+
+typedef GPB_ENUM(StatusMessage_FieldNumber) {
+  StatusMessage_FieldNumber_StatusType = 1,
+  StatusMessage_FieldNumber_Data_p = 2,
+  StatusMessage_FieldNumber_StatusTime = 3,
+  StatusMessage_FieldNumber_Ext = 4,
+};
+
+/**
+ * 状态消息 - 统一所有状态消息
+ * 所有状态消息（正在输入、在线状态等）都通过此消息类型发送
+ * 通过 status_type 字段区分具体状态
+ **/
+GPB_FINAL @interface StatusMessage : GPBMessage
+
+/** 状态类型 */
+@property(nonatomic, readwrite) StatusType statusType;
+
+/**
+ * 状态数据（JSON格式，包含状态相关数据）
+ * 例如：正在输入 {"user_id":"xxx","is_typing":true}
+ * 例如：已读回执 {"server_msg_ids":["msg1","msg2"],"conversation_id":"conv123"}
+ * 例如：在线状态 {"user_id":"xxx","status":"ONLINE","last_seen":1234567890}
+ **/
+@property(nonatomic, readwrite, copy, null_resettable) NSString *data_p;
+
+/** 状态时间戳 */
+@property(nonatomic, readwrite) int64_t statusTime;
+
+/** 扩展字段 */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
+
+@end
+
+/**
+ * Fetches the raw value of a @c StatusMessage's @c statusType property, even
+ * if the value was not defined by the enum at the time the code was generated.
+ **/
+int32_t StatusMessage_StatusType_RawValue(StatusMessage *message);
+/**
+ * Sets the raw value of an @c StatusMessage's @c statusType property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetStatusMessage_StatusType_RawValue(StatusMessage *message, int32_t value);
 
 #pragma mark - ReplyMessage
 
@@ -1860,154 +1742,6 @@ GPB_FINAL @interface EditMessage : GPBMessage
 
 /** 编辑时间戳 */
 @property(nonatomic, readwrite) int64_t editTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-#pragma mark - MessageStatusMessage
-
-typedef GPB_ENUM(MessageStatusMessage_FieldNumber) {
-  MessageStatusMessage_FieldNumber_MessageId = 1,
-  MessageStatusMessage_FieldNumber_Status = 2,
-  MessageStatusMessage_FieldNumber_UpdateTime = 3,
-  MessageStatusMessage_FieldNumber_UserId = 4,
-  MessageStatusMessage_FieldNumber_Ext = 5,
-};
-
-/**
- * 消息状态消息 - 消息发送状态更新
- **/
-GPB_FINAL @interface MessageStatusMessage : GPBMessage
-
-/** 消息ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *messageId;
-
-/** 消息状态（使用枚举） */
-@property(nonatomic, readwrite) MessageStatus status;
-
-/** 状态更新时间 */
-@property(nonatomic, readwrite) int64_t updateTime;
-
-/** 操作用户ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-/**
- * Fetches the raw value of a @c MessageStatusMessage's @c status property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t MessageStatusMessage_Status_RawValue(MessageStatusMessage *message);
-/**
- * Sets the raw value of an @c MessageStatusMessage's @c status property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetMessageStatusMessage_Status_RawValue(MessageStatusMessage *message, int32_t value);
-
-#pragma mark - TypingMessage
-
-typedef GPB_ENUM(TypingMessage_FieldNumber) {
-  TypingMessage_FieldNumber_UserId = 1,
-  TypingMessage_FieldNumber_IsTyping = 2,
-  TypingMessage_FieldNumber_TypingTime = 3,
-  TypingMessage_FieldNumber_Ext = 4,
-};
-
-/**
- * 正在输入消息 - 用户正在输入状态
- **/
-GPB_FINAL @interface TypingMessage : GPBMessage
-
-/** 正在输入的用户ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
-
-/** 是否正在输入 */
-@property(nonatomic, readwrite) BOOL isTyping;
-
-/** 输入时间戳 */
-@property(nonatomic, readwrite) int64_t typingTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-#pragma mark - PresenceMessage
-
-typedef GPB_ENUM(PresenceMessage_FieldNumber) {
-  PresenceMessage_FieldNumber_UserId = 1,
-  PresenceMessage_FieldNumber_Status = 2,
-  PresenceMessage_FieldNumber_LastSeen = 3,
-  PresenceMessage_FieldNumber_Ext = 4,
-};
-
-/**
- * 在线状态消息 - 用户在线状态更新
- **/
-GPB_FINAL @interface PresenceMessage : GPBMessage
-
-/** 用户ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
-
-/** 在线状态（使用枚举） */
-@property(nonatomic, readwrite) PresenceStatus status;
-
-/** 最后在线时间 */
-@property(nonatomic, readwrite) int64_t lastSeen;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-/**
- * Fetches the raw value of a @c PresenceMessage's @c status property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t PresenceMessage_Status_RawValue(PresenceMessage *message);
-/**
- * Sets the raw value of an @c PresenceMessage's @c status property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetPresenceMessage_Status_RawValue(PresenceMessage *message, int32_t value);
-
-#pragma mark - ReactionMessage
-
-typedef GPB_ENUM(ReactionMessage_FieldNumber) {
-  ReactionMessage_FieldNumber_MessageId = 1,
-  ReactionMessage_FieldNumber_UserId = 2,
-  ReactionMessage_FieldNumber_Emoji = 3,
-  ReactionMessage_FieldNumber_IsAdd = 4,
-  ReactionMessage_FieldNumber_ReactionTime = 5,
-  ReactionMessage_FieldNumber_Ext = 6,
-};
-
-/**
- * 消息反应消息 - 消息表情反应
- **/
-GPB_FINAL @interface ReactionMessage : GPBMessage
-
-/** 被反应的消息ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *messageId;
-
-/** 反应的用户ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
-
-/** 反应表情 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *emoji;
-
-/** 是否添加反应（true:添加，false:移除） */
-@property(nonatomic, readwrite) BOOL isAdd;
-
-/** 反应时间戳 */
-@property(nonatomic, readwrite) int64_t reactionTime;
 
 /** 扩展字段 */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
@@ -2081,7 +1815,7 @@ typedef GPB_ENUM(AnnouncementMessage_FieldNumber) {
 };
 
 /**
- * 公告消息 - 系统公告
+ * 公告消息 - 系统公告和群公告（统一使用此类型）
  **/
 GPB_FINAL @interface AnnouncementMessage : GPBMessage
 
@@ -2125,46 +1859,6 @@ int32_t AnnouncementMessage_Priority_RawValue(AnnouncementMessage *message);
  * was generated.
  **/
 void SetAnnouncementMessage_Priority_RawValue(AnnouncementMessage *message, int32_t value);
-
-#pragma mark - ChatAckMessage
-
-typedef GPB_ENUM(ChatAckMessage_FieldNumber) {
-  ChatAckMessage_FieldNumber_MessageId = 1,
-  ChatAckMessage_FieldNumber_AckType = 2,
-  ChatAckMessage_FieldNumber_AckTime = 3,
-  ChatAckMessage_FieldNumber_Ext = 4,
-};
-
-/**
- * 聊天回执消息 - 客户端回馈给服务端
- **/
-GPB_FINAL @interface ChatAckMessage : GPBMessage
-
-/** 消息ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *messageId;
-
-/** 回执类型（枚举） */
-@property(nonatomic, readwrite) AcknowledgeType ackType;
-
-/** 回执时间戳 */
-@property(nonatomic, readwrite) int64_t ackTime;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-/**
- * Fetches the raw value of a @c ChatAckMessage's @c ackType property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t ChatAckMessage_AckType_RawValue(ChatAckMessage *message);
-/**
- * Sets the raw value of an @c ChatAckMessage's @c ackType property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetChatAckMessage_AckType_RawValue(ChatAckMessage *message, int32_t value);
 
 #pragma mark - EncryptedMessage
 
@@ -2422,174 +2116,54 @@ int32_t MessageStatusUpdate_Status_RawValue(MessageStatusUpdate *message);
  **/
 void SetMessageStatusUpdate_Status_RawValue(MessageStatusUpdate *message, int32_t value);
 
-#pragma mark - GroupNoticeMessage
+#pragma mark - ConvPull
 
-typedef GPB_ENUM(GroupNoticeMessage_FieldNumber) {
-  GroupNoticeMessage_FieldNumber_NoticeId = 1,
-  GroupNoticeMessage_FieldNumber_Content = 2,
-  GroupNoticeMessage_FieldNumber_Title = 3,
-  GroupNoticeMessage_FieldNumber_PublishTime = 4,
-  GroupNoticeMessage_FieldNumber_PublisherId = 5,
-  GroupNoticeMessage_FieldNumber_TransContent = 6,
-  GroupNoticeMessage_FieldNumber_Ext = 7,
+typedef GPB_ENUM(ConvPull_FieldNumber) {
+  ConvPull_FieldNumber_ConvType = 1,
+  ConvPull_FieldNumber_TargetId = 2,
+  ConvPull_FieldNumber_LastConvSeq = 3,
+  ConvPull_FieldNumber_ConversationId = 4,
 };
 
 /**
- * 群公告消息 - 群组公告
+ * 会话拉取 - 操作对象（动词+领域对象，去除Request后缀）
  **/
-GPB_FINAL @interface GroupNoticeMessage : GPBMessage
+GPB_FINAL @interface ConvPull : GPBMessage
 
-/** 公告ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *noticeId;
+/** 会话类型（必填） */
+@property(nonatomic, readwrite) enum ConversationType convType;
 
-/** 公告内容 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *content;
+/** 目标ID（必填，单聊=对方用户ID，群聊=群ID） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *targetId;
 
-/** 公告标题 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *title;
+/** 最后序号（可选，默认0） */
+@property(nonatomic, readwrite) int64_t lastConvSeq;
 
-/** 发布时间 */
-@property(nonatomic, readwrite) int64_t publishTime;
-
-/** 发布者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *publisherId;
-
-/** 翻译内容 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *transContent;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
+/** 会话ID（可选，优先使用此ID匹配并按该会话的最后序列号拉取） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *conversationId;
 
 @end
-
-#pragma mark - AddFriendMessage
-
-typedef GPB_ENUM(AddFriendMessage_FieldNumber) {
-  AddFriendMessage_FieldNumber_RequesterId = 1,
-  AddFriendMessage_FieldNumber_RequesterName = 2,
-  AddFriendMessage_FieldNumber_RequesterAvatar = 3,
-  AddFriendMessage_FieldNumber_Message = 4,
-  AddFriendMessage_FieldNumber_RequestTime = 5,
-  AddFriendMessage_FieldNumber_AppId = 6,
-  AddFriendMessage_FieldNumber_AddChannel = 7,
-  AddFriendMessage_FieldNumber_Ext = 8,
-};
 
 /**
- * 好友申请消息 - 好友申请系统消息
+ * Fetches the raw value of a @c ConvPull's @c convType property, even
+ * if the value was not defined by the enum at the time the code was generated.
  **/
-GPB_FINAL @interface AddFriendMessage : GPBMessage
-
-/** 申请者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *requesterId;
-
-/** 申请者姓名 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *requesterName;
-
-/** 申请者头像 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *requesterAvatar;
-
-/** 申请附言 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *message;
-
-/** 申请时间 */
-@property(nonatomic, readwrite) int64_t requestTime;
-
-/** 应用ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
-
-/** 添加渠道 */
-@property(nonatomic, readwrite) int32_t addChannel;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-#pragma mark - AcceptFriendMessage
-
-typedef GPB_ENUM(AcceptFriendMessage_FieldNumber) {
-  AcceptFriendMessage_FieldNumber_AcceptorId = 1,
-  AcceptFriendMessage_FieldNumber_AcceptorName = 2,
-  AcceptFriendMessage_FieldNumber_AcceptorAvatar = 3,
-  AcceptFriendMessage_FieldNumber_AcceptTime = 4,
-  AcceptFriendMessage_FieldNumber_AppId = 5,
-  AcceptFriendMessage_FieldNumber_Ext = 6,
-};
-
+int32_t ConvPull_ConvType_RawValue(ConvPull *message);
 /**
- * 好友接受消息 - 好友申请接受系统消息
+ * Sets the raw value of an @c ConvPull's @c convType property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
  **/
-GPB_FINAL @interface AcceptFriendMessage : GPBMessage
-
-/** 接受者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *acceptorId;
-
-/** 接受者姓名 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *acceptorName;
-
-/** 接受者头像 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *acceptorAvatar;
-
-/** 接受时间 */
-@property(nonatomic, readwrite) int64_t acceptTime;
-
-/** 应用ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-#pragma mark - RejectFriendMessage
-
-typedef GPB_ENUM(RejectFriendMessage_FieldNumber) {
-  RejectFriendMessage_FieldNumber_RejectorId = 1,
-  RejectFriendMessage_FieldNumber_RejectorName = 2,
-  RejectFriendMessage_FieldNumber_RejectorAvatar = 3,
-  RejectFriendMessage_FieldNumber_RejectTime = 4,
-  RejectFriendMessage_FieldNumber_Reason = 5,
-  RejectFriendMessage_FieldNumber_AppId = 6,
-  RejectFriendMessage_FieldNumber_Ext = 7,
-};
-
-/**
- * 好友拒绝消息 - 好友申请拒绝系统消息
- **/
-GPB_FINAL @interface RejectFriendMessage : GPBMessage
-
-/** 拒绝者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *rejectorId;
-
-/** 拒绝者姓名 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *rejectorName;
-
-/** 拒绝者头像 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *rejectorAvatar;
-
-/** 拒绝时间 */
-@property(nonatomic, readwrite) int64_t rejectTime;
-
-/** 拒绝原因 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *reason;
-
-/** 应用ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
-
-/** 扩展字段 */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
+void SetConvPull_ConvType_RawValue(ConvPull *message, int32_t value);
 
 #pragma mark - Pull
 
 typedef GPB_ENUM(Pull_FieldNumber) {
   Pull_FieldNumber_LastMsgTime = 1,
   Pull_FieldNumber_Limit = 2,
-  Pull_FieldNumber_ConvIdsArray = 3,
-  Pull_FieldNumber_DeviceId = 4,
-  Pull_FieldNumber_LastConvSeqs = 5,
+  Pull_FieldNumber_DeviceId = 3,
+  Pull_FieldNumber_ConvPullsArray = 4,
+  Pull_FieldNumber_ConversationId = 5,
 };
 
 /**
@@ -2597,100 +2171,66 @@ typedef GPB_ENUM(Pull_FieldNumber) {
  **/
 GPB_FINAL @interface Pull : GPBMessage
 
-/** 客户端最后一条消息的时间戳（毫秒，备选） */
+/** 客户端最后一条消息的时间戳（可选，毫秒，备选） */
 @property(nonatomic, readwrite) int64_t lastMsgTime;
 
-/** 每个会话的拉取数量限制（默认100，最大500） */
+/** 每个会话的拉取数量限制（可选，默认100，最大500） */
 @property(nonatomic, readwrite) int32_t limit;
 
-/** 要拉取的会话ID列表（可选，为空则拉取所有会话） */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<NSString*> *convIdsArray;
-/** The number of items in @c convIdsArray without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger convIdsArray_Count;
-
-/** 设备ID（用于多端同步） */
+/** 设备ID（可选，用于多端同步） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *deviceId;
 
-/** 各会话的最后序号 {convId: lastConversationSeq} */
-@property(nonatomic, readwrite, strong, null_resettable) GPBStringInt64Dictionary *lastConvSeqs;
-/** The number of items in @c lastConvSeqs without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger lastConvSeqs_Count;
+/** 会话拉取列表（必填，至少一个） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<ConvPull*> *convPullsArray;
+/** The number of items in @c convPullsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger convPullsArray_Count;
+
+/** 会话ID（可选，直接按会话ID拉取，优先使用该会话的最后序列号） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *conversationId;
 
 @end
 
-#pragma mark - PullResult
+#pragma mark - PullList
 
-typedef GPB_ENUM(PullResult_FieldNumber) {
-  PullResult_FieldNumber_MessagesArray = 1,
-  PullResult_FieldNumber_ServerTime = 2,
-  PullResult_FieldNumber_MaxConvSeqs = 3,
-  PullResult_FieldNumber_HasMoreByConv = 4,
-  PullResult_FieldNumber_TotalCount = 5,
-  PullResult_FieldNumber_ConvSyncInfo = 6,
+typedef GPB_ENUM(PullList_FieldNumber) {
+  PullList_FieldNumber_MessagesArray = 1,
+  PullList_FieldNumber_ServerTime = 2,
+  PullList_FieldNumber_TotalCount = 3,
+  PullList_FieldNumber_MaxConvSeqs = 4,
+  PullList_FieldNumber_HasMore = 5,
+  PullList_FieldNumber_UnreadCounts = 6,
 };
 
 /**
- * 拉取结果 - 返回拉取到的消息列表
+ * 拉取结果 - 结果对象（使用简洁名词，符合规范）
  **/
-GPB_FINAL @interface PullResult : GPBMessage
+GPB_FINAL @interface PullList : GPBMessage
 
-/** 拉取到的消息列表（按会话和序号排序） */
+/** 拉取到的消息列表（必填，按会话和序号排序） */
 @property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<ImMessage*> *messagesArray;
 /** The number of items in @c messagesArray without causing the array to be created. */
 @property(nonatomic, readonly) NSUInteger messagesArray_Count;
 
-/** 服务器当前时间戳 */
+/** 服务器当前时间戳（必填） */
 @property(nonatomic, readwrite) int64_t serverTime;
 
-/** 各会话的最大序号 {convId: maxConversationSeq} */
+/** 本次拉取消息总数（必填） */
+@property(nonatomic, readwrite) int32_t totalCount;
+
+/** 使用map结构存储各会话的同步信息，key格式：conv_type:target_id */
 @property(nonatomic, readwrite, strong, null_resettable) GPBStringInt64Dictionary *maxConvSeqs;
 /** The number of items in @c maxConvSeqs without causing the array to be created. */
 @property(nonatomic, readonly) NSUInteger maxConvSeqs_Count;
 
-/** 各会话是否还有更多消息 {convId: hasMore} */
-@property(nonatomic, readwrite, strong, null_resettable) GPBStringBoolDictionary *hasMoreByConv;
-/** The number of items in @c hasMoreByConv without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger hasMoreByConv_Count;
+/** 各会话是否还有更多消息（必填，key格式同上） */
+@property(nonatomic, readwrite, strong, null_resettable) GPBStringBoolDictionary *hasMore;
+/** The number of items in @c hasMore without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger hasMore_Count;
 
-/** 本次拉取消息总数 */
-@property(nonatomic, readwrite) int32_t totalCount;
-
-/** 各会话的同步信息 */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, ConvSyncInfo*> *convSyncInfo;
-/** The number of items in @c convSyncInfo without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger convSyncInfo_Count;
-
-@end
-
-#pragma mark - ConvSyncInfo
-
-typedef GPB_ENUM(ConvSyncInfo_FieldNumber) {
-  ConvSyncInfo_FieldNumber_ConvId = 1,
-  ConvSyncInfo_FieldNumber_MaxConvSeq = 2,
-  ConvSyncInfo_FieldNumber_UnreadCount = 3,
-  ConvSyncInfo_FieldNumber_LastMsgTime = 4,
-  ConvSyncInfo_FieldNumber_LastMsgId = 5,
-};
-
-/**
- * 会话同步信息 - 用于多端同步状态
- **/
-GPB_FINAL @interface ConvSyncInfo : GPBMessage
-
-/** 会话ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *convId;
-
-/** 会话内最大序号（conversation_seq） */
-@property(nonatomic, readwrite) int64_t maxConvSeq;
-
-/** 未读数量 */
-@property(nonatomic, readwrite) int64_t unreadCount;
-
-/** 最后一条消息时间 */
-@property(nonatomic, readwrite) int64_t lastMsgTime;
-
-/** 最后一条消息ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *lastMsgId;
+/** 各会话的未读数量（可选，key格式同上） */
+@property(nonatomic, readwrite, strong, null_resettable) GPBStringInt64Dictionary *unreadCounts;
+/** The number of items in @c unreadCounts without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger unreadCounts_Count;
 
 @end
 
@@ -2735,66 +2275,6 @@ GPB_FINAL @interface SendAck : GPBMessage
 
 /** 会话ID（必填） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *convId;
-
-@end
-
-#pragma mark - MessageProcessingContext
-
-typedef GPB_ENUM(MessageProcessingContext_FieldNumber) {
-  MessageProcessingContext_FieldNumber_MessageBytes = 1,
-  MessageProcessingContext_FieldNumber_ServerMsgId = 2,
-  MessageProcessingContext_FieldNumber_ConversationSeq = 3,
-  MessageProcessingContext_FieldNumber_ServerSeq = 4,
-  MessageProcessingContext_FieldNumber_ProcessingStep = 5,
-  MessageProcessingContext_FieldNumber_TraceId = 6,
-  MessageProcessingContext_FieldNumber_AppId = 7,
-  MessageProcessingContext_FieldNumber_FromUserId = 8,
-  MessageProcessingContext_FieldNumber_ToUserId = 9,
-  MessageProcessingContext_FieldNumber_ConversationId = 10,
-  MessageProcessingContext_FieldNumber_OriginalRequestBytes = 11,
-  MessageProcessingContext_FieldNumber_IngressTimeMs = 12,
-};
-
-/**
- * 消息处理上下文 - 用于异步编排消息处理流程
- **/
-GPB_FINAL @interface MessageProcessingContext : GPBMessage
-
-/** ImMessage 序列化后的字节（避免循环引用） */
-@property(nonatomic, readwrite, copy, null_resettable) NSData *messageBytes;
-
-/** 服务器消息ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *serverMsgId;
-
-/** 会话序号 */
-@property(nonatomic, readwrite) int64_t conversationSeq;
-
-/** 服务器序号 */
-@property(nonatomic, readwrite) int64_t serverSeq;
-
-/** 当前处理步骤：1=好友检查 2=敏感词过滤 3=发送CNM 4=入库 */
-@property(nonatomic, readwrite) int32_t processingStep;
-
-/** 追踪ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *traceId;
-
-/** 应用ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
-
-/** 发送者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *fromUserId;
-
-/** 接收者ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *toUserId;
-
-/** 会话ID */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *conversationId;
-
-/** 原始请求的序列化（用于最终响应客户端） */
-@property(nonatomic, readwrite, copy, null_resettable) NSData *originalRequestBytes;
-
-/** 入口时间（用于性能统计） */
-@property(nonatomic, readwrite) int64_t ingressTimeMs;
 
 @end
 

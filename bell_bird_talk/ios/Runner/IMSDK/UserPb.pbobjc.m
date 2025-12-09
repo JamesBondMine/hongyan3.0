@@ -937,11 +937,13 @@ typedef struct ServerEndpoint__storage_ {
 
 @dynamic userId;
 @dynamic accountId;
+@dynamic phone;
 
 typedef struct GetUser__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   NSString *accountId;
+  NSString *phone;
 } GetUser__storage_;
 
 // This method is threadsafe because it is initially called
@@ -965,6 +967,15 @@ typedef struct GetUser__storage_ {
         .number = GetUser_FieldNumber_AccountId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(GetUser__storage_, accountId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "phone",
+        .dataTypeSpecific.clazz = Nil,
+        .number = GetUser_FieldNumber_Phone,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(GetUser__storage_, phone),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },

@@ -361,7 +361,7 @@ typedef GPB_ENUM(User_FieldNumber) {
  **/
 GPB_FINAL @interface User : GPBMessage
 
-/** 用户ID（必填） */
+/** 系统唯一ID（必填，8位，数字+大写字母，全局唯一，不可修改） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
 
 /** 账户ID（必填，最大长度50字符，用于用户名密码登录） */
@@ -551,11 +551,12 @@ GPB_FINAL @interface ServerEndpoint : GPBMessage
 typedef GPB_ENUM(GetUser_FieldNumber) {
   GetUser_FieldNumber_UserId = 1,
   GetUser_FieldNumber_AccountId = 2,
+  GetUser_FieldNumber_Phone = 3,
 };
 
 /**
  * 获取用户 - 查询操作
- * 用于根据用户ID或账户ID查询用户信息
+ * 用于根据用户ID、账户ID或手机号查询用户信息
  **/
 GPB_FINAL @interface GetUser : GPBMessage
 
@@ -564,6 +565,9 @@ GPB_FINAL @interface GetUser : GPBMessage
 
 /** 账户ID（可选，最大长度50字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *accountId;
+
+/** 手机号（可选，最大长度20字符） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *phone;
 
 @end
 

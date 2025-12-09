@@ -13,6 +13,8 @@
  #import "GPBProtocolBuffers_RuntimeSupport.h"
 #endif
 
+#import <stdatomic.h>
+
 #import "ChatPb.pbobjc.h"
 #import "MessagePb.pbobjc.h"
 #import "ConvPb.pbobjc.h"
@@ -33,6 +35,8 @@ GPBObjCClassDeclaration(ContactSearchResult);
 GPBObjCClassDeclaration(GroupMemberSearchResult);
 GPBObjCClassDeclaration(GroupSearchResult);
 GPBObjCClassDeclaration(ImMessage);
+GPBObjCClassDeclaration(Notification);
+GPBObjCClassDeclaration(NotificationUnreadCountResult);
 GPBObjCClassDeclaration(Page);
 
 #pragma mark - ChatPbRoot
@@ -56,6 +60,44 @@ static GPBFileDescriptor *ChatPbRoot_FileDescriptor(void) {
                                                      syntax:GPBFileSyntaxProto3];
   }
   return descriptor;
+}
+
+#pragma mark - Enum NotificationStatus
+
+GPBEnumDescriptor *NotificationStatus_EnumDescriptor(void) {
+  static _Atomic(GPBEnumDescriptor*) descriptor = nil;
+  if (!descriptor) {
+    static const char *valueNames =
+        "NotificationUnread\000NotificationRead\000Noti"
+        "ficationDeleted\000";
+    static const int32_t values[] = {
+        NotificationStatus_NotificationUnread,
+        NotificationStatus_NotificationRead,
+        NotificationStatus_NotificationDeleted,
+    };
+    GPBEnumDescriptor *worker =
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(NotificationStatus)
+                                       valueNames:valueNames
+                                           values:values
+                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))
+                                     enumVerifier:NotificationStatus_IsValidValue];
+    GPBEnumDescriptor *expected = nil;
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+      [worker release];
+    }
+  }
+  return descriptor;
+}
+
+BOOL NotificationStatus_IsValidValue(int32_t value__) {
+  switch (value__) {
+    case NotificationStatus_NotificationUnread:
+    case NotificationStatus_NotificationRead:
+    case NotificationStatus_NotificationDeleted:
+      return YES;
+    default:
+      return NO;
+  }
 }
 
 #pragma mark - Search
@@ -1012,6 +1054,677 @@ typedef struct MarkAtMeReadResult__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(MarkAtMeReadResult__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - Notification
+
+@implementation Notification
+
+@dynamic id_p;
+@dynamic appId;
+@dynamic userId;
+@dynamic notificationType;
+@dynamic title;
+@dynamic content;
+@dynamic businessType;
+@dynamic serverMsgId;
+@dynamic relatedUserId;
+@dynamic relatedRequestId;
+@dynamic status;
+@dynamic createTime;
+@dynamic readTime;
+@dynamic expireTime;
+
+typedef struct Notification__storage_ {
+  uint32_t _has_storage_[1];
+  NotificationStatus status;
+  NSString *appId;
+  NSString *userId;
+  NSString *notificationType;
+  NSString *title;
+  NSString *content;
+  NSString *businessType;
+  NSString *serverMsgId;
+  NSString *relatedUserId;
+  int64_t id_p;
+  int64_t relatedRequestId;
+  int64_t createTime;
+  int64_t readTime;
+  int64_t expireTime;
+} Notification__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "id_p",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_Id_p,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(Notification__storage_, id_p),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "appId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_AppId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(Notification__storage_, appId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "userId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_UserId,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(Notification__storage_, userId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "notificationType",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_NotificationType,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(Notification__storage_, notificationType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "title",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_Title,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(Notification__storage_, title),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "content",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_Content,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(Notification__storage_, content),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "businessType",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_BusinessType,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(Notification__storage_, businessType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "serverMsgId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_ServerMsgId,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(Notification__storage_, serverMsgId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "relatedUserId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_RelatedUserId,
+        .hasIndex = 8,
+        .offset = (uint32_t)offsetof(Notification__storage_, relatedUserId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "relatedRequestId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_RelatedRequestId,
+        .hasIndex = 9,
+        .offset = (uint32_t)offsetof(Notification__storage_, relatedRequestId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.enumDescFunc = NotificationStatus_EnumDescriptor,
+        .number = Notification_FieldNumber_Status,
+        .hasIndex = 10,
+        .offset = (uint32_t)offsetof(Notification__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "createTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_CreateTime,
+        .hasIndex = 11,
+        .offset = (uint32_t)offsetof(Notification__storage_, createTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "readTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_ReadTime,
+        .hasIndex = 12,
+        .offset = (uint32_t)offsetof(Notification__storage_, readTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "expireTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Notification_FieldNumber_ExpireTime,
+        .hasIndex = 13,
+        .offset = (uint32_t)offsetof(Notification__storage_, expireTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[Notification class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(Notification__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t Notification_Status_RawValue(Notification *message) {
+  GPBDescriptor *descriptor = [Notification descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:Notification_FieldNumber_Status];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetNotification_Status_RawValue(Notification *message, int32_t value) {
+  GPBDescriptor *descriptor = [Notification descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:Notification_FieldNumber_Status];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
+#pragma mark - NotificationPull
+
+@implementation NotificationPull
+
+@dynamic notificationTypesArray, notificationTypesArray_Count;
+@dynamic status;
+@dynamic startTime;
+@dynamic endTime;
+@dynamic hasPage, page;
+
+typedef struct NotificationPull__storage_ {
+  uint32_t _has_storage_[1];
+  NotificationStatus status;
+  NSMutableArray *notificationTypesArray;
+  Page *page;
+  int64_t startTime;
+  int64_t endTime;
+} NotificationPull__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "notificationTypesArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationPull_FieldNumber_NotificationTypesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationPull__storage_, notificationTypesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.enumDescFunc = NotificationStatus_EnumDescriptor,
+        .number = NotificationPull_FieldNumber_Status,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationPull__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "startTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationPull_FieldNumber_StartTime,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(NotificationPull__storage_, startTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "endTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationPull_FieldNumber_EndTime,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(NotificationPull__storage_, endTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "page",
+        .dataTypeSpecific.clazz = GPBObjCClass(Page),
+        .number = NotificationPull_FieldNumber_Page,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(NotificationPull__storage_, page),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationPull class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationPull__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t NotificationPull_Status_RawValue(NotificationPull *message) {
+  GPBDescriptor *descriptor = [NotificationPull descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:NotificationPull_FieldNumber_Status];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetNotificationPull_Status_RawValue(NotificationPull *message, int32_t value) {
+  GPBDescriptor *descriptor = [NotificationPull descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:NotificationPull_FieldNumber_Status];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
+#pragma mark - NotificationPullList
+
+@implementation NotificationPullList
+
+@dynamic notificationsArray, notificationsArray_Count;
+@dynamic hasPage, page;
+
+typedef struct NotificationPullList__storage_ {
+  uint32_t _has_storage_[1];
+  NSMutableArray *notificationsArray;
+  Page *page;
+} NotificationPullList__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "notificationsArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(Notification),
+        .number = NotificationPullList_FieldNumber_NotificationsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationPullList__storage_, notificationsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+      {
+        .name = "page",
+        .dataTypeSpecific.clazz = GPBObjCClass(Page),
+        .number = NotificationPullList_FieldNumber_Page,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationPullList__storage_, page),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationPullList class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationPullList__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationMarkRead
+
+@implementation NotificationMarkRead
+
+@dynamic notificationIdsArray, notificationIdsArray_Count;
+@dynamic readTime;
+
+typedef struct NotificationMarkRead__storage_ {
+  uint32_t _has_storage_[1];
+  GPBInt64Array *notificationIdsArray;
+  int64_t readTime;
+} NotificationMarkRead__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "notificationIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationMarkRead_FieldNumber_NotificationIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationMarkRead__storage_, notificationIdsArray),
+        .flags = (GPBFieldFlags)(GPBFieldRepeated | GPBFieldPacked),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "readTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationMarkRead_FieldNumber_ReadTime,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationMarkRead__storage_, readTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationMarkRead class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationMarkRead__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationMarkReadResult
+
+@implementation NotificationMarkReadResult
+
+@dynamic successCount;
+@dynamic failedIdsArray, failedIdsArray_Count;
+
+typedef struct NotificationMarkReadResult__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t successCount;
+  GPBInt64Array *failedIdsArray;
+} NotificationMarkReadResult__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "successCount",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationMarkReadResult_FieldNumber_SuccessCount,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationMarkReadResult__storage_, successCount),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "failedIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationMarkReadResult_FieldNumber_FailedIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationMarkReadResult__storage_, failedIdsArray),
+        .flags = (GPBFieldFlags)(GPBFieldRepeated | GPBFieldPacked),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationMarkReadResult class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationMarkReadResult__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationDelete
+
+@implementation NotificationDelete
+
+@dynamic notificationIdsArray, notificationIdsArray_Count;
+
+typedef struct NotificationDelete__storage_ {
+  uint32_t _has_storage_[1];
+  GPBInt64Array *notificationIdsArray;
+} NotificationDelete__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "notificationIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationDelete_FieldNumber_NotificationIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationDelete__storage_, notificationIdsArray),
+        .flags = (GPBFieldFlags)(GPBFieldRepeated | GPBFieldPacked),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationDelete class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationDelete__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationDeleteResult
+
+@implementation NotificationDeleteResult
+
+@dynamic successCount;
+@dynamic failedIdsArray, failedIdsArray_Count;
+
+typedef struct NotificationDeleteResult__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t successCount;
+  GPBInt64Array *failedIdsArray;
+} NotificationDeleteResult__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "successCount",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationDeleteResult_FieldNumber_SuccessCount,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationDeleteResult__storage_, successCount),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "failedIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationDeleteResult_FieldNumber_FailedIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationDeleteResult__storage_, failedIdsArray),
+        .flags = (GPBFieldFlags)(GPBFieldRepeated | GPBFieldPacked),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationDeleteResult class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationDeleteResult__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationUnreadCount
+
+@implementation NotificationUnreadCount
+
+@dynamic notificationTypesArray, notificationTypesArray_Count;
+
+typedef struct NotificationUnreadCount__storage_ {
+  uint32_t _has_storage_[1];
+  NSMutableArray *notificationTypesArray;
+} NotificationUnreadCount__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "notificationTypesArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationUnreadCount_FieldNumber_NotificationTypesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationUnreadCount__storage_, notificationTypesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationUnreadCount class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationUnreadCount__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - NotificationUnreadCountResult
+
+@implementation NotificationUnreadCountResult
+
+@dynamic totalUnread;
+@dynamic typeUnread, typeUnread_Count;
+
+typedef struct NotificationUnreadCountResult__storage_ {
+  uint32_t _has_storage_[1];
+  GPBStringInt64Dictionary *typeUnread;
+  int64_t totalUnread;
+} NotificationUnreadCountResult__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "totalUnread",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationUnreadCountResult_FieldNumber_TotalUnread,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(NotificationUnreadCountResult__storage_, totalUnread),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "typeUnread",
+        .dataTypeSpecific.clazz = Nil,
+        .number = NotificationUnreadCountResult_FieldNumber_TypeUnread,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(NotificationUnreadCountResult__storage_, typeUnread),
+        .flags = GPBFieldMapKeyString,
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[NotificationUnreadCountResult class]
+                                     rootClass:[ChatPbRoot class]
+                                          file:ChatPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(NotificationUnreadCountResult__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

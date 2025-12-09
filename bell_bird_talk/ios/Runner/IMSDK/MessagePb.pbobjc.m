@@ -28,44 +28,31 @@
 // Forward declarations of Objective C classes that we can use as
 // static values in struct initializers.
 // We don't use [Foo class] because it is not a static value.
-GPBObjCClassDeclaration(AcceptFriendMessage);
-GPBObjCClassDeclaration(AddFriendMessage);
 GPBObjCClassDeclaration(AnnouncementMessage);
 GPBObjCClassDeclaration(AtInfo);
 GPBObjCClassDeclaration(AtMessage);
 GPBObjCClassDeclaration(CardMessage);
-GPBObjCClassDeclaration(ChatAckMessage);
-GPBObjCClassDeclaration(ConvSyncInfo);
+GPBObjCClassDeclaration(ConvPull);
 GPBObjCClassDeclaration(CustomMessage);
-GPBObjCClassDeclaration(DeleteMessage);
 GPBObjCClassDeclaration(EditMessage);
 GPBObjCClassDeclaration(EncryptedMessage);
 GPBObjCClassDeclaration(FileMessage);
 GPBObjCClassDeclaration(ForwardMessage);
-GPBObjCClassDeclaration(GameStickerMessage);
-GPBObjCClassDeclaration(GroupNoticeMessage);
-GPBObjCClassDeclaration(GroupShockMessage);
 GPBObjCClassDeclaration(ImMessage);
 GPBObjCClassDeclaration(ImageMessage);
 GPBObjCClassDeclaration(LocationMessage);
 GPBObjCClassDeclaration(MessageMetadata);
-GPBObjCClassDeclaration(MessageStatusMessage);
 GPBObjCClassDeclaration(NetCallMessage);
+GPBObjCClassDeclaration(NotificationMessage);
 GPBObjCClassDeclaration(PollMessage);
-GPBObjCClassDeclaration(PresenceMessage);
-GPBObjCClassDeclaration(Pull);
-GPBObjCClassDeclaration(PullResult);
-GPBObjCClassDeclaration(ReactionMessage);
-GPBObjCClassDeclaration(ReadAckMessage);
-GPBObjCClassDeclaration(RecallMessage);
+GPBObjCClassDeclaration(PullList);
 GPBObjCClassDeclaration(RedPacketMessage);
-GPBObjCClassDeclaration(RejectFriendMessage);
 GPBObjCClassDeclaration(ReplyMessage);
 GPBObjCClassDeclaration(ShareUrlMessage);
+GPBObjCClassDeclaration(StatusMessage);
 GPBObjCClassDeclaration(StickerMessage);
 GPBObjCClassDeclaration(SystemMessage);
 GPBObjCClassDeclaration(TextMessage);
-GPBObjCClassDeclaration(TypingMessage);
 GPBObjCClassDeclaration(UnreadCountStats);
 GPBObjCClassDeclaration(VideoMessage);
 GPBObjCClassDeclaration(VoiceMessage);
@@ -165,25 +152,26 @@ BOOL HistoryDirection_IsValidValue(int32_t value__) {
   }
 }
 
-#pragma mark - Enum GameStickerType
+#pragma mark - Enum StickerType
 
-GPBEnumDescriptor *GameStickerType_EnumDescriptor(void) {
+GPBEnumDescriptor *StickerType_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
     static const char *valueNames =
-        "GameStickerRockPaperScissors\000GameSticker"
-        "Dice\000GameStickerOther\000";
+        "StickerNormal\000StickerGameRockPaperScisso"
+        "rs\000StickerGameDice\000StickerGameOther\000";
     static const int32_t values[] = {
-        GameStickerType_GameStickerRockPaperScissors,
-        GameStickerType_GameStickerDice,
-        GameStickerType_GameStickerOther,
+        StickerType_StickerNormal,
+        StickerType_StickerGameRockPaperScissors,
+        StickerType_StickerGameDice,
+        StickerType_StickerGameOther,
     };
     GPBEnumDescriptor *worker =
-        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(GameStickerType)
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(StickerType)
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:GameStickerType_IsValidValue];
+                                     enumVerifier:StickerType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
       [worker release];
@@ -192,11 +180,12 @@ GPBEnumDescriptor *GameStickerType_EnumDescriptor(void) {
   return descriptor;
 }
 
-BOOL GameStickerType_IsValidValue(int32_t value__) {
+BOOL StickerType_IsValidValue(int32_t value__) {
   switch (value__) {
-    case GameStickerType_GameStickerRockPaperScissors:
-    case GameStickerType_GameStickerDice:
-    case GameStickerType_GameStickerOther:
+    case StickerType_StickerNormal:
+    case StickerType_StickerGameRockPaperScissors:
+    case StickerType_StickerGameDice:
+    case StickerType_StickerGameOther:
       return YES;
     default:
       return NO;
@@ -370,22 +359,23 @@ BOOL ForwardType_IsValidValue(int32_t value__) {
   }
 }
 
-#pragma mark - Enum CustomMessageType
+#pragma mark - Enum NotificationPosition
 
-GPBEnumDescriptor *CustomMessageType_EnumDescriptor(void) {
+GPBEnumDescriptor *NotificationPosition_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
     static const char *valueNames =
-        "Custom\000";
+        "NotificationTop\000NotificationBottom\000";
     static const int32_t values[] = {
-        CustomMessageType_Custom,
+        NotificationPosition_NotificationTop,
+        NotificationPosition_NotificationBottom,
     };
     GPBEnumDescriptor *worker =
-        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(CustomMessageType)
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(NotificationPosition)
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:CustomMessageType_IsValidValue];
+                                     enumVerifier:NotificationPosition_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
       [worker release];
@@ -394,9 +384,10 @@ GPBEnumDescriptor *CustomMessageType_EnumDescriptor(void) {
   return descriptor;
 }
 
-BOOL CustomMessageType_IsValidValue(int32_t value__) {
+BOOL NotificationPosition_IsValidValue(int32_t value__) {
   switch (value__) {
-    case CustomMessageType_Custom:
+    case NotificationPosition_NotificationTop:
+    case NotificationPosition_NotificationBottom:
       return YES;
     default:
       return NO;
@@ -438,6 +429,51 @@ BOOL SystemMessageType_IsValidValue(int32_t value__) {
     case SystemMessageType_SystemMessageWarning:
     case SystemMessageType_SystemMessageInfo:
     case SystemMessageType_SystemMessageError:
+      return YES;
+    default:
+      return NO;
+  }
+}
+
+#pragma mark - Enum StatusType
+
+GPBEnumDescriptor *StatusType_EnumDescriptor(void) {
+  static _Atomic(GPBEnumDescriptor*) descriptor = nil;
+  if (!descriptor) {
+    static const char *valueNames =
+        "StatusTyping\000StatusPresence\000StatusReacti"
+        "on\000StatusReadAck\000StatusMessageStatus\000Sta"
+        "tusChatAck\000";
+    static const int32_t values[] = {
+        StatusType_StatusTyping,
+        StatusType_StatusPresence,
+        StatusType_StatusReaction,
+        StatusType_StatusReadAck,
+        StatusType_StatusMessageStatus,
+        StatusType_StatusChatAck,
+    };
+    GPBEnumDescriptor *worker =
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(StatusType)
+                                       valueNames:valueNames
+                                           values:values
+                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))
+                                     enumVerifier:StatusType_IsValidValue];
+    GPBEnumDescriptor *expected = nil;
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+      [worker release];
+    }
+  }
+  return descriptor;
+}
+
+BOOL StatusType_IsValidValue(int32_t value__) {
+  switch (value__) {
+    case StatusType_StatusTyping:
+    case StatusType_StatusPresence:
+    case StatusType_StatusReaction:
+    case StatusType_StatusReadAck:
+    case StatusType_StatusMessageStatus:
+    case StatusType_StatusChatAck:
       return YES;
     default:
       return NO;
@@ -788,25 +824,13 @@ typedef struct MessageMetadata__storage_ {
 @dynamic replyMessage;
 @dynamic editMessage;
 @dynamic netCallMessage;
-@dynamic gameStickerMessage;
 @dynamic redPacketMessage;
-@dynamic groupNoticeMessage;
-@dynamic groupShockMessage;
-@dynamic systemMessage;
+@dynamic notificationMessage;
 @dynamic pollMessage;
 @dynamic announcementMessage;
-@dynamic addFriendMessage;
-@dynamic acceptFriendMessage;
-@dynamic rejectFriendMessage;
-@dynamic recallMessage;
-@dynamic deleteMessage;
+@dynamic systemMessage;
+@dynamic statusMessage;
 @dynamic encryptedMessage;
-@dynamic readAck;
-@dynamic messageStatus;
-@dynamic typing;
-@dynamic presence;
-@dynamic reaction;
-@dynamic chatAck;
 
 typedef struct ImMessage__storage_ {
   uint32_t _has_storage_[2];
@@ -829,25 +853,13 @@ typedef struct ImMessage__storage_ {
   ReplyMessage *replyMessage;
   EditMessage *editMessage;
   NetCallMessage *netCallMessage;
-  GameStickerMessage *gameStickerMessage;
   RedPacketMessage *redPacketMessage;
-  GroupNoticeMessage *groupNoticeMessage;
-  GroupShockMessage *groupShockMessage;
-  SystemMessage *systemMessage;
+  NotificationMessage *notificationMessage;
   PollMessage *pollMessage;
   AnnouncementMessage *announcementMessage;
-  AddFriendMessage *addFriendMessage;
-  AcceptFriendMessage *acceptFriendMessage;
-  RejectFriendMessage *rejectFriendMessage;
-  RecallMessage *recallMessage;
-  DeleteMessage *deleteMessage;
+  SystemMessage *systemMessage;
+  StatusMessage *statusMessage;
   EncryptedMessage *encryptedMessage;
-  ReadAckMessage *readAck;
-  MessageStatusMessage *messageStatus;
-  TypingMessage *typing;
-  PresenceMessage *presence;
-  ReactionMessage *reaction;
-  ChatAckMessage *chatAck;
   int64_t conversationSeq;
   int64_t serverSeq;
   int64_t storeTime;
@@ -1068,15 +1080,6 @@ typedef struct ImMessage__storage_ {
         .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "gameStickerMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(GameStickerMessage),
-        .number = ImMessage_FieldNumber_GameStickerMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, gameStickerMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
         .name = "redPacketMessage",
         .dataTypeSpecific.clazz = GPBObjCClass(RedPacketMessage),
         .number = ImMessage_FieldNumber_RedPacketMessage,
@@ -1086,29 +1089,11 @@ typedef struct ImMessage__storage_ {
         .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "groupNoticeMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(GroupNoticeMessage),
-        .number = ImMessage_FieldNumber_GroupNoticeMessage,
+        .name = "notificationMessage",
+        .dataTypeSpecific.clazz = GPBObjCClass(NotificationMessage),
+        .number = ImMessage_FieldNumber_NotificationMessage,
         .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, groupNoticeMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "groupShockMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(GroupShockMessage),
-        .number = ImMessage_FieldNumber_GroupShockMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, groupShockMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "systemMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(SystemMessage),
-        .number = ImMessage_FieldNumber_SystemMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, systemMessage),
+        .offset = (uint32_t)offsetof(ImMessage__storage_, notificationMessage),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
@@ -1131,47 +1116,20 @@ typedef struct ImMessage__storage_ {
         .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "addFriendMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(AddFriendMessage),
-        .number = ImMessage_FieldNumber_AddFriendMessage,
+        .name = "systemMessage",
+        .dataTypeSpecific.clazz = GPBObjCClass(SystemMessage),
+        .number = ImMessage_FieldNumber_SystemMessage,
         .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, addFriendMessage),
+        .offset = (uint32_t)offsetof(ImMessage__storage_, systemMessage),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "acceptFriendMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(AcceptFriendMessage),
-        .number = ImMessage_FieldNumber_AcceptFriendMessage,
+        .name = "statusMessage",
+        .dataTypeSpecific.clazz = GPBObjCClass(StatusMessage),
+        .number = ImMessage_FieldNumber_StatusMessage,
         .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, acceptFriendMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "rejectFriendMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(RejectFriendMessage),
-        .number = ImMessage_FieldNumber_RejectFriendMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, rejectFriendMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "recallMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(RecallMessage),
-        .number = ImMessage_FieldNumber_RecallMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, recallMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "deleteMessage",
-        .dataTypeSpecific.clazz = GPBObjCClass(DeleteMessage),
-        .number = ImMessage_FieldNumber_DeleteMessage,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, deleteMessage),
+        .offset = (uint32_t)offsetof(ImMessage__storage_, statusMessage),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
@@ -1181,60 +1139,6 @@ typedef struct ImMessage__storage_ {
         .number = ImMessage_FieldNumber_EncryptedMessage,
         .hasIndex = -1,
         .offset = (uint32_t)offsetof(ImMessage__storage_, encryptedMessage),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "readAck",
-        .dataTypeSpecific.clazz = GPBObjCClass(ReadAckMessage),
-        .number = ImMessage_FieldNumber_ReadAck,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, readAck),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "messageStatus",
-        .dataTypeSpecific.clazz = GPBObjCClass(MessageStatusMessage),
-        .number = ImMessage_FieldNumber_MessageStatus,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, messageStatus),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "typing",
-        .dataTypeSpecific.clazz = GPBObjCClass(TypingMessage),
-        .number = ImMessage_FieldNumber_Typing,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, typing),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "presence",
-        .dataTypeSpecific.clazz = GPBObjCClass(PresenceMessage),
-        .number = ImMessage_FieldNumber_Presence,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, presence),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "reaction",
-        .dataTypeSpecific.clazz = GPBObjCClass(ReactionMessage),
-        .number = ImMessage_FieldNumber_Reaction,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, reaction),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "chatAck",
-        .dataTypeSpecific.clazz = GPBObjCClass(ChatAckMessage),
-        .number = ImMessage_FieldNumber_ChatAck,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ImMessage__storage_, chatAck),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
@@ -1305,12 +1209,9 @@ GPBEnumDescriptor *ImMessage_MessageType_EnumDescriptor(void) {
     static const char *valueNames =
         "Text\000Image\000Video\000Voice\000File\000Location\000Car"
         "d\000ShareURL\000Sticker\000Custom\000AtMessage\000Forw"
-        "ard\000Reply\000Edit\000NetCall\000GameSticker\000RedPa"
-        "cket\000GroupNotice\000GroupShock\000System\000Poll\000"
-        "Announcement\000FriendRequest\000FriendAccepte"
-        "d\000FriendRejected\000Recall\000Delete\000Encrypted"
-        "\000ReadAck\000MessageStatus\000Typing\000Presence\000R"
-        "eaction\000ChatAck\000";
+        "ard\000Reply\000Edit\000NetCall\000RedPacket\000Notific"
+        "ation\000Poll\000Announcement\000System\000Status\000En"
+        "crypted\000";
     static const int32_t values[] = {
         ImMessage_MessageType_Text,
         ImMessage_MessageType_Image,
@@ -1327,25 +1228,13 @@ GPBEnumDescriptor *ImMessage_MessageType_EnumDescriptor(void) {
         ImMessage_MessageType_Reply,
         ImMessage_MessageType_Edit,
         ImMessage_MessageType_NetCall,
-        ImMessage_MessageType_GameSticker,
         ImMessage_MessageType_RedPacket,
-        ImMessage_MessageType_GroupNotice,
-        ImMessage_MessageType_GroupShock,
-        ImMessage_MessageType_System,
+        ImMessage_MessageType_Notification,
         ImMessage_MessageType_Poll,
         ImMessage_MessageType_Announcement,
-        ImMessage_MessageType_FriendRequest,
-        ImMessage_MessageType_FriendAccepted,
-        ImMessage_MessageType_FriendRejected,
-        ImMessage_MessageType_Recall,
-        ImMessage_MessageType_Delete,
+        ImMessage_MessageType_System,
+        ImMessage_MessageType_Status,
         ImMessage_MessageType_Encrypted,
-        ImMessage_MessageType_ReadAck,
-        ImMessage_MessageType_MessageStatus,
-        ImMessage_MessageType_Typing,
-        ImMessage_MessageType_Presence,
-        ImMessage_MessageType_Reaction,
-        ImMessage_MessageType_ChatAck,
     };
     static const char *extraTextFormatInfo = "\001\007e\203\000";
     GPBEnumDescriptor *worker =
@@ -1380,25 +1269,13 @@ BOOL ImMessage_MessageType_IsValidValue(int32_t value__) {
     case ImMessage_MessageType_Reply:
     case ImMessage_MessageType_Edit:
     case ImMessage_MessageType_NetCall:
-    case ImMessage_MessageType_GameSticker:
     case ImMessage_MessageType_RedPacket:
-    case ImMessage_MessageType_GroupNotice:
-    case ImMessage_MessageType_GroupShock:
-    case ImMessage_MessageType_System:
+    case ImMessage_MessageType_Notification:
     case ImMessage_MessageType_Poll:
     case ImMessage_MessageType_Announcement:
-    case ImMessage_MessageType_FriendRequest:
-    case ImMessage_MessageType_FriendAccepted:
-    case ImMessage_MessageType_FriendRejected:
-    case ImMessage_MessageType_Recall:
-    case ImMessage_MessageType_Delete:
+    case ImMessage_MessageType_System:
+    case ImMessage_MessageType_Status:
     case ImMessage_MessageType_Encrypted:
-    case ImMessage_MessageType_ReadAck:
-    case ImMessage_MessageType_MessageStatus:
-    case ImMessage_MessageType_Typing:
-    case ImMessage_MessageType_Presence:
-    case ImMessage_MessageType_Reaction:
-    case ImMessage_MessageType_ChatAck:
       return YES;
     default:
       return NO;
@@ -2235,161 +2112,6 @@ typedef struct ShareUrlMessage__storage_ {
 
 @end
 
-#pragma mark - RecallMessage
-
-@implementation RecallMessage
-
-@dynamic serverMsgId;
-@dynamic reason;
-@dynamic recallTime;
-@dynamic ext;
-
-typedef struct RecallMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *serverMsgId;
-  NSString *reason;
-  NSString *ext;
-  int64_t recallTime;
-} RecallMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "serverMsgId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RecallMessage_FieldNumber_ServerMsgId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(RecallMessage__storage_, serverMsgId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "reason",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RecallMessage_FieldNumber_Reason,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(RecallMessage__storage_, reason),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "recallTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RecallMessage_FieldNumber_RecallTime,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(RecallMessage__storage_, recallTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RecallMessage_FieldNumber_Ext,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(RecallMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[RecallMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(RecallMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-#pragma mark - DeleteMessage
-
-@implementation DeleteMessage
-
-@dynamic serverMsgId;
-@dynamic bilateral;
-@dynamic deleteTime;
-@dynamic ext;
-
-typedef struct DeleteMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *serverMsgId;
-  NSString *ext;
-  int64_t deleteTime;
-} DeleteMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "serverMsgId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = DeleteMessage_FieldNumber_ServerMsgId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(DeleteMessage__storage_, serverMsgId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "bilateral",
-        .dataTypeSpecific.clazz = Nil,
-        .number = DeleteMessage_FieldNumber_Bilateral,
-        .hasIndex = 1,
-        .offset = 2,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "deleteTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = DeleteMessage_FieldNumber_DeleteTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(DeleteMessage__storage_, deleteTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = DeleteMessage_FieldNumber_Ext,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(DeleteMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[DeleteMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(DeleteMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
 #pragma mark - AtMessage
 
 @implementation AtMessage
@@ -2544,107 +2266,6 @@ typedef struct AtInfo__storage_ {
 }
 
 @end
-
-#pragma mark - GameStickerMessage
-
-@implementation GameStickerMessage
-
-@dynamic type;
-@dynamic result;
-@dynamic gameId;
-@dynamic gameTime;
-@dynamic ext;
-
-typedef struct GameStickerMessage__storage_ {
-  uint32_t _has_storage_[1];
-  GameStickerType type;
-  NSString *result;
-  NSString *gameId;
-  NSString *ext;
-  int64_t gameTime;
-} GameStickerMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "type",
-        .dataTypeSpecific.enumDescFunc = GameStickerType_EnumDescriptor,
-        .number = GameStickerMessage_FieldNumber_Type,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(GameStickerMessage__storage_, type),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
-        .name = "result",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GameStickerMessage_FieldNumber_Result,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(GameStickerMessage__storage_, result),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "gameId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GameStickerMessage_FieldNumber_GameId,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(GameStickerMessage__storage_, gameId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "gameTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GameStickerMessage_FieldNumber_GameTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(GameStickerMessage__storage_, gameTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GameStickerMessage_FieldNumber_Ext,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(GameStickerMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[GameStickerMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(GameStickerMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-int32_t GameStickerMessage_Type_RawValue(GameStickerMessage *message) {
-  GPBDescriptor *descriptor = [GameStickerMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:GameStickerMessage_FieldNumber_Type];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetGameStickerMessage_Type_RawValue(GameStickerMessage *message, int32_t value) {
-  GPBDescriptor *descriptor = [GameStickerMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:GameStickerMessage_FieldNumber_Type];
-  GPBSetMessageRawEnumField(message, field, value);
-}
 
 #pragma mark - RedPacketMessage
 
@@ -3094,28 +2715,24 @@ void SetForwardMessage_Type_RawValue(ForwardMessage *message, int32_t value) {
   GPBSetMessageRawEnumField(message, field, value);
 }
 
-#pragma mark - GroupShockMessage
+#pragma mark - NotificationMessage
 
-@implementation GroupShockMessage
+@implementation NotificationMessage
 
-@dynamic groupId;
-@dynamic groupName;
-@dynamic ownerName;
-@dynamic bubbleMessage;
-@dynamic topMessage;
-@dynamic shockTime;
+@dynamic notificationType;
+@dynamic content;
+@dynamic position;
+@dynamic notificationTime;
 @dynamic ext;
 
-typedef struct GroupShockMessage__storage_ {
+typedef struct NotificationMessage__storage_ {
   uint32_t _has_storage_[1];
-  NSString *groupId;
-  NSString *groupName;
-  NSString *ownerName;
-  NSString *bubbleMessage;
-  NSString *topMessage;
+  NotificationPosition position;
+  NSString *notificationType;
+  NSString *content;
   NSString *ext;
-  int64_t shockTime;
-} GroupShockMessage__storage_;
+  int64_t notificationTime;
+} NotificationMessage__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -3124,76 +2741,58 @@ typedef struct GroupShockMessage__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
-        .name = "groupId",
+        .name = "notificationType",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_GroupId,
+        .number = NotificationMessage_FieldNumber_NotificationType,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, groupId),
+        .offset = (uint32_t)offsetof(NotificationMessage__storage_, notificationType),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "groupName",
+        .name = "content",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_GroupName,
+        .number = NotificationMessage_FieldNumber_Content,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, groupName),
+        .offset = (uint32_t)offsetof(NotificationMessage__storage_, content),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "ownerName",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_OwnerName,
+        .name = "position",
+        .dataTypeSpecific.enumDescFunc = NotificationPosition_EnumDescriptor,
+        .number = NotificationMessage_FieldNumber_Position,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, ownerName),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
+        .offset = (uint32_t)offsetof(NotificationMessage__storage_, position),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
       },
       {
-        .name = "bubbleMessage",
+        .name = "notificationTime",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_BubbleMessage,
+        .number = NotificationMessage_FieldNumber_NotificationTime,
         .hasIndex = 3,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, bubbleMessage),
+        .offset = (uint32_t)offsetof(NotificationMessage__storage_, notificationTime),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
+        .dataType = GPBDataTypeInt64,
       },
       {
-        .name = "topMessage",
+        .name = "ext",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_TopMessage,
+        .number = NotificationMessage_FieldNumber_Ext,
         .hasIndex = 4,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, topMessage),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "shockTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_ShockTime,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, shockTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupShockMessage_FieldNumber_Ext,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(GroupShockMessage__storage_, ext),
+        .offset = (uint32_t)offsetof(NotificationMessage__storage_, ext),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[GroupShockMessage class]
+        [GPBDescriptor allocDescriptorForClass:[NotificationMessage class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(GroupShockMessage__storage_)
+                                   storageSize:sizeof(NotificationMessage__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -3205,95 +2804,27 @@ typedef struct GroupShockMessage__storage_ {
 
 @end
 
-#pragma mark - ReadAckMessage
-
-@implementation ReadAckMessage
-
-@dynamic serverMsgIdsArray, serverMsgIdsArray_Count;
-@dynamic readTime;
-@dynamic conversationId;
-@dynamic ext;
-
-typedef struct ReadAckMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSMutableArray *serverMsgIdsArray;
-  NSString *conversationId;
-  NSString *ext;
-  int64_t readTime;
-} ReadAckMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "serverMsgIdsArray",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReadAckMessage_FieldNumber_ServerMsgIdsArray,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(ReadAckMessage__storage_, serverMsgIdsArray),
-        .flags = GPBFieldRepeated,
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "readTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReadAckMessage_FieldNumber_ReadTime,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(ReadAckMessage__storage_, readTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "conversationId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReadAckMessage_FieldNumber_ConversationId,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(ReadAckMessage__storage_, conversationId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReadAckMessage_FieldNumber_Ext,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(ReadAckMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[ReadAckMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(ReadAckMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
+int32_t NotificationMessage_Position_RawValue(NotificationMessage *message) {
+  GPBDescriptor *descriptor = [NotificationMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:NotificationMessage_FieldNumber_Position];
+  return GPBGetMessageRawEnumField(message, field);
 }
 
-@end
+void SetNotificationMessage_Position_RawValue(NotificationMessage *message, int32_t value) {
+  GPBDescriptor *descriptor = [NotificationMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:NotificationMessage_FieldNumber_Position];
+  GPBSetMessageRawEnumField(message, field, value);
+}
 
 #pragma mark - CustomMessage
 
 @implementation CustomMessage
 
 @dynamic content;
-@dynamic type;
 @dynamic ext;
 
 typedef struct CustomMessage__storage_ {
   uint32_t _has_storage_[1];
-  CustomMessageType type;
   NSString *content;
   NSString *ext;
 } CustomMessage__storage_;
@@ -3314,19 +2845,10 @@ typedef struct CustomMessage__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "type",
-        .dataTypeSpecific.enumDescFunc = CustomMessageType_EnumDescriptor,
-        .number = CustomMessage_FieldNumber_Type,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(CustomMessage__storage_, type),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
         .name = "ext",
         .dataTypeSpecific.clazz = Nil,
         .number = CustomMessage_FieldNumber_Ext,
-        .hasIndex = 2,
+        .hasIndex = 1,
         .offset = (uint32_t)offsetof(CustomMessage__storage_, ext),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -3350,18 +2872,6 @@ typedef struct CustomMessage__storage_ {
 
 @end
 
-int32_t CustomMessage_Type_RawValue(CustomMessage *message) {
-  GPBDescriptor *descriptor = [CustomMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CustomMessage_FieldNumber_Type];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetCustomMessage_Type_RawValue(CustomMessage *message, int32_t value) {
-  GPBDescriptor *descriptor = [CustomMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CustomMessage_FieldNumber_Type];
-  GPBSetMessageRawEnumField(message, field, value);
-}
-
 #pragma mark - StickerMessage
 
 @implementation StickerMessage
@@ -3374,16 +2884,20 @@ void SetCustomMessage_Type_RawValue(CustomMessage *message, int32_t value) {
 @dynamic thumbnailURL;
 @dynamic imageURL;
 @dynamic isStickerSet;
+@dynamic stickerType;
+@dynamic result;
 @dynamic ext;
 
 typedef struct StickerMessage__storage_ {
   uint32_t _has_storage_[1];
   int32_t height;
   int32_t width;
+  StickerType stickerType;
   NSString *name;
   NSString *id_p;
   NSString *thumbnailURL;
   NSString *imageURL;
+  NSString *result;
   NSString *ext;
   int64_t size;
 } StickerMessage__storage_;
@@ -3467,10 +2981,28 @@ typedef struct StickerMessage__storage_ {
         .dataType = GPBDataTypeBool,
       },
       {
+        .name = "stickerType",
+        .dataTypeSpecific.enumDescFunc = StickerType_EnumDescriptor,
+        .number = StickerMessage_FieldNumber_StickerType,
+        .hasIndex = 9,
+        .offset = (uint32_t)offsetof(StickerMessage__storage_, stickerType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "result",
+        .dataTypeSpecific.clazz = Nil,
+        .number = StickerMessage_FieldNumber_Result,
+        .hasIndex = 10,
+        .offset = (uint32_t)offsetof(StickerMessage__storage_, result),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
         .name = "ext",
         .dataTypeSpecific.clazz = Nil,
         .number = StickerMessage_FieldNumber_Ext,
-        .hasIndex = 9,
+        .hasIndex = 11,
         .offset = (uint32_t)offsetof(StickerMessage__storage_, ext),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -3499,10 +3031,23 @@ typedef struct StickerMessage__storage_ {
 
 @end
 
+int32_t StickerMessage_StickerType_RawValue(StickerMessage *message) {
+  GPBDescriptor *descriptor = [StickerMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:StickerMessage_FieldNumber_StickerType];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetStickerMessage_StickerType_RawValue(StickerMessage *message, int32_t value) {
+  GPBDescriptor *descriptor = [StickerMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:StickerMessage_FieldNumber_StickerType];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
 #pragma mark - SystemMessage
 
 @implementation SystemMessage
 
+@dynamic businessType;
 @dynamic title;
 @dynamic content;
 @dynamic type;
@@ -3513,6 +3058,7 @@ typedef struct StickerMessage__storage_ {
 typedef struct SystemMessage__storage_ {
   uint32_t _has_storage_[1];
   SystemMessageType type;
+  NSString *businessType;
   NSString *title;
   NSString *content;
   NSMutableArray *imagesArray;
@@ -3527,10 +3073,19 @@ typedef struct SystemMessage__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
+        .name = "businessType",
+        .dataTypeSpecific.clazz = Nil,
+        .number = SystemMessage_FieldNumber_BusinessType,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(SystemMessage__storage_, businessType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
         .name = "title",
         .dataTypeSpecific.clazz = Nil,
         .number = SystemMessage_FieldNumber_Title,
-        .hasIndex = 0,
+        .hasIndex = 1,
         .offset = (uint32_t)offsetof(SystemMessage__storage_, title),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -3539,7 +3094,7 @@ typedef struct SystemMessage__storage_ {
         .name = "content",
         .dataTypeSpecific.clazz = Nil,
         .number = SystemMessage_FieldNumber_Content,
-        .hasIndex = 1,
+        .hasIndex = 2,
         .offset = (uint32_t)offsetof(SystemMessage__storage_, content),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -3548,7 +3103,7 @@ typedef struct SystemMessage__storage_ {
         .name = "type",
         .dataTypeSpecific.enumDescFunc = SystemMessageType_EnumDescriptor,
         .number = SystemMessage_FieldNumber_Type,
-        .hasIndex = 2,
+        .hasIndex = 3,
         .offset = (uint32_t)offsetof(SystemMessage__storage_, type),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
@@ -3566,7 +3121,7 @@ typedef struct SystemMessage__storage_ {
         .name = "expireTime",
         .dataTypeSpecific.clazz = Nil,
         .number = SystemMessage_FieldNumber_ExpireTime,
-        .hasIndex = 3,
+        .hasIndex = 4,
         .offset = (uint32_t)offsetof(SystemMessage__storage_, expireTime),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -3575,7 +3130,7 @@ typedef struct SystemMessage__storage_ {
         .name = "ext",
         .dataTypeSpecific.clazz = Nil,
         .number = SystemMessage_FieldNumber_Ext,
-        .hasIndex = 4,
+        .hasIndex = 5,
         .offset = (uint32_t)offsetof(SystemMessage__storage_, ext),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -3608,6 +3163,96 @@ int32_t SystemMessage_Type_RawValue(SystemMessage *message) {
 void SetSystemMessage_Type_RawValue(SystemMessage *message, int32_t value) {
   GPBDescriptor *descriptor = [SystemMessage descriptor];
   GPBFieldDescriptor *field = [descriptor fieldWithNumber:SystemMessage_FieldNumber_Type];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
+#pragma mark - StatusMessage
+
+@implementation StatusMessage
+
+@dynamic statusType;
+@dynamic data_p;
+@dynamic statusTime;
+@dynamic ext;
+
+typedef struct StatusMessage__storage_ {
+  uint32_t _has_storage_[1];
+  StatusType statusType;
+  NSString *data_p;
+  NSString *ext;
+  int64_t statusTime;
+} StatusMessage__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "statusType",
+        .dataTypeSpecific.enumDescFunc = StatusType_EnumDescriptor,
+        .number = StatusMessage_FieldNumber_StatusType,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(StatusMessage__storage_, statusType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "data_p",
+        .dataTypeSpecific.clazz = Nil,
+        .number = StatusMessage_FieldNumber_Data_p,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(StatusMessage__storage_, data_p),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "statusTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = StatusMessage_FieldNumber_StatusTime,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(StatusMessage__storage_, statusTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "ext",
+        .dataTypeSpecific.clazz = Nil,
+        .number = StatusMessage_FieldNumber_Ext,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(StatusMessage__storage_, ext),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[StatusMessage class]
+                                     rootClass:[MessagePbRoot class]
+                                          file:MessagePbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(StatusMessage__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t StatusMessage_StatusType_RawValue(StatusMessage *message) {
+  GPBDescriptor *descriptor = [StatusMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:StatusMessage_FieldNumber_StatusType];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetStatusMessage_StatusType_RawValue(StatusMessage *message, int32_t value) {
+  GPBDescriptor *descriptor = [StatusMessage descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:StatusMessage_FieldNumber_StatusType];
   GPBSetMessageRawEnumField(message, field, value);
 }
 
@@ -3767,373 +3412,6 @@ typedef struct EditMessage__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(EditMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-#pragma mark - MessageStatusMessage
-
-@implementation MessageStatusMessage
-
-@dynamic messageId;
-@dynamic status;
-@dynamic updateTime;
-@dynamic userId;
-@dynamic ext;
-
-typedef struct MessageStatusMessage__storage_ {
-  uint32_t _has_storage_[1];
-  MessageStatus status;
-  NSString *messageId;
-  NSString *userId;
-  NSString *ext;
-  int64_t updateTime;
-} MessageStatusMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "messageId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageStatusMessage_FieldNumber_MessageId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(MessageStatusMessage__storage_, messageId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "status",
-        .dataTypeSpecific.enumDescFunc = MessageStatus_EnumDescriptor,
-        .number = MessageStatusMessage_FieldNumber_Status,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(MessageStatusMessage__storage_, status),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
-        .name = "updateTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageStatusMessage_FieldNumber_UpdateTime,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(MessageStatusMessage__storage_, updateTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "userId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageStatusMessage_FieldNumber_UserId,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(MessageStatusMessage__storage_, userId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageStatusMessage_FieldNumber_Ext,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(MessageStatusMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[MessageStatusMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(MessageStatusMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-int32_t MessageStatusMessage_Status_RawValue(MessageStatusMessage *message) {
-  GPBDescriptor *descriptor = [MessageStatusMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:MessageStatusMessage_FieldNumber_Status];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetMessageStatusMessage_Status_RawValue(MessageStatusMessage *message, int32_t value) {
-  GPBDescriptor *descriptor = [MessageStatusMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:MessageStatusMessage_FieldNumber_Status];
-  GPBSetMessageRawEnumField(message, field, value);
-}
-
-#pragma mark - TypingMessage
-
-@implementation TypingMessage
-
-@dynamic userId;
-@dynamic isTyping;
-@dynamic typingTime;
-@dynamic ext;
-
-typedef struct TypingMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *userId;
-  NSString *ext;
-  int64_t typingTime;
-} TypingMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "userId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = TypingMessage_FieldNumber_UserId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(TypingMessage__storage_, userId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "isTyping",
-        .dataTypeSpecific.clazz = Nil,
-        .number = TypingMessage_FieldNumber_IsTyping,
-        .hasIndex = 1,
-        .offset = 2,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "typingTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = TypingMessage_FieldNumber_TypingTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(TypingMessage__storage_, typingTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = TypingMessage_FieldNumber_Ext,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(TypingMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[TypingMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(TypingMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-#pragma mark - PresenceMessage
-
-@implementation PresenceMessage
-
-@dynamic userId;
-@dynamic status;
-@dynamic lastSeen;
-@dynamic ext;
-
-typedef struct PresenceMessage__storage_ {
-  uint32_t _has_storage_[1];
-  PresenceStatus status;
-  NSString *userId;
-  NSString *ext;
-  int64_t lastSeen;
-} PresenceMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "userId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = PresenceMessage_FieldNumber_UserId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(PresenceMessage__storage_, userId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "status",
-        .dataTypeSpecific.enumDescFunc = PresenceStatus_EnumDescriptor,
-        .number = PresenceMessage_FieldNumber_Status,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(PresenceMessage__storage_, status),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
-        .name = "lastSeen",
-        .dataTypeSpecific.clazz = Nil,
-        .number = PresenceMessage_FieldNumber_LastSeen,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(PresenceMessage__storage_, lastSeen),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = PresenceMessage_FieldNumber_Ext,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(PresenceMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[PresenceMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(PresenceMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-int32_t PresenceMessage_Status_RawValue(PresenceMessage *message) {
-  GPBDescriptor *descriptor = [PresenceMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:PresenceMessage_FieldNumber_Status];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetPresenceMessage_Status_RawValue(PresenceMessage *message, int32_t value) {
-  GPBDescriptor *descriptor = [PresenceMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:PresenceMessage_FieldNumber_Status];
-  GPBSetMessageRawEnumField(message, field, value);
-}
-
-#pragma mark - ReactionMessage
-
-@implementation ReactionMessage
-
-@dynamic messageId;
-@dynamic userId;
-@dynamic emoji;
-@dynamic isAdd;
-@dynamic reactionTime;
-@dynamic ext;
-
-typedef struct ReactionMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *messageId;
-  NSString *userId;
-  NSString *emoji;
-  NSString *ext;
-  int64_t reactionTime;
-} ReactionMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "messageId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_MessageId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(ReactionMessage__storage_, messageId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "userId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_UserId,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(ReactionMessage__storage_, userId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "emoji",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_Emoji,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(ReactionMessage__storage_, emoji),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "isAdd",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_IsAdd,
-        .hasIndex = 3,
-        .offset = 4,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "reactionTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_ReactionTime,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(ReactionMessage__storage_, reactionTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ReactionMessage_FieldNumber_Ext,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(ReactionMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[ReactionMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(ReactionMessage__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -4416,96 +3694,6 @@ int32_t AnnouncementMessage_Priority_RawValue(AnnouncementMessage *message) {
 void SetAnnouncementMessage_Priority_RawValue(AnnouncementMessage *message, int32_t value) {
   GPBDescriptor *descriptor = [AnnouncementMessage descriptor];
   GPBFieldDescriptor *field = [descriptor fieldWithNumber:AnnouncementMessage_FieldNumber_Priority];
-  GPBSetMessageRawEnumField(message, field, value);
-}
-
-#pragma mark - ChatAckMessage
-
-@implementation ChatAckMessage
-
-@dynamic messageId;
-@dynamic ackType;
-@dynamic ackTime;
-@dynamic ext;
-
-typedef struct ChatAckMessage__storage_ {
-  uint32_t _has_storage_[1];
-  AcknowledgeType ackType;
-  NSString *messageId;
-  NSString *ext;
-  int64_t ackTime;
-} ChatAckMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "messageId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ChatAckMessage_FieldNumber_MessageId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(ChatAckMessage__storage_, messageId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ackType",
-        .dataTypeSpecific.enumDescFunc = AcknowledgeType_EnumDescriptor,
-        .number = ChatAckMessage_FieldNumber_AckType,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(ChatAckMessage__storage_, ackType),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
-        .name = "ackTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ChatAckMessage_FieldNumber_AckTime,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(ChatAckMessage__storage_, ackTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ChatAckMessage_FieldNumber_Ext,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(ChatAckMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[ChatAckMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(ChatAckMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-int32_t ChatAckMessage_AckType_RawValue(ChatAckMessage *message) {
-  GPBDescriptor *descriptor = [ChatAckMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ChatAckMessage_FieldNumber_AckType];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetChatAckMessage_AckType_RawValue(ChatAckMessage *message, int32_t value) {
-  GPBDescriptor *descriptor = [ChatAckMessage descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ChatAckMessage_FieldNumber_AckType];
   GPBSetMessageRawEnumField(message, field, value);
 }
 
@@ -5156,28 +4344,22 @@ void SetMessageStatusUpdate_Status_RawValue(MessageStatusUpdate *message, int32_
   GPBSetMessageRawEnumField(message, field, value);
 }
 
-#pragma mark - GroupNoticeMessage
+#pragma mark - ConvPull
 
-@implementation GroupNoticeMessage
+@implementation ConvPull
 
-@dynamic noticeId;
-@dynamic content;
-@dynamic title;
-@dynamic publishTime;
-@dynamic publisherId;
-@dynamic transContent;
-@dynamic ext;
+@dynamic convType;
+@dynamic targetId;
+@dynamic lastConvSeq;
+@dynamic conversationId;
 
-typedef struct GroupNoticeMessage__storage_ {
+typedef struct ConvPull__storage_ {
   uint32_t _has_storage_[1];
-  NSString *noticeId;
-  NSString *content;
-  NSString *title;
-  NSString *publisherId;
-  NSString *transContent;
-  NSString *ext;
-  int64_t publishTime;
-} GroupNoticeMessage__storage_;
+  ConversationType convType;
+  NSString *targetId;
+  NSString *conversationId;
+  int64_t lastConvSeq;
+} ConvPull__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -5186,76 +4368,49 @@ typedef struct GroupNoticeMessage__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
-        .name = "noticeId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_NoticeId,
+        .name = "convType",
+        .dataTypeSpecific.enumDescFunc = ConversationType_EnumDescriptor,
+        .number = ConvPull_FieldNumber_ConvType,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, noticeId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
+        .offset = (uint32_t)offsetof(ConvPull__storage_, convType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
       },
       {
-        .name = "content",
+        .name = "targetId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_Content,
+        .number = ConvPull_FieldNumber_TargetId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, content),
+        .offset = (uint32_t)offsetof(ConvPull__storage_, targetId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "title",
+        .name = "lastConvSeq",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_Title,
+        .number = ConvPull_FieldNumber_LastConvSeq,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, title),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "publishTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_PublishTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, publishTime),
+        .offset = (uint32_t)offsetof(ConvPull__storage_, lastConvSeq),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
-        .name = "publisherId",
+        .name = "conversationId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_PublisherId,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, publisherId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "transContent",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_TransContent,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, transContent),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = GroupNoticeMessage_FieldNumber_Ext,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(GroupNoticeMessage__storage_, ext),
+        .number = ConvPull_FieldNumber_ConversationId,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(ConvPull__storage_, conversationId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[GroupNoticeMessage class]
+        [GPBDescriptor allocDescriptorForClass:[ConvPull class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(GroupNoticeMessage__storage_)
+                                   storageSize:sizeof(ConvPull__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -5267,338 +4422,17 @@ typedef struct GroupNoticeMessage__storage_ {
 
 @end
 
-#pragma mark - AddFriendMessage
-
-@implementation AddFriendMessage
-
-@dynamic requesterId;
-@dynamic requesterName;
-@dynamic requesterAvatar;
-@dynamic message;
-@dynamic requestTime;
-@dynamic appId;
-@dynamic addChannel;
-@dynamic ext;
-
-typedef struct AddFriendMessage__storage_ {
-  uint32_t _has_storage_[1];
-  int32_t addChannel;
-  NSString *requesterId;
-  NSString *requesterName;
-  NSString *requesterAvatar;
-  NSString *message;
-  NSString *appId;
-  NSString *ext;
-  int64_t requestTime;
-} AddFriendMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "requesterId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_RequesterId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, requesterId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "requesterName",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_RequesterName,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, requesterName),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "requesterAvatar",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_RequesterAvatar,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, requesterAvatar),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "message",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_Message,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, message),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "requestTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_RequestTime,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, requestTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "appId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_AppId,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, appId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "addChannel",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_AddChannel,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, addChannel),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AddFriendMessage_FieldNumber_Ext,
-        .hasIndex = 7,
-        .offset = (uint32_t)offsetof(AddFriendMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[AddFriendMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(AddFriendMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
+int32_t ConvPull_ConvType_RawValue(ConvPull *message) {
+  GPBDescriptor *descriptor = [ConvPull descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ConvPull_FieldNumber_ConvType];
+  return GPBGetMessageRawEnumField(message, field);
 }
 
-@end
-
-#pragma mark - AcceptFriendMessage
-
-@implementation AcceptFriendMessage
-
-@dynamic acceptorId;
-@dynamic acceptorName;
-@dynamic acceptorAvatar;
-@dynamic acceptTime;
-@dynamic appId;
-@dynamic ext;
-
-typedef struct AcceptFriendMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *acceptorId;
-  NSString *acceptorName;
-  NSString *acceptorAvatar;
-  NSString *appId;
-  NSString *ext;
-  int64_t acceptTime;
-} AcceptFriendMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "acceptorId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_AcceptorId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, acceptorId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "acceptorName",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_AcceptorName,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, acceptorName),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "acceptorAvatar",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_AcceptorAvatar,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, acceptorAvatar),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "acceptTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_AcceptTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, acceptTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "appId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_AppId,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, appId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = AcceptFriendMessage_FieldNumber_Ext,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(AcceptFriendMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[AcceptFriendMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(AcceptFriendMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
+void SetConvPull_ConvType_RawValue(ConvPull *message, int32_t value) {
+  GPBDescriptor *descriptor = [ConvPull descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ConvPull_FieldNumber_ConvType];
+  GPBSetMessageRawEnumField(message, field, value);
 }
-
-@end
-
-#pragma mark - RejectFriendMessage
-
-@implementation RejectFriendMessage
-
-@dynamic rejectorId;
-@dynamic rejectorName;
-@dynamic rejectorAvatar;
-@dynamic rejectTime;
-@dynamic reason;
-@dynamic appId;
-@dynamic ext;
-
-typedef struct RejectFriendMessage__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *rejectorId;
-  NSString *rejectorName;
-  NSString *rejectorAvatar;
-  NSString *reason;
-  NSString *appId;
-  NSString *ext;
-  int64_t rejectTime;
-} RejectFriendMessage__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "rejectorId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_RejectorId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, rejectorId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "rejectorName",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_RejectorName,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, rejectorName),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "rejectorAvatar",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_RejectorAvatar,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, rejectorAvatar),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "rejectTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_RejectTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, rejectTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "reason",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_Reason,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, reason),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "appId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_AppId,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, appId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = RejectFriendMessage_FieldNumber_Ext,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(RejectFriendMessage__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[RejectFriendMessage class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(RejectFriendMessage__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
 
 #pragma mark - Pull
 
@@ -5606,16 +4440,16 @@ typedef struct RejectFriendMessage__storage_ {
 
 @dynamic lastMsgTime;
 @dynamic limit;
-@dynamic convIdsArray, convIdsArray_Count;
 @dynamic deviceId;
-@dynamic lastConvSeqs, lastConvSeqs_Count;
+@dynamic convPullsArray, convPullsArray_Count;
+@dynamic conversationId;
 
 typedef struct Pull__storage_ {
   uint32_t _has_storage_[1];
   int32_t limit;
-  NSMutableArray *convIdsArray;
   NSString *deviceId;
-  GPBStringInt64Dictionary *lastConvSeqs;
+  NSMutableArray *convPullsArray;
+  NSString *conversationId;
   int64_t lastMsgTime;
 } Pull__storage_;
 
@@ -5644,15 +4478,6 @@ typedef struct Pull__storage_ {
         .dataType = GPBDataTypeInt32,
       },
       {
-        .name = "convIdsArray",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Pull_FieldNumber_ConvIdsArray,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(Pull__storage_, convIdsArray),
-        .flags = GPBFieldRepeated,
-        .dataType = GPBDataTypeString,
-      },
-      {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
         .number = Pull_FieldNumber_DeviceId,
@@ -5662,13 +4487,22 @@ typedef struct Pull__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "lastConvSeqs",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Pull_FieldNumber_LastConvSeqs,
+        .name = "convPullsArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(ConvPull),
+        .number = Pull_FieldNumber_ConvPullsArray,
         .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(Pull__storage_, lastConvSeqs),
-        .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeInt64,
+        .offset = (uint32_t)offsetof(Pull__storage_, convPullsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+      {
+        .name = "conversationId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Pull_FieldNumber_ConversationId,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(Pull__storage_, conversationId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
@@ -5689,26 +4523,26 @@ typedef struct Pull__storage_ {
 
 @end
 
-#pragma mark - PullResult
+#pragma mark - PullList
 
-@implementation PullResult
+@implementation PullList
 
 @dynamic messagesArray, messagesArray_Count;
 @dynamic serverTime;
-@dynamic maxConvSeqs, maxConvSeqs_Count;
-@dynamic hasMoreByConv, hasMoreByConv_Count;
 @dynamic totalCount;
-@dynamic convSyncInfo, convSyncInfo_Count;
+@dynamic maxConvSeqs, maxConvSeqs_Count;
+@dynamic hasMore, hasMore_Count;
+@dynamic unreadCounts, unreadCounts_Count;
 
-typedef struct PullResult__storage_ {
+typedef struct PullList__storage_ {
   uint32_t _has_storage_[1];
   int32_t totalCount;
   NSMutableArray *messagesArray;
   GPBStringInt64Dictionary *maxConvSeqs;
-  GPBStringBoolDictionary *hasMoreByConv;
-  NSMutableDictionary *convSyncInfo;
+  GPBStringBoolDictionary *hasMore;
+  GPBStringInt64Dictionary *unreadCounts;
   int64_t serverTime;
-} PullResult__storage_;
+} PullList__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -5719,154 +4553,65 @@ typedef struct PullResult__storage_ {
       {
         .name = "messagesArray",
         .dataTypeSpecific.clazz = GPBObjCClass(ImMessage),
-        .number = PullResult_FieldNumber_MessagesArray,
+        .number = PullList_FieldNumber_MessagesArray,
         .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(PullResult__storage_, messagesArray),
+        .offset = (uint32_t)offsetof(PullList__storage_, messagesArray),
         .flags = GPBFieldRepeated,
         .dataType = GPBDataTypeMessage,
       },
       {
         .name = "serverTime",
         .dataTypeSpecific.clazz = Nil,
-        .number = PullResult_FieldNumber_ServerTime,
+        .number = PullList_FieldNumber_ServerTime,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(PullResult__storage_, serverTime),
+        .offset = (uint32_t)offsetof(PullList__storage_, serverTime),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "maxConvSeqs",
-        .dataTypeSpecific.clazz = Nil,
-        .number = PullResult_FieldNumber_MaxConvSeqs,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(PullResult__storage_, maxConvSeqs),
-        .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "hasMoreByConv",
-        .dataTypeSpecific.clazz = Nil,
-        .number = PullResult_FieldNumber_HasMoreByConv,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(PullResult__storage_, hasMoreByConv),
-        .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeBool,
       },
       {
         .name = "totalCount",
         .dataTypeSpecific.clazz = Nil,
-        .number = PullResult_FieldNumber_TotalCount,
+        .number = PullList_FieldNumber_TotalCount,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(PullResult__storage_, totalCount),
+        .offset = (uint32_t)offsetof(PullList__storage_, totalCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
-        .name = "convSyncInfo",
-        .dataTypeSpecific.clazz = GPBObjCClass(ConvSyncInfo),
-        .number = PullResult_FieldNumber_ConvSyncInfo,
+        .name = "maxConvSeqs",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PullList_FieldNumber_MaxConvSeqs,
         .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(PullResult__storage_, convSyncInfo),
+        .offset = (uint32_t)offsetof(PullList__storage_, maxConvSeqs),
         .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeMessage,
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "hasMore",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PullList_FieldNumber_HasMore,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(PullList__storage_, hasMore),
+        .flags = GPBFieldMapKeyString,
+        .dataType = GPBDataTypeBool,
+      },
+      {
+        .name = "unreadCounts",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PullList_FieldNumber_UnreadCounts,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(PullList__storage_, unreadCounts),
+        .flags = GPBFieldMapKeyString,
+        .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[PullResult class]
+        [GPBDescriptor allocDescriptorForClass:[PullList class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(PullResult__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-#pragma mark - ConvSyncInfo
-
-@implementation ConvSyncInfo
-
-@dynamic convId;
-@dynamic maxConvSeq;
-@dynamic unreadCount;
-@dynamic lastMsgTime;
-@dynamic lastMsgId;
-
-typedef struct ConvSyncInfo__storage_ {
-  uint32_t _has_storage_[1];
-  NSString *convId;
-  NSString *lastMsgId;
-  int64_t maxConvSeq;
-  int64_t unreadCount;
-  int64_t lastMsgTime;
-} ConvSyncInfo__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "convId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ConvSyncInfo_FieldNumber_ConvId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(ConvSyncInfo__storage_, convId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "maxConvSeq",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ConvSyncInfo_FieldNumber_MaxConvSeq,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(ConvSyncInfo__storage_, maxConvSeq),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "unreadCount",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ConvSyncInfo_FieldNumber_UnreadCount,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(ConvSyncInfo__storage_, unreadCount),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "lastMsgTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ConvSyncInfo_FieldNumber_LastMsgTime,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(ConvSyncInfo__storage_, lastMsgTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "lastMsgId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = ConvSyncInfo_FieldNumber_LastMsgId,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(ConvSyncInfo__storage_, lastMsgId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[ConvSyncInfo class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(ConvSyncInfo__storage_)
+                                   storageSize:sizeof(PullList__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -5989,172 +4734,6 @@ typedef struct SendAck__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(SendAck__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-#pragma mark - MessageProcessingContext
-
-@implementation MessageProcessingContext
-
-@dynamic messageBytes;
-@dynamic serverMsgId;
-@dynamic conversationSeq;
-@dynamic serverSeq;
-@dynamic processingStep;
-@dynamic traceId;
-@dynamic appId;
-@dynamic fromUserId;
-@dynamic toUserId;
-@dynamic conversationId;
-@dynamic originalRequestBytes;
-@dynamic ingressTimeMs;
-
-typedef struct MessageProcessingContext__storage_ {
-  uint32_t _has_storage_[1];
-  int32_t processingStep;
-  NSData *messageBytes;
-  NSString *serverMsgId;
-  NSString *traceId;
-  NSString *appId;
-  NSString *fromUserId;
-  NSString *toUserId;
-  NSString *conversationId;
-  NSData *originalRequestBytes;
-  int64_t conversationSeq;
-  int64_t serverSeq;
-  int64_t ingressTimeMs;
-} MessageProcessingContext__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "messageBytes",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_MessageBytes,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, messageBytes),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBytes,
-      },
-      {
-        .name = "serverMsgId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ServerMsgId,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, serverMsgId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "conversationSeq",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ConversationSeq,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, conversationSeq),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "serverSeq",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ServerSeq,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, serverSeq),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "processingStep",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ProcessingStep,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, processingStep),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "traceId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_TraceId,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, traceId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "appId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_AppId,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, appId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "fromUserId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_FromUserId,
-        .hasIndex = 7,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, fromUserId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "toUserId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ToUserId,
-        .hasIndex = 8,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, toUserId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "conversationId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_ConversationId,
-        .hasIndex = 9,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, conversationId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "originalRequestBytes",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_OriginalRequestBytes,
-        .hasIndex = 10,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, originalRequestBytes),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBytes,
-      },
-      {
-        .name = "ingressTimeMs",
-        .dataTypeSpecific.clazz = Nil,
-        .number = MessageProcessingContext_FieldNumber_IngressTimeMs,
-        .hasIndex = 11,
-        .offset = (uint32_t)offsetof(MessageProcessingContext__storage_, ingressTimeMs),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[MessageProcessingContext class]
-                                     rootClass:[MessagePbRoot class]
-                                          file:MessagePbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(MessageProcessingContext__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
