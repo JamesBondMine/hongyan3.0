@@ -62,6 +62,8 @@ class _ChatListPageState extends State<ChatListPage> {
   bool _isLoading = false;
   int _currentPage = 1;
   bool _hasMore = true;
+  bool _isSearchMode = false;
+  int _filterType = 0; // 0=全部, 1=未读, 2=群聊, 3=@我的
 
   @override
   void initState() {
@@ -186,38 +188,45 @@ class _ChatListPageState extends State<ChatListPage> {
   /// 过滤会话
   void _filterConversations() {
     final keyword = _searchController.text.trim().toLowerCase();
-    if (keyword.isEmpty) {
-      _filteredConversations = List.from(_conversations);
-    } else {
-      _filteredConversations = _conversations
+    
+    // 先按类型筛选
+    List<ConversationModel> filtered;
+    switch (_filterType) {
+      case 1: // 未读
+        filtered = _conversations.where((conv) => conv.unreadCount > 0).toList();
+        break;
+      case 2: // 群聊
+        filtered = _conversations.where((conv) => conv.convType == 2).toList();
+        break;
+      case 3: // @我的
+        // TODO: 需要后端支持 at_me 字段
+        filtered = _conversations.where((conv) => false).toList();
+        break;
+      default: // 全部
+        filtered = List.from(_conversations);
+    }
+    
+    // 再按关键词过滤
+    if (keyword.isNotEmpty) {
+      filtered = filtered
           .where((conv) =>
               conv.displayName.toLowerCase().contains(keyword) ||
               (conv.lastMessage?.toLowerCase().contains(keyword) ?? false))
           .toList();
     }
+    
+    _filteredConversations = filtered;
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('聊天'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showNewChatOptions,
-          ),
-        ],
-      ),
+      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
       body: Column(
         children: [
-          // 搜索栏
-          _buildSearchBar(),
-          
+          // 筛选栏
+          _buildFilterBar(),
           // 会话列表
           Expanded(
             child: _buildConversationList(),
@@ -227,30 +236,163 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
-  /// 构建搜索栏
-  Widget _buildSearchBar() {
+  /// 构建筛选栏
+  Widget _buildFilterBar() {
     return Container(
-      color: Colors.blue,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: TextField(
-          controller: _searchController,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: '搜索会话',
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-            prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.7)),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          _buildFilterButton(0, '全部', _getAllUnreadCount()),
+          _buildFilterButton(1, '未读', _getUnreadConversationCount()),
+          _buildFilterButton(2, '群聊', _getGroupUnreadCount()),
+          _buildFilterButton(3, '@我的', _getAtMeCount()),
+        ],
+      ),
+    );
+  }
+
+  /// 构建筛选按钮
+  Widget _buildFilterButton(int type, String label, int count) {
+    final isSelected = _filterType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _filterType = type;
+          });
+          _filterConversations();
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(20),
+            border: isSelected
+                ? Border.all(color: Colors.blue, width: 1)
+                : null,
           ),
-          onChanged: (value) => _filterConversations(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? Colors.blue : Colors.grey[700],
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue : Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    count > 99 ? '99+' : count.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// 获取所有未读消息数
+  int _getAllUnreadCount() {
+    return _conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
+  }
+
+  /// 获取未读会话数
+  int _getUnreadConversationCount() {
+    return _conversations.where((conv) => conv.unreadCount > 0).length;
+  }
+
+  /// 获取群聊未读消息数
+  int _getGroupUnreadCount() {
+    return _conversations
+        .where((conv) => conv.convType == 2)
+        .fold(0, (sum, conv) => sum + conv.unreadCount);
+  }
+
+  /// 获取@我的未读数（需要后端支持，暂时返回0）
+  int _getAtMeCount() {
+    // TODO: 需要后端返回 at_me_count 字段
+    return 0;
+  }
+
+  /// 构建普通 AppBar
+  PreferredSizeWidget _buildNormalAppBar() {
+    return AppBar(
+      title: const Text('聊天'),
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            setState(() {
+              _isSearchMode = true;
+            });
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: _showNewChatOptions,
+        ),
+      ],
+    );
+  }
+
+  /// 构建搜索 AppBar
+  PreferredSizeWidget _buildSearchAppBar() {
+    return AppBar(
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          setState(() {
+            _isSearchMode = false;
+            _searchController.clear();
+            _filterConversations();
+          });
+        },
+      ),
+      title: TextField(
+        controller: _searchController,
+        autofocus: true,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: '搜索会话',
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+          border: InputBorder.none,
+        ),
+        onChanged: (value) => _filterConversations(),
+      ),
+      actions: [
+        if (_searchController.text.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              _searchController.clear();
+              _filterConversations();
+            },
+          ),
+      ],
     );
   }
 
@@ -262,22 +404,34 @@ class _ChatListPageState extends State<ChatListPage> {
       );
     }
 
-    if (_filteredConversations.isEmpty) {
-      return _buildEmptyView();
-    }
-
+    // 使用 RefreshIndicator 包裹整个内容，支持空状态下拉刷新
     return RefreshIndicator(
       onRefresh: _refreshConversations,
-      child: ListView.builder(
-        controller: _scrollController,
-        itemCount: _filteredConversations.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _filteredConversations.length) {
-            return _buildLoadingIndicator();
-          }
-          return _buildConversationItem(_filteredConversations[index]);
-        },
-      ),
+      child: _filteredConversations.isEmpty
+          ? _buildEmptyViewScrollable()
+          : ListView.builder(
+              controller: _scrollController,
+              itemCount: _filteredConversations.length + (_hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _filteredConversations.length) {
+                  return _buildLoadingIndicator();
+                }
+                return _buildConversationItem(_filteredConversations[index]);
+              },
+            ),
+    );
+  }
+
+  /// 构建可滚动的空视图（支持下拉刷新）
+  Widget _buildEmptyViewScrollable() {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _buildEmptyView(),
+        ),
+      ],
     );
   }
 
