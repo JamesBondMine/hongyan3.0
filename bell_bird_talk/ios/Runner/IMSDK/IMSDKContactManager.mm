@@ -454,6 +454,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     ContactQuery *query = [[ContactQuery alloc] init];
     query.page = page;
     query.pageSize = pageSize;
+    query.relationship = Relationship_Friend;  // 默认获取好友列表
     
     NSData *protoBody = [query data];
     if (!protoBody || protoBody.length == 0) {
