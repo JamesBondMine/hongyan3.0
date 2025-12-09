@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
+import '../chat/chat_page.dart';
 import 'friends_page.dart';
 
 /// 好友详情页面
@@ -223,10 +225,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             icon: Icons.chat_bubble,
             label: '发消息',
             color: Colors.blue,
-            onTap: () {
-              EasyLoading.showInfo('发起聊天: ${_friend.displayName}');
-              // TODO: 跳转到聊天页面
-            },
+            onTap: _startChat,
           ),
           _buildActionItem(
             icon: Icons.videocam,
@@ -504,6 +503,61 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         ),
       ),
     );
+  }
+  
+  /// 发起聊天
+  Future<void> _startChat() async {
+    EasyLoading.show(status: '创建会话中...');
+    
+    try {
+      // 调用 SDK 创建会话
+      // convType: 0 = 单聊
+      final result = await _nativeService.imCreateConversation(
+        convType: 0,  // 单聊
+        targetId: _friend.id,
+        displayName: _friend.displayName,
+        avatarUrl: _friend.avatar,
+      );
+      
+      EasyLoading.dismiss();
+      
+      print('📱 创建会话结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        // 解析返回的会话数据
+        String convId = '';
+        
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr);
+            convId = data['conv_id']?.toString() ?? '';
+          } catch (e) {
+            print('⚠️ 解析会话数据失败: $e');
+          }
+        }
+        
+        // 如果没有获取到会话ID，使用默认格式
+        if (convId.isEmpty) {
+          convId = 'single_${_friend.id}';
+        }
+        
+        // 跳转到聊天页面
+        Get.to(() => ChatPage(
+          convId: convId,
+          displayName: _friend.displayName,
+          avatar: _friend.avatar,
+          targetUserId: _friend.id,
+        ));
+      } else {
+        final message = result['message'] ?? '创建会话失败';
+        EasyLoading.showError(message);
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('创建会话异常: $e');
+      print('❌ 创建会话异常: $e');
+    }
   }
   
   /// 显示更多选项
