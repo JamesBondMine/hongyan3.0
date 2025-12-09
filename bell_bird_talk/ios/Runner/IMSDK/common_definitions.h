@@ -26,7 +26,7 @@ typedef enum {
     NET_EVENT_CONNECT_FAILED,     // 连接失败
     NET_EVENT_ERROR,              // 错误事件
     NET_EVENT_TCP_CONNECT_ERROR,   //TCP连接错误
-    NET_EVENT_AUTH,               // 成功
+    NET_EVENT_AUTH,               // 安全通道创建成功
     NET_USER_AUTH_FAILED,          // 用户认证失败
     NET_USER_AUTH_SUCCESS         // 用户认证成功
 } NetworkEventType;

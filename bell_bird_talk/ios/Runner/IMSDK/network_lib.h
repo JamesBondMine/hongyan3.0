@@ -52,6 +52,15 @@ NET_API void network_set_data_callback(DataReceivedCallback callback);
 // 添加目标到组
 NET_API void network_add_target_to_group(const char* ip, int port);
 
+// 从组中移除目标
+// @param ip IP地址
+// @param port 端口
+// @return true表示移除成功，false表示未找到该目标
+NET_API bool network_remove_target_from_group(const char* ip, int port);
+
+// 清空所有目标
+NET_API void network_clear_all_targets();
+
 // 主线程事件驱动,主要是实现跨线程驱动数据回调
 NET_API void network_event_loop();
 
@@ -148,6 +157,42 @@ NET_API int search_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uin
  * @return 0表示成功，其他表示错误码
  */
 NET_API int get_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 更新用户信息
+ * Topic: /im/user/{userId}/update
+ * @param cCallback 回调函数（用于接收更新用户的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的用户更新数据
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int update_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 修改密码
+ * Topic: /im/USER/{userId}/changePassword
+ * @param cCallback 回调函数（用于接收修改密码的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的修改密码请求数据（包含旧密码、新密码等）
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int change_password(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 重置密码（忘记密码）
+ * Topic: /im/USER/{userId}/resetPassword
+ * @param cCallback 回调函数（用于接收重置密码的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的重置密码请求数据（包含验证码、新密码等）
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int reset_password(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
  * 获取验证码
@@ -313,6 +358,8 @@ NET_API int set_contact_remark(CB_I_S_I_U cCallback, const char* data, int len, 
  */
 NET_API int get_contact_list(CB_I_S_I_U cCallback, const char* queryData, int queryLen, uint64_t &reqId);
 
+
+
 /**
  * 获取好友申请列表
  * @param cCallback 回调函数（用于接收好友申请列表结果，参数：errorCode, data, dataLen, reqId）
@@ -342,6 +389,87 @@ NET_API int accept_friend_request(CB_I_S_I_U cCallback, const char* data, int le
  * @return 0表示成功，其它表示错误码 
  */
 NET_API int reject_friend_request(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+// ============================================
+// 联系人分组管理接口
+// ============================================
+
+/**
+ * 创建联系人分组
+ * Topic: /im/CONTACT/{currentUserId}/createGroup
+ * @param cCallback 回调函数（用于接收创建分组结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的分组数据（如分组名称等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int create_contact_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 更新联系人分组
+ * Topic: /im/CONTACT/{currentUserId}/updateGroup
+ * @param cCallback 回调函数（用于接收更新分组结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的分组数据（如分组ID、分组名称等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int update_contact_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 删除联系人分组
+ * Topic: /im/CONTACT/{currentUserId}/deleteGroup
+ * @param cCallback 回调函数（用于接收删除分组结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的分组数据（如分组ID）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int delete_contact_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取联系人分组列表
+ * Topic: /im/CONTACT/{currentUserId}/listGroups
+ * @param cCallback 回调函数（用于接收分组列表结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的查询参数（可选，如分页信息）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int list_contact_groups(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 移动联系人到分组
+ * Topic: /im/CONTACT/{currentUserId}/moveToGroup
+ * @param cCallback 回调函数（用于接收移动结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的数据（包含联系人ID和目标分组ID）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int move_contact_to_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 从分组中移除联系人
+ * Topic: /im/CONTACT/{currentUserId}/removeFromGroup
+ * @param cCallback 回调函数（用于接收移除结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的数据（包含联系人ID和分组ID）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int remove_contact_from_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 创建联系人标签
+ * Topic: /im/CONTACT/{currentUserId}/tag
+ * @param cCallback 回调函数（用于接收创建标签结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的标签数据（如标签名称等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int create_contact_tag(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 会话管理接口
@@ -481,15 +609,15 @@ NET_API int remove_group_member(CB_I_S_I_U cCallback, const char* data, int len,
 
 /**
  * 发送群消息
- * @param message 消息内容
+ * @param cCallback 回调函数（用于接收发送结果，参数：errorCode, data, dataLen, reqId）
+ * @param message 序列化的消息体（IM body 体的数据）
  * @param len 消息长度
- * @param conversationId 会话ID
  * @param msgType 消息类型
- * @param groupId 群组ID
- * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @param groupId 群组ID（必需）
+ * @param outReqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码 
  */
-NET_API int send_group_message(const char* message, int len, int conversationId, int msgType, const char* groupId, uint64_t &reqId);
+NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int len, int msgType, const char* groupId, uint64_t* outReqId);
 
 // ============================================
 // 消息拉取接口
@@ -538,6 +666,22 @@ NET_API int get_local_messages(CB_LOCAL_MESSAGE cCallback,
  *       取消后，对应的回调函数将不再被调用
  */
 NET_API int cancel_request(uint64_t reqId);
+
+// ============================================
+// 文件上传接口
+// ============================================
+
+/**
+ * 准备上传文件
+ * Topic: /im/FILE/{appId}/prepareUpload
+ * @param cCallback 回调函数（用于接收准备上传的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的准备上传请求数据（包含文件信息等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ * @note appId 自动从 MqttSession 中获取
+ */
+NET_API int prepare_upload(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 #ifdef __cplusplus
 } // extern "C"
