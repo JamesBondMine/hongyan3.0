@@ -1,0 +1,672 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../../services/native_bridge.dart';
+import 'friends_page.dart';
+
+/// 好友详情页面
+class FriendDetailPage extends StatefulWidget {
+  final FriendModel friend;
+  
+  const FriendDetailPage({
+    super.key,
+    required this.friend,
+  });
+
+  @override
+  State<FriendDetailPage> createState() => _FriendDetailPageState();
+}
+
+class _FriendDetailPageState extends State<FriendDetailPage> {
+  final IOSNativeService _nativeService = IOSNativeService();
+  
+  late FriendModel _friend;
+  bool _isStarred = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _friend = widget.friend;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('好友详情'),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_horiz),
+            onPressed: _showMoreOptions,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 头部信息卡片
+            _buildHeaderCard(),
+            
+            const SizedBox(height: 12),
+            
+            // 快捷操作
+            _buildQuickActions(),
+            
+            const SizedBox(height: 12),
+            
+            // 详细信息
+            _buildDetailInfo(),
+            
+            const SizedBox(height: 12),
+            
+            // 更多操作
+            _buildMoreActions(),
+            
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 头部信息卡片
+  Widget _buildHeaderCard() {
+    return Container(
+      color: Colors.blue,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 24),
+            
+            // 头像
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.blue[100],
+                  backgroundImage: (_friend.avatar != null && _friend.avatar!.isNotEmpty)
+                      ? NetworkImage(_friend.avatar!)
+                      : null,
+                  child: (_friend.avatar == null || _friend.avatar!.isEmpty)
+                      ? Text(
+                          _friend.displayName.isNotEmpty
+                              ? _friend.displayName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        )
+                      : null,
+                ),
+                // 在线状态
+                Positioned(
+                  right: 4,
+                  bottom: 4,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: _friend.isOnline ? Colors.green : Colors.grey,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 昵称/备注
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _friend.displayName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (_isStarred) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.star, color: Colors.amber, size: 24),
+                ],
+              ],
+            ),
+            
+            // 如果有备注，显示原昵称
+            if (_friend.remark != null && 
+                _friend.remark!.isNotEmpty && 
+                _friend.remark != _friend.nickname)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '昵称: ${_friend.nickname}',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            
+            const SizedBox(height: 8),
+            
+            // 在线状态
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _friend.isOnline 
+                        ? Colors.green.withOpacity(0.1) 
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _friend.isOnline ? Colors.green : Colors.grey,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _friend.isOnline ? '在线' : '离线',
+                        style: TextStyle(
+                          color: _friend.isOnline ? Colors.green : Colors.grey,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 快捷操作按钮
+  Widget _buildQuickActions() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionItem(
+            icon: Icons.chat_bubble,
+            label: '发消息',
+            color: Colors.blue,
+            onTap: () {
+              EasyLoading.showInfo('发起聊天: ${_friend.displayName}');
+              // TODO: 跳转到聊天页面
+            },
+          ),
+          _buildActionItem(
+            icon: Icons.videocam,
+            label: '视频',
+            color: Colors.green,
+            onTap: () {
+              EasyLoading.showInfo('视频通话开发中');
+            },
+          ),
+          _buildActionItem(
+            icon: Icons.phone,
+            label: '语音',
+            color: Colors.orange,
+            onTap: () {
+              EasyLoading.showInfo('语音通话开发中');
+            },
+          ),
+          _buildActionItem(
+            icon: Icons.share,
+            label: '分享',
+            color: Colors.purple,
+            onTap: () {
+              EasyLoading.showInfo('分享名片开发中');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildActionItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 26),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 详细信息
+  Widget _buildDetailInfo() {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              '详细信息',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          
+          // 用户ID
+          if (_friend.accountId != null && _friend.accountId!.isNotEmpty)
+            _buildInfoRow(
+              icon: Icons.badge_outlined,
+              label: '账号ID',
+              value: _friend.accountId!,
+              canCopy: true,
+            ),
+          
+          // 用户唯一ID
+          _buildInfoRow(
+            icon: Icons.fingerprint,
+            label: '用户ID',
+            value: _friend.id,
+            canCopy: true,
+          ),
+          
+          // 备注
+          _buildInfoRow(
+            icon: Icons.edit_note,
+            label: '备注',
+            value: _friend.remark ?? '未设置',
+            onTap: () => _showSetRemarkDialog(),
+          ),
+          
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool canCopy = false,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap ?? (canCopy ? () => _copyToClipboard(value) : null),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey[500], size: 22),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                ),
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (canCopy) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.copy, color: Colors.grey[400], size: 18),
+            ],
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 更多操作
+  Widget _buildMoreActions() {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              '更多操作',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          
+          _buildMenuItem(
+            icon: Icons.star_outline,
+            iconColor: Colors.amber,
+            label: _isStarred ? '取消星标' : '设为星标好友',
+            onTap: () {
+              setState(() => _isStarred = !_isStarred);
+              EasyLoading.showSuccess(_isStarred ? '已设为星标' : '已取消星标');
+            },
+          ),
+          
+          _buildMenuItem(
+            icon: Icons.notifications_outlined,
+            iconColor: Colors.blue,
+            label: '消息免打扰',
+            trailing: Switch(
+              value: false,
+              onChanged: (value) {
+                EasyLoading.showInfo('消息免打扰设置');
+              },
+              activeColor: Colors.blue,
+            ),
+          ),
+          
+          _buildMenuItem(
+            icon: Icons.block_outlined,
+            iconColor: Colors.orange,
+            label: '加入黑名单',
+            onTap: () => _confirmBlockFriend(),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // 删除好友按钮
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton(
+                onPressed: () => _confirmDeleteFriend(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: const Text(
+                  '删除好友',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildMenuItem({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    VoidCallback? onTap,
+    Widget? trailing,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            if (trailing != null)
+              trailing
+            else if (onTap != null)
+              Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 显示更多选项
+  void _showMoreOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.report_outlined, color: Colors.orange),
+                title: const Text('举报'),
+                onTap: () {
+                  Get.back();
+                  EasyLoading.showInfo('举报功能开发中');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code, color: Colors.blue),
+                title: const Text('分享名片'),
+                onTap: () {
+                  Get.back();
+                  EasyLoading.showInfo('分享名片开发中');
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                title: const Text('取消', textAlign: TextAlign.center),
+                onTap: () => Get.back(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  /// 复制到剪贴板
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    EasyLoading.showSuccess('已复制');
+  }
+  
+  /// 设置备注对话框
+  void _showSetRemarkDialog() {
+    final controller = TextEditingController(text: _friend.remark);
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('设置备注'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '请输入备注名',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // TODO: 调用设置备注接口
+              setState(() {
+                // 更新本地状态
+              });
+              EasyLoading.showSuccess('备注设置成功');
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 确认拉黑好友
+  void _confirmBlockFriend() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('加入黑名单'),
+        content: Text('确定要将「${_friend.displayName}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              EasyLoading.show(status: '处理中...');
+              
+              try {
+                final result = await _nativeService.imBlockContact(userId: _friend.id);
+                
+                if (result['errorCode'] == 0) {
+                  EasyLoading.showSuccess('已加入黑名单');
+                  Get.back(result: true);  // 返回并刷新列表
+                } else {
+                  EasyLoading.showError(result['message'] ?? '操作失败');
+                }
+              } catch (e) {
+                EasyLoading.showError('操作失败');
+              }
+            },
+            child: const Text('确定', style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 确认删除好友
+  void _confirmDeleteFriend() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('删除好友'),
+        content: Text('确定要删除好友「${_friend.displayName}」吗？\n\n删除后，聊天记录将被清空，且需要重新添加才能继续聊天。'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              EasyLoading.show(status: '删除中...');
+              
+              try {
+                final result = await _nativeService.imDeleteContact(userId: _friend.id);
+                
+                if (result['errorCode'] == 0) {
+                  EasyLoading.showSuccess('已删除好友');
+                  Get.back(result: true);  // 返回并刷新列表
+                } else {
+                  EasyLoading.showError(result['message'] ?? '删除失败');
+                }
+              } catch (e) {
+                EasyLoading.showError('删除失败');
+              }
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

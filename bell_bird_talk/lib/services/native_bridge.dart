@@ -454,7 +454,7 @@ class IOSNativeService {
     try {
       final Map<String, dynamic> params = {
         'target_user_id': targetUserId,
-        'target_value': targetValue ?? targetUserId,
+        'target_value': targetPhone ?? targetEmail,
         'channel': channel,
       };
       
@@ -536,6 +536,68 @@ class IOSNativeService {
         'page': page,
         'page_size': pageSize,
       });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  // ---------- 好友申请管理 ----------
+  
+  /// 获取好友申请列表
+  /// @param status 申请状态过滤（0=待处理, 1=已同意, 2=已拒绝, -1=全部）
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 好友申请列表
+  Future<Map<String, dynamic>> imGetFriendRequests({
+    int status = 0,  // 默认获取待处理的
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetFriendRequests', {
+        'status': status,
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 同意好友申请
+  /// @param requestId 申请ID
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imAcceptFriendRequest({
+    required int requestId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imAcceptFriendRequest', {
+        'request_id': requestId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 拒绝好友申请
+  /// @param requestId 申请ID
+  /// @param reason 拒绝原因（可选）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imRejectFriendRequest({
+    required int requestId,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'request_id': requestId,
+      };
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      final result = await _bridge.invokeMethod<Map>('imRejectFriendRequest', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};

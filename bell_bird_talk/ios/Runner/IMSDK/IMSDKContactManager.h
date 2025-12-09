@@ -88,6 +88,35 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 - (int)searchContactWithKeyword:(NSString *)keyword
                      completion:(IMSDKContactCompletion)completion;
 
+// ==================== 好友申请 ====================
+
+/// 获取好友申请列表
+/// @param status 申请状态过滤（0=待处理, 1=已同意, 2=已拒绝, -1=全部）
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getFriendRequestsWithStatus:(int)status
+                              page:(int)page
+                          pageSize:(int)pageSize
+                        completion:(IMSDKContactCompletion)completion;
+
+/// 同意好友申请
+/// @param requestId 申请ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)acceptFriendRequestWithId:(int64_t)requestId
+                      completion:(IMSDKContactCompletion)completion;
+
+/// 拒绝好友申请
+/// @param requestId 申请ID
+/// @param reason 拒绝原因（可选）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)rejectFriendRequestWithId:(int64_t)requestId
+                          reason:(NSString * _Nullable)reason
+                      completion:(IMSDKContactCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

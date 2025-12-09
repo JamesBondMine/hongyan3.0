@@ -4,6 +4,42 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
 
+/// 搜索结果用户模型
+class SearchUserModel {
+  final String id;
+  final String? accountId;
+  final String nickname;
+  final String? avatar;
+  final String? phone;
+  final String? email;
+  final int? gender;
+  final String? signature;
+  
+  SearchUserModel({
+    required this.id,
+    this.accountId,
+    required this.nickname,
+    this.avatar,
+    this.phone,
+    this.email,
+    this.gender,
+    this.signature,
+  });
+  
+  factory SearchUserModel.fromJson(Map<String, dynamic> json) {
+    return SearchUserModel(
+      id: json['user_id'] ?? json['id'] ?? '',
+      accountId: json['account_id'],
+      nickname: json['nickname'] ?? '未知用户',
+      avatar: json['avatar'],
+      phone: json['phone'],
+      email: json['email'],
+      gender: json['gender'] ?? json['sex'],
+      signature: json['signature'],
+    );
+  }
+}
+
 /// 添加好友页面
 class AddFriendPage extends StatefulWidget {
   const AddFriendPage({super.key});
@@ -13,17 +49,28 @@ class AddFriendPage extends StatefulWidget {
 }
 
 class _AddFriendPageState extends State<AddFriendPage> {
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   final IOSNativeService _nativeService = IOSNativeService();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   
+  List<SearchUserModel> _searchResults = [];
   bool _isSearching = false;
-  List<SearchResultItem> _searchResults = [];
-
+  bool _hasSearched = false;
+  String _searchType = 'id';  // id, phone, email
+  
+  @override
+  void initState() {
+    super.initState();
+    // 自动聚焦搜索框
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+  
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -31,409 +78,286 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Future<void> _searchUser() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      EasyLoading.showError('请输入用户ID或手机号/邮箱');
+      EasyLoading.showError('请输入搜索内容');
       return;
     }
-
+    
     setState(() {
       _isSearching = true;
+      _hasSearched = true;
       _searchResults = [];
     });
-
+    
     try {
-      // 判断输入类型：邮箱、手机号还是用户ID
       String? userId;
       String? accountId;
       
-      accountId = query;
-      userId = query;
-      // if (query.contains('@')) {
-      //   // 邮箱作为账户ID
-      //   accountId = query;
-      // } else if (RegExp(r'^\d{11}$').hasMatch(query)) {
-      //   // 11位数字作为手机号（账户ID）
-      //   accountId = query;
-      // } else {
-      //   // 其他作为用户ID
-      //   userId = query;
-      // }
+      // 根据搜索类型设置参数
+      if (_searchType == 'phone' || _searchType == 'email') {
+        accountId = query;
+      } else {
+        // 自动判断搜索类型
+        if (query.contains('@')) {
+          accountId = query;
+          _searchType = 'email';
+        } else if (RegExp(r'^\d{11}$').hasMatch(query)) {
+          accountId = query;
+          _searchType = 'phone';
+        } else {
+          userId = query;
+          _searchType = 'id';
+        }
+      }
       
-      print('🔍 搜索用户: userId=$userId, accountId=$accountId');
+      print('🔍 搜索用户: userId=$userId, accountId=$accountId, type=$_searchType');
       
-      // 调用原生搜索接口
       final result = await _nativeService.imSearchUser(
         userId: userId,
         accountId: accountId,
       );
       
-      print('📬 搜索结果: $result');
+      print('📊 搜索结果: $result');
       
-      final errorCode = result['errorCode'] ?? -1;
-      final message = result['message'] ?? '未知错误';
-      final data = result['data'];
-      
-      if (errorCode == 0 && data != null && data.isNotEmpty) {
-        // 解析返回的用户数据
-        try {
-          final userMap = json.decode(data) as Map<String, dynamic>;
-          
-          final user = SearchResultItem(
-            id: userMap['user_id'] ?? '',
-            nickname: userMap['nickname'] ?? '未知用户',
-            avatar: userMap['avatar'],
-            signature: userMap['signature'],
-            accountId: userMap['account_id'],
-            email: userMap['email'],
-            phone: userMap['phone'],
-          );
-          
-          setState(() {
-            _searchResults = [user];
-          });
-          
-          print('✅ 找到用户: ${user.nickname}');
-          
-          // 显示用户详情弹窗
-          _showUserDetailDialog(user);
-          
-        } catch (e) {
-          print('⚠️ 解析用户数据失败: $e');
-          EasyLoading.showError('解析数据失败');
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr);
+            
+            // 检查是否有用户数据
+            if (data is Map) {
+              // 单个用户
+              if (data['user_id'] != null || data['id'] != null) {
+                setState(() {
+                  _searchResults = [SearchUserModel.fromJson(data.cast<String, dynamic>())];
+                });
+              } else if (data['user'] != null) {
+                final userData = data['user'] as Map<String, dynamic>;
+                setState(() {
+                  _searchResults = [SearchUserModel.fromJson(userData)];
+                });
+              } else if (data['users'] != null) {
+                // 多个用户
+                final users = data['users'] as List;
+                setState(() {
+                  _searchResults = users
+                      .map((u) => SearchUserModel.fromJson(u as Map<String, dynamic>))
+                      .toList();
+                });
+              }
+            } else if (data is List) {
+              setState(() {
+                _searchResults = data
+                    .map((u) => SearchUserModel.fromJson(u as Map<String, dynamic>))
+                    .toList();
+              });
+            }
+          } catch (e) {
+            print('解析搜索结果失败: $e');
+          }
+        }
+        
+        if (_searchResults.isEmpty) {
+          EasyLoading.showInfo('未找到用户');
         }
       } else {
-        setState(() {
-          _searchResults = [];
-        });
-        EasyLoading.showInfo(message);
+        EasyLoading.showError(result['message'] ?? '搜索失败');
       }
     } catch (e) {
-      print('❌ 搜索用户错误: $e');
-      EasyLoading.showError('搜索失败: $e');
+      print('❌ 搜索用户失败: $e');
+      EasyLoading.showError('搜索失败');
     } finally {
-      setState(() {
-        _isSearching = false;
-      });
+      setState(() => _isSearching = false);
     }
   }
-
-  /// 显示用户详情弹窗
-  void _showUserDetailDialog(SearchResultItem user) {
+  
+  /// 发送好友申请
+  Future<void> _sendFriendRequest(SearchUserModel user, String message) async {
+    EasyLoading.show(status: '发送中...');
+    
+    try {
+      // 确定添加渠道
+      int channel = 0;  // 默认用户ID
+      String? targetValue = user.id;
+      
+      if (_searchType == 'phone' && user.phone != null) {
+        channel = 2;  // 手机号
+        targetValue = user.phone;
+      } else if (_searchType == 'email' && user.email != null) {
+        channel = 3;  // 邮箱
+        targetValue = user.email;
+      }
+      
+      final result = await _nativeService.imAddContact(
+        targetUserId: user.id,
+        channel: channel,
+        message: message.isNotEmpty ? message : null,
+        targetValue: targetValue,
+        targetPhone: user.phone,
+        targetEmail: user.email,
+      );
+      
+      print('📊 添加好友结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('申请已发送');
+        Get.back();
+      } else {
+        EasyLoading.showError(result['message'] ?? '发送失败');
+      }
+    } catch (e) {
+      print('❌ 发送好友申请失败: $e');
+      EasyLoading.showError('发送失败');
+    }
+  }
+  
+  /// 显示添加好友对话框
+  void _showAddFriendDialog(SearchUserModel user) {
+    final messageController = TextEditingController(text: '你好，我想加你为好友');
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Container(
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 拖动指示器
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              // 标题
+              Row(
+                children: [
+                  const Text(
+                    '添加好友',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
+              const Divider(),
+              
+              // 用户信息
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.blue[100],
+                    backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
+                        ? NetworkImage(user.avatar!)
+                        : null,
+                    child: (user.avatar == null || user.avatar!.isEmpty)
+                        ? Text(
+                            user.nickname.isNotEmpty
+                                ? user.nickname[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.nickname,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (user.accountId != null && user.accountId!.isNotEmpty)
+                          Text(
+                            'ID: ${user.accountId}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              
               const SizedBox(height: 20),
               
-              // 用户头像
-              CircleAvatar(
-                radius: 45,
-                backgroundColor: Colors.blue[100],
-                backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
-                    ? NetworkImage(user.avatar!)
-                    : null,
-                child: user.avatar == null || user.avatar!.isEmpty
-                    ? Text(
-                        user.nickname.isNotEmpty ? user.nickname[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              
-              // 昵称
-              Text(
-                user.nickname,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+              // 验证消息
+              const Text(
+                '验证消息',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 8),
-              
-              // 签名
-              if (user.signature != null && user.signature!.isNotEmpty)
-                Text(
-                  user.signature!,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                maxLength: 100,
+                decoration: InputDecoration(
+                  hintText: '请输入验证消息',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              
-              const SizedBox(height: 20),
-              
-              // 用户信息卡片
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _buildInfoItem(Icons.fingerprint, '用户ID', user.id),
-                    if (user.accountId != null && user.accountId!.isNotEmpty)
-                      _buildInfoItem(Icons.badge, '账号', user.accountId!),
-                    if (user.phone != null && user.phone!.isNotEmpty)
-                      _buildInfoItem(Icons.phone, '手机号', _maskPhone(user.phone!)),
-                    if (user.email != null && user.email!.isNotEmpty)
-                      _buildInfoItem(Icons.email, '邮箱', _maskEmail(user.email!)),
-                  ],
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
-              // 添加好友按钮
+              // 发送按钮
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                height: 48,
+                child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    _sendFriendRequest(user);
+                    _sendFriendRequest(user, messageController.text.trim());
                   },
-                  icon: const Icon(Icons.person_add),
-                  label: const Text('添加好友', style: TextStyle(fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '发送申请',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
               
-              const SizedBox(height: 12),
-              
-              // 取消按钮
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    '取消',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  /// 构建信息项
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 隐藏手机号中间4位
-  String _maskPhone(String phone) {
-    if (phone.length >= 11) {
-      return '${phone.substring(0, 3)}****${phone.substring(7)}';
-    }
-    return phone;
-  }
-
-  /// 隐藏邮箱
-  String _maskEmail(String email) {
-    final parts = email.split('@');
-    if (parts.length == 2) {
-      final name = parts[0];
-      final domain = parts[1];
-      if (name.length > 2) {
-        return '${name.substring(0, 2)}***@$domain';
-      }
-    }
-    return email;
-  }
-
-  /// 发送好友请求
-  void _sendFriendRequest(SearchResultItem user) {
-    final TextEditingController messageController = TextEditingController();
-    
-    Get.dialog(
-      AlertDialog(
-        title: const Text('发送好友请求'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.blue[100],
-              backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
-                  ? NetworkImage(user.avatar!)
-                  : null,
-              child: user.avatar == null || user.avatar!.isEmpty
-                  ? Text(
-                      user.nickname.isNotEmpty ? user.nickname[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              user.nickname,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (user.accountId != null && user.accountId!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  '账号: ${user.accountId}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: messageController,
-              maxLines: 2,
-              maxLength: 100,
-              decoration: InputDecoration(
-                hintText: '请输入验证消息（选填）',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-            ),
-          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Get.back();
-              await _doAddContact(user, messageController.text.trim());
-            },
-            child: const Text('发送'),
-          ),
-        ],
       ),
     );
-  }
-  
-  /// 执行添加联系人操作
-  Future<void> _doAddContact(SearchResultItem user, String message) async {
-    EasyLoading.show(status: '发送中...');
-    
-    try {
-      // 确定添加渠道
-      int channel = 0; // 默认用户ID
-      String? targetPhone;
-      String? targetEmail;
-      
-      if (user.phone != null && user.phone!.isNotEmpty) {
-        channel = 2; // 手机号
-        targetPhone = user.phone;
-      } else if (user.email != null && user.email!.isNotEmpty) {
-        channel = 3; // 邮箱
-        targetEmail = user.email;
-      }
-      
-      print('👥 发送好友申请: userId=${user.id}, channel=$channel, message=$message');
-      
-      final result = await _nativeService.imAddContact(
-        targetUserId: user.id,
-        channel: channel,
-        message: message.isNotEmpty ? message : null,
-        targetValue: user.id,
-        targetPhone: targetPhone,
-        targetEmail: targetEmail,
-      );
-      
-      print('📬 好友申请结果: $result');
-      
-      final errorCode = result['errorCode'] ?? -1;
-      final resultMessage = result['message'] ?? '未知错误';
-      
-      if (errorCode == 0) {
-        EasyLoading.showSuccess('好友请求已发送');
-        
-        // 解析返回数据
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          try {
-            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
-            final requiresApproval = dataMap['requires_approval'] as bool? ?? true;
-            
-            if (!requiresApproval) {
-              // 不需要对方确认，直接添加成功
-              EasyLoading.showSuccess('添加好友成功');
-            }
-          } catch (e) {
-            print('⚠️ 解析返回数据失败: $e');
-          }
-        }
-      } else {
-        EasyLoading.showError(resultMessage);
-      }
-    } catch (e) {
-      print('❌ 发送好友申请错误: $e');
-      EasyLoading.showError('发送失败: $e');
-    }
   }
 
   @override
@@ -443,368 +367,431 @@ class _AddFriendPageState extends State<AddFriendPage> {
       appBar: AppBar(
         title: const Text('添加好友'),
         centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
       ),
       body: Column(
         children: [
-          // 搜索框
-          _buildSearchBox(),
+          // 搜索区域
+          _buildSearchSection(),
           
-          // 添加方式入口
-          _buildAddMethods(),
+          // 搜索类型选择
+          _buildSearchTypeSelector(),
           
           // 搜索结果
-          if (_searchResults.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '搜索结果',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(child: _buildSearchResults()),
-          ],
+          Expanded(
+            child: _buildSearchResults(),
+          ),
         ],
       ),
     );
   }
-
-  /// 搜索框
-  Widget _buildSearchBox() {
+  
+  /// 搜索区域
+  Widget _buildSearchSection() {
+    return Container(
+      color: Colors.blue,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 16),
+            Icon(Icons.search, color: Colors.grey[400]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                focusNode: _focusNode,
+                decoration: InputDecoration(
+                  hintText: _getSearchHint(),
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  border: InputBorder.none,
+                ),
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _searchUser(),
+              ),
+            ),
+            if (_searchController.text.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.clear, color: Colors.grey[400], size: 20),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() {
+                    _searchResults = [];
+                    _hasSearched = false;
+                  });
+                },
+              ),
+            Container(
+              margin: const EdgeInsets.only(right: 4),
+              child: ElevatedButton(
+                onPressed: _isSearching ? null : _searchUser,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                child: _isSearching
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('搜索'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 获取搜索提示文本
+  String _getSearchHint() {
+    switch (_searchType) {
+      case 'phone':
+        return '输入手机号搜索';
+      case 'email':
+        return '输入邮箱搜索';
+      default:
+        return '输入用户ID、手机号或邮箱';
+    }
+  }
+  
+  /// 搜索类型选择器
+  Widget _buildSearchTypeSelector() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              onSubmitted: (_) => _searchUser(),
-              decoration: InputDecoration(
-                hintText: '输入用户ID / 手机号 / 邮箱',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchResults = [];
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              onChanged: (_) => setState(() {}),
+          const Text(
+            '搜索方式：',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: _isSearching ? null : _searchUser,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            child: _isSearching
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : const Text('搜索'),
-          ),
+          const SizedBox(width: 8),
+          _buildTypeChip('id', '用户ID'),
+          const SizedBox(width: 8),
+          _buildTypeChip('phone', '手机号'),
+          const SizedBox(width: 8),
+          _buildTypeChip('email', '邮箱'),
         ],
       ),
     );
   }
-
-  /// 添加方式入口
-  Widget _buildAddMethods() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              '其他添加方式',
+  
+  /// 搜索类型选项
+  Widget _buildTypeChip(String type, String label) {
+    final isSelected = _searchType == type;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _searchType = type);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  /// 搜索结果区域
+  Widget _buildSearchResults() {
+    if (_isSearching) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    
+    if (!_hasSearched) {
+      return _buildSearchTips();
+    }
+    
+    if (_searchResults.isEmpty) {
+      return _buildNoResults();
+    }
+    
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: _searchResults.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return _buildUserCard(_searchResults[index]);
+      },
+    );
+  }
+  
+  /// 搜索提示
+  Widget _buildSearchTips() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_search,
+              size: 80,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '搜索用户',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '输入用户ID、手机号或邮箱\n即可搜索添加好友',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
+                color: Colors.grey[500],
+                height: 1.5,
               ),
             ),
+            const SizedBox(height: 32),
+            // 快捷入口
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildQuickAction(
+                  icon: Icons.qr_code_scanner,
+                  label: '扫一扫',
+                  onTap: () => EasyLoading.showInfo('扫码功能开发中'),
+                ),
+                const SizedBox(width: 32),
+                _buildQuickAction(
+                  icon: Icons.contact_phone,
+                  label: '通讯录',
+                  onTap: () => EasyLoading.showInfo('通讯录功能开发中'),
+                ),
+                const SizedBox(width: 32),
+                _buildQuickAction(
+                  icon: Icons.group_add,
+                  label: '面对面',
+                  onTap: () => EasyLoading.showInfo('面对面功能开发中'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 快捷操作按钮
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.blue, size: 26),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 无结果视图
+  Widget _buildNoResults() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey[300],
           ),
-          _buildMethodItem(
-            icon: Icons.qr_code_scanner,
-            title: '扫一扫',
-            subtitle: '扫描好友二维码添加',
-            color: Colors.blue,
-            onTap: () => EasyLoading.showInfo('扫一扫功能开发中'),
+          const SizedBox(height: 16),
+          Text(
+            '未找到相关用户',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[500],
+            ),
           ),
-          const Divider(height: 1, indent: 56),
-          _buildMethodItem(
-            icon: Icons.qr_code,
-            title: '我的二维码',
-            subtitle: '让好友扫描添加我',
-            color: Colors.green,
-            onTap: () => _showMyQRCode(),
-          ),
-          const Divider(height: 1, indent: 56),
-          _buildMethodItem(
-            icon: Icons.phone_android,
-            title: '手机联系人',
-            subtitle: '从手机通讯录添加',
-            color: Colors.orange,
-            onTap: () => EasyLoading.showInfo('手机联系人功能开发中'),
-          ),
-          const Divider(height: 1, indent: 56),
-          _buildMethodItem(
-            icon: Icons.share,
-            title: '分享邀请',
-            subtitle: '邀请朋友加入',
-            color: Colors.purple,
-            onTap: () => EasyLoading.showInfo('分享邀请功能开发中'),
+          const SizedBox(height: 8),
+          Text(
+            '请检查输入是否正确',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[400],
+            ),
           ),
         ],
       ),
     );
   }
-
-  /// 方式项
-  Widget _buildMethodItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: color),
+  
+  /// 用户卡片
+  Widget _buildUserCard(SearchUserModel user) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: Colors.grey[500],
-          fontSize: 12,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[400],
-      ),
-      onTap: onTap,
-    );
-  }
-
-  /// 搜索结果列表
-  Widget _buildSearchResults() {
-    return ListView.builder(
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final user = _searchResults[index];
-        return Container(
-          color: Colors.white,
-          margin: const EdgeInsets.only(bottom: 1),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.blue[100],
-              backgroundImage: user.avatar != null
-                  ? NetworkImage(user.avatar!)
-                  : null,
-              child: user.avatar == null
-                  ? Text(
-                      user.nickname[0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showAddFriendDialog(user),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 头像
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.blue[100],
+                  backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
+                      ? NetworkImage(user.avatar!)
+                      : null,
+                  child: (user.avatar == null || user.avatar!.isEmpty)
+                      ? Text(
+                          user.nickname.isNotEmpty
+                              ? user.nickname[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                
+                // 用户信息
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              user.nickname,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (user.gender != null) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              user.gender == 1 ? Icons.male : Icons.female,
+                              size: 16,
+                              color: user.gender == 1 ? Colors.blue : Colors.pink,
+                            ),
+                          ],
+                        ],
                       ),
-                    )
-                  : null,
-            ),
-            title: Text(
-              user.nickname,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
-              ),
-            ),
-            subtitle: user.signature != null
-                ? Text(
-                    user.signature!,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 13,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : null,
-            trailing: ElevatedButton(
-              onPressed: () => _sendFriendRequest(user),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                      const SizedBox(height: 4),
+                      if (user.accountId != null && user.accountId!.isNotEmpty)
+                        Text(
+                          'ID: ${user.accountId}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                      if (user.signature != null && user.signature!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          user.signature!,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              child: const Text('添加'),
+                
+                // 添加按钮
+                ElevatedButton(
+                  onPressed: () => _showAddFriendDialog(user),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: const Text('添加'),
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  /// 显示我的二维码
-  void _showMyQRCode() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
       ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '我的二维码',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.qr_code_2,
-                    size: 150,
-                    color: Colors.grey[800],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '扫一扫上面的二维码添加我为好友',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Get.back();
-                      EasyLoading.showSuccess('二维码已保存');
-                    },
-                    icon: const Icon(Icons.save_alt),
-                    label: const Text('保存'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Get.back();
-                      EasyLoading.showInfo('分享功能开发中');
-                    },
-                    icon: const Icon(Icons.share),
-                    label: const Text('分享'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
     );
   }
 }
-
-/// 搜索结果项模型
-class SearchResultItem {
-  final String id;
-  final String nickname;
-  final String? avatar;
-  final String? signature;
-  final String? accountId;
-  final String? email;
-  final String? phone;
-
-  SearchResultItem({
-    required this.id,
-    required this.nickname,
-    this.avatar,
-    this.signature,
-    this.accountId,
-    this.email,
-    this.phone,
-  });
-}
-

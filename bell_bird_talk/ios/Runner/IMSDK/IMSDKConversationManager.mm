@@ -352,7 +352,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     for (NSUInteger i = 0; i < serializedData.length; i++) {
         [hexString appendFormat:@"%02x", bytes[i]];
     }
-    NSLog(@"📤 创建会话数据(hex): %@", hexString);
+    NSLog(@"\n📤 创建会话\n targetId: %@", conv.targetId);
     
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;

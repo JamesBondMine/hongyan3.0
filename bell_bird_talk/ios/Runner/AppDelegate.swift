@@ -191,6 +191,14 @@ class NativeBridgeHandler: NSObject {
         case "imGetContactList":
             imGetContactList(call: call, result: result)
         
+        // ---------- 好友申请 ----------
+        case "imGetFriendRequests":
+            imGetFriendRequests(call: call, result: result)
+        case "imAcceptFriendRequest":
+            imAcceptFriendRequest(call: call, result: result)
+        case "imRejectFriendRequest":
+            imRejectFriendRequest(call: call, result: result)
+        
         // ---------- 会话管理 ----------
         case "imGetConversationList":
             imGetConversationList(call: call, result: result)
@@ -1105,6 +1113,94 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CONTACT_LIST_ERROR",
                               message: "获取联系人列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 好友申请
+    
+    /// 获取好友申请列表
+    private func imGetFriendRequests(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        
+        let status = args["status"] as? Int ?? 0
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 20
+        
+        print("📋 获取好友申请列表: status=\(status), page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKContactManager.shared().getFriendRequests(withStatus: Int32(status), page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("✅ 好友申请列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_FRIEND_REQUESTS_ERROR",
+                              message: "获取好友申请列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 同意好友申请
+    private func imAcceptFriendRequest(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let requestId = args["request_id"] as? Int else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("✅ 同意好友申请: requestId=\(requestId)")
+        
+        let code = IMSDKContactManager.shared().acceptFriendRequest(withId: Int64(requestId)) { errorCode, reqId, data in
+            print("✅ 同意申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "已同意" : "操作失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "ACCEPT_REQUEST_ERROR",
+                              message: "同意好友申请请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 拒绝好友申请
+    private func imRejectFriendRequest(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let requestId = args["request_id"] as? Int else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("❌ 拒绝好友申请: requestId=\(requestId), reason=\(reason ?? "")")
+        
+        let code = IMSDKContactManager.shared().rejectFriendRequest(withId: Int64(requestId), reason: reason) { errorCode, reqId, data in
+            print("✅ 拒绝申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "已拒绝" : "操作失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "REJECT_REQUEST_ERROR",
+                              message: "拒绝好友申请请求发送失败: \(code)",
                               details: nil))
         }
     }
