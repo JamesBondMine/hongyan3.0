@@ -610,6 +610,27 @@ class IOSNativeService {
     }
   }
   
+  // ---------- 联系人分组 ----------
+  
+  /// 获取联系人分组列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 分组列表
+  Future<Map<String, dynamic>> imGetContactGroups({
+    int page = 1,
+    int pageSize = 100,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetContactGroups', {
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   // ---------- 会话管理 ----------
   
   /// 获取会话列表

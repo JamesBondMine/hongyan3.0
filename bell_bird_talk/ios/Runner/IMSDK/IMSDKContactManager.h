@@ -119,6 +119,17 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
                           reason:(NSString * _Nullable)reason
                       completion:(IMSDKContactCompletion)completion;
 
+// ==================== 联系人分组 ====================
+
+/// 获取联系人分组列表
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getContactGroupsWithPage:(int)page
+                       pageSize:(int)pageSize
+                     completion:(IMSDKContactCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

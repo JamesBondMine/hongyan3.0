@@ -747,5 +747,112 @@ static void FriendRequestCallback(int errorCode, const char* data, int dataLen, 
     return reject_friend_request(AddContactCallback, data, dataLen, reqId);
 }
 
+// ==================== 联系人分组 ====================
+
+// 分组列表回调
+static void ContactGroupsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 联系人分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSString *jsonString = nil;
+    if (data && dataLen > 0) {
+        NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+        
+        // 尝试解析为 GroupList
+        NSError *error = nil;
+        GroupList *groupList = [GroupList parseFromData:responseData error:&error];
+        if (!error && groupList) {
+            NSMutableDictionary *result = [NSMutableDictionary dictionary];
+            result[@"total_count"] = @(groupList.totalCount);
+            
+            NSMutableArray *groupsArray = [NSMutableArray array];
+            for (ContactGroup *group in groupList.groupsArray) {
+                NSMutableDictionary *groupDict = [NSMutableDictionary dictionary];
+                groupDict[@"group_id"] = @(group.groupId);
+                groupDict[@"group_name"] = group.groupName ?: @"";
+                groupDict[@"group_color"] = group.groupColor ?: @"";
+                groupDict[@"group_order"] = @(group.groupOrder);
+                groupDict[@"group_icon"] = group.groupIcon ?: @"";
+                groupDict[@"group_description"] = group.groupDescription ?: @"";
+                groupDict[@"contact_count"] = @(group.contactCount);
+                groupDict[@"create_time"] = @(group.createTime);
+                groupDict[@"update_time"] = @(group.updateTime);
+                [groupsArray addObject:groupDict];
+            }
+            result[@"groups"] = groupsArray;
+            
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
+            jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            NSLog(@"✅ 解析联系人分组成功: %lu 个分组", (unsigned long)groupsArray.count);
+        } else {
+            // 尝试直接作为字符串
+            jsonString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (!jsonString) {
+                jsonString = @"{}";
+            }
+        }
+    }
+    
+    IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
+    IMSDKContactCompletion completion = manager.contactCallbacks[@(reqId)];
+    if (completion) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(errorCode, reqId, jsonString);
+        });
+        [manager.contactCallbacks removeObjectForKey:@(reqId)];
+    }
+}
+
+- (int)getContactGroupsWithPage:(int)page
+                       pageSize:(int)pageSize
+                     completion:(IMSDKContactCompletion)completion {
+    NSLog(@"📁 获取联系人分组列表: page=%d, pageSize=%d", page, pageSize);
+    
+    // 构建查询请求
+    GroupQuery *query = [[GroupQuery alloc] init];
+    query.page = page;
+    query.pageSize = pageSize;
+    
+    NSData *protoBody = [query data];
+    if (!protoBody || protoBody.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    // 打印 hex 数据
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)protoBody.bytes;
+    for (NSUInteger i = 0; i < protoBody.length; i++) {
+        [hexString appendFormat:@"%02x", bytes[i]];
+    }
+    NSLog(@"📤 分组查询数据(hex): %@", hexString);
+    
+    const char *data = (const char *)protoBody.bytes;
+    int dataLen = (int)protoBody.length;
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 15000;
+        NSNumber *tempKey = @(tempId++);
+        self.contactCallbacks[tempKey] = completion;
+        
+        int result = list_contact_groups(ContactGroupsCallback, data, dataLen, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 获取分组列表请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.contactCallbacks[@(reqId)] = completion;
+                [self.contactCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 获取分组列表请求失败: %d", result);
+            [self.contactCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return list_contact_groups(ContactGroupsCallback, data, dataLen, reqId);
+}
+
 @end
 

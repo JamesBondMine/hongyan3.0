@@ -198,6 +198,8 @@ class NativeBridgeHandler: NSObject {
             imAcceptFriendRequest(call: call, result: result)
         case "imRejectFriendRequest":
             imRejectFriendRequest(call: call, result: result)
+        case "imGetContactGroups":
+            imGetContactGroups(call: call, result: result)
         
         // ---------- 会话管理 ----------
         case "imGetConversationList":
@@ -1202,6 +1204,33 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "REJECT_REQUEST_ERROR",
                               message: "拒绝好友申请请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取联系人分组列表
+    private func imGetContactGroups(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 100
+        
+        print("📁 获取联系人分组列表: page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKContactManager.shared().getContactGroups(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("✅ 联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_CONTACT_GROUPS_ERROR",
+                              message: "获取联系人分组列表请求发送失败: \(code)",
                               details: nil))
         }
     }

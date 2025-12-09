@@ -52,13 +52,35 @@ class FriendGroup {
   final String name;
   final bool isDefault;  // 是否是默认分组（不可删除）
   int count;  // 分组内好友数量
+  final String? color;  // 分组颜色
+  final int order;  // 排序顺序
+  final String? icon;  // 分组图标
+  final String? description;  // 分组描述
   
   FriendGroup({
     required this.id,
     required this.name,
     this.isDefault = false,
     this.count = 0,
+    this.color,
+    this.order = 0,
+    this.icon,
+    this.description,
   });
+  
+  /// 从 JSON 构造
+  factory FriendGroup.fromJson(Map<String, dynamic> json) {
+    return FriendGroup(
+      id: json['group_id']?.toString() ?? '',
+      name: json['group_name'] ?? '未命名分组',
+      count: json['contact_count'] ?? 0,
+      color: json['group_color'],
+      order: json['group_order'] ?? 0,
+      icon: json['group_icon'],
+      description: json['group_description'],
+      isDefault: false,
+    );
+  }
 }
 
 /// 好友申请模型
@@ -153,6 +175,7 @@ class _FriendsPageState extends State<FriendsPage> {
   void initState() {
     super.initState();
     _loadFriendRequests();  // 先加载好友申请
+    _loadContactGroups();   // 加载联系人分组
     _loadFriends();
   }
 
@@ -195,6 +218,58 @@ class _FriendsPageState extends State<FriendsPage> {
       print('❌ 获取好友申请失败: $e');
     } finally {
       setState(() => _isLoadingRequests = false);
+    }
+  }
+
+  /// 加载联系人分组列表
+  Future<void> _loadContactGroups() async {
+    try {
+      final result = await _nativeService.imGetContactGroups(
+        page: 1,
+        pageSize: 100,
+      );
+      
+      print('📁 联系人分组列表结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          final data = json.decode(dataStr);
+          final groupsJson = data['groups'] as List? ?? [];
+          
+          setState(() {
+            // 保留默认分组
+            final defaultGroups = _groups.where((g) => g.isDefault).toList();
+            _groups.clear();
+            _groups.addAll(defaultGroups);
+            
+            // 更新"全部"分组的数量
+            if (_friends.isNotEmpty) {
+              final allGroup = _groups.firstWhere((g) => g.id == 'all', orElse: () => _groups.first);
+              allGroup.count = _friends.length;
+            }
+            
+            // 添加服务器返回的分组
+            for (var json in groupsJson) {
+              final group = FriendGroup.fromJson(json);
+              // 避免重复添加
+              if (!_groups.any((g) => g.id == group.id)) {
+                _groups.add(group);
+              }
+            }
+            
+            // 按 order 排序（默认分组除外）
+            final nonDefaultGroups = _groups.where((g) => !g.isDefault).toList();
+            nonDefaultGroups.sort((a, b) => a.order.compareTo(b.order));
+            _groups.removeWhere((g) => !g.isDefault);
+            _groups.addAll(nonDefaultGroups);
+          });
+          
+          print('✅ 加载了 ${groupsJson.length} 个自定义分组');
+        }
+      }
+    } catch (e) {
+      print('❌ 获取联系人分组失败: $e');
     }
   }
 
@@ -552,7 +627,6 @@ class _FriendsPageState extends State<FriendsPage> {
     );
   }
 
-  /// 好友数量统计
   /// 好友分组标签栏
   Widget _buildGroupTabs() {
     return Container(
