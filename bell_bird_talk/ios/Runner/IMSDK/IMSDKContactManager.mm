@@ -24,6 +24,12 @@
 static void AddContactCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📬 添加联系人回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
+    // ⚠️ 重要：在异步分发之前拷贝数据！
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
         NSNumber *key = @(reqId);
@@ -32,9 +38,8 @@ static void AddContactCallback(int errorCode, const char* data, int dataLen, uin
         if (completion) {
             NSString *dataStr = nil;
             
-            if (errorCode == 0 && data && dataLen > 0) {
+            if (errorCode == 0 && responseData && responseData.length > 0) {
                 // 尝试解析为 ContactAddResult Protobuf
-                NSData *responseData = [NSData dataWithBytes:data length:dataLen];
                 NSError *parseError = nil;
                 ContactAddResult *result = [ContactAddResult parseFromData:responseData error:&parseError];
                 
@@ -56,7 +61,7 @@ static void AddContactCallback(int errorCode, const char* data, int dataLen, uin
                     NSLog(@"✅ 添加联系人响应解析成功: %@", dataStr);
                 } else {
                     // 尝试直接作为 JSON 解析
-                    dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                     NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
                 }
             }
@@ -71,6 +76,12 @@ static void AddContactCallback(int errorCode, const char* data, int dataLen, uin
 static void DeleteContactCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🗑️ 删除联系人回调: errorCode=%d, reqId=%llu", errorCode, reqId);
     
+    // ⚠️ 重要：在异步分发之前拷贝数据！
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
         NSNumber *key = @(reqId);
@@ -78,8 +89,8 @@ static void DeleteContactCallback(int errorCode, const char* data, int dataLen, 
         
         if (completion) {
             NSString *dataStr = nil;
-            if (data && dataLen > 0) {
-                dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             }
             completion(errorCode, reqId, dataStr);
             [manager.contactCallbacks removeObjectForKey:key];
@@ -91,6 +102,12 @@ static void DeleteContactCallback(int errorCode, const char* data, int dataLen, 
 static void BlockContactCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🚫 拉黑联系人回调: errorCode=%d, reqId=%llu", errorCode, reqId);
     
+    // ⚠️ 重要：在异步分发之前拷贝数据！
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
         NSNumber *key = @(reqId);
@@ -98,8 +115,8 @@ static void BlockContactCallback(int errorCode, const char* data, int dataLen, u
         
         if (completion) {
             NSString *dataStr = nil;
-            if (data && dataLen > 0) {
-                dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             }
             completion(errorCode, reqId, dataStr);
             [manager.contactCallbacks removeObjectForKey:key];
@@ -111,6 +128,14 @@ static void BlockContactCallback(int errorCode, const char* data, int dataLen, u
 static void ContactListCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📋 联系人列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
+    // ⚠️ 重要：在异步分发之前拷贝数据！
+    // data 指针在回调返回后可能被 SDK 释放，必须立即拷贝
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+        NSLog(@"📦 已拷贝数据: %lu 字节", (unsigned long)responseData.length);
+    }
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
         NSNumber *key = @(reqId);
@@ -119,9 +144,8 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         if (completion) {
             NSString *dataStr = nil;
             
-            if (errorCode == 0 && data && dataLen > 0) {
+            if (errorCode == 0 && responseData && responseData.length > 0) {
                 // 尝试解析为 ContactList Protobuf
-                NSData *responseData = [NSData dataWithBytes:data length:dataLen];
                 NSError *parseError = nil;
                 ContactList *result = [ContactList parseFromData:responseData error:&parseError];
                 
@@ -152,7 +176,9 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
                     }
                     NSLog(@"✅ 联系人列表解析成功: %lu 个联系人", (unsigned long)result.contactsArray_Count);
                 } else {
-                    dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+                    NSLog(@"⚠️ Protobuf 解析失败: %@", parseError);
+                    // 返回空数据
+                    dataStr = @"{\"contacts\":[],\"total_count\":0,\"page\":1,\"page_size\":20}";
                 }
             }
             
