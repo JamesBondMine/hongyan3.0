@@ -215,6 +215,10 @@ class NativeBridgeHandler: NSObject {
         case "imClearConversationMessages":
             imClearConversationMessages(call: call, result: result)
         
+        // ---------- 消息管理 ----------
+        case "imSendTextMessage":
+            imSendTextMessage(call: call, result: result)
+        
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
@@ -1412,6 +1416,45 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "CLEAR_MESSAGES_ERROR",
                               message: "清空消息请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 消息管理
+    
+    /// 发送文本消息
+    private func imSendTextMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let content = args["content"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let receiverId = args["receiver_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let ext = args["ext"] as? String
+        
+        print("📤 发送文本消息: content=\(content), conversationId=\(conversationId), receiverId=\(receiverId)")
+        
+        let code = IMSDKMessageManager.shared().sendTextMessage(
+            content,
+            ext: ext,
+            conversationId: conversationId,
+            receiverId: receiverId
+        ) { errorCode, reqId, data in
+            print("✅ 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_MESSAGE_ERROR",
+                              message: "发送消息请求失败: \(code)",
                               details: nil))
         }
     }

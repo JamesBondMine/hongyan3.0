@@ -744,5 +744,34 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+  
+  // ==================== 消息管理 ====================
+  
+  /// 发送文本消息
+  /// @param content 文本内容
+  /// @param conversationId 会话ID
+  /// @param receiverId 接收者ID
+  /// @param ext 扩展字段（可选）
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendTextMessage({
+    required String content,
+    required String conversationId,
+    required String receiverId,
+    String? ext,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'content': content,
+        'conversation_id': conversationId,
+        'receiver_id': receiverId,
+      };
+      if (ext != null) params['ext'] = ext;
+      
+      final result = await _bridge.invokeMethod<Map>('imSendTextMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 

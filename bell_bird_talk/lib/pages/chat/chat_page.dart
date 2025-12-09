@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../../services/native_bridge.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -20,12 +22,14 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  final IOSNativeService _nativeService = IOSNativeService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -52,22 +56,87 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 发送消息
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isSending) return;
     
-    // TODO: 调用 SDK 发送消息
     setState(() {
-      _messages.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'content': text,
-        'isMine': true,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      });
+      _isSending = true;
     });
     
+    // 先添加到本地列表（显示发送中状态）
+    final localMsgId = DateTime.now().millisecondsSinceEpoch.toString();
+    final newMessage = {
+      'id': localMsgId,
+      'content': text,
+      'isMine': true,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'status': 'sending', // sending, sent, failed
+    };
+    
+    setState(() {
+      _messages.add(newMessage);
+    });
     _messageController.clear();
     _scrollToBottom();
+    
+    try {
+      // 调用 SDK 发送消息
+      final result = await _nativeService.imSendTextMessage(
+        content: text,
+        conversationId: widget.convId,
+        receiverId: widget.targetUserId,
+      );
+      
+      print('📤 发送消息结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        // 发送成功，更新消息状态
+        setState(() {
+          final index = _messages.indexWhere((m) => m['id'] == localMsgId);
+          if (index != -1) {
+            _messages[index]['status'] = 'sent';
+            // 更新服务器返回的消息ID
+            if (result['data'] != null) {
+              try {
+                final data = result['data'] is String 
+                    ? (result['data'] as String).isNotEmpty 
+                        ? result['data'] 
+                        : null
+                    : result['data'];
+                if (data != null) {
+                  // 可以解析服务器返回的消息ID等信息
+                }
+              } catch (e) {
+                print('解析发送结果失败: $e');
+              }
+            }
+          }
+        });
+      } else {
+        // 发送失败
+        setState(() {
+          final index = _messages.indexWhere((m) => m['id'] == localMsgId);
+          if (index != -1) {
+            _messages[index]['status'] = 'failed';
+          }
+        });
+        EasyLoading.showError('发送失败: ${result['message']}');
+      }
+    } catch (e) {
+      print('发送消息异常: $e');
+      setState(() {
+        final index = _messages.indexWhere((m) => m['id'] == localMsgId);
+        if (index != -1) {
+          _messages[index]['status'] = 'failed';
+        }
+      });
+      EasyLoading.showError('发送失败');
+    } finally {
+      setState(() {
+        _isSending = false;
+      });
+    }
   }
 
   void _scrollToBottom() {
@@ -181,12 +250,13 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageItem(Map<String, dynamic> message) {
     final isMine = message['isMine'] as bool? ?? false;
     final content = message['content'] as String? ?? '';
+    final status = message['status'] as String? ?? 'sent';
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMine) ...[
             // 对方头像
@@ -207,6 +277,12 @@ class _ChatPageState extends State<ChatPage> {
                   : null,
             ),
             const SizedBox(width: 8),
+          ],
+          
+          // 发送状态（我的消息显示在左侧）
+          if (isMine) ...[
+            _buildMessageStatus(status),
+            const SizedBox(width: 4),
           ],
           
           // 消息气泡
@@ -258,6 +334,40 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  /// 构建消息状态指示器
+  Widget _buildMessageStatus(String status) {
+    switch (status) {
+      case 'sending':
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+          ),
+        );
+      case 'failed':
+        return GestureDetector(
+          onTap: () {
+            // TODO: 重新发送
+            EasyLoading.showInfo('重发功能开发中');
+          },
+          child: Icon(
+            Icons.error_outline,
+            size: 16,
+            color: Colors.red[400],
+          ),
+        );
+      case 'sent':
+      default:
+        return Icon(
+          Icons.done,
+          size: 14,
+          color: Colors.grey[400],
+        );
+    }
   }
 
   Widget _buildInputBar() {
