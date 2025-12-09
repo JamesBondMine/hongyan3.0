@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
+import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
+import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
 
 /// 会话模型
@@ -335,7 +338,39 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 构建普通 AppBar
   PreferredSizeWidget _buildNormalAppBar() {
+    final globalController = Get.find<GlobalController>();
+    final user = globalController.currentUser.value;
+    final avatar = user?.avatar;
+    final nickname = user?.nickname ?? '我';
+    
     return AppBar(
+      leadingWidth: 56,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: GestureDetector(
+          onTap: () {
+            // 点击头像打开侧边栏菜单
+            showSideMenu(context);
+          },
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.white.withOpacity(0.3),
+            backgroundImage: avatar != null && avatar.isNotEmpty
+                ? NetworkImage(avatar)
+                : null,
+            child: avatar == null || avatar.isEmpty
+                ? Text(
+                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ),
       title: const Text('聊天'),
       backgroundColor: Colors.blue,
       foregroundColor: Colors.white,
