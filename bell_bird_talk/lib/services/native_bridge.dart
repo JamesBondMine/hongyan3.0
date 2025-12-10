@@ -778,6 +778,25 @@ class IOSNativeService {
     }
   }
   
+  /// 设置联系人备注
+  /// @param userId 联系人用户ID
+  /// @param remark 备注名称
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imSetContactRemark({
+    required String userId,
+    required String remark,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSetContactRemark', {
+        'user_id': userId,
+        'remark': remark,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   // ---------- 会话管理 ----------
   
   /// 获取会话列表
@@ -947,6 +966,60 @@ class IOSNativeService {
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};
     }
+  }
+  
+  // ---------- 消息监听 ----------
+  
+  /// 消息接收回调
+  Function(Map<String, dynamic> message)? onMessageReceived;
+  
+  /// 注册消息回调（单聊、群聊、社区）
+  /// 在进入首页时调用，注册后可接收被动推送的消息
+  Future<Map<String, dynamic>> imRegisterMessageCallbacks() async {
+    try {
+      // 设置方法处理器来接收 Native 推送的消息
+      _setupMethodCallHandler();
+      
+      final result = await _bridge.invokeMethod<Map>('imRegisterMessageCallbacks');
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 取消注册消息回调
+  Future<Map<String, dynamic>> imUnregisterMessageCallbacks() async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imUnregisterMessageCallbacks');
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  bool _isMethodCallHandlerSetup = false;
+  
+  /// 设置方法调用处理器（接收 Native 推送的消息）
+  void _setupMethodCallHandler() {
+    if (_isMethodCallHandlerSetup) return;
+    
+    const channel = MethodChannel('com.bell_bird_talk/native_bridge');
+    channel.setMethodCallHandler((call) async {
+      if (call.method == 'onMessageReceived') {
+        final data = call.arguments as Map<dynamic, dynamic>?;
+        if (data != null) {
+          final message = data.cast<String, dynamic>();
+          print('📨 Flutter 收到消息: $message');
+          
+          // 触发回调
+          onMessageReceived?.call(message);
+        }
+      }
+      return null;
+    });
+    
+    _isMethodCallHandlerSetup = true;
+    print('✅ 消息监听器已设置');
   }
   
   // ---------- 文件管理 ----------

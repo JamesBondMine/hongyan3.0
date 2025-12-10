@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -6,47 +7,9 @@ import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
+import 'chat_search_page.dart';
 
-/// 会话模型
-class ConversationModel {
-  final String convId;
-  final String displayName;
-  final String? avatar;
-  final String? lastMessage;
-  final DateTime? lastMessageTime;
-  final int unreadCount;
-  final int convType; // 0=单聊, 2=群聊, 3=系统, 4=社区
-  final String? targetId;
-  final bool isOnline;
 
-  ConversationModel({
-    required this.convId,
-    required this.displayName,
-    this.avatar,
-    this.lastMessage,
-    this.lastMessageTime,
-    this.unreadCount = 0,
-    this.convType = 0,
-    this.targetId,
-    this.isOnline = false,
-  });
-
-  factory ConversationModel.fromJson(Map<String, dynamic> json) {
-    return ConversationModel(
-      convId: json['conv_id'] ?? '',
-      displayName: json['display_name'] ?? '未知会话',
-      avatar: json['avatar_url'],
-      lastMessage: json['last_message'],
-      lastMessageTime: json['updated_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
-          : null,
-      unreadCount: json['unread_count'] as int? ?? 0,
-      convType: json['conv_type'] as int? ?? 0,
-      targetId: json['target_id'],
-      isOnline: (json['online_status'] as int? ?? 0) == 1,
-    );
-  }
-}
 
 /// 聊天列表页面
 class ChatListPage extends StatefulWidget {
@@ -186,7 +149,43 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 刷新会话列表
   Future<void> _refreshConversations() async {
-    await _loadConversations();
+    // 重置分页
+    _currentPage = 1;
+    _hasMore = true;
+    
+    try {
+      final result = await _nativeService.imGetConversationList(
+        page: 1,
+        pageSize: 20,
+      );
+
+      if (result['errorCode'] == 0) {
+        final data = result['data'];
+        if (data != null && data is String && data.isNotEmpty) {
+          try {
+            final dataMap = json.decode(data) as Map<String, dynamic>;
+            final conversations = dataMap['conversations'] as List<dynamic>?;
+            if (conversations != null) {
+              _conversations = conversations
+                  .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+                  .toList();
+              _hasMore = conversations.length >= 20;
+            }
+          } catch (e) {
+            print('解析会话列表失败: $e');
+          }
+        }
+        _filterConversations();
+        
+        // 刷新成功提示
+        EasyLoading.showSuccess('刷新成功', duration: const Duration(seconds: 1));
+      } else {
+        EasyLoading.showError('刷新失败');
+      }
+    } catch (e) {
+      print('刷新会话列表错误: $e');
+      EasyLoading.showError('刷新失败');
+    }
   }
 
   /// 过滤会话
@@ -378,11 +377,7 @@ class _ChatListPageState extends State<ChatListPage> {
       actions: [
         IconButton(
           icon: const Icon(Icons.search),
-          onPressed: () {
-            setState(() {
-              _isSearchMode = true;
-            });
-          },
+          onPressed: _openSearchPage,
         ),
         IconButton(
           icon: const Icon(Icons.add),
@@ -443,10 +438,15 @@ class _ChatListPageState extends State<ChatListPage> {
     // 使用 RefreshIndicator 包裹整个内容，支持空状态下拉刷新
     return RefreshIndicator(
       onRefresh: _refreshConversations,
+      color: Colors.blue,
+      backgroundColor: Colors.white,
+      displacement: 40,
+      strokeWidth: 2.5,
       child: _filteredConversations.isEmpty
           ? _buildEmptyViewScrollable()
           : ListView.builder(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(), // 确保始终可以下拉
               itemCount: _filteredConversations.length + (_hasMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _filteredConversations.length) {
@@ -788,6 +788,11 @@ class _ChatListPageState extends State<ChatListPage> {
         ),
       ),
     );
+  }
+
+  /// 打开搜索页面
+  void _openSearchPage() {
+    Get.to(() => ChatSearchPage(conversations: _conversations));
   }
 
   /// 显示新建聊天选项

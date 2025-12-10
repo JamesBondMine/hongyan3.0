@@ -10,6 +10,41 @@
 #import "MessagePb.pbobjc.h"
 #import "ConvPb.pbobjc.h"
 
+// ==================== 私有方法前向声明 ====================
+
+@interface IMSDKMessageManager ()
+/// 处理收到的消息（内部方法）
+- (void)handleReceivedMessageWithData:(const char *)data
+                               length:(int)dataLen
+                             convType:(IMMessageConvType)convType;
+@end
+
+// ==================== 全局消息回调（被动接收） ====================
+
+/// 单聊消息回调
+static void SingleMessageCallback(const char* data, int dataLen) {
+    NSLog(@"📨 收到单聊消息: dataLen=%d", dataLen);
+    [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
+                                                                length:dataLen
+                                                              convType:IMMessageConvTypeSingle];
+}
+
+/// 群聊消息回调
+static void GroupMessageCallback(const char* data, int dataLen) {
+    NSLog(@"📨 收到群聊消息: dataLen=%d", dataLen);
+    [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
+                                                                length:dataLen
+                                                              convType:IMMessageConvTypeGroup];
+}
+
+/// 社区消息回调
+static void CommunityMessageCallback(const char* data, int dataLen) {
+    NSLog(@"📨 收到社区消息: dataLen=%d", dataLen);
+    [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
+                                                                length:dataLen
+                                                              convType:IMMessageConvTypeCommunity];
+}
+
 // ==================== 回调函数 ====================
 
 /// 发送消息回调
@@ -179,6 +214,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
 
 @implementation IMSDKMessageManager {
     NSMutableDictionary<NSNumber *, IMSDKMessageCompletion> *_callbacks;
+    BOOL _isCallbacksRegistered;
 }
 
 + (instancetype)sharedManager {
@@ -194,8 +230,147 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     self = [super init];
     if (self) {
         _callbacks = [NSMutableDictionary dictionary];
+        _isCallbacksRegistered = NO;
     }
     return self;
+}
+
+// ==================== 消息监听注册 ====================
+
+- (void)registerMessageCallbacks {
+    if (_isCallbacksRegistered) {
+        NSLog(@"⚠️ 消息回调已注册，跳过重复注册");
+        return;
+    }
+    
+    NSLog(@"📝 注册消息回调: 单聊、群聊、社区");
+    
+    // 注册单聊消息回调
+    register_single_message_callback(SingleMessageCallback);
+    
+    // 注册群聊消息回调
+    register_group_message_callback(GroupMessageCallback);
+    
+    // 注册社区消息回调
+    register_community_message_callback(CommunityMessageCallback);
+    
+    _isCallbacksRegistered = YES;
+    NSLog(@"✅ 消息回调注册完成");
+}
+
+- (void)unregisterMessageCallbacks {
+    if (!_isCallbacksRegistered) {
+        return;
+    }
+    
+    NSLog(@"📝 取消注册消息回调");
+    
+    // 注销回调（传 NULL）
+    register_single_message_callback(NULL);
+    register_group_message_callback(NULL);
+    register_community_message_callback(NULL);
+    
+    _isCallbacksRegistered = NO;
+    NSLog(@"✅ 消息回调取消注册完成");
+}
+
+// ==================== 消息处理 ====================
+
+- (void)handleReceivedMessageWithData:(const char *)data
+                               length:(int)dataLen
+                             convType:(IMMessageConvType)convType {
+    // 在异步分发之前拷贝数据
+    NSData *messageData = nil;
+    if (data && dataLen > 0) {
+        messageData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    if (!messageData || messageData.length == 0) {
+        NSLog(@"⚠️ 收到空消息数据");
+        return;
+    }
+    
+    // 打印 HEX 调试
+    NSMutableString *hexStr = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)messageData.bytes;
+    for (NSUInteger i = 0; i < MIN(messageData.length, 100); i++) {
+        [hexStr appendFormat:@"%02x ", bytes[i]];
+    }
+    NSLog(@"📦 消息数据 HEX (前100字节): %@", hexStr);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // 解析消息
+        NSError *parseError = nil;
+        ImMessage *msg = [ImMessage parseFromData:messageData error:&parseError];
+        
+        if (!msg || parseError) {
+            NSLog(@"❌ 消息解析失败: %@", parseError);
+            return;
+        }
+        
+        // 构建消息字典
+        NSMutableDictionary *msgDict = [NSMutableDictionary dictionary];
+        
+        // 消息元数据
+        if (msg.hasMetadata) {
+            msgDict[@"msg_id"] = msg.metadata.msgId ?: @"";
+            msgDict[@"server_msg_id"] = msg.metadata.serverMsgId ?: @"";
+            msgDict[@"from"] = msg.metadata.from ?: @"";
+            msgDict[@"to"] = msg.metadata.to ?: @"";
+            msgDict[@"nick"] = msg.metadata.nick ?: @"";
+            msgDict[@"send_time"] = @(msg.metadata.sendTime);
+            msgDict[@"receive_time"] = @(msg.metadata.receiveTime);
+        }
+        
+        msgDict[@"conversation_id"] = msg.conversationId ?: @"";
+        msgDict[@"conversation_seq"] = @(msg.conversationSeq);
+        msgDict[@"server_seq"] = @(msg.serverSeq);
+        msgDict[@"m_type"] = @(msg.mType);
+        msgDict[@"conversation_type"] = @(convType);
+        msgDict[@"store_time"] = @(msg.storeTime);
+        
+        // 根据消息类型解析内容
+        if (msg.mType == ImMessage_MessageType_Text && msg.textMessage) {
+            msgDict[@"content"] = msg.textMessage.content ?: @"";
+            msgDict[@"ext"] = msg.textMessage.ext ?: @"";
+        } else if (msg.mType == ImMessage_MessageType_Image && msg.imageMessage) {
+            msgDict[@"content"] = @"[图片]";
+            msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";
+            msgDict[@"thumbnail_url"] = msg.imageMessage.thumbnailURL ?: @"";
+        } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
+            msgDict[@"content"] = @"[语音]";
+            msgDict[@"voice_url"] = msg.voiceMessage.audioURL ?: @"";
+            msgDict[@"duration"] = @(msg.voiceMessage.duration);
+        } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
+            msgDict[@"content"] = @"[视频]";
+            msgDict[@"video_url"] = msg.videoMessage.videoURL ?: @"";
+            msgDict[@"thumbnail_url"] = msg.videoMessage.coverURL ?: @"";
+        } else if (msg.mType == ImMessage_MessageType_File && msg.fileMessage) {
+            msgDict[@"content"] = @"[文件]";
+            msgDict[@"file_url"] = msg.fileMessage.fileURL ?: @"";
+            msgDict[@"file_name"] = msg.fileMessage.name ?: @"";
+        } else if (msg.mType == ImMessage_MessageType_Location && msg.locationMessage) {
+            msgDict[@"content"] = @"[位置]";
+            msgDict[@"latitude"] = @(msg.locationMessage.latitude);
+            msgDict[@"longitude"] = @(msg.locationMessage.longitude);
+            msgDict[@"address"] = msg.locationMessage.name ?: @"";
+        } else {
+            msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
+        }
+        
+        NSString *convTypeStr = @"未知";
+        switch (convType) {
+            case IMMessageConvTypeSingle: convTypeStr = @"单聊"; break;
+            case IMMessageConvTypeGroup: convTypeStr = @"群聊"; break;
+            case IMMessageConvTypeCommunity: convTypeStr = @"社区"; break;
+        }
+        NSLog(@"✅ 收到%@消息: from=%@, content=%@", convTypeStr, msgDict[@"from"], msgDict[@"content"]);
+        
+        // 调用回调
+        if (self.onMessageReceived) {
+            self.onMessageReceived(convType, msgDict);
+        }
+    });
 }
 
 // ==================== 回调管理 ====================

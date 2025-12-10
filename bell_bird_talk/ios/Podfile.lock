@@ -42,9 +42,9 @@ PODS:
   - QCloudCOSXML/Default (6.4.9):
     - QCloudCore (= 6.4.9)
   - QCloudTrack/Beacon (6.4.9)
-  - SDWebImage (5.21.3):
-    - SDWebImage/Core (= 5.21.3)
-  - SDWebImage/Core (5.21.3)
+  - SDWebImage (5.21.5):
+    - SDWebImage/Core (= 5.21.5)
+  - SDWebImage/Core (5.21.5)
   - SDWebImageWebPCoder (0.15.0):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
@@ -133,7 +133,7 @@ SPEC CHECKSUMS:
   QCloudCore: 0e70cda608d1ac485e039e83be1c4a1197197e6b
   QCloudCOSXML: b7f0b9cac61780a03318d40367a879f8d7eb3d86
   QCloudTrack: cc101dd57be7f87bffc3f2fb692a781d5efeda98
-  SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
+  SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb

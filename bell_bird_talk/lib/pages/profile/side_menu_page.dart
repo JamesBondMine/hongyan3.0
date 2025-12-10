@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -294,35 +295,7 @@ class SideMenuContent extends StatelessWidget {
 
   /// 显示语言选择对话框
   void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择语言'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildLanguageOption(context, '简体中文', true),
-            _buildLanguageOption(context, 'English', false),
-            _buildLanguageOption(context, '繁體中文', false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(BuildContext context, String language, bool isSelected) {
-    return ListTile(
-      title: Text(language),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: Colors.blue)
-          : null,
-      onTap: () {
-        Navigator.pop(context);
-        if (!isSelected) {
-          EasyLoading.showInfo('暂不支持切换语言');
-        }
-      },
-    );
+    Get.to(() => const LanguagePage());
   }
 
   /// 显示关于我们对话框

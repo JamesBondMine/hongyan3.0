@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  final IOSNativeService _nativeService = IOSNativeService();
   
   // 上传凭证信息
   Map<String, dynamic>? _uploadToken;
@@ -27,8 +28,52 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // 进入首页时获取上传凭证
-    // _prepareUpload();
+    // 进入首页时注册消息回调
+    _registerMessageCallbacks();
+  }
+  
+  @override
+  void dispose() {
+    // 离开首页时取消注册
+    _nativeService.imUnregisterMessageCallbacks();
+    super.dispose();
+  }
+  
+  /// 注册消息回调（单聊、群聊、社区）
+  Future<void> _registerMessageCallbacks() async {
+    // 设置消息接收回调
+    _nativeService.onMessageReceived = _handleReceivedMessage;
+    
+    // 注册底层回调
+    final result = await _nativeService.imRegisterMessageCallbacks();
+    if (result['errorCode'] == 0) {
+      print('✅ 消息回调注册成功');
+    } else {
+      print('❌ 消息回调注册失败: ${result['message']}');
+    }
+  }
+  
+  /// 处理收到的消息
+  void _handleReceivedMessage(Map<String, dynamic> message) {
+    print('📨 首页收到消息: $message');
+    
+    final convType = message['conv_type'] as int?;
+    final content = message['content'] as String?;
+    final from = message['from'] as String?;
+    
+    String convTypeStr = '未知';
+    switch (convType) {
+      case 0: convTypeStr = '单聊'; break;
+      case 2: convTypeStr = '群聊'; break;
+      case 4: convTypeStr = '社区'; break;
+    }
+    
+    // TODO: 更新会话列表、刷新未读数等
+    // 可以通过 GlobalController 或 EventBus 通知其他页面
+    print('📨 [$convTypeStr] 来自 $from: $content');
+    
+    // 如果需要显示通知，可以在这里添加
+    // EasyLoading.showInfo('[$convTypeStr] 来自 $from: $content');
   }
   
   
@@ -39,12 +84,12 @@ class _HomePageState extends State<HomePage> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          // Tab 0: 消息页面
-          _buildMessagePage(),
+          // Tab 0: 聊天页面
+          const ChatListPage(),
           // Tab 1: 好友页面
           const FriendsPage(),
-          // Tab 2: 聊天页面
-          const ChatListPage(),
+          // Tab 2: 消息页面
+          _buildMessagePage(),
           // Tab 3: 发现页面
           _buildDiscoverPage(),
           // Tab 4: 我的页面
@@ -713,9 +758,9 @@ class _HomePageState extends State<HomePage> {
       currentIndex: _currentIndex,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
-          label: '消息',
+          icon: Icon(Icons.chat_bubble_outline),
+          activeIcon: Icon(Icons.chat_bubble),
+          label: '聊天',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
@@ -723,9 +768,9 @@ class _HomePageState extends State<HomePage> {
           label: '好友',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline),
-          activeIcon: Icon(Icons.chat_bubble),
-          label: '聊天',
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: '消息',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.explore_outlined),

@@ -9,6 +9,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// 消息类型枚举
+typedef NS_ENUM(NSInteger, IMMessageConvType) {
+    IMMessageConvTypeSingle = 0,      // 单聊消息
+    IMMessageConvTypeGroup = 2,       // 群聊消息
+    IMMessageConvTypeCommunity = 4,   // 社区消息
+};
 
 /// 消息操作结果回调
 /// @param errorCode 错误码，0表示成功
@@ -16,11 +22,28 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param data 返回数据（JSON 格式）
 typedef void (^IMSDKMessageCompletion)(int errorCode, uint64_t reqId, NSString * _Nullable data);
 
+/// 收到消息回调
+/// @param convType 会话类型（单聊/群聊/社区）
+/// @param messageData 消息数据（解析后的字典）
+typedef void (^IMSDKMessageReceivedCallback)(IMMessageConvType convType, NSDictionary *messageData);
+
 /// IM SDK 消息管理类
 @interface IMSDKMessageManager : NSObject
 
+/// 收到消息的回调（统一回调，包含会话类型）
+@property (nonatomic, copy, nullable) IMSDKMessageReceivedCallback onMessageReceived;
+
 /// 单例实例
 + (instancetype)sharedManager;
+
+// ==================== 消息监听注册 ====================
+
+/// 注册所有消息回调（单聊、群聊、社区）
+/// 应在进入首页时调用
+- (void)registerMessageCallbacks;
+
+/// 取消注册所有消息回调
+- (void)unregisterMessageCallbacks;
 
 // ==================== 发送消息 ====================
 

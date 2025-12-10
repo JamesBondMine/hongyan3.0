@@ -1,141 +1,12 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
 import 'friend_detail_page.dart';
-import 'friend_requests_page.dart';
-
-/// 好友模型
-class FriendModel {
-  final String id;
-  final String? accountId;
-  final String nickname;
-  final String? avatar;
-  final String? remark;
-  final int relationship;  // 0=好友, 1=黑名单等
-  final int onlineStatus;  // 0=离线, 1=在线
-  
-  FriendModel({
-    required this.id,
-    this.accountId,
-    required this.nickname,
-    this.avatar,
-    this.remark,
-    this.relationship = 0,
-    this.onlineStatus = 0,
-  });
-  
-  /// 从 JSON 构造
-  factory FriendModel.fromJson(Map<String, dynamic> json) {
-    return FriendModel(
-      id: json['contact_user_id'] ?? json['user_id'] ?? '',
-      accountId: json['account_id'],
-      nickname: json['nickname'] ?? json['remark'] ?? '未知用户',
-      avatar: json['avatar'],
-      remark: json['remark'],
-      relationship: json['relationship'] ?? 0,
-      onlineStatus: json['online_status'] ?? 0,
-    );
-  }
-  
-  /// 是否在线
-  bool get isOnline => onlineStatus == 1;
-  
-  /// 显示名称（优先显示备注）
-  String get displayName => (remark != null && remark!.isNotEmpty) ? remark! : nickname;
-}
-
-/// 好友分组模型
-class FriendGroup {
-  final String id;
-  final String name;
-  final bool isDefault;  // 是否是默认分组（不可删除）
-  int count;  // 分组内好友数量
-  final String? color;  // 分组颜色
-  final int order;  // 排序顺序
-  final String? icon;  // 分组图标
-  final String? description;  // 分组描述
-  
-  FriendGroup({
-    required this.id,
-    required this.name,
-    this.isDefault = false,
-    this.count = 0,
-    this.color,
-    this.order = 0,
-    this.icon,
-    this.description,
-  });
-  
-  /// 从 JSON 构造
-  factory FriendGroup.fromJson(Map<String, dynamic> json) {
-    return FriendGroup(
-      id: json['group_id']?.toString() ?? '',
-      name: json['group_name'] ?? '未命名分组',
-      count: json['contact_count'] ?? 0,
-      color: json['group_color'],
-      order: json['group_order'] ?? 0,
-      icon: json['group_icon'],
-      description: json['group_description'],
-      isDefault: false,
-    );
-  }
-}
-
-/// 好友申请模型
-class FriendRequestModel {
-  final int requestId;
-  final String requesterId;
-  final String requesterName;
-  final String? requesterAvatar;
-  final String? message;
-  final int channel;
-  final int status;  // 0=待处理, 1=已同意, 2=已拒绝
-  final int requestTime;
-  final int expireTime;
-  
-  FriendRequestModel({
-    required this.requestId,
-    required this.requesterId,
-    required this.requesterName,
-    this.requesterAvatar,
-    this.message,
-    this.channel = 0,
-    this.status = 0,
-    this.requestTime = 0,
-    this.expireTime = 0,
-  });
-  
-  factory FriendRequestModel.fromJson(Map<String, dynamic> json) {
-    return FriendRequestModel(
-      requestId: json['request_id'] ?? 0,
-      requesterId: json['requester_id'] ?? '',
-      requesterName: json['requester_name'] ?? '未知用户',
-      requesterAvatar: json['requester_avatar'],
-      message: json['message'],
-      channel: json['channel'] ?? 0,
-      status: json['status'] ?? 0,
-      requestTime: json['request_time'] ?? 0,
-      expireTime: json['expire_time'] ?? 0,
-    );
-  }
-  
-  /// 是否待处理
-  bool get isPending => status == 0;
-  
-  /// 格式化时间
-  String get formattedTime {
-    if (requestTime == 0) return '';
-    final time = DateTime.fromMillisecondsSinceEpoch(requestTime);
-    final now = DateTime.now();
-    final diff = now.difference(time);
-    if (diff.inDays > 0) return '${diff.inDays}天前';
-    if (diff.inHours > 0) return '${diff.inHours}小时前';
-    if (diff.inMinutes > 0) return '${diff.inMinutes}分钟前';
-    return '刚刚';
-  }
-}
+import 'friend_requests_page.dart' hide FriendRequestModel;
+import 'friend_search_page.dart';
 
 /// 好友列表页面
 class FriendsPage extends StatefulWidget {
@@ -468,8 +339,13 @@ class _FriendsPageState extends State<FriendsPage> {
             iconBgColor: Colors.orange[50]!,
             title: '好友申请',
             count: friendCount,
-            onTap: () {
-              Get.to(() => const FriendRequestsPage(type: RequestType.friend));
+            onTap: () async {
+              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.friend));
+              if (result == true) {
+                // 有好友申请被处理，刷新好友列表和请求数量
+                _loadFriends(refresh: true);
+                _loadFriendRequests();
+              }
             },
           ),
           
@@ -482,8 +358,12 @@ class _FriendsPageState extends State<FriendsPage> {
             iconBgColor: Colors.blue[50]!,
             title: '群组申请',
             count: _groupRequestCount,
-            onTap: () {
-              Get.to(() => const FriendRequestsPage(type: RequestType.group));
+            onTap: () async {
+              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.group));
+              if (result == true) {
+                // 有群组申请被处理，刷新好友列表（可能加入了新群）
+                _loadFriends(refresh: true);
+              }
             },
           ),
         ],
@@ -569,9 +449,7 @@ class _FriendsPageState extends State<FriendsPage> {
       actions: [
         IconButton(
           icon: const Icon(Icons.search),
-          onPressed: () {
-            setState(() => _isSearchMode = true);
-          },
+          onPressed: _openSearchPage,
           tooltip: '搜索好友',
         ),
         IconButton(
@@ -581,6 +459,11 @@ class _FriendsPageState extends State<FriendsPage> {
         ),
       ],
     );
+  }
+
+  /// 打开搜索页面
+  void _openSearchPage() {
+    Get.to(() => FriendSearchPage(friends: _friends));
   }
   
   /// 搜索模式 AppBar

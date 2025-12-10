@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_queue.dart';
 import '../../services/message_database.dart';
@@ -71,11 +72,22 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _loadHistory();
-    _loadLocalMessages();
+    _loadMessages();
     
     // 监听消息状态变化
     _messageQueue.addStatusListener(_onMessageStatusChanged);
+  }
+
+  /// 加载消息（先加载本地，再从API同步）
+  Future<void> _loadMessages() async {
+    // 1. 先加载本地消息（快速显示）
+    await _loadLocalMessages();
+    
+    // 2. 再从 API 拉取最新消息
+    await _loadHistory();
+    
+    // 3. 按时间排序
+    _sortMessagesByTime();
   }
 
   @override
@@ -90,12 +102,24 @@ class _ChatPageState extends State<ChatPage> {
   /// 加载本地消息
   Future<void> _loadLocalMessages() async {
     final localMessages = await _messageDatabase.getMessages(widget.convId);
+    print('📦 加载本地消息: ${localMessages.length} 条');
     if (localMessages.isNotEmpty) {
       for (final msg in localMessages) {
         _addChatMessageToList(msg);
       }
+      _sortMessagesByTime();
+      setState(() {});
       _scrollToBottom();
     }
+  }
+
+  /// 按时间排序消息列表
+  void _sortMessagesByTime() {
+    _messages.sort((a, b) {
+      final timeA = a['timestamp'] as int? ?? 0;
+      final timeB = b['timestamp'] as int? ?? 0;
+      return timeA.compareTo(timeB); // 升序，旧消息在前
+    });
   }
 
   /// 消息状态变化回调
@@ -194,7 +218,7 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 解析并显示历史消息
   void _parseAndDisplayMessages(List<dynamic> messages) {
-    final parsedMessages = <Map<String, dynamic>>[];
+    print('📥 解析 API 消息: ${messages.length} 条');
     
     for (final msg in messages) {
       if (msg is Map<String, dynamic>) {
@@ -207,26 +231,36 @@ class _ChatPageState extends State<ChatPage> {
         // 判断是否是自己发的消息
         final isMine = senderId == widget.targetUserId ? false : true;
         
-        parsedMessages.add({
+        final msgMap = {
           'id': msgId.toString(),
           'content': content.toString(),
+          'type': 'text',
           'isMine': isMine,
           'timestamp': timestamp is int ? timestamp : 0,
           'status': 'sent',
-          'raw': msg, // 保留原始数据供调试
-        });
+        };
         
-        print('📝 消息: content=$content, isMine=$isMine, senderId=$senderId');
+        // 检查是否已存在（通过 id 去重）
+        final existIndex = _messages.indexWhere((m) => m['id'] == msgId.toString());
+        if (existIndex == -1) {
+          _messages.add(msgMap);
+        } else {
+          // 更新已有消息
+          _messages[existIndex] = msgMap;
+        }
+        
+        // 格式化时间戳用于日志
+        final timestampInt = timestamp is int ? timestamp : 0;
+        final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
+        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+        print('📝 消息: content=$content, isMine=$isMine, senderId=$senderId, time=$formattedTime');
       }
     }
     
-    if (parsedMessages.isNotEmpty) {
-      setState(() {
-        _messages.clear();
-        _messages.addAll(parsedMessages);
-      });
-      _scrollToBottom();
-    }
+    // 排序并更新UI
+    _sortMessagesByTime();
+    setState(() {});
+    _scrollToBottom();
   }
 
   /// 发送消息

@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
 import '../chat/chat_page.dart';
-import 'friends_page.dart';
 
 /// 好友详情页面
 class FriendDetailPage extends StatefulWidget {
@@ -25,6 +25,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   
   late FriendModel _friend;
   bool _isStarred = false;
+  bool _hasChanges = false;  // 标记是否有修改（用于刷新列表）
   
   @override
   void initState() {
@@ -507,7 +508,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   
   /// 发起聊天
   Future<void> _startChat() async {
-    EasyLoading.show(status: '创建会话中...');
+    // EasyLoading.show(status: '创建会话中...');
     
     try {
       // 调用 SDK 创建会话
@@ -519,7 +520,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         avatarUrl: _friend.avatar,
       );
       
-      EasyLoading.dismiss();
+      // EasyLoading.dismiss();
       
       print('📱 创建会话结果: $result');
       
@@ -636,13 +637,26 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final newRemark = controller.text.trim();
               Get.back();
-              // TODO: 调用设置备注接口
-              setState(() {
-                // 更新本地状态
-              });
-              EasyLoading.showSuccess('备注设置成功');
+              
+              // 调用设置备注接口
+              EasyLoading.show(status: '设置中...');
+              final result = await _nativeService.imSetContactRemark(
+                userId: _friend.userId,
+                remark: newRemark,
+              );
+              EasyLoading.dismiss();
+              
+              if (result['errorCode'] == 0) {
+                setState(() {
+                  _friend = _friend.copyWith(remark: newRemark);
+                });
+                EasyLoading.showSuccess('备注设置成功');
+              } else {
+                EasyLoading.showError(result['message'] ?? '设置备注失败');
+              }
             },
             child: const Text('确定'),
           ),

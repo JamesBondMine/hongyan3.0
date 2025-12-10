@@ -130,6 +130,15 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
                        pageSize:(int)pageSize
                      completion:(IMSDKContactCompletion)completion;
 
+// ==================== 联系人备注 ====================
+
+/// 设置联系人备注
+/// @param userId 联系人用户ID
+/// @param remark 备注名称
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)setRemarkForUserId:(NSString *)userId remark:(NSString *)remark completion:(IMSDKContactCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

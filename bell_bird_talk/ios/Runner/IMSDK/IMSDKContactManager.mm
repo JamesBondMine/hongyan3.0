@@ -880,5 +880,91 @@ static void ContactGroupsCallback(int errorCode, const char* data, int dataLen, 
     return list_contact_groups(ContactGroupsCallback, data, dataLen, reqId);
 }
 
+// ==================== 联系人备注 ====================
+
+/// 设置备注回调
+static void SetContactRemarkCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 设置备注回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKContactCompletion completion = manager.contactCallbacks[key];
+        
+        if (completion) {
+            NSString *message = @"设置备注成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"设置备注失败";
+            }
+            
+            completion(errorCode, reqId, message);
+            [manager.contactCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+- (int)setRemarkForUserId:(NSString *)userId remark:(NSString *)remark completion:(IMSDKContactCompletion)completion {
+    NSLog(@"📤 设置联系人备注: userId=%@, remark=%@", userId, remark);
+    
+    if (!userId || userId.length == 0) {
+        NSLog(@"❌ 用户ID不能为空");
+        return -1;
+    }
+    
+    // 创建 ContactRemark 对象
+    ContactRemark *contactRemark = [[ContactRemark alloc] init];
+    contactRemark.contactUserId = userId;
+    contactRemark.remark = remark ?: @"";
+    
+    // 序列化
+    NSData *protoBody = [contactRemark data];
+    if (!protoBody || protoBody.length == 0) {
+        NSLog(@"❌ 序列化 ContactRemark 失败");
+        return -2;
+    }
+    
+    NSLog(@"📦 ContactRemark 序列化: %lu 字节", (unsigned long)protoBody.length);
+    
+    // 打印 hex 调试
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)protoBody.bytes;
+    for (NSUInteger i = 0; i < protoBody.length; i++) {
+        [hexString appendFormat:@"%02x", bytes[i]];
+    }
+    NSLog(@"📤 设置备注数据(hex): %@", hexString);
+    
+    const char *data = (const char *)protoBody.bytes;
+    int dataLen = (int)protoBody.length;
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 16000;
+        NSNumber *tempKey = @(tempId++);
+        self.contactCallbacks[tempKey] = completion;
+        
+        int result = set_contact_remark(SetContactRemarkCallback, data, dataLen, userId.UTF8String, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 设置备注请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.contactCallbacks[@(reqId)] = completion;
+                [self.contactCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 设置备注请求失败: %d", result);
+            [self.contactCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return set_contact_remark(SetContactRemarkCallback, data, dataLen, userId.UTF8String, reqId);
+}
+
 @end
 

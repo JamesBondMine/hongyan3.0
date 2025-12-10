@@ -139,6 +139,9 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
   int _currentPage = 1;
   final int _pageSize = 20;
   bool _hasMore = true;
+  
+  /// 是否有请求被处理（用于通知父页面刷新）
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -250,9 +253,15 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('已同意');
+        _hasChanges = true;
+        
+        // 从列表中移除
         setState(() {
           _friendRequests.removeWhere((r) => r.requestId == request.requestId);
         });
+        
+        // 刷新请求列表（确保数据同步）
+        _loadRequests(refresh: true);
       } else {
         EasyLoading.showError(result['message'] ?? '操作失败');
       }
@@ -310,13 +319,20 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('已拒绝');
+        _hasChanges = true;
+        
+        // 从列表中移除
         setState(() {
           _friendRequests.removeWhere((r) => r.requestId == request.requestId);
         });
+        
+        // 刷新请求列表（确保数据同步）
+        _loadRequests(refresh: true);
       } else {
         EasyLoading.showError(result['message'] ?? '操作失败');
       }
     } catch (e) {
+      print('❌ 拒绝好友申请失败: $e');
       EasyLoading.showError('操作失败');
     }
   }
@@ -325,17 +341,28 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
   Widget build(BuildContext context) {
     final isFriend = widget.type == RequestType.friend;
     
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(isFriend ? '好友申请' : '群组申请'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.blue,
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: _buildContent(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Get.back(result: _hasChanges);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+          title: Text(isFriend ? '好友申请' : '群组申请'),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.blue,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(result: _hasChanges),
+          ),
+        ),
+        body: RefreshIndicator(
+          onRefresh: _refresh,
+          child: _buildContent(),
+        ),
       ),
     );
   }

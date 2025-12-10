@@ -116,19 +116,19 @@
 		2A7ADF352EDD807300D0B045 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF342EDD807300D0B045 /* libcurses.tbd */; };
 		2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */; };
 		2ACV0001EDDCCA7E00000001 /* IMSDKConversationManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */; };
-		2AMG0001EDDCCA7E00000001 /* IMSDKMessageManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */; };
-		2AUS0001EDDCCA7E00000001 /* IMSDKUserManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */; };
-		2AFL0001EDDCCA7E00000001 /* IMSDKFileManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */; };
-		2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */; };
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
 		2AE9F1A02EDD500000000001 /* IMSDKManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9F1A12EDD500000000002 /* IMSDKManager.mm */; };
 		2AE9F1A42EDD500000000004 /* IMSDKAuthManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9F1A52EDD500000000005 /* IMSDKAuthManager.mm */; };
+		2AFL0001EDDCCA7E00000001 /* IMSDKFileManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */; };
+		2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2AMG0001EDDCCA7E00000001 /* IMSDKMessageManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */; };
 		2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2AUS0001EDDCCA7E00000001 /* IMSDKUserManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */; };
 		31EB8EEFDBA90F6F0A55D7D2 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -288,14 +288,6 @@
 		2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
 		2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKConversationManager.mm; sourceTree = "<group>"; };
 		2ACV0003EDDCCA7E00000003 /* IMSDKConversationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKConversationManager.h; sourceTree = "<group>"; };
-		2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKMessageManager.mm; sourceTree = "<group>"; };
-		2AMG0003EDDCCA7E00000003 /* IMSDKMessageManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKMessageManager.h; sourceTree = "<group>"; };
-		2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKUserManager.mm; sourceTree = "<group>"; };
-		2AUS0003EDDCCA7E00000003 /* IMSDKUserManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKUserManager.h; sourceTree = "<group>"; };
-		2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKFileManager.mm; sourceTree = "<group>"; };
-		2AFL0003EDDCCA7E00000003 /* IMSDKFileManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKFileManager.h; sourceTree = "<group>"; };
-		2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FilePb.pbobjc.m; sourceTree = "<group>"; };
-		2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilePb.pbobjc.h; sourceTree = "<group>"; };
 		2AD9E3352ED409A800C4E6A3 /* DataTransViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTransViewController.h; sourceTree = "<group>"; };
 		2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransViewController.mm; sourceTree = "<group>"; };
 		2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DataTransViewController.xib; sourceTree = "<group>"; };
@@ -305,6 +297,12 @@
 		2AE9F1A32EDD500000000003 /* IMSDKManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKManager.h; sourceTree = "<group>"; };
 		2AE9F1A52EDD500000000005 /* IMSDKAuthManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKAuthManager.mm; sourceTree = "<group>"; };
 		2AE9F1A62EDD500000000006 /* IMSDKAuthManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKAuthManager.h; sourceTree = "<group>"; };
+		2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKFileManager.mm; sourceTree = "<group>"; };
+		2AFL0003EDDCCA7E00000003 /* IMSDKFileManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKFileManager.h; sourceTree = "<group>"; };
+		2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FilePb.pbobjc.m; sourceTree = "<group>"; };
+		2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilePb.pbobjc.h; sourceTree = "<group>"; };
+		2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKMessageManager.mm; sourceTree = "<group>"; };
+		2AMG0003EDDCCA7E00000003 /* IMSDKMessageManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKMessageManager.h; sourceTree = "<group>"; };
 		2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserPb.pbobjc.m; sourceTree = "<group>"; };
 		2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemPb.pbobjc.m; sourceTree = "<group>"; };
 		2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DevicePb.pbobjc.m; sourceTree = "<group>"; };
@@ -313,6 +311,8 @@
 		2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000CEDDCCA7E0000000C /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptchaPb.pbobjc.h; sourceTree = "<group>"; };
+		2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKUserManager.mm; sourceTree = "<group>"; };
+		2AUS0003EDDCCA7E00000003 /* IMSDKUserManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKUserManager.h; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -1062,6 +1062,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 38544L6R8V;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FirTalk;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1071,6 +1072,7 @@
 					"$(PROJECT_DIR)/Runner/IMSDK",
 					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
 				);
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -1264,6 +1266,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 38544L6R8V;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FirTalk;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1273,6 +1276,7 @@
 					"$(PROJECT_DIR)/Runner/IMSDK",
 					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
 				);
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -1306,6 +1310,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 38544L6R8V;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FirTalk;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1315,6 +1320,7 @@
 					"$(PROJECT_DIR)/Runner/IMSDK",
 					"$(PROJECT_DIR)/Runner/IMSDK/ios_sdk_la",
 				);
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",

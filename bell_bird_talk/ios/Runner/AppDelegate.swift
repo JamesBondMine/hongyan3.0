@@ -66,10 +66,14 @@ class NativeBridgeHandler: NSObject {
     private var eventChannel: FlutterEventChannel?
     private var messageChannel: FlutterBasicMessageChannel?
     private var eventSink: FlutterEventSink?
+    private weak var binaryMessenger: FlutterBinaryMessenger?
     
     // MARK: - 初始化
     
     func setup(with controller: FlutterViewController) {
+        // 保存 binaryMessenger 引用
+        binaryMessenger = controller.binaryMessenger
+        
         // 1. MethodChannel - 方法调用
         methodChannel = FlutterMethodChannel(
             name: "com.bellbird.talk/method",
@@ -200,6 +204,8 @@ class NativeBridgeHandler: NSObject {
             imRejectFriendRequest(call: call, result: result)
         case "imGetContactGroups":
             imGetContactGroups(call: call, result: result)
+        case "imSetContactRemark":
+            imSetContactRemark(call: call, result: result)
         
         // ---------- 会话管理 ----------
         case "imGetConversationList":
@@ -220,6 +226,10 @@ class NativeBridgeHandler: NSObject {
             imSendTextMessage(call: call, result: result)
         case "imPullMessages":
             imPullMessages(call: call, result: result)
+        case "imRegisterMessageCallbacks":
+            imRegisterMessageCallbacks(result: result)
+        case "imUnregisterMessageCallbacks":
+            imUnregisterMessageCallbacks(result: result)
         
         // ---------- 用户管理 ----------
         case "imUpdateUserInfo":
@@ -1258,6 +1268,35 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 设置联系人备注
+    private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let userId = args["user_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 user_id", details: nil))
+            return
+        }
+        
+        let remark = args["remark"] as? String ?? ""
+        
+        print("📝 设置联系人备注: userId=\(userId), remark=\(remark)")
+        
+        let code = IMSDKContactManager.shared().setRemarkForUserId(userId, remark: remark, completion: { errorCode, reqId, data in
+            print("✅ 设置备注回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "设置备注成功" : (data ?? "设置备注失败")
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "SET_REMARK_ERROR",
+                              message: "设置备注请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     // MARK: - 会话管理
     
     /// 获取会话列表
@@ -1515,6 +1554,71 @@ class NativeBridgeHandler: NSObject {
                               message: "拉取消息请求失败: \(code)",
                               details: nil))
         }
+    }
+    
+    /// 注册消息回调（单聊、群聊、社区）
+    private func imRegisterMessageCallbacks(result: @escaping FlutterResult) {
+        print("📝 注册消息回调...")
+        
+        let messageManager = IMSDKMessageManager.shared()
+        
+        // 设置消息接收回调，将消息通过 EventChannel 推送到 Flutter
+        messageManager.onMessageReceived = { [weak self] convType, messageData in
+            guard let self = self else { return }
+            
+            // 构建推送数据
+            var eventData: [String: Any] = [
+                "conv_type": convType.rawValue,
+            ]
+            
+            // 合并消息数据（转换 key 为 String）
+            for (key, value) in messageData {
+                if let stringKey = key as? String {
+                    eventData[stringKey] = value
+                }
+            }
+            
+            // 通过 MethodChannel 推送消息到 Flutter
+            self.sendMessageToFlutter(eventData)
+        }
+        
+        // 注册底层回调
+        messageManager.registerMessageCallbacks()
+        
+        result([
+            "errorCode": 0,
+            "message": "消息回调注册成功"
+        ])
+    }
+    
+    /// 取消注册消息回调
+    private func imUnregisterMessageCallbacks(result: @escaping FlutterResult) {
+        print("📝 取消注册消息回调...")
+        
+        let messageManager = IMSDKMessageManager.shared()
+        messageManager.onMessageReceived = nil
+        messageManager.unregisterMessageCallbacks()
+        
+        result([
+            "errorCode": 0,
+            "message": "消息回调取消注册成功"
+        ])
+    }
+    
+    /// 发送消息到 Flutter（通过 MethodChannel 反向调用）
+    private func sendMessageToFlutter(_ data: [String: Any]) {
+        guard let messenger = binaryMessenger else {
+            print("⚠️ binaryMessenger 未初始化")
+            return
+        }
+        
+        let channel = FlutterMethodChannel(
+            name: "com.bell_bird_talk/native_bridge",
+            binaryMessenger: messenger
+        )
+        
+        channel.invokeMethod("onMessageReceived", arguments: data)
+        print("📤 消息已推送到 Flutter: \(data)")
     }
     
     // MARK: - 用户管理
