@@ -31,6 +31,29 @@ class _ChatPageState extends State<ChatPage> {
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
+  bool _showEmojiPicker = false;
+  
+  // 常用表情列表
+  static const List<String> _emojis = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
+    '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
+    '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜',
+    '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐',
+    '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬',
+    '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒',
+    '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵',
+    '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕',
+    '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺',
+    '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱',
+    '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤',
+    '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩',
+    '👍', '👎', '👏', '🙌', '👐', '🤲', '🤝', '🙏',
+    '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆',
+    '👇', '☝️', '👋', '🤚', '🖐️', '✋', '🖖', '👌',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
+    '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘',
+    '💝', '💟', '🔥', '✨', '🎉', '🎊', '🎁', '🎈',
+  ];
 
   @override
   void initState() {
@@ -242,10 +265,21 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           // 消息列表
           Expanded(
-            child: _buildMessageList(),
+            child: GestureDetector(
+              onTap: () {
+                // 点击消息列表区域时收起表情面板和键盘
+                if (_showEmojiPicker) {
+                  setState(() => _showEmojiPicker = false);
+                }
+                _focusNode.unfocus();
+              },
+              child: _buildMessageList(),
+            ),
           ),
           // 输入栏
           _buildInputBar(),
+          // 表情选择器
+          if (_showEmojiPicker) _buildEmojiPicker(),
         ],
       ),
     );
@@ -504,10 +538,11 @@ class _ChatPageState extends State<ChatPage> {
           
           // 表情按钮
           IconButton(
-            icon: Icon(Icons.emoji_emotions_outlined, color: Colors.grey[600]),
-            onPressed: () {
-              // TODO: 表情选择器
-            },
+            icon: Icon(
+              _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions_outlined,
+              color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
+            ),
+            onPressed: _toggleEmojiPicker,
           ),
           
           // 更多/发送按钮
@@ -527,6 +562,170 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  /// 切换表情选择器
+  void _toggleEmojiPicker() {
+    if (_showEmojiPicker) {
+      // 关闭表情面板，打开键盘
+      setState(() => _showEmojiPicker = false);
+      _focusNode.requestFocus();
+    } else {
+      // 关闭键盘，打开表情面板
+      _focusNode.unfocus();
+      setState(() => _showEmojiPicker = true);
+    }
+  }
+
+  /// 插入表情到输入框
+  void _insertEmoji(String emoji) {
+    final text = _messageController.text;
+    final selection = _messageController.selection;
+    
+    // 获取光标位置
+    final cursorPos = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
+    
+    // 在光标位置插入表情
+    final newText = text.substring(0, cursorPos) + emoji + text.substring(cursorPos);
+    _messageController.text = newText;
+    
+    // 移动光标到表情后面
+    _messageController.selection = TextSelection.collapsed(offset: cursorPos + emoji.length);
+    
+    // 触发重建以更新发送按钮状态
+    setState(() {});
+  }
+
+  /// 构建表情选择器
+  Widget _buildEmojiPicker() {
+    return Container(
+      height: 280,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Colors.grey[200]!, width: 0.5),
+        ),
+      ),
+      child: Column(
+        children: [
+          // 表情分类标签（可扩展）
+          Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[200]!, width: 0.5),
+              ),
+            ),
+            child: Row(
+              children: [
+                _buildEmojiTab('😀', true),
+                _buildEmojiTab('❤️', false),
+                _buildEmojiTab('👍', false),
+                const Spacer(),
+                // 删除按钮
+                GestureDetector(
+                  onTap: _deleteLastChar,
+                  onLongPress: () {
+                    // 长按清空输入
+                    _messageController.clear();
+                    setState(() {});
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Icon(Icons.backspace_outlined, color: Colors.grey[600], size: 22),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 表情网格
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 8,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
+              ),
+              itemCount: _emojis.length,
+              itemBuilder: (context, index) {
+                return _buildEmojiItem(_emojis[index]);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建表情分类标签
+  Widget _buildEmojiTab(String emoji, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: 切换表情分类
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 20)),
+      ),
+    );
+  }
+
+  /// 构建单个表情项
+  Widget _buildEmojiItem(String emoji) {
+    return GestureDetector(
+      onTap: () => _insertEmoji(emoji),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          emoji,
+          style: const TextStyle(fontSize: 26),
+        ),
+      ),
+    );
+  }
+
+  /// 删除最后一个字符
+  void _deleteLastChar() {
+    final text = _messageController.text;
+    if (text.isEmpty) return;
+    
+    final selection = _messageController.selection;
+    final cursorPos = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
+    
+    if (cursorPos > 0) {
+      // 处理 emoji（可能占用多个字符）
+      final beforeCursor = text.substring(0, cursorPos);
+      final beforeChars = beforeCursor.characters.toList();
+      
+      if (beforeChars.isNotEmpty) {
+        beforeChars.removeLast();
+        final newBefore = beforeChars.join();
+        final newText = newBefore + text.substring(cursorPos);
+        _messageController.text = newText;
+        _messageController.selection = TextSelection.collapsed(offset: newBefore.length);
+        setState(() {});
+      }
+    }
   }
 }
 

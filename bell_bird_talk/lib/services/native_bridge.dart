@@ -1,4 +1,47 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+// ======================== 日志工具 ========================
+
+/// 原生调用日志工具
+class NativeLogger {
+  /// 是否启用日志（生产环境可关闭）
+  static bool enabled = kDebugMode;
+  
+  /// 最大结果长度（超过则截断）
+  static int maxResultLength = 800;
+  
+  /// 记录完整的 API 调用（一行输出）
+  static void log(String method, dynamic params, dynamic result, Duration duration, {bool isError = false}) {
+    if (!enabled) return;
+    
+    final icon = isError ? '❌' : '✅';
+    final paramsStr = _toJson(params);
+    final resultStr = _toJson(result);
+    
+    // 截断过长的结果
+    final displayResult = resultStr.length > maxResultLength 
+        ? '${resultStr.substring(0, maxResultLength)}...(${resultStr.length}字符)'
+        : resultStr;
+    
+    // 使用 print 输出单行日志，更简洁
+    print('\n===================================\n$icon ${duration.inMilliseconds}ms \n[$method]  \n$paramsStr \n----\n$displayResult \n===================================');
+  }
+  
+  /// 转换为 JSON 字符串
+  static String _toJson(dynamic data) {
+    if (data == null) return 'null';
+    try {
+      if (data is Map) {
+        return json.encode(data);
+      }
+      return data.toString();
+    } catch (e) {
+      return data.toString();
+    }
+  }
+}
 
 /// Flutter 与 iOS 原生通信桥接类
 class NativeBridge {
@@ -18,11 +61,24 @@ class NativeBridge {
   /// - 打开系统设置
   /// - 调用原生 SDK 功能
   Future<T?> invokeMethod<T>(String method, [dynamic arguments]) async {
+    final stopwatch = Stopwatch()..start();
+    
     try {
       final result = await _methodChannel.invokeMethod<T>(method, arguments);
+      stopwatch.stop();
+      
+      // 记录成功
+      NativeLogger.log(method, arguments, result, stopwatch.elapsed);
+      
       return result;
     } on PlatformException catch (e) {
-      print('调用原生方法失败: ${e.message}');
+      stopwatch.stop();
+      // 记录失败
+      NativeLogger.log(method, arguments, {'error': e.message}, stopwatch.elapsed, isError: true);
+      rethrow;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log(method, arguments, {'error': e.toString()}, stopwatch.elapsed, isError: true);
       rethrow;
     }
   }
