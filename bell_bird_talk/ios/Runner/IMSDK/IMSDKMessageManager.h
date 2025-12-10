@@ -9,19 +9,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// 消息类型
-typedef NS_ENUM(NSInteger, IMMessageType) {
-    IMMessageTypeText = 0,          // 文本消息
-    IMMessageTypeImage = 1,         // 图片消息
-    IMMessageTypeVideo = 2,         // 视频消息
-    IMMessageTypeVoice = 3,         // 语音消息
-    IMMessageTypeFile = 4,          // 文件消息
-    IMMessageTypeLocation = 5,      // 位置消息
-    IMMessageTypeCard = 6,          // 名片消息
-    IMMessageTypeShareURL = 7,      // 分享链接消息
-    IMMessageTypeSticker = 8,       // 表情消息
-    IMMessageTypeCustom = 9,        // 自定义消息
-};
 
 /// 消息操作结果回调
 /// @param errorCode 错误码，0表示成功

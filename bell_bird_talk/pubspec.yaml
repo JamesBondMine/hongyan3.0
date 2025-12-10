@@ -73,6 +73,15 @@ dependencies:
   
   # 加密
   crypto: ^3.0.3
+  
+  # 本地数据库
+  sqflite: ^2.4.1
+  
+  # HTTP 请求
+  http: ^1.2.2
+  
+  # MIME 类型
+  mime: ^2.0.0
 
 dev_dependencies:
   flutter_test:

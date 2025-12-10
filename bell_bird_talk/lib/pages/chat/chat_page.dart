@@ -1,7 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_queue.dart';
+import '../../services/message_database.dart';
+import '../../models/chat_message.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -32,6 +37,14 @@ class _ChatPageState extends State<ChatPage> {
   bool _isLoading = false;
   bool _isSending = false;
   bool _showEmojiPicker = false;
+  bool _showMorePanel = false;
+  
+  final ImagePicker _imagePicker = ImagePicker();
+  final MessageQueueManager _messageQueue = MessageQueueManager();
+  final MessageDatabase _messageDatabase = MessageDatabase();
+  
+  /// 当前用户ID（需要从登录信息获取）
+  String get _currentUserId => ''; // TODO: 从 GlobalController 获取
   
   // 常用表情列表
   static const List<String> _emojis = [
@@ -59,14 +72,70 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     _loadHistory();
+    _loadLocalMessages();
+    
+    // 监听消息状态变化
+    _messageQueue.addStatusListener(_onMessageStatusChanged);
   }
 
   @override
   void dispose() {
+    _messageQueue.removeStatusListener(_onMessageStatusChanged);
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// 加载本地消息
+  Future<void> _loadLocalMessages() async {
+    final localMessages = await _messageDatabase.getMessages(widget.convId);
+    if (localMessages.isNotEmpty) {
+      for (final msg in localMessages) {
+        _addChatMessageToList(msg);
+      }
+      _scrollToBottom();
+    }
+  }
+
+  /// 消息状态变化回调
+  void _onMessageStatusChanged(ChatMessage message) {
+    if (message.convId != widget.convId) return;
+    
+    setState(() {
+      final index = _messages.indexWhere((m) => m['localId'] == message.localId);
+      if (index != -1) {
+        _messages[index]['status'] = message.status.name;
+        _messages[index]['errorMessage'] = message.errorMessage;
+        if (message.imageUrl != null) {
+          _messages[index]['imageUrl'] = message.imageUrl;
+        }
+      }
+    });
+  }
+
+  /// 将 ChatMessage 添加到消息列表
+  void _addChatMessageToList(ChatMessage message) {
+    final msgMap = {
+      'id': message.serverId ?? message.localId,
+      'localId': message.localId,
+      'content': message.displayContent,
+      'type': message.type.name,
+      'isMine': message.isMine,
+      'timestamp': message.createdAt,
+      'status': message.status.name,
+      'imageLocalPath': message.imageLocalPath,
+      'imageUrl': message.imageUrl,
+      'errorMessage': message.errorMessage,
+    };
+    
+    // 检查是否已存在
+    final existIndex = _messages.indexWhere((m) => m['localId'] == message.localId);
+    if (existIndex != -1) {
+      _messages[existIndex] = msgMap;
+    } else {
+      _messages.add(msgMap);
+    }
   }
 
   /// 加载历史消息
@@ -267,9 +336,12 @@ class _ChatPageState extends State<ChatPage> {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                // 点击消息列表区域时收起表情面板和键盘
-                if (_showEmojiPicker) {
-                  setState(() => _showEmojiPicker = false);
+                // 点击消息列表区域时收起面板和键盘
+                if (_showEmojiPicker || _showMorePanel) {
+                  setState(() {
+                    _showEmojiPicker = false;
+                    _showMorePanel = false;
+                  });
                 }
                 _focusNode.unfocus();
               },
@@ -280,6 +352,8 @@ class _ChatPageState extends State<ChatPage> {
           _buildInputBar(),
           // 表情选择器
           if (_showEmojiPicker) _buildEmojiPicker(),
+          // 更多面板
+          if (_showMorePanel) _buildMorePanel(),
         ],
       ),
     );
@@ -365,8 +439,10 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(Map<String, dynamic> message) {
     final isMine = message['isMine'] as bool? ?? false;
-    final content = message['content'] as String? ?? '';
     final status = message['status'] as String? ?? 'sent';
+    final type = message['type'] as String? ?? 'text';
+    final localId = message['localId'] as String?;
+    final isImageMessage = type == 'image';
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -395,41 +471,45 @@ class _ChatPageState extends State<ChatPage> {
             const SizedBox(width: 8),
           ],
           
-          // 发送状态（我的消息显示在左侧）
-          if (isMine) ...[
-            _buildMessageStatus(status),
+          // 发送状态（我的消息显示在左侧，非图片消息）
+          if (isMine && !isImageMessage) ...[
+            _buildMessageStatus(status, localId: localId),
             const SizedBox(width: 4),
           ],
           
           // 消息气泡
           Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.65,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: isMine ? Colors.blue : Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isMine ? 16 : 4),
-                  bottomRight: Radius.circular(isMine ? 4 : 16),
+            child: GestureDetector(
+              onTap: () {
+                // 点击失败的消息重新发送
+                if (status == 'failed' && localId != null) {
+                  _showResendDialog(localId, type);
+                }
+              },
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.65,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
+                padding: isImageMessage 
+                    ? const EdgeInsets.all(4) 
+                    : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isImageMessage ? Colors.transparent : (isMine ? Colors.blue : Colors.white),
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(16),
+                    topRight: const Radius.circular(16),
+                    bottomLeft: Radius.circular(isMine ? 16 : 4),
+                    bottomRight: Radius.circular(isMine ? 4 : 16),
                   ),
-                ],
-              ),
-              child: Text(
-                content,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: isMine ? Colors.white : Colors.black87,
+                  boxShadow: isImageMessage ? null : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
+                child: _buildMessageContent(message, isMine),
               ),
             ),
           ),
@@ -452,10 +532,45 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  /// 显示重发确认对话框
+  void _showResendDialog(String localId, String type) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('发送失败'),
+        content: const Text('是否重新发送此消息？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _resendMessage(localId);
+            },
+            child: const Text('重发'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 重新发送消息
+  Future<void> _resendMessage(String localId) async {
+    try {
+      await _messageQueue.resendMessage(localId);
+    } catch (e) {
+      print('重发消息失败: $e');
+      EasyLoading.showError('重发失败');
+    }
+  }
+
   /// 构建消息状态指示器
-  Widget _buildMessageStatus(String status) {
+  Widget _buildMessageStatus(String status, {String? localId}) {
     switch (status) {
       case 'sending':
+      case 'pending':
         return SizedBox(
           width: 14,
           height: 14,
@@ -467,8 +582,9 @@ class _ChatPageState extends State<ChatPage> {
       case 'failed':
         return GestureDetector(
           onTap: () {
-            // TODO: 重新发送
-            EasyLoading.showInfo('重发功能开发中');
+            if (localId != null) {
+              _showResendDialog(localId, 'text');
+            }
           },
           child: Icon(
             Icons.error_outline,
@@ -477,6 +593,18 @@ class _ChatPageState extends State<ChatPage> {
           ),
         );
       case 'sent':
+      case 'delivered':
+        return Icon(
+          Icons.done,
+          size: 14,
+          color: Colors.grey[400],
+        );
+      case 'read':
+        return Icon(
+          Icons.done_all,
+          size: 14,
+          color: Colors.blue[400],
+        );
       default:
         return Icon(
           Icons.done,
@@ -548,14 +676,18 @@ class _ChatPageState extends State<ChatPage> {
           // 更多/发送按钮
           IconButton(
             icon: Icon(
-              _messageController.text.trim().isEmpty ? Icons.add_circle_outline : Icons.send,
-              color: _messageController.text.trim().isEmpty ? Colors.grey[600] : Colors.blue,
+              _messageController.text.trim().isEmpty 
+                  ? (_showMorePanel ? Icons.close : Icons.add_circle_outline)
+                  : Icons.send,
+              color: _messageController.text.trim().isEmpty 
+                  ? (_showMorePanel ? Colors.blue : Colors.grey[600])
+                  : Colors.blue,
             ),
             onPressed: () {
               if (_messageController.text.trim().isNotEmpty) {
                 _sendMessage();
               } else {
-                // TODO: 显示更多选项（图片、文件等）
+                _toggleMorePanel();
               }
             },
           ),
@@ -726,6 +858,303 @@ class _ChatPageState extends State<ChatPage> {
         setState(() {});
       }
     }
+  }
+
+  /// 切换更多面板
+  void _toggleMorePanel() {
+    if (_showMorePanel) {
+      setState(() => _showMorePanel = false);
+      _focusNode.requestFocus();
+    } else {
+      _focusNode.unfocus();
+      setState(() {
+        _showMorePanel = true;
+        _showEmojiPicker = false;
+      });
+    }
+  }
+
+  /// 构建更多面板
+  Widget _buildMorePanel() {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(
+          top: BorderSide(color: Colors.grey[200]!, width: 0.5),
+        ),
+      ),
+      child: GridView.count(
+        crossAxisCount: 4,
+        padding: const EdgeInsets.all(20),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        children: [
+          _buildMoreItem(
+            icon: Icons.photo_library,
+            label: '相册',
+            color: Colors.orange,
+            onTap: _pickImageFromGallery,
+          ),
+          _buildMoreItem(
+            icon: Icons.camera_alt,
+            label: '拍照',
+            color: Colors.green,
+            onTap: _pickImageFromCamera,
+          ),
+          _buildMoreItem(
+            icon: Icons.videocam,
+            label: '视频',
+            color: Colors.purple,
+            onTap: () => EasyLoading.showInfo('视频功能开发中'),
+          ),
+          _buildMoreItem(
+            icon: Icons.folder,
+            label: '文件',
+            color: Colors.blue,
+            onTap: () => EasyLoading.showInfo('文件功能开发中'),
+          ),
+          _buildMoreItem(
+            icon: Icons.location_on,
+            label: '位置',
+            color: Colors.red,
+            onTap: () => EasyLoading.showInfo('位置功能开发中'),
+          ),
+          _buildMoreItem(
+            icon: Icons.contact_page,
+            label: '名片',
+            color: Colors.teal,
+            onTap: () => EasyLoading.showInfo('名片功能开发中'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建更多面板项目
+  Widget _buildMoreItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[700],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 从相册选择图片
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        await _sendImageMessage(image.path);
+      }
+    } catch (e) {
+      print('选择图片失败: $e');
+      EasyLoading.showError('选择图片失败');
+    }
+  }
+
+  /// 拍照
+  Future<void> _pickImageFromCamera() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        await _sendImageMessage(image.path);
+      }
+    } catch (e) {
+      print('拍照失败: $e');
+      EasyLoading.showError('拍照失败');
+    }
+  }
+
+  /// 发送图片消息
+  Future<void> _sendImageMessage(String imagePath) async {
+    // 收起面板
+    setState(() => _showMorePanel = false);
+    
+    // 获取图片尺寸
+    final file = File(imagePath);
+    final decodedImage = await decodeImageFromList(await file.readAsBytes());
+    
+    // 创建图片消息
+    final message = ChatMessage.image(
+      convId: widget.convId,
+      senderId: _currentUserId,
+      receiverId: widget.targetUserId,
+      localPath: imagePath,
+      width: decodedImage.width,
+      height: decodedImage.height,
+    );
+    
+    // 添加到消息列表
+    setState(() {
+      _addChatMessageToList(message);
+    });
+    _scrollToBottom();
+    
+    // 通过队列发送
+    _messageQueue.sendMessage(message);
+  }
+
+  /// 构建消息内容（支持图片）
+  Widget _buildMessageContent(Map<String, dynamic> message, bool isMine) {
+    final type = message['type'] as String? ?? 'text';
+    final content = message['content'] as String? ?? '';
+    final status = message['status'] as String? ?? 'sent';
+    
+    if (type == 'image') {
+      return _buildImageMessage(message, isMine, status);
+    }
+    
+    // 默认文本消息
+    return Text(
+      content,
+      style: TextStyle(
+        fontSize: 15,
+        color: isMine ? Colors.white : Colors.black87,
+      ),
+    );
+  }
+
+  /// 构建图片消息
+  Widget _buildImageMessage(Map<String, dynamic> message, bool isMine, String status) {
+    final localPath = message['imageLocalPath'] as String?;
+    final imageUrl = message['imageUrl'] as String?;
+    
+    Widget imageWidget;
+    
+    if (localPath != null && File(localPath).existsSync()) {
+      // 显示本地图片
+      imageWidget = Image.file(
+        File(localPath),
+        width: 150,
+        height: 150,
+        fit: BoxFit.cover,
+      );
+    } else if (imageUrl != null && imageUrl.isNotEmpty) {
+      // 显示网络图片
+      imageWidget = Image.network(
+        imageUrl,
+        width: 150,
+        height: 150,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            width: 150,
+            height: 150,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: progress.expectedTotalBytes != null
+                    ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 150,
+            height: 150,
+            color: Colors.grey[300],
+            child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+          );
+        },
+      );
+    } else {
+      // 无图片显示占位
+      imageWidget = Container(
+        width: 150,
+        height: 150,
+        color: Colors.grey[300],
+        child: const Icon(Icons.image, size: 40, color: Colors.grey),
+      );
+    }
+    
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: imageWidget,
+        ),
+        // 发送中遮罩
+        if (status == 'sending' || status == 'pending')
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+          ),
+        // 发送失败遮罩
+        if (status == 'failed')
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black38,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 36,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 

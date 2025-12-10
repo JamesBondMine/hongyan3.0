@@ -263,7 +263,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         (const char *)protoData.bytes,
         (int)protoData.length,
         conversationId.UTF8String,
-        (int)IMMessageTypeText,  // msgType = 0 (TEXT)
+        (int)ImMessage_MessageType_Text,  // msgType = 0 (TEXT)
         receiverId.UTF8String,
         reqId
     );
