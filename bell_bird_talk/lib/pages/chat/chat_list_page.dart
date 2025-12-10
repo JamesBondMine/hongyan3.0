@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_database.dart';
 import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
 import 'chat_search_page.dart';
@@ -21,12 +22,14 @@ class ChatListPage extends StatefulWidget {
 
 class _ChatListPageState extends State<ChatListPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final MessageDatabase _messageDatabase = MessageDatabase();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   List<ConversationModel> _conversations = [];
   List<ConversationModel> _filteredConversations = [];
   bool _isLoading = false;
+  bool _isLoadingFromNetwork = false;  // 网络加载状态
   int _currentPage = 1;
   bool _hasMore = true;
   bool _isSearchMode = false;
@@ -35,6 +38,9 @@ class _ChatListPageState extends State<ChatListPage> {
   Worker? _refreshWorker;
   Worker? _newMessageWorker;
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  
+  /// 获取当前用户ID
+  String get _currentUserId => _globalCtrl.currentUser.value?.id ?? '';
 
   @override
   void initState() {
@@ -68,7 +74,7 @@ class _ChatListPageState extends State<ChatListPage> {
     super.dispose();
   }
   
-  /// 处理新消息，更新会话列表
+  /// 处理新消息，更新会话列表和本地数据库
   void _handleNewMessage(Map<String, dynamic> message) {
     final convId = message['conversation_id']?.toString() ?? '';
     final content = message['content'] as String? ?? '';
@@ -76,44 +82,81 @@ class _ChatListPageState extends State<ChatListPage> {
     final convType = message['conv_type'] as int? ?? 0;
     final from = message['from'] as String? ?? '';
     final nick = message['nick'] as String? ?? '';
+    final msgType = message['m_type'] as int? ?? 0;
     
     if (convId.isEmpty) return;
     
+    final userId = _currentUserId;
+    if (userId.isEmpty) return;
+    
+    // 先计算更新后的会话，再更新UI
+    ConversationModel updatedConv;
+    
+    // 查找现有会话
+    final index = _conversations.indexWhere((c) => c.convId == convId);
+    
+    if (index != -1) {
+      // 更新现有会话
+      final oldConv = _conversations[index];
+      updatedConv = oldConv.copyWith(
+        lastMessage: content,
+        lastMessageType: msgType,
+        lastMessageTime: DateTime.fromMillisecondsSinceEpoch(sendTime),
+        lastSenderId: from,
+        lastSenderName: nick,
+        unreadCount: oldConv.unreadCount + 1,
+      );
+    } else {
+      // 创建新会话
+      updatedConv = ConversationModel(
+        convId: convId,
+        displayName: nick.isNotEmpty ? nick : from,
+        lastMessage: content,
+        lastMessageType: msgType,
+        lastMessageTime: DateTime.fromMillisecondsSinceEpoch(sendTime),
+        lastSenderId: from,
+        lastSenderName: nick,
+        unreadCount: 1,
+        convType: convType,
+        targetId: from,
+      );
+    }
+    
     setState(() {
-      // 查找现有会话
-      final index = _conversations.indexWhere((c) => c.convId == convId);
-      
       if (index != -1) {
-        // 更新现有会话
-        final oldConv = _conversations[index];
-        final updatedConv = oldConv.copyWith(
-          lastMessage: content,
-          lastMessageTime: DateTime.fromMillisecondsSinceEpoch(sendTime),
-          unreadCount: oldConv.unreadCount + 1,
-        );
-        
         // 移除旧位置
         _conversations.removeAt(index);
-        // 插入到最前面
+      }
+      
+      // 插入到正确位置（置顶的放前面）
+      if (updatedConv.isPinned) {
         _conversations.insert(0, updatedConv);
       } else {
-        // 创建新会话（如果会话不存在）
-        final newConv = ConversationModel(
-          convId: convId,
-          displayName: nick.isNotEmpty ? nick : from,
-          lastMessage: content,
-          lastMessageTime: DateTime.fromMillisecondsSinceEpoch(sendTime),
-          unreadCount: 1,
-          convType: convType,
-          targetId: from,
-        );
-        // 插入到最前面
-        _conversations.insert(0, newConv);
+        // 找到第一个非置顶会话的位置
+        final firstNotPinned = _conversations.indexWhere((c) => !c.isPinned);
+        if (firstNotPinned == -1) {
+          _conversations.add(updatedConv);
+        } else {
+          _conversations.insert(firstNotPinned, updatedConv);
+        }
       }
       
       // 重新过滤
       _filterConversations();
     });
+    
+    // 同步更新本地数据库
+    _syncConversationToDatabase(userId, updatedConv);
+  }
+  
+  /// 同步会话到本地数据库
+  Future<void> _syncConversationToDatabase(String userId, ConversationModel conversation) async {
+    try {
+      await _messageDatabase.upsertConversation(userId, conversation);
+      print('💾 会话已同步到本地: ${conversation.convId}');
+    } catch (e) {
+      print('❌ 同步会话到本地失败: $e');
+    }
   }
 
   void _onScroll() {
@@ -123,7 +166,7 @@ class _ChatListPageState extends State<ChatListPage> {
     }
   }
 
-  /// 加载会话列表
+  /// 加载会话列表（先本地，后网络）
   Future<void> _loadConversations() async {
     if (_isLoading) return;
 
@@ -132,13 +175,100 @@ class _ChatListPageState extends State<ChatListPage> {
       _currentPage = 1;
     });
 
+    final userId = _currentUserId;
+    if (userId.isEmpty) {
+      print('⚠️ 用户未登录，无法加载会话列表');
+      setState(() => _isLoading = false);
+      return;
+    }
+
     try {
+      // 1. 先从本地数据库加载（快速显示）
+      await _loadLocalConversations(userId);
+      
+      // 2. 再从网络加载
+      await _loadNetworkConversations(userId);
+      
+    } catch (e) {
+      print('❌ 加载会话列表错误: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  /// 从本地数据库加载会话列表
+  Future<void> _loadLocalConversations(String userId) async {
+    try {
+      print('📦 从本地数据库加载会话列表...');
+      final localConversations = await _messageDatabase.getConversations(userId);
+      
+      if (localConversations.isNotEmpty) {
+        print('📦 本地会话数: ${localConversations.length}');
+        
+        // 补充消息表中的最后一条消息
+        final enrichedConversations = await _enrichConversationsWithLatestMessages(localConversations);
+        
+        setState(() {
+          _conversations = enrichedConversations;
+          _filterConversations();
+        });
+        
+        // 更新全局未读数
+        final totalUnread = await _messageDatabase.getTotalUnreadCount(userId);
+        _globalCtrl.unreadCount.value = totalUnread;
+      }
+    } catch (e) {
+      print('❌ 加载本地会话列表错误: $e');
+    }
+  }
+  
+  /// 从消息表补充会话的最后一条消息
+  Future<List<ConversationModel>> _enrichConversationsWithLatestMessages(
+    List<ConversationModel> conversations,
+  ) async {
+    final List<ConversationModel> enriched = [];
+    
+    for (final conv in conversations) {
+      // 如果会话表中已有最后消息，直接使用
+      if (conv.lastMessage?.isNotEmpty == true) {
+        enriched.add(conv);
+        continue;
+      }
+      
+      // 从消息表获取最后一条消息
+      final latestMessage = await _messageDatabase.getLatestMessage(conv.convId);
+      
+      if (latestMessage != null) {
+        final enrichedConv = conv.copyWith(
+          lastMessage: latestMessage.displayContent,
+          lastMessageType: latestMessage.type.value,
+          lastMessageTime: DateTime.fromMillisecondsSinceEpoch(latestMessage.createdAt),
+          lastSenderId: latestMessage.senderId,
+        );
+        enriched.add(enrichedConv);
+      } else {
+        enriched.add(conv);
+      }
+    }
+    
+    return enriched;
+  }
+  
+  /// 从网络加载会话列表
+  Future<void> _loadNetworkConversations(String userId) async {
+    if (_isLoadingFromNetwork) return;
+    _isLoadingFromNetwork = true;
+    
+    try {
+      print('🌐 从网络加载会话列表...');
       final result = await _nativeService.imGetConversationList(
         page: 1,
         pageSize: 20,
       );
 
-      print('📋 会话列表结果: $result');
+      print('📋 网络会话列表结果: $result');
 
       if (result['errorCode'] == 0) {
         final data = result['data'];
@@ -147,28 +277,122 @@ class _ChatListPageState extends State<ChatListPage> {
             final dataMap = json.decode(data) as Map<String, dynamic>;
             final conversations = dataMap['conversations'] as List<dynamic>?;
             if (conversations != null) {
-              _conversations = conversations
+              final networkConversations = conversations
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
                   .toList();
-              _hasMore = conversations.length >= 20;
+              
+              // 合并本地和网络数据
+              final mergedConversations = await _mergeConversations(
+                userId,
+                networkConversations,
+              );
+              
+              setState(() {
+                _conversations = mergedConversations;
+                _hasMore = conversations.length >= 20;
+                _filterConversations();
+              });
+              
+              // 保存到本地数据库
+              await _messageDatabase.upsertConversations(userId, mergedConversations);
+              print('💾 已保存 ${mergedConversations.length} 个会话到本地');
+              
+              // 更新全局未读数
+              final totalUnread = mergedConversations.fold<int>(
+                0, (sum, conv) => sum + conv.unreadCount);
+              _globalCtrl.unreadCount.value = totalUnread;
             }
           } catch (e) {
-            print('解析会话列表失败: $e');
+            print('❌ 解析会话列表失败: $e');
           }
         }
-        _filterConversations();
       } else {
-        // 如果没有数据，显示空列表
-        _conversations = [];
-        _filteredConversations = [];
+        print('⚠️ 网络获取会话列表失败，使用本地数据');
+        // 网络失败时，保持使用本地数据
       }
     } catch (e) {
-      print('加载会话列表错误: $e');
+      print('❌ 网络加载会话列表错误: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      _isLoadingFromNetwork = false;
     }
+  }
+  
+  /// 合并本地和网络会话数据
+  /// 网络数据为主，本地数据补充缺失信息
+  /// 最后一条消息：优先网络 → 会话表 → 消息表
+  Future<List<ConversationModel>> _mergeConversations(
+    String userId,
+    List<ConversationModel> networkConversations,
+  ) async {
+    final List<ConversationModel> merged = [];
+    
+    for (final netConv in networkConversations) {
+      // 1. 查询本地会话表
+      final localConv = await _messageDatabase.getConversation(userId, netConv.convId);
+      
+      // 2. 查询消息表中该会话的最后一条消息
+      final latestMessage = await _messageDatabase.getLatestMessage(netConv.convId);
+      
+      // 3. 确定最后一条消息（优先级：网络 > 会话表 > 消息表）
+      String? finalLastMessage = netConv.lastMessage;
+      int? finalLastMessageType = netConv.lastMessageType;
+      DateTime? finalLastMessageTime = netConv.lastMessageTime;
+      String? finalLastSenderId = netConv.lastSenderId;
+      String? finalLastSenderName = netConv.lastSenderName;
+      
+      // 如果网络没有最后消息，尝试从本地会话表获取
+      if (finalLastMessage == null || finalLastMessage.isEmpty) {
+        if (localConv != null && localConv.lastMessage?.isNotEmpty == true) {
+          finalLastMessage = localConv.lastMessage;
+          finalLastMessageType = localConv.lastMessageType;
+          finalLastMessageTime = localConv.lastMessageTime;
+          finalLastSenderId = localConv.lastSenderId;
+          finalLastSenderName = localConv.lastSenderName;
+        }
+      }
+      
+      // 如果还是没有，从消息表获取
+      if (finalLastMessage == null || finalLastMessage.isEmpty) {
+        if (latestMessage != null) {
+          finalLastMessage = latestMessage.displayContent;
+          finalLastMessageType = latestMessage.type.value;
+          finalLastMessageTime = DateTime.fromMillisecondsSinceEpoch(latestMessage.createdAt);
+          finalLastSenderId = latestMessage.senderId;
+          // 发送者名称需要额外查询，暂时留空
+        }
+      }
+      
+      // 4. 合并数据
+      final mergedConv = netConv.copyWith(
+        // 未读数：网络优先，本地补充
+        unreadCount: netConv.unreadCount > 0 ? netConv.unreadCount : (localConv?.unreadCount ?? 0),
+        // 最后消息
+        lastMessage: finalLastMessage,
+        lastMessageType: finalLastMessageType ?? 0,
+        lastMessageTime: finalLastMessageTime,
+        lastSenderId: finalLastSenderId,
+        lastSenderName: finalLastSenderName,
+        // 保留本地的置顶、静音、草稿状态
+        isPinned: localConv?.isPinned ?? false,
+        isMuted: localConv?.isMuted ?? false,
+        draft: localConv?.draft,
+        // @我的数量
+        atMeCount: netConv.atMeCount > 0 ? netConv.atMeCount : (localConv?.atMeCount ?? 0),
+      );
+      merged.add(mergedConv);
+    }
+    
+    // 按置顶优先、时间倒序排序
+    merged.sort((a, b) {
+      if (a.isPinned != b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+      final timeA = a.lastMessageTime?.millisecondsSinceEpoch ?? 0;
+      final timeB = b.lastMessageTime?.millisecondsSinceEpoch ?? 0;
+      return timeB.compareTo(timeA);
+    });
+    
+    return merged;
   }
 
   /// 加载更多会话
@@ -218,10 +442,17 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   /// 刷新会话列表（带超时控制）
+  /// 刷新会话列表（带超时控制）
   Future<void> _refreshConversations() async {
     // 重置分页
     _currentPage = 1;
     _hasMore = true;
+    
+    final userId = _currentUserId;
+    if (userId.isEmpty) {
+      EasyLoading.showError('用户未登录');
+      return;
+    }
     
     try {
       // 设置30秒超时
@@ -243,16 +474,34 @@ class _ChatListPageState extends State<ChatListPage> {
             final dataMap = json.decode(data) as Map<String, dynamic>;
             final conversations = dataMap['conversations'] as List<dynamic>?;
             if (conversations != null) {
-              _conversations = conversations
+              final networkConversations = conversations
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
                   .toList();
-              _hasMore = conversations.length >= 20;
+              
+              // 合并本地和网络数据
+              final mergedConversations = await _mergeConversations(
+                userId,
+                networkConversations,
+              );
+              
+              setState(() {
+                _conversations = mergedConversations;
+                _hasMore = conversations.length >= 20;
+                _filterConversations();
+              });
+              
+              // 保存到本地数据库
+              await _messageDatabase.upsertConversations(userId, mergedConversations);
+              
+              // 更新全局未读数
+              final totalUnread = mergedConversations.fold<int>(
+                0, (sum, conv) => sum + conv.unreadCount);
+              _globalCtrl.unreadCount.value = totalUnread;
             }
           } catch (e) {
             print('解析会话列表失败: $e');
           }
         }
-        _filterConversations();
         
         // 刷新成功提示
         EasyLoading.showSuccess('刷新成功', duration: const Duration(seconds: 1));
@@ -820,6 +1069,8 @@ class _ChatListPageState extends State<ChatListPage> {
   
   /// 清除会话未读数
   void _clearConversationUnread(String convId) {
+    final userId = _currentUserId;
+    
     setState(() {
       final index = _conversations.indexWhere((c) => c.convId == convId);
       if (index != -1) {
@@ -833,11 +1084,16 @@ class _ChatListPageState extends State<ChatListPage> {
           // 清除该会话未读数
           _conversations[index] = oldConv.copyWith(unreadCount: 0);
           _filterConversations();
+          
+          // 同步到本地数据库
+          if (userId.isNotEmpty) {
+            _messageDatabase.clearConversationUnreadCount(userId, convId);
+          }
         }
       }
     });
     
-    // 调用后端接口标记已读（可选）
+    // 调用后端接口标记已读
     _nativeService.imMarkConversationRead(convId: convId);
   }
 
