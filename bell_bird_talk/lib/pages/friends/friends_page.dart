@@ -3,6 +3,7 @@ import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import 'friend_detail_page.dart';
 import 'friend_requests_page.dart' hide FriendRequestModel;
@@ -42,16 +43,25 @@ class _FriendsPageState extends State<FriendsPage> {
   final int _pageSize = 20;
   bool _hasMore = true;
 
+  Worker? _refreshWorker;
+  
   @override
   void initState() {
     super.initState();
     _loadFriendRequests();  // 先加载好友申请
     _loadContactGroups();   // 加载联系人分组
     _loadFriends();
+    
+    // 监听全局刷新信号
+    _refreshWorker = ever(
+      Get.find<GlobalController>().refreshFriendList,
+      (_) => _refreshFriends(),
+    );
   }
 
   @override
   void dispose() {
+    _refreshWorker?.dispose();
     _searchController.dispose();
     super.dispose();
   }

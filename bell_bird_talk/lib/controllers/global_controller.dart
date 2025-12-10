@@ -33,6 +33,32 @@ class GlobalController extends GetxController {
   // 未读消息数
   final RxInt unreadCount = 0.obs;
   
+  // 刷新触发器（用于通知页面刷新）
+  final RxInt refreshFriendList = 0.obs;
+  final RxInt refreshChatList = 0.obs;
+  
+  // 新消息通知（用于实时更新聊天列表）
+  final Rx<Map<String, dynamic>?> newMessage = Rx<Map<String, dynamic>?>(null);
+  
+  /// 触发好友列表刷新
+  void triggerFriendListRefresh() => refreshFriendList.value++;
+  
+  /// 触发聊天列表刷新
+  void triggerChatListRefresh() => refreshChatList.value++;
+  
+  /// 触发所有列表刷新
+  void triggerAllListRefresh() {
+    refreshFriendList.value++;
+    refreshChatList.value++;
+  }
+  
+  /// 收到新消息，通知聊天列表更新
+  void onNewMessageReceived(Map<String, dynamic> message) {
+    newMessage.value = message;
+    // 更新总未读数
+    unreadCount.value++;
+  }
+  
   // IM SDK 状态
   final RxBool isIMSDKInitialized = false.obs;
   final RxString imsdkStatus = '未初始化'.obs;

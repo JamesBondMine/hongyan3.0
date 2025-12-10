@@ -37,4 +37,29 @@ class ConversationModel {
       isOnline: (json['online_status'] as int? ?? 0) == 1,
     );
   }
+  
+  /// 复制并更新
+  ConversationModel copyWith({
+    String? convId,
+    String? displayName,
+    String? avatar,
+    String? lastMessage,
+    DateTime? lastMessageTime,
+    int? unreadCount,
+    int? convType,
+    String? targetId,
+    bool? isOnline,
+  }) {
+    return ConversationModel(
+      convId: convId ?? this.convId,
+      displayName: displayName ?? this.displayName,
+      avatar: avatar ?? this.avatar,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageTime: lastMessageTime ?? this.lastMessageTime,
+      unreadCount: unreadCount ?? this.unreadCount,
+      convType: convType ?? this.convType,
+      targetId: targetId ?? this.targetId,
+      isOnline: isOnline ?? this.isOnline,
+    );
+  }
 }

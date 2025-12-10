@@ -68,12 +68,10 @@ class _HomePageState extends State<HomePage> {
       case 4: convTypeStr = '社区'; break;
     }
     
-    // TODO: 更新会话列表、刷新未读数等
-    // 可以通过 GlobalController 或 EventBus 通知其他页面
     print('📨 [$convTypeStr] 来自 $from: $content');
     
-    // 如果需要显示通知，可以在这里添加
-    // EasyLoading.showInfo('[$convTypeStr] 来自 $from: $content');
+    // 通知 GlobalController 更新聊天列表
+    _globalCtrl.onNewMessageReceived(message);
   }
   
   

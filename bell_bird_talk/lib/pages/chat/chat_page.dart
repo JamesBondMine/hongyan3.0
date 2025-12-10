@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_queue.dart';
 import '../../services/message_database.dart';
 import '../../models/chat_message.dart';
+import '../../controllers/global_controller.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -43,9 +45,13 @@ class _ChatPageState extends State<ChatPage> {
   final ImagePicker _imagePicker = ImagePicker();
   final MessageQueueManager _messageQueue = MessageQueueManager();
   final MessageDatabase _messageDatabase = MessageDatabase();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
   
-  /// 当前用户ID（需要从登录信息获取）
-  String get _currentUserId => ''; // TODO: 从 GlobalController 获取
+  /// 新消息监听器
+  Worker? _newMessageWorker;
+  
+  /// 当前用户ID
+  String get _currentUserId => _globalCtrl.currentUser.value?.id ?? '';
   
   // 常用表情列表
   static const List<String> _emojis = [
@@ -76,6 +82,9 @@ class _ChatPageState extends State<ChatPage> {
     
     // 监听消息状态变化
     _messageQueue.addStatusListener(_onMessageStatusChanged);
+    
+    // 监听 GlobalController 的新消息通知
+    _newMessageWorker = ever(_globalCtrl.newMessage, _onNewMessageFromCallback);
   }
 
   /// 加载消息（先加载本地，再从API同步）
@@ -92,6 +101,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    _newMessageWorker?.dispose();
     _messageQueue.removeStatusListener(_onMessageStatusChanged);
     _messageController.dispose();
     _scrollController.dispose();
@@ -135,6 +145,76 @@ class _ChatPageState extends State<ChatPage> {
           _messages[index]['imageUrl'] = message.imageUrl;
         }
       }
+    });
+  }
+  
+  /// 处理从 GlobalController 收到的新消息回调
+  void _onNewMessageFromCallback(Map<String, dynamic>? message) {
+    if (message == null) return;
+    
+    // 解析消息数据
+    final convId = message['conv_id'] as String? ?? '';
+    final senderId = message['from'] as String? ?? message['sender_id'] as String? ?? '';
+    
+    // 只处理当前会话的消息
+    if (convId != widget.convId && senderId != widget.targetUserId) {
+      print('📨 聊天页忽略非当前会话消息: convId=$convId, targetId=${widget.targetUserId}');
+      return;
+    }
+    
+    // 如果是自己发的消息，忽略（已通过发送流程处理）
+    if (senderId == _currentUserId) {
+      print('📨 聊天页忽略自己发送的消息');
+      return;
+    }
+    
+    print('📨 聊天页收到新消息: $message');
+    
+    // 解析消息内容
+    final msgId = message['msg_id'] as String? ?? message['message_id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final content = message['content'] as String? ?? message['text'] as String? ?? '';
+    final timestamp = message['send_time'] as int? ?? message['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+    final mType = message['m_type'] as int? ?? 0;
+    final imageUrl = message['image_url'] as String?;
+    
+    // 创建 ChatMessage 对象
+    final messageType = MessageType.fromValue(mType);
+    final chatMessage = ChatMessage(
+      localId: msgId,
+      serverId: msgId,
+      convId: widget.convId,
+      senderId: senderId,
+      receiverId: _currentUserId,
+      type: messageType,
+      textContent: messageType == MessageType.text ? content : null,
+      imageUrl: messageType == MessageType.image ? imageUrl : null,
+      isMine: false,
+      createdAt: timestamp,
+      status: MessageStatus.sent,
+    );
+    
+    // 检查是否已存在（避免重复）
+    final existIndex = _messages.indexWhere((m) => 
+        m['id'] == msgId || m['localId'] == msgId
+    );
+    
+    if (existIndex != -1) {
+      print('📨 消息已存在，跳过: $msgId');
+      return;
+    }
+    
+    // 添加到消息列表
+    setState(() {
+      _addChatMessageToList(chatMessage);
+      _sortMessagesByTime();
+    });
+    _scrollToBottom();
+    
+    // 保存到本地数据库
+    _messageDatabase.insertMessage(chatMessage).then((_) {
+      print('💾 新消息已保存到本地数据库: $msgId');
+    }).catchError((e) {
+      print('❌ 保存消息到数据库失败: $e');
     });
   }
 

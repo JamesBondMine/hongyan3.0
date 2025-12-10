@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import '../chat/chat_page.dart';
 
@@ -35,21 +36,31 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('好友详情'),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            onPressed: _showMoreOptions,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Get.back(result: _hasChanges);  // 返回是否有修改
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+          title: const Text('好友详情'),
+          centerTitle: true,
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(result: _hasChanges),
           ),
-        ],
-      ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.more_horiz),
+              onPressed: _showMoreOptions,
+            ),
+          ],
+        ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -75,7 +86,8 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           ],
         ),
       ),
-    );
+      ),  // 关闭 Scaffold
+    );  // 关闭 PopScope
   }
   
   /// 头部信息卡片
@@ -652,7 +664,10 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               if (result['errorCode'] == 0) {
                 setState(() {
                   _friend = _friend.copyWith(remark: newRemark);
+                  _hasChanges = true;  // 标记有修改
                 });
+                // 触发好友列表和聊天列表刷新
+                Get.find<GlobalController>().triggerAllListRefresh();
                 EasyLoading.showSuccess('备注设置成功');
               } else {
                 EasyLoading.showError(result['message'] ?? '设置备注失败');
