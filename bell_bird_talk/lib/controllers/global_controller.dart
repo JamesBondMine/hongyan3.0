@@ -122,6 +122,42 @@ class GlobalController extends GetxController {
     await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
   }
   
+  /// 更新用户昵称
+  Future<void> updateUserNickname(String nickname) async {
+    final user = currentUser.value;
+    if (user != null) {
+      final updatedUser = user.copyWith(nickname: nickname);
+      await updateUserInfo(updatedUser);
+    }
+  }
+  
+  /// 更新用户签名
+  Future<void> updateUserSignature(String signature) async {
+    final user = currentUser.value;
+    if (user != null) {
+      final updatedUser = user.copyWith(signature: signature);
+      await updateUserInfo(updatedUser);
+    }
+  }
+  
+  /// 更新用户性别
+  Future<void> updateUserGender(int gender) async {
+    final user = currentUser.value;
+    if (user != null) {
+      final updatedUser = user.copyWith(gender: gender);
+      await updateUserInfo(updatedUser);
+    }
+  }
+  
+  /// 更新用户头像
+  Future<void> updateUserAvatar(String avatar) async {
+    final user = currentUser.value;
+    if (user != null) {
+      final updatedUser = user.copyWith(avatar: avatar);
+      await updateUserInfo(updatedUser);
+    }
+  }
+  
   // ==================== 主题相关 ====================
   
   /// 切换主题

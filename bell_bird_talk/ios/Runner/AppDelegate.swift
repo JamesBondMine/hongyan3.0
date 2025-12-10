@@ -221,6 +221,14 @@ class NativeBridgeHandler: NSObject {
         case "imPullMessages":
             imPullMessages(call: call, result: result)
         
+        // ---------- 用户管理 ----------
+        case "imUpdateUserInfo":
+            imUpdateUserInfo(call: call, result: result)
+        
+        // ---------- 文件管理 ----------
+        case "imPrepareUpload":
+            imPrepareUpload(call: call, result: result)
+        
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
@@ -795,13 +803,22 @@ class NativeBridgeHandler: NSObject {
         switch loginType {
         case "password":
             // 密码登录：需要 account_id + password
+            // 也可能是手机密码登录或邮箱密码登录，需要额外传递 phone 或 email
             if let accountId = args["account_id"] as? String {
                 loginDict["account_id"] = accountId
             }
             if let password = args["password"] as? String {
                 loginDict["password"] = password
             }
-            print("📋 密码登录: account_id=\(loginDict["account_id"] ?? "nil")")
+            // 手机密码登录时需要传递手机号
+            if let phone = args["phone"] as? String {
+                loginDict["phone"] = phone
+            }
+            // 邮箱密码登录时需要传递邮箱
+            if let email = args["email"] as? String {
+                loginDict["email"] = email
+            }
+            print("📋 密码登录: account_id=\(loginDict["account_id"] ?? "nil"), phone=\(loginDict["phone"] ?? "nil"), email=\(loginDict["email"] ?? "nil")")
             
         case "sms_code":
             // 短信验证码登录：需要 phone + password(验证码) + captcha_id
@@ -814,9 +831,9 @@ class NativeBridgeHandler: NSObject {
             if let captchaId = args["captcha_id"] as? String {
                 loginDict["captcha_id"] = captchaId
             }
-//            if let accountId = args["account_id"] as? String {
-//                            loginDict["account_id"] = accountId
-//                        }
+            if let accountId = args["account_id"] as? String {
+                            loginDict["account_id"] = accountId
+                        }
             print("📋 短信登录: phone=\(loginDict["phone"] ?? "nil")")
             
         case "email_code":
@@ -830,9 +847,9 @@ class NativeBridgeHandler: NSObject {
             if let captchaId = args["captcha_id"] as? String {
                 loginDict["captcha_id"] = captchaId
             }
-//            if let accountId = args["account_id"] as? String {
-//                                        loginDict["account_id"] = accountId
-//                                    }
+            if let accountId = args["account_id"] as? String {
+                                        loginDict["account_id"] = accountId
+                                    }
             print("📋 邮箱登录: email=\(loginDict["email"] ?? "nil")")
             
         case "token":
@@ -1496,6 +1513,137 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "PULL_MESSAGES_ERROR",
                               message: "拉取消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 用户管理
+    
+    /// 更新用户信息
+    /// @param args 参数字典，可包含以下字段：
+    ///   - user_id: 用户ID（可选，默认使用当前登录用户）
+    ///   - nickname: 昵称
+    ///   - sex: 性别 (0=男, 1=女)
+    ///   - signature: 个性签名
+    ///   - avatar: 头像URL
+    ///   - region: 地区
+    private func imUpdateUserInfo(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📝 更新用户信息: \(args)")
+        
+        // 构建用户信息字典
+        var userInfo: [String: Any] = [:]
+        
+        if let userId = args["user_id"] as? String {
+            userInfo["user_id"] = userId
+        }
+        if let nickname = args["nickname"] as? String {
+            userInfo["nickname"] = nickname
+        }
+        if let sex = args["sex"] as? Int {
+            userInfo["sex"] = sex
+        }
+        if let signature = args["signature"] as? String {
+            userInfo["signature"] = signature
+        }
+        if let avatar = args["avatar"] as? String {
+            userInfo["avatar"] = avatar
+        }
+        if let region = args["region"] as? String {
+            userInfo["region"] = region
+        }
+        if let backgroundFile = args["background_file"] as? String {
+            userInfo["background_file"] = backgroundFile
+        }
+        
+        let reqId = IMSDKUserManager.shared().updateUser(withInfo: userInfo) { errorCode, message, data, reqId in
+            print("✅ 更新用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            // 构建返回数据
+            var response: [String: Any] = [
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? ""
+            ]
+            
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                }
+            }
+            
+            result(response)
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "UPDATE_USER_ERROR",
+                              message: "更新用户请求失败",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 文件管理
+    
+    /// 准备上传文件
+    /// 参数:
+    ///   - business_module: 业务模块（必填，如: avatar, group_avatar, message等）
+    ///   - file_name: 文件名（必填）
+    ///   - file_size: 文件大小（字节，可选）
+    ///   - content_type: 文件MIME类型（可选）
+    private func imPrepareUpload(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let businessModule = args["business_module"] as? String, !businessModule.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "业务模块不能为空", details: nil))
+            return
+        }
+        
+        guard let fileName = args["file_name"] as? String, !fileName.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "文件名不能为空", details: nil))
+            return
+        }
+        
+        let fileSize = args["file_size"] as? Int64 ?? 0
+        let contentType = args["content_type"] as? String
+        
+        print("📤 准备上传: businessModule=\(businessModule), fileName=\(fileName), fileSize=\(fileSize)")
+        
+        let reqId = IMSDKFileManager.shared().prepareUpload(withBusinessModule: businessModule,
+                                                            fileName: fileName,
+                                                            fileSize: fileSize,
+                                                            contentType: contentType) { errorCode, message, data, reqId in
+            print("✅ 准备上传回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            // 构建返回数据
+            var response: [String: Any] = [
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? ""
+            ]
+            
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                }
+            }
+            
+            result(response)
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "PREPARE_UPLOAD_ERROR",
+                              message: "准备上传请求失败",
                               details: nil))
         }
     }

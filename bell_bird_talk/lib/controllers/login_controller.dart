@@ -31,7 +31,7 @@ class LoginController extends GetxController {
   final RxBool rememberPassword = false.obs;
   
   // 登录方式
-  final Rx<LoginType> loginType = LoginType.password.obs;
+  final Rx<LoginType> loginType = LoginType.emailCode.obs;
   
   // 手机/邮箱登录模式：true=密码登录，false=验证码登录
   final RxBool smsUsePassword = true.obs;      // 手机登录默认使用密码
@@ -66,14 +66,29 @@ class LoginController extends GetxController {
 
   /// 加载保存的账号密码
   Future<void> _loadSavedCredentials() async {
+    // 加载账号密码登录的凭据
     final savedUsername = StorageUtil().getString('saved_username');
     final savedPassword = StorageUtil().getString('saved_password');
     
     if (savedUsername != null && savedPassword != null) {
       usernameController.text = savedUsername;
-      passwordController.text = savedPassword;
       rememberPassword.value = true;
     }
+    
+    // 加载手机号密码登录的凭据
+    final savedPhone = StorageUtil().getString('saved_phone');
+    if (savedPhone != null) {
+      phoneController.text = savedPhone;
+    }
+    
+    // 加载邮箱密码登录的凭据
+    final savedEmail = StorageUtil().getString('saved_email');
+    if (savedEmail != null) {
+      emailController.text = savedEmail;
+    }
+    
+    // 根据默认登录方式加载密码
+    _loadPasswordForCurrentType();
   }
 
   /// 切换密码可见性
@@ -87,6 +102,39 @@ class LoginController extends GetxController {
     // 清空验证码相关
     codeController.clear();
     _captchaId = null;
+    
+    // 根据登录方式加载保存的密码
+    _loadPasswordForCurrentType();
+  }
+  
+  /// 根据当前登录方式加载保存的密码
+  void _loadPasswordForCurrentType() {
+    passwordController.clear();
+    
+    switch (loginType.value) {
+      case LoginType.password:
+        final savedPassword = StorageUtil().getString('saved_password');
+        if (savedPassword != null) {
+          passwordController.text = savedPassword;
+        }
+        break;
+      case LoginType.smsCode:
+        if (smsUsePassword.value) {
+          final savedPhonePassword = StorageUtil().getString('saved_phone_password');
+          if (savedPhonePassword != null) {
+            passwordController.text = savedPhonePassword;
+          }
+        }
+        break;
+      case LoginType.emailCode:
+        if (emailUsePassword.value) {
+          final savedEmailPassword = StorageUtil().getString('saved_email_password');
+          if (savedEmailPassword != null) {
+            passwordController.text = savedEmailPassword;
+          }
+        }
+        break;
+    }
   }
   
   /// 切换手机登录模式（密码/验证码）
@@ -96,6 +144,14 @@ class LoginController extends GetxController {
     passwordController.clear();
     codeController.clear();
     _captchaId = null;
+    
+    // 如果切换到密码模式，加载保存的密码
+    if (smsUsePassword.value) {
+      final savedPhonePassword = StorageUtil().getString('saved_phone_password');
+      if (savedPhonePassword != null) {
+        passwordController.text = savedPhonePassword;
+      }
+    }
   }
   
   /// 切换邮箱登录模式（密码/验证码）
@@ -105,6 +161,14 @@ class LoginController extends GetxController {
     passwordController.clear();
     codeController.clear();
     _captchaId = null;
+    
+    // 如果切换到密码模式，加载保存的密码
+    if (emailUsePassword.value) {
+      final savedEmailPassword = StorageUtil().getString('saved_email_password');
+      if (savedEmailPassword != null) {
+        passwordController.text = savedEmailPassword;
+      }
+    }
   }
 
   /// 发送验证码
@@ -480,10 +544,8 @@ class LoginController extends GetxController {
       // 保存登录信息
       await _globalCtrl.saveLoginInfo(token, user);
       
-      // 保存账号（密码登录时保存密码）
-      if (loginType.value == LoginType.password && rememberPassword.value) {
-        await _saveCredentials(usernameController.text.trim(), passwordController.text.trim());
-      }
+      // 保存账号密码（根据登录方式）
+      await _saveCredentialsForCurrentType();
       
       EasyLoading.showSuccess('登录成功');
       
@@ -491,6 +553,48 @@ class LoginController extends GetxController {
       Get.offAllNamed('/home');
     } else {
       EasyLoading.showError(result['message'] ?? '登录失败');
+    }
+  }
+
+  /// 根据当前登录方式保存账号密码
+  Future<void> _saveCredentialsForCurrentType() async {
+    switch (loginType.value) {
+      case LoginType.password:
+        // 账号密码登录：根据"记住密码"选项保存
+        if (rememberPassword.value) {
+          await _saveCredentials(usernameController.text.trim(), passwordController.text.trim());
+        }
+        break;
+      case LoginType.smsCode:
+        // 手机登录
+        final phone = phoneController.text.trim();
+        if (phone.isNotEmpty) {
+          await StorageUtil().setString('saved_phone', phone);
+        }
+        // 如果是密码模式，保存密码
+        if (smsUsePassword.value) {
+          final password = passwordController.text.trim();
+          if (password.isNotEmpty) {
+            await StorageUtil().setString('saved_phone_password', password);
+            print('💾 已保存手机号密码: phone=$phone');
+          }
+        }
+        break;
+      case LoginType.emailCode:
+        // 邮箱登录
+        final email = emailController.text.trim();
+        if (email.isNotEmpty) {
+          await StorageUtil().setString('saved_email', email);
+        }
+        // 如果是密码模式，保存密码
+        if (emailUsePassword.value) {
+          final password = passwordController.text.trim();
+          if (password.isNotEmpty) {
+            await StorageUtil().setString('saved_email_password', password);
+            print('💾 已保存邮箱密码: email=$email');
+          }
+        }
+        break;
     }
   }
 

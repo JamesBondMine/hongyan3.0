@@ -5,3 +5,5 @@
 #import "IMSDK/IMSDKContactManager.h"
 #import "IMSDK/IMSDKConversationManager.h"
 #import "IMSDK/IMSDKMessageManager.h"
+#import "IMSDK/IMSDKUserManager.h"
+#import "IMSDK/IMSDKFileManager.h"

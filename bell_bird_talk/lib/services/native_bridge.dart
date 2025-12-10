@@ -465,6 +465,67 @@ class IOSNativeService {
     }
   }
   
+  // ---------- 用户信息管理 ----------
+  
+  /// 更新用户信息
+  /// @param userId 用户ID（可选，默认使用当前登录用户）
+  /// @param nickname 昵称
+  /// @param sex 性别 (0=男, 1=女)
+  /// @param signature 个性签名
+  /// @param avatar 头像URL
+  /// @param region 地区
+  /// @param backgroundFile 背景图片URL
+  /// @return 更新结果
+  Future<Map<String, dynamic>> imUpdateUserInfo({
+    String? userId,
+    String? nickname,
+    int? sex,
+    String? signature,
+    String? avatar,
+    String? region,
+    String? backgroundFile,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {};
+      
+      if (userId != null) params['user_id'] = userId;
+      if (nickname != null) params['nickname'] = nickname;
+      if (sex != null) params['sex'] = sex;
+      if (signature != null) params['signature'] = signature;
+      if (avatar != null) params['avatar'] = avatar;
+      if (region != null) params['region'] = region;
+      if (backgroundFile != null) params['background_file'] = backgroundFile;
+      
+      print('📝 更新用户信息: $params');
+      
+      final result = await _bridge.invokeMethod<Map>('imUpdateUserInfo', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('更新用户信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 更新昵称（便捷方法）
+  Future<Map<String, dynamic>> imUpdateNickname(String nickname) async {
+    return imUpdateUserInfo(nickname: nickname);
+  }
+  
+  /// 更新签名（便捷方法）
+  Future<Map<String, dynamic>> imUpdateSignature(String signature) async {
+    return imUpdateUserInfo(signature: signature);
+  }
+  
+  /// 更新性别（便捷方法）
+  Future<Map<String, dynamic>> imUpdateSex(int sex) async {
+    return imUpdateUserInfo(sex: sex);
+  }
+  
+  /// 更新头像（便捷方法）
+  Future<Map<String, dynamic>> imUpdateAvatar(String avatarUrl) async {
+    return imUpdateUserInfo(avatar: avatarUrl);
+  }
+  
   // ---------- 联系人管理 ----------
   
   /// 添加联系人（发送好友申请）
@@ -828,6 +889,53 @@ class IOSNativeService {
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  // ---------- 文件管理 ----------
+  
+  /// 准备上传文件（获取上传凭证）
+  /// @param businessModule 业务模块（必填，如: avatar, group_avatar, message等）
+  /// @param fileName 文件名（必填）
+  /// @param fileSize 文件大小（字节，可选）
+  /// @param contentType 文件MIME类型（可选）
+  /// @return 上传凭证信息，包含：
+  ///   - provider_code: 提供商类型代码（ALIYUN/TENCENT/AWS/MINIO/HUAWEI）
+  ///   - upload_url: 上传URL
+  ///   - method: HTTP方法（POST/PUT）
+  ///   - headers: HTTP头
+  ///   - form_data: 表单字段
+  ///   - file_path: 文件路径
+  ///   - file_url: 文件访问URL
+  ///   - expires_at: 过期时间戳
+  ///   - expires_in: 有效期（秒）
+  ///   - upload_mode: 上传模式（POST_OBJECT或STS_SDK）
+  ///   - sts_access_key_id: STS临时访问密钥ID
+  ///   - sts_access_key_secret: STS临时访问密钥Secret
+  ///   - sts_security_token: STS安全令牌
+  ///   - bucket_name: 存储桶名称
+  ///   - region: 区域ID
+  Future<Map<String, dynamic>> imPrepareUpload({
+    required String businessModule,
+    required String fileName,
+    int? fileSize,
+    String? contentType,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'business_module': businessModule,
+        'file_name': fileName,
+      };
+      if (fileSize != null && fileSize > 0) params['file_size'] = fileSize;
+      if (contentType != null) params['content_type'] = contentType;
+      
+      print('📤 准备上传: $params');
+      
+      final result = await _bridge.invokeMethod<Map>('imPrepareUpload', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('准备上传错误: $e');
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

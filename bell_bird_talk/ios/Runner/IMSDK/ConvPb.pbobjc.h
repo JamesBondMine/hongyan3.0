@@ -64,31 +64,6 @@ GPBEnumDescriptor *ConversationType_EnumDescriptor(void);
  **/
 BOOL ConversationType_IsValidValue(int32_t value);
 
-#pragma mark - Enum EventType
-
-/** 会话事件类型枚举 - 定义会话事件类型 */
-typedef GPB_ENUM(EventType) {
-  /**
-   * Value used if any message's field encounters a value that is not defined
-   * by this enum. The message will also have C functions to get/set the rawValue
-   * of the field.
-   **/
-  EventType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
-  /** 创建（默认值） */
-  EventType_Created = 0,
-
-  /** 更新 */
-  EventType_Updated = 1,
-};
-
-GPBEnumDescriptor *EventType_EnumDescriptor(void);
-
-/**
- * Checks to see if the given value is defined by the enum or was not known at
- * the time this source was generated.
- **/
-BOOL EventType_IsValidValue(int32_t value);
-
 #pragma mark - ConvPbRoot
 
 /**
@@ -610,69 +585,6 @@ GPB_FINAL @interface BatchIncrementUnreadResult : GPBMessage
 @property(nonatomic, readwrite) int32_t updatedCount;
 
 @end
-
-#pragma mark - Event
-
-typedef GPB_ENUM(Event_FieldNumber) {
-  Event_FieldNumber_ConvId = 1,
-  Event_FieldNumber_Type = 2,
-  Event_FieldNumber_Conv = 3,
-  Event_FieldNumber_OldValues = 4,
-  Event_FieldNumber_NewValues = 5,
-  Event_FieldNumber_OperatorId = 6,
-  Event_FieldNumber_Timestamp = 7,
-  Event_FieldNumber_Ext = 8,
-};
-
-/**
- * 会话事件消息 - 用于通知客户端会话变更
- * 通过独立的 topic /im/conversation/{userId}/event 推送
- **/
-GPB_FINAL @interface Event : GPBMessage
-
-/** 会话ID（必填） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *convId;
-
-/** 事件类型（必填） */
-@property(nonatomic, readwrite) EventType type;
-
-/** 会话信息（必填，创建/更新后的完整信息） */
-@property(nonatomic, readwrite, strong, null_resettable) Conv *conv;
-/** Test to see if @c conv has been set. */
-@property(nonatomic, readwrite) BOOL hasConv;
-
-/** 变更前的值（可选，仅更新事件） */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, NSString*> *oldValues;
-/** The number of items in @c oldValues without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger oldValues_Count;
-
-/** 变更后的值（可选，仅更新事件） */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, NSString*> *newValues NS_RETURNS_NOT_RETAINED;
-/** The number of items in @c newValues without causing the array to be created. */
-@property(nonatomic, readonly) NSUInteger newValues_Count;
-
-/** 操作者ID（必填） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *operatorId;
-
-/** 时间戳（必填，系统自动生成） */
-@property(nonatomic, readwrite) int64_t timestamp;
-
-/** 扩展字段（可选） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *ext;
-
-@end
-
-/**
- * Fetches the raw value of a @c Event's @c type property, even
- * if the value was not defined by the enum at the time the code was generated.
- **/
-int32_t Event_Type_RawValue(Event *message);
-/**
- * Sets the raw value of an @c Event's @c type property, allowing
- * it to be set to a value that was not defined by the enum at the time the code
- * was generated.
- **/
-void SetEvent_Type_RawValue(Event *message, int32_t value);
 
 NS_ASSUME_NONNULL_END
 

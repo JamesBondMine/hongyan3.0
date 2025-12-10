@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import '../../controllers/global_controller.dart';
+import '../../services/native_bridge.dart';
 
 /// 个人资料页面
 class ProfilePage extends StatefulWidget {
@@ -14,6 +19,10 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  final IOSNativeService _nativeBridge = IOSNativeService();
+  final ImagePicker _imagePicker = ImagePicker();
+  
+  bool _isUploadingAvatar = false;
 
   @override
   Widget build(BuildContext context) {
@@ -459,6 +468,21 @@ class _ProfilePageState extends State<ProfilePage> {
     EasyLoading.showSuccess('已复制');
   }
   
+  /// 更新性别
+  Future<void> _updateGender(int sex) async {
+    EasyLoading.show(status: '修改中...');
+    
+    final result = await _nativeBridge.imUpdateSex(sex);
+    
+    if (result['errorCode'] == 0) {
+      // 更新本地用户信息 (UI显示: 1=男, 2=女，SDK: 0=男, 1=女)
+      _globalCtrl.updateUserGender(sex == 0 ? 1 : 2);
+      EasyLoading.showSuccess('性别已修改');
+    } else {
+      EasyLoading.showError(result['message'] ?? '修改失败');
+    }
+  }
+  
   // ==================== 弹窗和操作 ====================
   
   void _showAvatarOptions() {
@@ -485,7 +509,7 @@ class _ProfilePageState extends State<ProfilePage> {
               title: const Text('拍照'),
               onTap: () {
                 Get.back();
-                EasyLoading.showInfo('相机功能开发中');
+                _pickAndUploadAvatar(ImageSource.camera);
               },
             ),
             ListTile(
@@ -493,7 +517,7 @@ class _ProfilePageState extends State<ProfilePage> {
               title: const Text('从相册选择'),
               onTap: () {
                 Get.back();
-                EasyLoading.showInfo('相册功能开发中');
+                _pickAndUploadAvatar(ImageSource.gallery);
               },
             ),
             const SizedBox(height: 8),
@@ -506,6 +530,220 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+  
+  /// 选择并上传头像
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    if (_isUploadingAvatar) {
+      EasyLoading.showInfo('正在上传中，请稍候');
+      return;
+    }
+    
+    try {
+      // 1. 选择图片
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile == null) {
+        print('❌ 用户取消选择图片');
+        return;
+      }
+      
+      print('📷 选择图片: ${pickedFile.path}');
+      
+      setState(() {
+        _isUploadingAvatar = true;
+      });
+      EasyLoading.show(status: '上传中...');
+      
+      // 2. 获取文件信息
+      final File imageFile = File(pickedFile.path);
+      final int fileSize = await imageFile.length();
+      final String fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String contentType = 'image/jpeg';
+      
+      print('📦 文件信息: fileName=$fileName, size=$fileSize');
+      
+      // 3. 获取上传凭证
+      final prepareResult = await _nativeBridge.imPrepareUpload(
+        businessModule: 'avatar',
+        fileName: fileName,
+        fileSize: fileSize,
+        contentType: contentType,
+      );
+      
+      print('📋 上传凭证结果: $prepareResult');
+      
+      final int errorCode = prepareResult['errorCode'] as int? ?? -1;
+      if (errorCode != 0) {
+        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败');
+        return;
+      }
+      
+      // 4. 解析凭证数据
+      final String? dataStr = prepareResult['data'] as String?;
+      if (dataStr == null || dataStr.isEmpty) {
+        EasyLoading.showError('上传凭证数据为空');
+        return;
+      }
+      
+      final Map<String, dynamic> tokenData = json.decode(dataStr);
+      print('📦 凭证详情: $tokenData');
+      
+      final String uploadUrl = tokenData['upload_url'] ?? '';
+      final String fileUrl = tokenData['file_url'] ?? '';
+      final String method = tokenData['method'] ?? 'POST';
+      final String filePath = tokenData['file_path'] ?? '';
+      final Map<String, dynamic> headers = Map<String, dynamic>.from(tokenData['headers'] ?? {});
+      final Map<String, dynamic> formData = Map<String, dynamic>.from(tokenData['form_data'] ?? {});
+      
+      if (uploadUrl.isEmpty) {
+        EasyLoading.showError('上传URL为空');
+        return;
+      }
+      
+      print('📤 开始上传: uploadUrl=$uploadUrl, method=$method');
+      
+      // 5. 上传图片
+      bool uploadSuccess = false;
+      
+      if (method.toUpperCase() == 'PUT') {
+        // PUT 方式上传（直接上传文件内容）
+        uploadSuccess = await _uploadWithPut(uploadUrl, imageFile, headers);
+      } else {
+        // POST 方式上传（表单上传）
+        uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, filePath, headers, formData);
+      }
+      
+      if (!uploadSuccess) {
+        EasyLoading.showError('图片上传失败');
+        return;
+      }
+      
+      print('✅ 图片上传成功: fileUrl=$fileUrl');
+      
+      // 6. 更新用户头像
+      EasyLoading.show(status: '更新头像...');
+      
+      final updateResult = await _nativeBridge.imUpdateUserInfo(avatar: fileUrl);
+      final int updateErrorCode = updateResult['errorCode'] as int? ?? -1;
+      
+      if (updateErrorCode == 0) {
+        // 更新本地用户信息
+        await _globalCtrl.updateUserAvatar(fileUrl);
+        EasyLoading.showSuccess('头像更新成功');
+      } else {
+        EasyLoading.showError(updateResult['message'] ?? '头像更新失败');
+      }
+      
+    } catch (e) {
+      print('❌ 上传头像异常: $e');
+      EasyLoading.showError('上传失败: $e');
+    } finally {
+      setState(() {
+        _isUploadingAvatar = false;
+      });
+      EasyLoading.dismiss();
+    }
+  }
+  
+  /// PUT 方式上传
+  Future<bool> _uploadWithPut(String url, File file, Map<String, dynamic> headers) async {
+    try {
+      final bytes = await file.readAsBytes();
+      
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers.map((k, v) => MapEntry(k, v.toString())),
+        body: bytes,
+      );
+      
+      print('📤 PUT 上传响应: ${response.statusCode}');
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ PUT 上传失败: $e');
+      return false;
+    }
+  }
+  
+  /// POST 表单方式上传
+  Future<bool> _uploadWithPost(
+    String url, 
+    File file, 
+    String filePath,
+    Map<String, dynamic> headers, 
+    Map<String, dynamic> formData,
+  ) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      
+      // 添加表单字段
+      formData.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
+      
+      // 添加文件
+      final fileName = filePath.isNotEmpty ? filePath.split('/').last : 'file';
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        filename: fileName,
+      ));
+      
+      // 添加 headers
+      headers.forEach((key, value) {
+        request.headers[key] = value.toString();
+      });
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('📤 POST 上传响应: ${response.statusCode}');
+      print('📤 响应内容: ${response.body}');
+      
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ POST 上传失败: $e');
+      return false;
+    }
+  }
+
+  // /// 获取上传凭证
+  // Future<void> _prepareUpload() async {
+  //   try {
+  //     print('📤 首页初始化: 获取上传凭证...');
+  //     final nativeService = IOSNativeService();
+      
+  //     // 获取头像上传凭证（作为默认凭证）
+  //     final result = await nativeService.imPrepareUpload(
+  //       businessModule: 'avatar',
+  //       fileName: 'avatar.jpg',
+  //     );
+      
+  //     print('📋 上传凭证结果: $result');
+      
+  //     final errorCode = result['errorCode'] as int? ?? -1;
+  //     if (errorCode == 0) {
+  //       setState(() {
+  //         _uploadToken = result;
+  //       });
+  //       print('✅ 上传凭证获取成功');
+        
+  //       // 可以在这里解析并打印详细信息
+  //       final dataStr = result['data'] as String?;
+  //       if (dataStr != null) {
+  //         print('📦 凭证详情: $dataStr');
+  //       }
+  //     } else {
+  //       print('❌ 上传凭证获取失败: ${result['message']}');
+  //     }
+  //   } catch (e) {
+  //     print('❌ 获取上传凭证异常: $e');
+  //   }
+  // }
   
   void _showEditNicknameDialog(String? currentNickname) {
     final controller = TextEditingController(text: currentNickname);
@@ -528,10 +766,25 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final newNickname = controller.text.trim();
+              if (newNickname.isEmpty) {
+                EasyLoading.showError('昵称不能为空');
+                return;
+              }
+              
               Get.back();
-              // TODO: 调用修改昵称接口
-              EasyLoading.showSuccess('昵称修改成功');
+              EasyLoading.show(status: '修改中...');
+              
+              final result = await _nativeBridge.imUpdateNickname(newNickname);
+              
+              if (result['errorCode'] == 0) {
+                // 更新本地用户信息
+                _globalCtrl.updateUserNickname(newNickname);
+                EasyLoading.showSuccess('昵称修改成功');
+              } else {
+                EasyLoading.showError(result['message'] ?? '修改失败');
+              }
             },
             child: const Text('保存'),
           ),
@@ -562,10 +815,21 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final newSignature = controller.text.trim();
+              
               Get.back();
-              // TODO: 调用修改签名接口
-              EasyLoading.showSuccess('签名修改成功');
+              EasyLoading.show(status: '修改中...');
+              
+              final result = await _nativeBridge.imUpdateSignature(newSignature);
+              
+              if (result['errorCode'] == 0) {
+                // 更新本地用户信息
+                _globalCtrl.updateUserSignature(newSignature);
+                EasyLoading.showSuccess('签名修改成功');
+              } else {
+                EasyLoading.showError(result['message'] ?? '修改失败');
+              }
             },
             child: const Text('保存'),
           ),
@@ -609,10 +873,9 @@ class _ProfilePageState extends State<ProfilePage> {
               trailing: currentGender == 1 
                   ? const Icon(Icons.check, color: Colors.blue) 
                   : null,
-              onTap: () {
+              onTap: () async {
                 Get.back();
-                // TODO: 调用修改性别接口
-                EasyLoading.showSuccess('性别已修改');
+                await _updateGender(0); // 0=男
               },
             ),
             ListTile(
@@ -621,10 +884,9 @@ class _ProfilePageState extends State<ProfilePage> {
               trailing: currentGender == 2 
                   ? const Icon(Icons.check, color: Colors.blue) 
                   : null,
-              onTap: () {
+              onTap: () async {
                 Get.back();
-                // TODO: 调用修改性别接口
-                EasyLoading.showSuccess('性别已修改');
+                await _updateGender(1); // 1=女
               },
             ),
             const SizedBox(height: 16),

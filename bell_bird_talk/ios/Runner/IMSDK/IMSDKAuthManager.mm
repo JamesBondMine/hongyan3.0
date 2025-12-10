@@ -293,22 +293,19 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     } else {
         // 默认密码登录
         authUser.loginType = LoginType_Password;
-        
     }
     
     // 账户ID（密码登录必填）
-    if (loginDict[@"account_id"]) {
+    if (loginDict[@"account_id"] && authUser.loginType != LoginType_SmsCode && authUser.loginType!=LoginType_EmailCode && authUser.loginType!=LoginType_Password) {
         authUser.accountId = loginDict[@"account_id"];
     }
     // 手机号（短信验证码登录必填）
     if (loginDict[@"phone"]) {
         authUser.phone = loginDict[@"phone"];
-        authUser.loginType = LoginType_SmsCode;
     }
     // 邮箱（邮箱验证码登录必填）
     if (loginDict[@"email"]) {
         authUser.email = loginDict[@"email"];
-        authUser.loginType = LoginType_EmailCode;
     }
     // 密码（密码登录时为密码，验证码登录时为验证码答案）
     if (loginDict[@"password"]) {

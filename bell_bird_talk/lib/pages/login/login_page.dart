@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
+import '../settings/language_page.dart';
 
 /// 登录页面
 class LoginPage extends StatelessWidget {
@@ -25,27 +26,78 @@ class LoginPage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo 和标题
-                  _buildHeader(),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // 登录表单
-                  _buildLoginForm(controller),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // 其他操作
-                  _buildFooter(),
-                ],
+          child: Stack(
+            children: [
+              // 主内容
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo 和标题
+                      _buildHeader(),
+                      
+                      const SizedBox(height: 40),
+                      
+                      // 登录表单
+                      _buildLoginForm(controller),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // 其他操作
+                      _buildFooter(),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              
+              // 右上角语言切换按钮
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _buildLanguageButton(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建语言切换按钮
+  Widget _buildLanguageButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Get.to(() => const LanguagePage());
+        },
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.language,
+                color: Colors.white,
+                size: 22,
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '语言',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -133,19 +185,19 @@ class LoginPage extends StatelessWidget {
       child: Row(
         children: [
           _buildTabItem(
-            title: '密码登录',
-            isSelected: controller.loginType.value == LoginType.password,
-            onTap: () => controller.switchLoginType(LoginType.password),
+            title: '邮箱登录',
+            isSelected: controller.loginType.value == LoginType.emailCode,
+            onTap: () => controller.switchLoginType(LoginType.emailCode),
           ),
           _buildTabItem(
-            title: '短信登录',
+            title: '手机登录',
             isSelected: controller.loginType.value == LoginType.smsCode,
             onTap: () => controller.switchLoginType(LoginType.smsCode),
           ),
           _buildTabItem(
-            title: '邮箱登录',
-            isSelected: controller.loginType.value == LoginType.emailCode,
-            onTap: () => controller.switchLoginType(LoginType.emailCode),
+            title: '密码登录',
+            isSelected: controller.loginType.value == LoginType.password,
+            onTap: () => controller.switchLoginType(LoginType.password),
           ),
         ],
       ),

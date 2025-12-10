@@ -10,6 +10,7 @@ import 'pages/friends/friends_page.dart';
 import 'pages/friends/add_friend_page.dart';
 import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';
+import 'config/translations.dart';
 
 void main() async {
   // 确保 Flutter 绑定初始化
@@ -72,6 +73,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
+      // 多语言配置
+      translations: AppTranslations(),
+      locale: const Locale('zh', 'CN'),
+      fallbackLocale: const Locale('zh', 'CN'),
       // 使用启动页面
       home: const SplashPage(),
       builder: EasyLoading.init(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
+import '../services/native_bridge.dart';
 import 'native_demo_page.dart';
 import 'framework_test_page.dart';
 import 'friends/friends_page.dart';
@@ -19,6 +20,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  
+  // 上传凭证信息
+  Map<String, dynamic>? _uploadToken;
+
+  @override
+  void initState() {
+    super.initState();
+    // 进入首页时获取上传凭证
+    // _prepareUpload();
+  }
+  
+  
 
   @override
   Widget build(BuildContext context) {

@@ -29,7 +29,6 @@
 // We don't use [Foo class] because it is not a static value.
 GPBObjCClassDeclaration(Conv);
 GPBObjCClassDeclaration(ConvWithUnread);
-GPBObjCClassDeclaration(Event);
 GPBObjCClassDeclaration(Page);
 GPBObjCClassDeclaration(UnreadStats);
 
@@ -89,41 +88,6 @@ BOOL ConversationType_IsValidValue(int32_t value__) {
     case ConversationType_Group:
     case ConversationType_System:
     case ConversationType_Community:
-      return YES;
-    default:
-      return NO;
-  }
-}
-
-#pragma mark - Enum EventType
-
-GPBEnumDescriptor *EventType_EnumDescriptor(void) {
-  static _Atomic(GPBEnumDescriptor*) descriptor = nil;
-  if (!descriptor) {
-    static const char *valueNames =
-        "Created\000Updated\000";
-    static const int32_t values[] = {
-        EventType_Created,
-        EventType_Updated,
-    };
-    GPBEnumDescriptor *worker =
-        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(EventType)
-                                       valueNames:valueNames
-                                           values:values
-                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:EventType_IsValidValue];
-    GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
-  }
-  return descriptor;
-}
-
-BOOL EventType_IsValidValue(int32_t value__) {
-  switch (value__) {
-    case EventType_Created:
-    case EventType_Updated:
       return YES;
     default:
       return NO;
@@ -1446,140 +1410,6 @@ typedef struct BatchIncrementUnreadResult__storage_ {
 }
 
 @end
-
-#pragma mark - Event
-
-@implementation Event
-
-@dynamic convId;
-@dynamic type;
-@dynamic hasConv, conv;
-@dynamic oldValues, oldValues_Count;
-@dynamic newValues, newValues_Count;
-@dynamic operatorId;
-@dynamic timestamp;
-@dynamic ext;
-
-typedef struct Event__storage_ {
-  uint32_t _has_storage_[1];
-  EventType type;
-  NSString *convId;
-  Conv *conv;
-  NSMutableDictionary *oldValues;
-  NSMutableDictionary *newValues;
-  NSString *operatorId;
-  NSString *ext;
-  int64_t timestamp;
-} Event__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "convId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_ConvId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(Event__storage_, convId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "type",
-        .dataTypeSpecific.enumDescFunc = EventType_EnumDescriptor,
-        .number = Event_FieldNumber_Type,
-        .hasIndex = 1,
-        .offset = (uint32_t)offsetof(Event__storage_, type),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
-      },
-      {
-        .name = "conv",
-        .dataTypeSpecific.clazz = GPBObjCClass(Conv),
-        .number = Event_FieldNumber_Conv,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(Event__storage_, conv),
-        .flags = GPBFieldOptional,
-        .dataType = GPBDataTypeMessage,
-      },
-      {
-        .name = "oldValues",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_OldValues,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(Event__storage_, oldValues),
-        .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "newValues",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_NewValues,
-        .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(Event__storage_, newValues),
-        .flags = GPBFieldMapKeyString,
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "operatorId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_OperatorId,
-        .hasIndex = 3,
-        .offset = (uint32_t)offsetof(Event__storage_, operatorId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
-        .name = "timestamp",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_Timestamp,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(Event__storage_, timestamp),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt64,
-      },
-      {
-        .name = "ext",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Event_FieldNumber_Ext,
-        .hasIndex = 5,
-        .offset = (uint32_t)offsetof(Event__storage_, ext),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[Event class]
-                                     rootClass:[ConvPbRoot class]
-                                          file:ConvPbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(Event__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
-int32_t Event_Type_RawValue(Event *message) {
-  GPBDescriptor *descriptor = [Event descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:Event_FieldNumber_Type];
-  return GPBGetMessageRawEnumField(message, field);
-}
-
-void SetEvent_Type_RawValue(Event *message, int32_t value) {
-  GPBDescriptor *descriptor = [Event descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:Event_FieldNumber_Type];
-  GPBSetMessageRawEnumField(message, field, value);
-}
 
 
 #pragma clang diagnostic pop
