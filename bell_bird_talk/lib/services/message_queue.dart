@@ -6,6 +6,7 @@ import 'dart:convert';
 import '../models/chat_message.dart';
 import 'message_database.dart';
 import 'native_bridge.dart';
+import 'file_path_helper.dart';
 
 /// 消息发送任务
 class MessageTask {
@@ -227,7 +228,11 @@ class MessageQueueManager {
       return false;
     }
     
-    final file = File(localPath);
+    // 将相对路径转换为完整路径
+    final pathHelper = FilePathHelper.instance;
+    final fullPath = await pathHelper.toFullPath(localPath);
+    
+    final file = File(fullPath);
     if (!await file.exists()) {
       message.errorMessage = '图片文件不存在';
       return false;
@@ -235,9 +240,9 @@ class MessageQueueManager {
     
     try {
       // 1. 获取上传凭证
-      final fileName = localPath.split('/').last;
+      final fileName = fullPath.split('/').last;
       final fileSize = await file.length();
-      final contentType = lookupMimeType(localPath) ?? 'image/jpeg';
+      final contentType = lookupMimeType(fullPath) ?? 'image/jpeg';
       
       print('📤 准备上传图片: $fileName, $fileSize bytes, $contentType');
       
@@ -319,7 +324,11 @@ class MessageQueueManager {
       return false;
     }
     
-    final file = File(localPath);
+    // 将相对路径转换为完整路径
+    final pathHelper = FilePathHelper.instance;
+    final fullPath = await pathHelper.toFullPath(localPath);
+    
+    final file = File(fullPath);
     if (!await file.exists()) {
       message.errorMessage = '语音文件不存在';
       return false;
@@ -327,9 +336,9 @@ class MessageQueueManager {
     
     try {
       // 1. 获取上传凭证
-      final fileName = localPath.split('/').last;
+      final fileName = fullPath.split('/').last;
       final fileSize = await file.length();
-      final contentType = lookupMimeType(localPath) ?? 'audio/m4a';
+      final contentType = lookupMimeType(fullPath) ?? 'audio/m4a';
       
       print('📤 准备上传语音: $fileName, $fileSize bytes, $contentType, 时长: ${message.voiceDuration}s');
       

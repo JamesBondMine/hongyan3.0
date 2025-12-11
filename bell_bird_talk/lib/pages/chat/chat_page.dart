@@ -5,6 +5,10 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import '../../services/file_path_helper.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_queue.dart';
 import '../../services/message_database.dart';
@@ -50,6 +54,11 @@ class _ChatPageState extends State<ChatPage> {
   final MessageDatabase _messageDatabase = MessageDatabase();
   final GlobalController _globalCtrl = Get.find<GlobalController>();
   
+  // 语音播放器
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  String? _playingVoiceId; // 当前正在播放的语音消息ID
+  bool _isDownloading = false;
+  
   /// 新消息监听器
   Worker? _newMessageWorker;
   
@@ -81,6 +90,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    
+    // 初始化文件路径助手（解决iOS沙盒路径变化问题）
+    FilePathHelper.instance.init();
+    
     _loadMessages();
     
     // 监听消息状态变化
@@ -109,6 +122,7 @@ class _ChatPageState extends State<ChatPage> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -232,6 +246,7 @@ class _ChatPageState extends State<ChatPage> {
       'timestamp': message.createdAt,
       'status': message.status.name,
       'imageLocalPath': message.imageLocalPath,
+      'fileLocalPath': message.fileLocalPath,
       'imageUrl': message.imageUrl,
       'errorMessage': message.errorMessage,
     };
@@ -859,12 +874,16 @@ class _ChatPageState extends State<ChatPage> {
   
   /// 发送语音消息
   Future<void> _sendVoiceMessage(String voicePath, int duration) async {
-    // 创建语音消息
+    // 将完整路径转换为相对路径存储（解决iOS沙盒路径变化问题）
+    final pathHelper = FilePathHelper.instance;
+    final relativePath = await pathHelper.toRelativePath(voicePath);
+    
+    // 创建语音消息（存储相对路径）
     final message = ChatMessage.voice(
       convId: widget.convId,
       senderId: _currentUserId,
       receiverId: widget.targetUserId,
-      localPath: voicePath,
+      localPath: relativePath,
       duration: duration,
     );
     
@@ -874,7 +893,7 @@ class _ChatPageState extends State<ChatPage> {
     });
     _scrollToBottom();
     
-    // 通过队列发送
+    // 通过队列发送（队列中会用完整路径读取文件）
     _messageQueue.sendMessage(message);
   }
 
@@ -1203,12 +1222,16 @@ class _ChatPageState extends State<ChatPage> {
     final file = File(imagePath);
     final decodedImage = await decodeImageFromList(await file.readAsBytes());
     
-    // 创建图片消息
+    // 将完整路径转换为相对路径存储（解决iOS沙盒路径变化问题）
+    final pathHelper = FilePathHelper.instance;
+    final relativePath = await pathHelper.toRelativePath(imagePath);
+    
+    // 创建图片消息（存储相对路径）
     final message = ChatMessage.image(
       convId: widget.convId,
       senderId: _currentUserId,
       receiverId: widget.targetUserId,
-      localPath: imagePath,
+      localPath: relativePath,
       width: decodedImage.width,
       height: decodedImage.height,
     );
@@ -1219,7 +1242,7 @@ class _ChatPageState extends State<ChatPage> {
     });
     _scrollToBottom();
     
-    // 通过队列发送
+    // 通过队列发送（队列中会用完整路径读取文件）
     _messageQueue.sendMessage(message);
   }
 
@@ -1253,6 +1276,10 @@ class _ChatPageState extends State<ChatPage> {
     final localPath = message['fileLocalPath'] as String?;
     final fileUrl = message['fileUrl'] as String?;
     
+    // 判断是否正在播放
+    final isPlaying = _playingVoiceId != null && 
+        (_playingVoiceId == localPath || _playingVoiceId == fileUrl);
+    
     // 根据时长计算宽度（3-15秒对应100-200宽度）
     final width = 100.0 + (duration.clamp(0, 60) / 60.0 * 100.0);
     
@@ -1264,9 +1291,9 @@ class _ChatPageState extends State<ChatPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 播放图标
+            // 播放/暂停图标
             Icon(
-              Icons.play_arrow,
+              isPlaying ? Icons.pause : Icons.play_arrow,
               color: isMine ? Colors.white : Colors.blue,
               size: 24,
             ),
@@ -1277,13 +1304,16 @@ class _ChatPageState extends State<ChatPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(
                   (width / 8).floor().clamp(4, 15),
-                  (index) => Container(
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
                     width: 3,
-                    height: 8 + (index % 3) * 4.0,
+                    height: isPlaying 
+                        ? 8 + ((index + DateTime.now().millisecond ~/ 100) % 4) * 5.0
+                        : 8 + (index % 3) * 4.0,
                     decoration: BoxDecoration(
                       color: isMine 
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : Colors.blue.withValues(alpha: 0.6),
+                          ? Colors.white.withValues(alpha: isPlaying ? 1.0 : 0.7)
+                          : Colors.blue.withValues(alpha: isPlaying ? 0.9 : 0.6),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1306,10 +1336,96 @@ class _ChatPageState extends State<ChatPage> {
   }
   
   /// 播放语音消息
-  void _playVoiceMessage(String? localPath, String? fileUrl) {
-    // TODO: 实现语音播放
-    print('🔊 播放语音: $localPath 或 $fileUrl');
-    EasyLoading.showInfo('语音播放功能开发中');
+  Future<void> _playVoiceMessage(String? localPath, String? fileUrl) async {
+    print('🔊 播放语音: localPath=$localPath, fileUrl=$fileUrl');
+    
+    final pathHelper = FilePathHelper.instance;
+    
+    // 1. 检查本地文件是否存在（支持相对路径）
+    if (localPath != null && localPath.isNotEmpty) {
+      // 将相对路径转换为完整路径
+      final fullPath = await pathHelper.toFullPath(localPath);
+      final file = File(fullPath);
+      if (await file.exists()) {
+        await _playLocalVoice(fullPath);
+        return;
+      }
+    }
+    
+    // 2. 尝试从网络下载
+    if (fileUrl != null && fileUrl.isNotEmpty) {
+      await _downloadAndPlayVoice(fileUrl);
+      return;
+    }
+    
+    // 3. 都没有，提示错误
+    EasyLoading.showError('语音文件不存在');
+  }
+  
+  /// 播放本地语音文件
+  Future<void> _playLocalVoice(String path) async {
+    try {
+      // 如果正在播放同一个文件，则暂停
+      if (_playingVoiceId == path) {
+        await _audioPlayer.stop();
+        setState(() => _playingVoiceId = null);
+        return;
+      }
+      
+      // 停止之前的播放
+      await _audioPlayer.stop();
+      
+      // 开始播放
+      await _audioPlayer.play(DeviceFileSource(path));
+      setState(() => _playingVoiceId = path);
+      
+      // 监听播放完成
+      _audioPlayer.onPlayerComplete.listen((_) {
+        if (mounted) {
+          setState(() => _playingVoiceId = null);
+        }
+      });
+      
+    } catch (e) {
+      print('❌ 播放语音失败: $e');
+      EasyLoading.showError('播放失败');
+    }
+  }
+  
+  /// 下载并播放语音
+  Future<void> _downloadAndPlayVoice(String url) async {
+    if (_isDownloading) {
+      EasyLoading.showInfo('正在下载...');
+      return;
+    }
+    
+    try {
+      setState(() => _isDownloading = true);
+      EasyLoading.show(status: '下载中...');
+      
+      // 下载文件
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        throw Exception('下载失败: ${response.statusCode}');
+      }
+      
+      // 保存到临时目录
+      final dir = await getTemporaryDirectory();
+      final fileName = 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(response.bodyBytes);
+      
+      EasyLoading.dismiss();
+      
+      // 播放
+      await _playLocalVoice(file.path);
+      
+    } catch (e) {
+      print('❌ 下载语音失败: $e');
+      EasyLoading.showError('下载失败');
+    } finally {
+      setState(() => _isDownloading = false);
+    }
   }
 
   /// 构建图片消息
@@ -1319,10 +1435,14 @@ class _ChatPageState extends State<ChatPage> {
     
     Widget imageWidget;
     
-    if (localPath != null && File(localPath).existsSync()) {
+    // 将相对路径转换为完整路径
+    final pathHelper = FilePathHelper.instance;
+    final fullPath = localPath != null ? pathHelper.toFullPathSync(localPath) : null;
+    
+    if (fullPath != null && File(fullPath).existsSync()) {
       // 显示本地图片
       imageWidget = Image.file(
-        File(localPath),
+        File(fullPath),
         width: 150,
         height: 150,
         fit: BoxFit.cover,

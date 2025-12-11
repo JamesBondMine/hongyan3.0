@@ -507,6 +507,7 @@ class MessageDatabase {
   /// 插入消息
   Future<void> insertMessage(ChatMessage message) async {
     final db = await database;
+    print('插入消息数据库: ${message.toDbMap()}');
     await db.insert(
       'messages',
       message.toDbMap(),
@@ -606,6 +607,7 @@ class MessageDatabase {
       limit: limit,
       offset: offset,
     );
+    
     return maps.map((map) => ChatMessage.fromDbMap(map)).toList();
   }
 
@@ -620,6 +622,7 @@ class MessageDatabase {
       limit: 1,
     );
     if (maps.isEmpty) return null;
+    print('获取数据库会话最新消息: ${maps.first}');
     return ChatMessage.fromDbMap(maps.first);
   }
 
