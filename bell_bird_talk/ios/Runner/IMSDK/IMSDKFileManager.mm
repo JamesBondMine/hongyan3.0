@@ -13,6 +13,58 @@
 // 存储回调的字典
 static NSMutableDictionary<NSNumber *, IMSDKFileCompletion> *g_fileCallbacks = nil;
 
+#pragma mark - 枚举转换辅助函数
+
+// BusinessModule 字符串转枚举
+static BusinessModule StringToBusinessModule(NSString *str) {
+    if ([str isEqualToString:@"avatar"]) return BusinessModule_Avatar;
+    if ([str isEqualToString:@"group_avatar"]) return BusinessModule_GroupAvatar;
+    if ([str isEqualToString:@"group_img"]) return BusinessModule_GroupImg;
+    if ([str isEqualToString:@"group_video"]) return BusinessModule_GroupVideo;
+    if ([str isEqualToString:@"group_audio"]) return BusinessModule_GroupAudio;
+    if ([str isEqualToString:@"group_file"]) return BusinessModule_GroupFile;
+    if ([str isEqualToString:@"chat_img"]) return BusinessModule_ChatImg;
+    if ([str isEqualToString:@"chat_video"]) return BusinessModule_ChatVideo;
+    if ([str isEqualToString:@"chat_audio"]) return BusinessModule_ChatAudio;
+    if ([str isEqualToString:@"chat_file"]) return BusinessModule_ChatFile;
+    if ([str isEqualToString:@"message"]) return BusinessModule_Message;
+    return BusinessModule_Avatar; // 默认值
+}
+
+// OssProviderType 枚举转字符串
+static NSString* OssProviderTypeToString(OssProviderType type) {
+    switch (type) {
+        case OssProviderType_Aliyun: return @"aliyun";
+        case OssProviderType_Tencent: return @"tencent";
+        case OssProviderType_Aws: return @"aws";
+        case OssProviderType_Minio: return @"minio";
+        case OssProviderType_Huawei: return @"huawei";
+        default: return @"unknown";
+    }
+}
+
+// HttpMethod 枚举转字符串
+static NSString* HttpMethodToString(HttpMethod method) {
+    switch (method) {
+        case HttpMethod_Get: return @"GET";
+        case HttpMethod_Post: return @"POST";
+        case HttpMethod_Put: return @"PUT";
+        case HttpMethod_Delete: return @"DELETE";
+        case HttpMethod_Patch: return @"PATCH";
+        default: return @"GET";
+    }
+}
+
+// UploadMode 枚举转字符串
+static NSString* UploadModeToString(UploadMode mode) {
+    switch (mode) {
+        case UploadMode_PostObject: return @"POST_OBJECT";
+        case UploadMode_StsSdk: return @"STS_SDK";
+        case UploadMode_PresignedURL: return @"PRESIGNED_URL";
+        default: return @"POST_OBJECT";
+    }
+}
+
 // 准备上传回调
 void PrepareUploadCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📨 准备上传回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -46,14 +98,14 @@ void PrepareUploadCallback(int errorCode, const char* data, int dataLen, uint64_
             Token *token = [Token parseFromData:responseData error:&error];
             
             if (token && !error) {
-                result[@"provider_code"] = token.providerCode ?: @"";
+                result[@"provider_code"] = OssProviderTypeToString(token.providerCode);
                 result[@"upload_url"] = token.uploadURL ?: @"";
-                result[@"method"] = token.method ?: @"";
+                result[@"method"] = HttpMethodToString(token.method);
                 result[@"file_path"] = token.filePath ?: @"";
                 result[@"file_url"] = token.fileURL ?: @"";
                 result[@"expires_at"] = @(token.expiresAt);
                 result[@"expires_in"] = @(token.expiresIn);
-                result[@"upload_mode"] = token.uploadMode ?: @"";
+                result[@"upload_mode"] = UploadModeToString(token.uploadMode);
                 result[@"bucket_name"] = token.bucketName ?: @"";
                 result[@"region"] = token.region ?: @"";
                 
@@ -78,7 +130,7 @@ void PrepareUploadCallback(int errorCode, const char* data, int dataLen, uint64_
                 }
                 
                 NSLog(@"✅ 准备上传成功: provider=%@, uploadUrl=%@, fileUrl=%@", 
-                      token.providerCode, token.uploadURL, token.fileURL);
+                      OssProviderTypeToString(token.providerCode), token.uploadURL, token.fileURL);
             } else {
                 NSLog(@"⚠️ 解析 Token 失败: %@", error);
                 // 尝试返回原始数据
@@ -131,7 +183,7 @@ void PrepareUploadCallback(int errorCode, const char* data, int dataLen, uint64_
     
     // 创建 Prepare 对象
     Prepare *prepare = [[Prepare alloc] init];
-    prepare.businessModule = businessModule;
+    prepare.businessModule = StringToBusinessModule(businessModule);
     prepare.fileName = fileName;
     
     if (fileSize > 0) {

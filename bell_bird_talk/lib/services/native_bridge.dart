@@ -1069,6 +1069,45 @@ class IOSNativeService {
     }
   }
   
+  /// 使用腾讯云 STS 临时凭证上传文件
+  /// @param localFilePath 本地文件路径
+  /// @param objectKey 对象键/远程路径
+  /// @param bucketName 存储桶名称
+  /// @param region 区域
+  /// @param secretId 临时 AccessKeyId
+  /// @param secretKey 临时 SecretKey
+  /// @param token 临时 Token
+  /// @return 上传结果，包含 success, url, error
+  Future<Map<String, dynamic>> imUploadWithTencentSTS({
+    required String localFilePath,
+    required String objectKey,
+    required String bucketName,
+    required String region,
+    required String secretId,
+    required String secretKey,
+    required String token,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'local_file_path': localFilePath,
+        'object_key': objectKey,
+        'bucket_name': bucketName,
+        'region': region,
+        'secret_id': secretId,
+        'secret_key': secretKey,
+        'token': token,
+      };
+      
+      print('📤 腾讯云 STS 上传: objectKey=$objectKey, bucket=$bucketName');
+      
+      final result = await _bridge.invokeMethod<Map>('imUploadWithTencentSTS', params);
+      return result?.cast<String, dynamic>() ?? {'success': false, 'error': '未知错误'};
+    } catch (e) {
+      print('腾讯云上传错误: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+  
   // ======================== 群组操作 ========================
   
   /// 创建群聊
