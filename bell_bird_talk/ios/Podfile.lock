@@ -1,5 +1,8 @@
 PODS:
   - AliyunOSSiOS (2.11.2)
+  - audioplayers_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - AWSCore (2.41.0)
   - AWSS3 (2.41.0):
     - AWSCore (= 2.41.0)
@@ -42,6 +45,8 @@ PODS:
   - QCloudCOSXML/Default (6.4.9):
     - QCloudCore (= 6.4.9)
   - QCloudTrack/Beacon (6.4.9)
+  - record_ios (1.1.0):
+    - Flutter
   - SDWebImage (5.21.5):
     - SDWebImage/Core (= 5.21.5)
   - SDWebImage/Core (5.21.5)
@@ -64,6 +69,7 @@ PODS:
 
 DEPENDENCIES:
   - AliyunOSSiOS
+  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
   - AWSS3
   - Flutter (from `Flutter`)
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
@@ -73,6 +79,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - Protobuf (~> 3.25)
   - QCloudCOSXML (~> 6.4.8)
+  - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
@@ -94,6 +101,8 @@ SPEC REPOS:
     - SDWebImageWebPCoder
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   Flutter:
     :path: Flutter
   flutter_image_compress_common:
@@ -106,6 +115,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/objective_c/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  record_ios:
+    :path: ".symlinks/plugins/record_ios/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
@@ -119,6 +130,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AliyunOSSiOS: 6d6b668b82ac0c0ea2313412bcb5530b42ec97ab
+  audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
   AWSCore: ee7594bda3132cde8666328bf9a09d8770c1c100
   AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
@@ -133,6 +145,7 @@ SPEC CHECKSUMS:
   QCloudCore: 0e70cda608d1ac485e039e83be1c4a1197197e6b
   QCloudCOSXML: b7f0b9cac61780a03318d40367a879f8d7eb3d86
   QCloudTrack: cc101dd57be7f87bffc3f2fb692a781d5efeda98
+  record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a

@@ -10,6 +10,8 @@ import '../../services/message_queue.dart';
 import '../../services/message_database.dart';
 import '../../models/chat_message.dart';
 import '../../controllers/global_controller.dart';
+import '../../widgets/voice_record_panel.dart';
+import 'chat_detail_page.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -41,6 +43,7 @@ class _ChatPageState extends State<ChatPage> {
   bool _isSending = false;
   bool _showEmojiPicker = false;
   bool _showMorePanel = false;
+  bool _showVoicePanel = false;
   
   final ImagePicker _imagePicker = ImagePicker();
   final MessageQueueManager _messageQueue = MessageQueueManager();
@@ -462,12 +465,20 @@ class _ChatPageState extends State<ChatPage> {
               child: _buildMessageList(),
             ),
           ),
-          // 输入栏
-          _buildInputBar(),
-          // 表情选择器
-          if (_showEmojiPicker) _buildEmojiPicker(),
-          // 更多面板
-          if (_showMorePanel) _buildMorePanel(),
+          // 输入区域：语音面板 或 文字输入栏
+          if (_showVoicePanel)
+            VoiceRecordPanel(
+              onSend: _handleVoiceSend,
+              onClose: () => setState(() => _showVoicePanel = false),
+              autoStart: true,
+            )
+          else ...[
+            _buildInputBar(),
+            // 表情选择器
+            if (_showEmojiPicker) _buildEmojiPicker(),
+            // 更多面板
+            if (_showMorePanel) _buildMorePanel(),
+          ],
         ],
       ),
     );
@@ -495,7 +506,18 @@ class _ChatPageState extends State<ChatPage> {
         IconButton(
           icon: const Icon(Icons.more_horiz),
           onPressed: () {
-            // TODO: 显示聊天设置
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatDetailPage(
+                  convId: widget.convId,
+                  targetId: widget.targetUserId,
+                  displayName: widget.displayName,
+                  avatarUrl: widget.avatar ?? '',
+                  convType: 0, // 单聊
+                ),
+              ),
+            );
           },
         ),
       ],
@@ -750,10 +772,11 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           // 语音按钮
           IconButton(
-            icon: Icon(Icons.mic, color: Colors.grey[600]),
-            onPressed: () {
-              // TODO: 语音消息
-            },
+            icon: Icon(
+              Icons.mic,
+              color: _showVoicePanel ? Colors.blue : Colors.grey[600],
+            ),
+            onPressed: _toggleVoicePanel,
           ),
           
           // 输入框
@@ -810,7 +833,30 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  /// 切换表情选择器
+
+  void _toggleVoicePanel() {
+    // 关闭键盘
+    _focusNode.unfocus();
+    
+    setState(() {
+      _showVoicePanel = !_showVoicePanel;
+      // 关闭其他面板
+      if (_showVoicePanel) {
+        _showEmojiPicker = false;
+        _showMorePanel = false;
+      }
+    });
+  }
+  
+  /// 处理语音发送
+  void _handleVoiceSend(VoiceRecordResult result) {
+    // TODO: 发送语音消息
+    print('📢 发送语音: ${result.filePath}, 时长: ${result.duration}s');
+    EasyLoading.showSuccess('语音录制完成 ${result.duration}s');
+    
+    setState(() => _showVoicePanel = false);
+  }
+
   void _toggleEmojiPicker() {
     if (_showEmojiPicker) {
       // 关闭表情面板，打开键盘
@@ -819,7 +865,10 @@ class _ChatPageState extends State<ChatPage> {
     } else {
       // 关闭键盘，打开表情面板
       _focusNode.unfocus();
-      setState(() => _showEmojiPicker = true);
+      setState(() {
+        _showEmojiPicker = true;
+        _showVoicePanel = false;  // 关闭语音面板
+      });
     }
   }
 

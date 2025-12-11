@@ -642,7 +642,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return -1;
     }
     
-    NSLog(@"📦 Protobuf 原始数据长度: %lu 字节", (unsigned long)protoBody.length);
+//    NSLog(@"📦 Protobuf 原始数据长度: %lu 字节", (unsigned long)protoBody.length);
     
     // 打印 Protobuf 原始数据（十六进制）
     NSMutableString *protoHex = [NSMutableString stringWithCapacity:protoBody.length * 2];
@@ -650,7 +650,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     for (NSUInteger i = 0; i < protoBody.length; i++) {
         [protoHex appendFormat:@"%02x", protoBytes[i]];
     }
-    NSLog(@"📦 Protobuf 原始数据 (HEX): %@", protoHex);
+//    NSLog(@"📦 Protobuf 原始数据 (HEX): %@", protoHex);
     
     const char *data = NULL;
     int dataLen = 0;

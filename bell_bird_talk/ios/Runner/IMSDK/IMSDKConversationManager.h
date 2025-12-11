@@ -116,6 +116,19 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
                          params:(NSDictionary *)params
                      completion:(IMSDKConversationCompletion)completion;
 
+// ==================== 群组操作 ====================
+
+/// 创建群聊
+/// @param groupName 群名称
+/// @param memberIds 群成员用户ID列表
+/// @param avatarUrl 群头像URL（可选）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)createGroupWithName:(NSString *)groupName
+                 memberIds:(NSArray<NSString *> *)memberIds
+                 avatarUrl:(NSString * _Nullable)avatarUrl
+                completion:(IMSDKConversationCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -239,6 +239,10 @@ class NativeBridgeHandler: NSObject {
         case "imPrepareUpload":
             imPrepareUpload(call: call, result: result)
         
+        // ---------- 群组管理 ----------
+        case "imCreateGroup":
+            imCreateGroup(call: call, result: result)
+        
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
@@ -1748,6 +1752,39 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "PREPARE_UPLOAD_ERROR",
                               message: "准备上传请求失败",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 群组管理
+    
+    /// 创建群聊
+    private func imCreateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupName = args["group_name"] as? String, !groupName.isEmpty,
+              let memberIds = args["member_ids"] as? [String], !memberIds.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "群名称和成员列表不能为空", details: nil))
+            return
+        }
+        
+        let avatarUrl = args["avatar_url"] as? String
+        
+        print("📋 创建群聊: groupName=\(groupName), memberIds=\(memberIds)")
+        
+        let code = IMSDKConversationManager.shared().createGroup(withName: groupName, memberIds: memberIds, avatarUrl: avatarUrl) { errorCode, reqId, data in
+            print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "CREATE_GROUP_ERROR",
+                              message: "创建群聊请求发送失败: \(code)",
                               details: nil))
         }
     }

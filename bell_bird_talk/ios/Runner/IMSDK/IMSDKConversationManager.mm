@@ -34,14 +34,14 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         for (int i = 0; i < MIN(dataLen, 100); i++) {
             [hexStr appendFormat:@"%02x ", (unsigned char)data[i]];
         }
-        NSLog(@"📦 原始数据 (HEX, 立即打印): %@", hexStr);
+//        NSLog(@"📦 原始数据 (HEX, 立即打印): %@", hexStr);
     }
     
     NSString *jsonString = nil;
     if (data && dataLen > 0) {
         // 尝试解析为 Protobuf 数据
         NSData *responseData = [NSData dataWithBytes:data length:dataLen];
-        NSLog(@"📦 数据拷贝后长度: %lu", (unsigned long)responseData.length);
+//        NSLog(@"📦 数据拷贝后长度: %lu", (unsigned long)responseData.length);
         
         // 尝试解析为 ConvList（会话列表响应）
         NSError *error = nil;
@@ -620,6 +620,74 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         }
     } else {
         NSLog(@"❌ 更新会话请求失败: %d", result);
+        @synchronized (self.callbacks) {
+            [self.callbacks removeObjectForKey:tempKey];
+        }
+    }
+    
+    return result;
+}
+
+// ==================== 群组操作 ====================
+
+- (int)createGroupWithName:(NSString *)groupName
+                 memberIds:(NSArray<NSString *> *)memberIds
+                 avatarUrl:(NSString * _Nullable)avatarUrl
+                completion:(IMSDKConversationCompletion)completion {
+    NSLog(@"📋 创建群聊: groupName=%@, memberIds=%@", groupName, memberIds);
+    
+    if (!groupName || groupName.length == 0) {
+        NSLog(@"❌ 群名称不能为空");
+        return -1;
+    }
+    
+    if (!memberIds || memberIds.count == 0) {
+        NSLog(@"❌ 群成员不能为空");
+        return -1;
+    }
+    
+    // 使用 JSON 格式构建请求体
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"group_name"] = groupName;
+    params[@"member_ids"] = memberIds;
+    
+    if (avatarUrl && avatarUrl.length > 0) {
+        params[@"avatar_url"] = avatarUrl;
+    }
+    
+    // 序列化为 JSON
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&error];
+    if (error || !jsonData) {
+        NSLog(@"❌ JSON 序列化失败: %@", error);
+        return -1;
+    }
+    
+    const char *data = (const char *)jsonData.bytes;
+    int dataLen = (int)jsonData.length;
+    uint64_t reqId = 0;
+    
+    // 保存回调
+    static uint64_t tempId = 12000;
+    NSNumber *tempKey = @(tempId++);
+    if (completion) {
+        @synchronized (self.callbacks) {
+            self.callbacks[tempKey] = completion;
+        }
+    }
+    
+    int result = create_group(ConversationCallback, data, dataLen, reqId);
+    
+    if (result == 0) {
+        NSLog(@"✅ 创建群聊请求发送成功: reqId=%llu", reqId);
+        if (reqId != 0 && completion) {
+            [self setCallback:completion forReqId:reqId];
+            @synchronized (self.callbacks) {
+                [self.callbacks removeObjectForKey:tempKey];
+            }
+        }
+    } else {
+        NSLog(@"❌ 创建群聊请求失败: %d", result);
         @synchronized (self.callbacks) {
             [self.callbacks removeObjectForKey:tempKey];
         }

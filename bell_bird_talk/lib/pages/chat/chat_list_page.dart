@@ -9,6 +9,7 @@ import '../../services/message_database.dart';
 import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
 import 'chat_search_page.dart';
+import 'create_group_page.dart';
 
 
 
@@ -1195,10 +1196,18 @@ class _ChatListPageState extends State<ChatListPage> {
               leading: const Icon(Icons.group_add_outlined, color: Colors.green),
               title: const Text('创建群聊'),
               subtitle: const Text('邀请多人加入群聊'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                EasyLoading.showInfo('创建群聊');
-                // TODO: 跳转到创建群聊页面
+                final result = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateGroupPage(),
+                  ),
+                );
+                // 如果创建成功，刷新会话列表
+                if (result == true) {
+                  _refreshConversations();
+                }
               },
             ),
             const SizedBox(height: 8),

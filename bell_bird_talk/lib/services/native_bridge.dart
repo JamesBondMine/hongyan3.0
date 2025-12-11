@@ -1068,5 +1068,41 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+  
+  // ======================== 群组操作 ========================
+  
+  /// 创建群聊
+  /// @param groupName 群名称
+  /// @param memberIds 群成员用户ID列表
+  /// @param avatarUrl 群头像URL（可选）
+  /// @return 创建结果，包含群组信息
+  Future<Map<String, dynamic>> imCreateGroup({
+    required String groupName,
+    required List<String> memberIds,
+    String? avatarUrl,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'group_name': groupName,
+        'member_ids': memberIds,
+      };
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        params['avatar_url'] = avatarUrl;
+      }
+      
+      final result = await _bridge.invokeMethod<Map>('imCreateGroup', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+      
+      stopwatch.stop();
+      NativeLogger.log('imCreateGroup', params, resultMap, stopwatch.elapsed);
+      
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imCreateGroup', {'groupName': groupName, 'memberIds': memberIds}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 }
 
