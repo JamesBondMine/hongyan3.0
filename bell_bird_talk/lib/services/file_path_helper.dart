@@ -144,5 +144,45 @@ class FilePathHelper {
     final fullPath = toFullPathSync(path);
     return File(fullPath).existsSync();
   }
+  
+  /// 将文件复制到永久存储目录（Documents）
+  /// 用于将临时缓存文件（如 image_picker）复制到永久位置
+  /// @param sourcePath 源文件路径（完整路径）
+  /// @param subDir 子目录名称（如 'images', 'voices'）
+  /// @return 返回相对路径（用于存储）
+  Future<String> copyToPermanentStorage(String sourcePath, String subDir) async {
+    await init();
+    
+    final sourceFile = File(sourcePath);
+    if (!await sourceFile.exists()) {
+      throw Exception('源文件不存在: $sourcePath');
+    }
+    
+    // 创建子目录
+    final targetDir = Directory('$_docPath/$subDir');
+    if (!await targetDir.exists()) {
+      await targetDir.create(recursive: true);
+    }
+    
+    // 生成唯一文件名
+    final fileName = sourcePath.split('/').last;
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final uniqueFileName = '${timestamp}_$fileName';
+    final targetPath = '${targetDir.path}/$uniqueFileName';
+    
+    // 复制文件
+    await sourceFile.copy(targetPath);
+    
+    print('📁 文件已复制到永久存储: $targetPath');
+    
+    // 返回相对路径
+    return 'doc/$subDir/$uniqueFileName';
+  }
+  
+  /// 获取永久存储目录下的完整路径
+  Future<String> getPermanentPath(String subDir, String fileName) async {
+    await init();
+    return '$_docPath/$subDir/$fileName';
+  }
 }
 

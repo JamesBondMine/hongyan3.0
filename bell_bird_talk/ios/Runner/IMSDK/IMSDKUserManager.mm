@@ -169,5 +169,57 @@ void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t r
     return [self updateUserWithInfo:@{@"avatar": avatarUrl} completion:completion];
 }
 
+#pragma mark - 退出登录
+
+// 退出登录回调
+static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 退出登录回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
+        if (!completion) {
+            NSLog(@"⚠️ 未找到退出登录回调: reqId=%llu", reqId);
+            return;
+        }
+        
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        
+        if (errorCode != 0) {
+            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"退出登录失败";
+            completion(errorCode, errorMsg, nil, reqId);
+            return;
+        }
+        
+        NSLog(@"✅ 退出登录成功");
+        completion(0, @"退出登录成功", @{}, reqId);
+    });
+}
+
+- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion {
+    NSLog(@"🚪 开始退出登录...");
+    
+    uint64_t reqId = 0;
+    int result = logout(LogoutCallback, NULL, 0, reqId);
+    
+    if (result == 0 && reqId > 0) {
+        if (completion) {
+            g_userCallbacks[@(reqId)] = [completion copy];
+        }
+        NSLog(@"✅ 退出登录请求已发送: reqId=%llu", reqId);
+    } else {
+        NSLog(@"❌ 退出登录请求失败: result=%d", result);
+        if (completion) {
+            completion(result, @"发送退出请求失败", nil, 0);
+        }
+    }
+    
+    return reqId;
+}
+
 @end
 

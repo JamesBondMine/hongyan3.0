@@ -91,16 +91,7 @@ NET_API void register_single_message_callback(CB_S_I cCallback);
 NET_API void register_group_message_callback(CB_S_I cCallback);
 NET_API void register_community_message_callback(CB_S_I cCallback);
 
-// 注册消息发送结果回调
-//NET_API void register_message_send_result_callback(CB_MESSAGE_SEND_RESULT cCallback);
 
-
-// Register chat message listener (for passively receiving chat messages)
-// Parameters: messageId, content, contentLen, msgType, senderId, receiverId
-//NET_API void set_message_listener(CB_I_S_I_U cCallback);
-
-// Register contact event listener (for passively receiving contact events)
-// Parameters: data, dataLen
 NET_API void set_contact_event_listener(CB_S_I cCallback);
 
 // ============================================
@@ -110,14 +101,23 @@ NET_API void set_contact_event_listener(CB_S_I cCallback);
 #include "common_definitions.h"
 
 /**
- * 设置好友状态回调函数
+ * 设置系统消息回调函数
  * @param cCallback 回调函数指针，传NULL表示取消注册
- * 回调函数签名：CB_I_S_I (int eventType, const char* data, int dataLen)
- * eventType: 事件类型 (FRIEND_STATUS_ADDED, FRIEND_STATUS_DELETED, FRIEND_STATUS_REQUEST_RECEIVED)
+ * 回调函数签名：CB_S_I (const char* data, int dataLen)
  * data: 事件数据（序列化后的protobuf数据，可选）
  * dataLen: 数据长度
  */
-NET_API void register_friend_status_listener(CB_S_I cCallback);
+NET_API void registe_system_message_listener(CB_S_I cCallback);
+
+/**
+ * 设置命令消息回调函数
+ * @param cCallback 回调函数指针，传NULL表示取消注册
+ * 回调函数签名：CB_I_S_I (int eventType, const char* data, int dataLen)
+ * eventType: 命令类型
+ * data: 命令数据（序列化后的protobuf数据，可选）
+ * dataLen: 数据长度
+ */
+NET_API void registe_command_message_listener(CB_I_S_I cCallback);
 
 /**
  * 用户登录
@@ -138,6 +138,18 @@ NET_API int login_by_user_id(CB_I_S_I_U cCallback, const char* data, int dataLen
  * @return 0表示成功，其它表示错误码
  */
 NET_API int login_by_token(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 退出登录
+ * Topic: /im/user/{userId}/logout
+ * @param cCallback 回调函数（用于接收退出登录结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的退出登录数据（可选）
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int logout(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 NET_API int register_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
@@ -195,6 +207,18 @@ NET_API int change_password(CB_I_S_I_U cCallback, const char* data, int dataLen,
 NET_API int reset_password(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
+ * 刷新Token
+ * Topic: /im/USER/{userId}/refreshToken
+ * @param cCallback 回调函数（用于接收刷新Token的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的刷新Token请求数据（包含refreshToken等）
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int refresh_auth_token(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
  * 获取验证码
  * @param cCallback 回调函数（用于接收验证码结果，参数：errorCode, data, dataLen, reqId）
  * @param data 序列化后的 captcha_pb::GetCaptcha 数据
@@ -215,8 +239,6 @@ NET_API void set_contact_listener(CB_CONACT_PARSED cCallback);
 NET_API void set_custom_business_listener(CB_I_S_I cCallback);
 NET_API int init_sdk(CB_I_S_I cCallback, char* operationID, char* config);
 NET_API void un_init_sdk(char* operationID);
-NET_API void login(CB_S_I_S_S cCallback, char* operationID, char* uid, char* token);
-NET_API void logout(CB_S_I_S_S cCallback, char* operationID);
 NET_API void set_app_background_status(CB_S_I_S_S cCallback, char* operationID, int isBackground);
 NET_API void network_status_changed(CB_S_I_S_S cCallback, char* operationID);
 NET_API int get_login_status(char* operationID);
@@ -552,6 +574,17 @@ NET_API int mark_conversation_read(CB_I_S_I_U cCallback, const char* data, int l
  * @return 错误码
  */
 NET_API int update_conversation(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取未读会话列表
+ * Topic: /im/CONVERSATION/{appId}/listUnread
+ * @param cCallback 回调函数（用于接收结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据，可选）
+ * @param len 数据长度
+ * @param reqId 输出参数，返回消息ID
+ * @return 错误码
+ */
+NET_API int list_unread_conversations(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 群组管理接口

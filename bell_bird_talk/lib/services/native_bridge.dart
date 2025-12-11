@@ -582,6 +582,22 @@ class IOSNativeService {
     return imUpdateUserInfo(avatar: avatarUrl);
   }
   
+  /// 退出登录
+  /// 调用 SDK 退出登录接口，断开 MQTT 连接
+  /// @return 退出结果
+  Future<Map<String, dynamic>> imLogout() async {
+    try {
+      print('🚪 开始退出登录...');
+      
+      final result = await _bridge.invokeMethod<Map>('imLogout');
+      print('🚪 退出登录结果: $result');
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('❌ 退出登录错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   // ---------- 联系人管理 ----------
   
   /// 添加联系人（发送好友申请）
@@ -973,6 +989,12 @@ class IOSNativeService {
   /// 消息接收回调
   Function(Map<String, dynamic> message)? onMessageReceived;
   
+  /// 系统消息回调
+  Function(Map<String, dynamic> message)? onSystemMessage;
+  
+  /// 命令消息回调
+  Function(int eventType, Map<String, dynamic> message)? onCommandMessage;
+  
   /// 注册消息回调（单聊、群聊、社区）
   /// 在进入首页时调用，注册后可接收被动推送的消息
   Future<Map<String, dynamic>> imRegisterMessageCallbacks() async {
@@ -1010,9 +1032,22 @@ class IOSNativeService {
         if (data != null) {
           final message = data.cast<String, dynamic>();
           print('📨 Flutter 收到消息: $message');
-          
-          // 触发回调
           onMessageReceived?.call(message);
+        }
+      } else if (call.method == 'onSystemMessage') {
+        final data = call.arguments as Map<dynamic, dynamic>?;
+        if (data != null) {
+          final message = data.cast<String, dynamic>();
+          print('📨 Flutter 收到系统消息: $message');
+          onSystemMessage?.call(message);
+        }
+      } else if (call.method == 'onCommandMessage') {
+        final data = call.arguments as Map<dynamic, dynamic>?;
+        if (data != null) {
+          final message = data.cast<String, dynamic>();
+          final eventType = message['event_type'] as int? ?? 0;
+          print('📨 Flutter 收到命令消息: eventType=$eventType, data=$message');
+          onCommandMessage?.call(eventType, message);
         }
       }
       return null;

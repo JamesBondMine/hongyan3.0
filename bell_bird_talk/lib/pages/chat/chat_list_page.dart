@@ -321,11 +321,19 @@ class _ChatListPageState extends State<ChatListPage> {
   /// 合并本地和网络会话数据
   /// 网络数据为主，本地数据补充缺失信息
   /// 最后一条消息：优先网络 → 会话表 → 消息表
+  /// 单聊时：从好友表获取备注/昵称/头像（备注优先）
   Future<List<ConversationModel>> _mergeConversations(
     String userId,
     List<ConversationModel> networkConversations,
   ) async {
     final List<ConversationModel> merged = [];
+    
+    // 批量获取所有单聊会话的好友信息
+    final singleChatTargetIds = networkConversations
+        .where((c) => c.convType == 0 && c.targetId != null && c.targetId!.isNotEmpty) // 单聊且有目标ID
+        .map((c) => c.targetId!)
+        .toList();
+    final contactsMap = await _messageDatabase.getContactsMap(userId, singleChatTargetIds);
     
     for (final netConv in networkConversations) {
       // 1. 查询本地会话表
@@ -363,8 +371,36 @@ class _ChatListPageState extends State<ChatListPage> {
         }
       }
       
-      // 4. 合并数据
+      // 4. 从好友表获取显示名称和头像（仅单聊）
+      String? displayName = netConv.displayName;
+      String? avatar = netConv.avatar;
+      
+      if (netConv.convType == 0) { // 单聊
+        final contact = contactsMap[netConv.targetId];
+        if (contact != null) {
+          // 备注优先 > 昵称 > 网络返回的名称
+          final remark = contact['remark'] as String?;
+          final nickname = contact['nickname'] as String?;
+          final contactAvatar = contact['avatar'] as String?;
+          
+          if (remark != null && remark.isNotEmpty) {
+            displayName = remark;
+          } else if (nickname != null && nickname.isNotEmpty) {
+            displayName = nickname;
+          }
+          
+          // 头像：好友表优先
+          if (contactAvatar != null && contactAvatar.isNotEmpty) {
+            avatar = contactAvatar;
+          }
+        }
+      }
+      
+      // 5. 合并数据
       final mergedConv = netConv.copyWith(
+        // 显示名称和头像
+        displayName: displayName ?? netConv.displayName,
+        avatar: avatar ?? netConv.avatar,
         // 未读数：网络优先，本地补充
         unreadCount: netConv.unreadCount > 0 ? netConv.unreadCount : (localConv?.unreadCount ?? 0),
         // 最后消息
@@ -973,7 +1009,9 @@ class _ChatListPageState extends State<ChatListPage> {
                   const SizedBox(height: 4),
                   // 最后一条消息
                   Text(
-                    conversation.lastMessage ?? '暂无消息',
+                    conversation.lastMessageDisplay.isNotEmpty 
+                        ? conversation.lastMessageDisplay 
+                        : '暂无消息',
                     style: TextStyle(
                       fontSize: 14,
                       color: conversation.unreadCount > 0 

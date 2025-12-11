@@ -27,11 +27,26 @@ typedef void (^IMSDKMessageCompletion)(int errorCode, uint64_t reqId, NSString *
 /// @param messageData 消息数据（解析后的字典）
 typedef void (^IMSDKMessageReceivedCallback)(IMMessageConvType convType, NSDictionary *messageData);
 
+/// 系统消息回调
+/// @param messageData 消息数据（解析后的字典）
+typedef void (^IMSDKSystemMessageCallback)(NSDictionary *messageData);
+
+/// 命令消息回调
+/// @param eventType 命令类型
+/// @param messageData 消息数据（解析后的字典）
+typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *messageData);
+
 /// IM SDK 消息管理类
 @interface IMSDKMessageManager : NSObject
 
 /// 收到消息的回调（统一回调，包含会话类型）
 @property (nonatomic, copy, nullable) IMSDKMessageReceivedCallback onMessageReceived;
+
+/// 系统消息回调
+@property (nonatomic, copy, nullable) IMSDKSystemMessageCallback onSystemMessage;
+
+/// 命令消息回调
+@property (nonatomic, copy, nullable) IMSDKCommandMessageCallback onCommandMessage;
 
 /// 单例实例
 + (instancetype)sharedManager;

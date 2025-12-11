@@ -60,6 +60,11 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 - (uint64_t)updateAvatar:(NSString *)avatarUrl
               completion:(IMSDKUserCompletion)completion;
 
+/// 退出登录
+/// @param completion 完成回调
+/// @return 请求ID
+- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

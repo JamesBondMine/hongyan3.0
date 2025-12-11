@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_database.dart';
 import 'friend_detail_page.dart';
 import 'friend_requests_page.dart' hide FriendRequestModel;
 import 'friend_search_page.dart';
@@ -200,6 +201,9 @@ class _FriendsPageState extends State<FriendsPage> {
             }
           });
           
+          // 保存好友到数据库缓存
+          _cacheContactsToDatabase(contactsJson);
+          
           // 应用搜索过滤
           _filterFriends(_searchController.text);
         } else {
@@ -238,6 +242,37 @@ class _FriendsPageState extends State<FriendsPage> {
   Future<void> _loadMore() async {
     if (_hasMore && !_isLoading) {
       await _loadFriends();
+    }
+  }
+  
+  /// 缓存好友到数据库
+  Future<void> _cacheContactsToDatabase(List<dynamic> contactsJson) async {
+    try {
+      final userId = Get.find<GlobalController>().currentUser.value?.id;
+      if (userId == null || userId.isEmpty) return;
+      
+      final contacts = contactsJson.map((json) {
+        return {
+          'contact_user_id': json['contact_user_id'] ?? '',
+          'nickname': json['nickname'] ?? '',
+          'avatar': json['avatar'] ?? '',
+          'remark': json['remark'] ?? '',
+          'phone': json['target_phone'] ?? '',
+          'email': json['target_email'] ?? '',
+          'account_id': json['account_id'] ?? '',
+          'relationship': json['relationship'] ?? 0,
+          'online_status': json['online_status'] ?? 0,
+          'add_channel': json['add_channel'] ?? 0,
+          'group_id': json['group_id'],
+          'group_name': json['group_name'] ?? '',
+          'create_time': json['create_time'],
+          'last_chat_time': json['last_chat_time'],
+        };
+      }).toList();
+      
+      await MessageDatabase().saveContacts(userId, contacts);
+    } catch (e) {
+      print('❌ 缓存好友到数据库失败: $e');
     }
   }
 

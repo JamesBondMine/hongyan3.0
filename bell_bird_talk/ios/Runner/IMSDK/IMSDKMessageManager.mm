@@ -17,6 +17,15 @@
 - (void)handleReceivedMessageWithData:(const char *)data
                                length:(int)dataLen
                              convType:(IMMessageConvType)convType;
+
+/// 处理系统消息
+- (void)handleSystemMessageWithData:(const char *)data
+                             length:(int)dataLen;
+
+/// 处理命令消息
+- (void)handleCommandMessageWithEventType:(int)eventType
+                                     data:(const char *)data
+                                   length:(int)dataLen;
 @end
 
 // ==================== 全局消息回调（被动接收） ====================
@@ -43,6 +52,18 @@ static void CommunityMessageCallback(const char* data, int dataLen) {
     [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
                                                                 length:dataLen
                                                               convType:IMMessageConvTypeCommunity];
+}
+
+/// 系统消息回调
+static void SystemMessageCallback(const char* data, int dataLen) {
+    NSLog(@"📨 收到系统消息: dataLen=%d", dataLen);
+    [[IMSDKMessageManager sharedManager] handleSystemMessageWithData:data length:dataLen];
+}
+
+/// 命令消息回调
+static void CommandMessageCallback(int eventType, const char* data, int dataLen) {
+    NSLog(@"📨 收到命令消息: eventType=%d, dataLen=%d", eventType, dataLen);
+    [[IMSDKMessageManager sharedManager] handleCommandMessageWithEventType:eventType data:data length:dataLen];
 }
 
 // ==================== 回调函数 ====================
@@ -243,7 +264,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         return;
     }
     
-    NSLog(@"📝 注册消息回调: 单聊、群聊、社区");
+    NSLog(@"📝 注册消息回调: 单聊、群聊、社区、系统、命令");
     
     // 注册单聊消息回调
     register_single_message_callback(SingleMessageCallback);
@@ -253,6 +274,12 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     
     // 注册社区消息回调
     register_community_message_callback(CommunityMessageCallback);
+    
+    // 注册系统消息回调
+    registe_system_message_listener(SystemMessageCallback);
+    
+    // 注册命令消息回调
+    registe_command_message_listener(CommandMessageCallback);
     
     _isCallbacksRegistered = YES;
     NSLog(@"✅ 消息回调注册完成");
@@ -269,6 +296,8 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     register_single_message_callback(NULL);
     register_group_message_callback(NULL);
     register_community_message_callback(NULL);
+    registe_system_message_listener(NULL);
+    registe_command_message_listener(NULL);
     
     _isCallbacksRegistered = NO;
     NSLog(@"✅ 消息回调取消注册完成");
@@ -517,6 +546,85 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     }
     
     return result;
+}
+
+// ==================== 系统消息处理 ====================
+
+- (void)handleSystemMessageWithData:(const char *)data length:(int)dataLen {
+    // 拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSMutableDictionary *messageData = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            // 尝试解析为 JSON 字符串
+            NSString *dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (dataStr) {
+                messageData[@"raw_data"] = dataStr;
+            }
+            
+            // 尝试解析为 JSON 对象
+            NSError *jsonError = nil;
+            id jsonObj = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
+            if (jsonObj && !jsonError && [jsonObj isKindOfClass:[NSDictionary class]]) {
+                [messageData addEntriesFromDictionary:(NSDictionary *)jsonObj];
+            }
+        }
+        
+        messageData[@"type"] = @"system";
+        messageData[@"receive_time"] = @([[NSDate date] timeIntervalSince1970] * 1000);
+        
+        NSLog(@"📨 系统消息解析完成: %@", messageData);
+        
+        // 回调到 Flutter
+        if (self.onSystemMessage) {
+            self.onSystemMessage(messageData);
+        }
+    });
+}
+
+// ==================== 命令消息处理 ====================
+
+- (void)handleCommandMessageWithEventType:(int)eventType data:(const char *)data length:(int)dataLen {
+    // 拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSMutableDictionary *messageData = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            // 尝试解析为 JSON 字符串
+            NSString *dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (dataStr) {
+                messageData[@"raw_data"] = dataStr;
+            }
+            
+            // 尝试解析为 JSON 对象
+            NSError *jsonError = nil;
+            id jsonObj = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
+            if (jsonObj && !jsonError && [jsonObj isKindOfClass:[NSDictionary class]]) {
+                [messageData addEntriesFromDictionary:(NSDictionary *)jsonObj];
+            }
+        }
+        
+        messageData[@"type"] = @"command";
+        messageData[@"event_type"] = @(eventType);
+        messageData[@"receive_time"] = @([[NSDate date] timeIntervalSince1970] * 1000);
+        
+        NSLog(@"📨 命令消息解析完成: eventType=%d, data=%@", eventType, messageData);
+        
+        // 回调到 Flutter
+        if (self.onCommandMessage) {
+            self.onCommandMessage(eventType, messageData);
+        }
+    });
 }
 
 @end

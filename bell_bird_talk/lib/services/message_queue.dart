@@ -66,7 +66,7 @@ class MessageQueueManager {
   Future<bool> sendMessage(ChatMessage message) async {
     final completer = Completer<bool>();
     final task = MessageTask(message: message, completer: completer);
-    
+    print("sendMessage: ${message.toDbMap()}");
     // 保存到数据库
     await _database.insertMessage(message);
     
@@ -234,6 +234,7 @@ class MessageQueueManager {
     
     final file = File(fullPath);
     if (!await file.exists()) {
+      print('图片文件不存在: $fullPath');
       message.errorMessage = '图片文件不存在';
       return false;
     }
@@ -266,31 +267,54 @@ class MessageQueueManager {
       }
       
       final tokenData = json.decode(tokenDataStr) as Map<String, dynamic>;
-      final uploadUrl = tokenData['upload_url'] as String?;
-      final method = tokenData['method'] as String?;
-      final fileUrl = tokenData['file_url'] as String?;
+      final uploadUrl = tokenData['upload_url'] as String? ?? '';
+      final method = tokenData['method'] as String? ?? '';
+      final fileUrl = tokenData['file_url'] as String? ?? '';
+      final uploadMode = tokenData['upload_mode'] as String? ?? '';
+      final providerCode = tokenData['provider_code'] as String? ?? '';
       
-      if (uploadUrl == null || method == null || fileUrl == null) {
-        message.errorMessage = '上传凭证信息不完整';
-        return false;
-      }
+      // STS 凭证
+      final objectKey = tokenData['file_path'] as String? ?? '';
+      final bucketName = tokenData['bucket_name'] as String? ?? '';
+      final region = tokenData['region'] as String? ?? '';
+      final stsAccessKeyId = tokenData['sts_access_key_id'] as String? ?? '';
+      final stsAccessKeySecret = tokenData['sts_access_key_secret'] as String? ?? '';
+      final stsSecurityToken = tokenData['sts_security_token'] as String? ?? '';
       
-      print('📤 上传URL: $uploadUrl, 方法: $method');
+      print('📤 上传模式: $uploadMode, 提供商: $providerCode');
       
       // 3. 执行上传
       bool uploadSuccess = false;
-      if (method.toUpperCase() == 'PUT') {
-        uploadSuccess = await _uploadWithPut(uploadUrl, file, tokenData['headers'] as Map<String, dynamic>?);
-      } else if (method.toUpperCase() == 'POST') {
-        uploadSuccess = await _uploadWithPost(
-          uploadUrl, 
-          file, 
-          tokenData['file_path'] as String?,
-          tokenData['headers'] as Map<String, dynamic>?,
-          tokenData['form_data'] as Map<String, dynamic>?,
+      
+      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
+        // 腾讯云 STS SDK 上传
+        uploadSuccess = await _uploadWithTencentSTS(
+          localFilePath: fullPath,
+          objectKey: objectKey,
+          bucketName: bucketName,
+          region: region,
+          secretId: stsAccessKeyId,
+          secretKey: stsAccessKeySecret,
+          token: stsSecurityToken,
         );
+      } else if (uploadUrl.isNotEmpty) {
+        // HTTP 上传（PUT 或 POST）
+        if (method.toUpperCase() == 'PUT') {
+          uploadSuccess = await _uploadWithPut(uploadUrl, file, tokenData['headers'] as Map<String, dynamic>?);
+        } else if (method.toUpperCase() == 'POST') {
+          uploadSuccess = await _uploadWithPost(
+            uploadUrl, 
+            file, 
+            tokenData['file_path'] as String?,
+            tokenData['headers'] as Map<String, dynamic>?,
+            tokenData['form_data'] as Map<String, dynamic>?,
+          );
+        } else {
+          message.errorMessage = '不支持的上传方法: $method';
+          return false;
+        }
       } else {
-        message.errorMessage = '不支持的上传方法: $method';
+        message.errorMessage = '不支持的上传模式: $uploadMode';
         return false;
       }
       
@@ -362,31 +386,54 @@ class MessageQueueManager {
       }
       
       final tokenData = json.decode(tokenDataStr) as Map<String, dynamic>;
-      final uploadUrl = tokenData['upload_url'] as String?;
-      final method = tokenData['method'] as String?;
-      final fileUrl = tokenData['file_url'] as String?;
+      final uploadUrl = tokenData['upload_url'] as String? ?? '';
+      final method = tokenData['method'] as String? ?? '';
+      final fileUrl = tokenData['file_url'] as String? ?? '';
+      final uploadMode = tokenData['upload_mode'] as String? ?? '';
+      final providerCode = tokenData['provider_code'] as String? ?? '';
       
-      if (uploadUrl == null || method == null || fileUrl == null) {
-        message.errorMessage = '上传凭证信息不完整';
-        return false;
-      }
+      // STS 凭证
+      final voiceObjectKey = tokenData['file_path'] as String? ?? '';
+      final voiceBucketName = tokenData['bucket_name'] as String? ?? '';
+      final voiceRegion = tokenData['region'] as String? ?? '';
+      final voiceStsAccessKeyId = tokenData['sts_access_key_id'] as String? ?? '';
+      final voiceStsAccessKeySecret = tokenData['sts_access_key_secret'] as String? ?? '';
+      final voiceStsSecurityToken = tokenData['sts_security_token'] as String? ?? '';
       
-      print('📤 语音上传URL: $uploadUrl, 方法: $method');
+      print('📤 语音上传模式: $uploadMode, 提供商: $providerCode');
       
       // 3. 执行上传
       bool uploadSuccess = false;
-      if (method.toUpperCase() == 'PUT') {
-        uploadSuccess = await _uploadWithPut(uploadUrl, file, tokenData['headers'] as Map<String, dynamic>?);
-      } else if (method.toUpperCase() == 'POST') {
-        uploadSuccess = await _uploadWithPost(
-          uploadUrl, 
-          file, 
-          tokenData['file_path'] as String?,
-          tokenData['headers'] as Map<String, dynamic>?,
-          tokenData['form_data'] as Map<String, dynamic>?,
+      
+      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
+        // 腾讯云 STS SDK 上传
+        uploadSuccess = await _uploadWithTencentSTS(
+          localFilePath: fullPath,
+          objectKey: voiceObjectKey,
+          bucketName: voiceBucketName,
+          region: voiceRegion,
+          secretId: voiceStsAccessKeyId,
+          secretKey: voiceStsAccessKeySecret,
+          token: voiceStsSecurityToken,
         );
+      } else if (uploadUrl.isNotEmpty) {
+        // HTTP 上传
+        if (method.toUpperCase() == 'PUT') {
+          uploadSuccess = await _uploadWithPut(uploadUrl, file, tokenData['headers'] as Map<String, dynamic>?);
+        } else if (method.toUpperCase() == 'POST') {
+          uploadSuccess = await _uploadWithPost(
+            uploadUrl, 
+            file, 
+            tokenData['file_path'] as String?,
+            tokenData['headers'] as Map<String, dynamic>?,
+            tokenData['form_data'] as Map<String, dynamic>?,
+          );
+        } else {
+          message.errorMessage = '不支持的上传方法: $method';
+          return false;
+        }
       } else {
-        message.errorMessage = '不支持的上传方法: $method';
+        message.errorMessage = '不支持的上传模式: $uploadMode';
         return false;
       }
       
@@ -467,6 +514,38 @@ class MessageQueueManager {
       return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       print('POST upload error: $e');
+      return false;
+    }
+  }
+  
+  /// 腾讯云 STS SDK 上传
+  Future<bool> _uploadWithTencentSTS({
+    required String localFilePath,
+    required String objectKey,
+    required String bucketName,
+    required String region,
+    required String secretId,
+    required String secretKey,
+    required String token,
+  }) async {
+    try {
+      final result = await _nativeService.imUploadWithTencentSTS(
+        localFilePath: localFilePath,
+        objectKey: objectKey,
+        bucketName: bucketName,
+        region: region,
+        secretId: secretId,
+        secretKey: secretKey,
+        token: token,
+      );
+      
+      final success = result['success'] as bool? ?? false;
+      if (!success) {
+        print('❌ 腾讯云 STS 上传失败: ${result['error']}');
+      }
+      return success;
+    } catch (e) {
+      print('❌ 腾讯云 STS 上传异常: $e');
       return false;
     }
   }

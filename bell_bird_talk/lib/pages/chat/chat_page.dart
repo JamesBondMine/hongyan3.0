@@ -247,10 +247,12 @@ class _ChatPageState extends State<ChatPage> {
       'isMine': message.isMine,
       'timestamp': message.createdAt,
       'status': message.status.name,
+      'senderId': message.senderId,
       'imageLocalPath': message.imageLocalPath,
       'fileLocalPath': message.fileLocalPath,
       'imageUrl': message.imageUrl,
       'errorMessage': message.errorMessage,
+      'voiceDuration': message.voiceDuration,
     };
     
     // 检查是否已存在
@@ -327,17 +329,33 @@ class _ChatPageState extends State<ChatPage> {
         final content = msg['content'] ?? msg['text'] ?? msg['body'] ?? '';
         final senderId = msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
         final timestamp = msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
+        final mType = msg['m_type'] as int? ?? 0;
+        final imageUrl = msg['image_url'] as String?;
+        final fileUrl = msg['file_url'] as String?;
+        final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
         
-        // 判断是否是自己发的消息
-        final isMine = senderId == widget.targetUserId ? false : true;
+        // 判断是否是自己发的消息（根据发送者ID判断）
+        final isMine = senderId == _currentUserId;
+        
+        // 解析消息类型
+        String msgType = 'text';
+        if (mType == 1 || imageUrl != null) {
+          msgType = 'image';
+        } else if (mType == 3 || (fileUrl != null && voiceDuration > 0)) {
+          msgType = 'voice';
+        }
         
         final msgMap = {
           'id': msgId.toString(),
           'content': content.toString(),
-          'type': 'text',
+          'type': msgType,
           'isMine': isMine,
           'timestamp': timestamp is int ? timestamp : 0,
           'status': 'sent',
+          'senderId': senderId.toString(),
+          'imageUrl': imageUrl,
+          'fileUrl': fileUrl,
+          'voiceDuration': voiceDuration,
         };
         
         // 检查是否已存在（通过 id 去重）
@@ -353,7 +371,7 @@ class _ChatPageState extends State<ChatPage> {
         final timestampInt = timestamp is int ? timestamp : 0;
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
         final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
-        print('📝 消息: content=$content, isMine=$isMine, senderId=$senderId, time=$formattedTime');
+        print('📝 消息: type=$msgType, content=$content, isMine=$isMine, senderId=$senderId, time=$formattedTime');
       }
     }
     
@@ -380,6 +398,7 @@ class _ChatPageState extends State<ChatPage> {
       'isMine': true,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
       'status': 'sending', // sending, sent, failed
+      'senderId': _currentUserId,
     };
     
     setState(() {
@@ -591,96 +610,149 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageItem(Map<String, dynamic> message) {
-    final isMine = message['isMine'] as bool? ?? false;
     final status = message['status'] as String? ?? 'sent';
     final type = message['type'] as String? ?? 'text';
     final localId = message['localId'] as String?;
+    final senderId = message['senderId'] as String? ?? '';
+    final timestamp = message['timestamp'] as int? ?? 0;
     final isImageMessage = type == 'image';
+    
+    // 用 senderId 判断是否是自己发的消息（更可靠）
+    final isMine = senderId.isNotEmpty ? senderId == _currentUserId : (message['isMine'] as bool? ?? false);
+    
+    // 对方发的消息如果是发送失败状态，则不显示（不合逻辑的数据）
+    if (!isMine && status == 'failed') {
+      return const SizedBox.shrink();
+    }
+    
+    // 格式化时间
+    String formattedTime = '';
+    if (timestamp > 0) {
+      final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      final now = DateTime.now();
+      if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
+        // 今天只显示时间
+        formattedTime = DateFormat('HH:mm').format(dateTime);
+      } else if (dateTime.year == now.year) {
+        // 今年显示月日时间
+        formattedTime = DateFormat('MM-dd HH:mm').format(dateTime);
+      } else {
+        // 其他显示完整日期
+        formattedTime = DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+      }
+    }
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!isMine) ...[
-            // 对方头像
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey[300],
-              backgroundImage: widget.avatar != null && widget.avatar!.isNotEmpty
-                  ? NetworkImage(widget.avatar!)
-                  : null,
-              child: widget.avatar == null || widget.avatar!.isEmpty
-                  ? Text(
-                      widget.displayName.isNotEmpty ? widget.displayName[0] : '?',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 8),
-          ],
-          
-          // 发送状态（我的消息显示在左侧，非图片消息）
-          if (isMine && !isImageMessage) ...[
-            _buildMessageStatus(status, localId: localId),
-            const SizedBox(width: 4),
-          ],
-          
-          // 消息气泡
-          Flexible(
-            child: GestureDetector(
-              onTap: () {
-                // 点击失败的消息重新发送
-                if (status == 'failed' && localId != null) {
-                  _showResendDialog(localId, type);
-                }
-              },
-              onLongPress: () => _showMessageMenu(message, isMine),
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.65,
+          Row(
+            mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMine) ...[
+                // 对方头像
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: widget.avatar != null && widget.avatar!.isNotEmpty
+                      ? NetworkImage(widget.avatar!)
+                      : null,
+                  child: widget.avatar == null || widget.avatar!.isEmpty
+                      ? Text(
+                          widget.displayName.isNotEmpty ? widget.displayName[0] : '?',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
-                padding: isImageMessage 
-                    ? const EdgeInsets.all(4) 
-                    : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isImageMessage ? Colors.transparent : (isMine ? Colors.blue : Colors.white),
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(16),
-                    topRight: const Radius.circular(16),
-                    bottomLeft: Radius.circular(isMine ? 16 : 4),
-                    bottomRight: Radius.circular(isMine ? 4 : 16),
-                  ),
-                  boxShadow: isImageMessage ? null : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
+                const SizedBox(width: 8),
+              ],
+              
+              // 发送状态（我的消息显示在左侧，非图片消息）
+              if (isMine && !isImageMessage) ...[
+                _buildMessageStatus(status, localId: localId),
+                const SizedBox(width: 4),
+              ],
+              
+              // 消息气泡
+              Flexible(
+                child: GestureDetector(
+                  onTap: () {
+                    // 点击失败的消息重新发送
+                    if (status == 'failed' && localId != null) {
+                      _showResendDialog(localId, type);
+                    }
+                  },
+                  onLongPress: () => _showMessageMenu(message, isMine),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.65,
                     ),
-                  ],
+                    padding: isImageMessage 
+                        ? const EdgeInsets.all(4) 
+                        : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isImageMessage ? Colors.transparent : (isMine ? Colors.blue : Colors.white),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(16),
+                        topRight: const Radius.circular(16),
+                        bottomLeft: Radius.circular(isMine ? 16 : 4),
+                        bottomRight: Radius.circular(isMine ? 4 : 16),
+                      ),
+                      boxShadow: isImageMessage ? null : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: _buildMessageContent(message, isMine),
+                  ),
                 ),
-                child: _buildMessageContent(message, isMine),
+              ),
+              
+              if (isMine) ...[
+                const SizedBox(width: 8),
+                // 我的头像
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.blue[100],
+                  backgroundImage: _globalCtrl.currentUser.value?.avatar != null && 
+                      _globalCtrl.currentUser.value!.avatar!.isNotEmpty
+                      ? NetworkImage(_globalCtrl.currentUser.value!.avatar!)
+                      : null,
+                  child: _globalCtrl.currentUser.value?.avatar == null || 
+                      _globalCtrl.currentUser.value!.avatar!.isEmpty
+                      ? Icon(
+                          Icons.person,
+                          size: 20,
+                          color: Colors.blue[400],
+                        )
+                      : null,
+                ),
+              ],
+            ],
+          ),
+          // 显示发送时间和发送人ID
+          Padding(
+            padding: EdgeInsets.only(
+              left: isMine ? 0 : 44, // 对齐头像
+              right: isMine ? 44 : 0,
+              top: 4,
+            ),
+            child: Text(
+              '$formattedTime  $senderId',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[400],
               ),
             ),
           ),
-          
-          if (isMine) ...[
-            const SizedBox(width: 8),
-            // 我的头像
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.blue[100],
-              child: Icon(
-                Icons.person,
-                size: 20,
-                color: Colors.blue[400],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -1079,27 +1151,33 @@ class _ChatPageState extends State<ChatPage> {
   
   /// 发送语音消息
   Future<void> _sendVoiceMessage(String voicePath, int duration) async {
-    // 将完整路径转换为相对路径存储（解决iOS沙盒路径变化问题）
-    final pathHelper = FilePathHelper.instance;
-    final relativePath = await pathHelper.toRelativePath(voicePath);
-    
-    // 创建语音消息（存储相对路径）
-    final message = ChatMessage.voice(
-      convId: widget.convId,
-      senderId: _currentUserId,
-      receiverId: widget.targetUserId,
-      localPath: relativePath,
-      duration: duration,
-    );
-    
-    // 添加到消息列表
-    setState(() {
-      _addChatMessageToList(message);
-    });
-    _scrollToBottom();
-    
-    // 通过队列发送（队列中会用完整路径读取文件）
-    _messageQueue.sendMessage(message);
+    try {
+      // 将语音复制到永久存储目录（避免临时缓存被清理）
+      final pathHelper = FilePathHelper.instance;
+      final relativePath = await pathHelper.copyToPermanentStorage(voicePath, 'voices');
+      
+      print('🎤 语音已保存: $relativePath');
+      
+      // 创建语音消息（存储相对路径）
+      final message = ChatMessage.voice(
+        convId: widget.convId,
+        senderId: _currentUserId,
+        receiverId: widget.targetUserId,
+        localPath: relativePath,
+        duration: duration,
+      );
+      
+      // 添加到消息列表
+      setState(() {
+        _addChatMessageToList(message);
+      });
+      _scrollToBottom();
+      
+      // 通过队列发送（队列中会用完整路径读取文件）
+      _messageQueue.sendMessage(message);
+    } catch (e) {
+      print('❌ 发送语音失败: $e');
+    }
   }
 
   void _toggleEmojiPicker() {
@@ -1423,32 +1501,42 @@ class _ChatPageState extends State<ChatPage> {
     // 收起面板
     setState(() => _showMorePanel = false);
     
-    // 获取图片尺寸
-    final file = File(imagePath);
-    final decodedImage = await decodeImageFromList(await file.readAsBytes());
-    
-    // 将完整路径转换为相对路径存储（解决iOS沙盒路径变化问题）
-    final pathHelper = FilePathHelper.instance;
-    final relativePath = await pathHelper.toRelativePath(imagePath);
-    
-    // 创建图片消息（存储相对路径）
-    final message = ChatMessage.image(
-      convId: widget.convId,
-      senderId: _currentUserId,
-      receiverId: widget.targetUserId,
-      localPath: relativePath,
-      width: decodedImage.width,
-      height: decodedImage.height,
-    );
-    
-    // 添加到消息列表
-    setState(() {
-      _addChatMessageToList(message);
-    });
-    _scrollToBottom();
-    
-    // 通过队列发送（队列中会用完整路径读取文件）
-    _messageQueue.sendMessage(message);
+    try {
+      // 获取图片尺寸
+      final file = File(imagePath);
+      if (!await file.exists()) {
+        print('❌ 图片文件不存在: $imagePath');
+        return;
+      }
+      final decodedImage = await decodeImageFromList(await file.readAsBytes());
+      
+      // 将图片复制到永久存储目录（避免临时缓存被清理）
+      final pathHelper = FilePathHelper.instance;
+      final relativePath = await pathHelper.copyToPermanentStorage(imagePath, 'images');
+      
+      print('📷 图片已保存: $relativePath');
+      
+      // 创建图片消息（存储相对路径）
+      final message = ChatMessage.image(
+        convId: widget.convId,
+        senderId: _currentUserId,
+        receiverId: widget.targetUserId,
+        localPath: relativePath,
+        width: decodedImage.width,
+        height: decodedImage.height,
+      );
+      
+      // 添加到消息列表
+      setState(() {
+        _addChatMessageToList(message);
+      });
+      _scrollToBottom();
+      
+      // 通过队列发送（队列中会用完整路径读取文件）
+      _messageQueue.sendMessage(message);
+    } catch (e) {
+      print('❌ 发送图片失败: $e');
+    }
   }
 
   /// 构建消息内容（支持图片）
@@ -1481,57 +1569,96 @@ class _ChatPageState extends State<ChatPage> {
     final localPath = message['fileLocalPath'] as String?;
     final fileUrl = message['fileUrl'] as String?;
     
-    // 判断是否正在播放
-    final isPlaying = _playingVoiceId != null && 
-        (_playingVoiceId == localPath || _playingVoiceId == fileUrl);
+    // 生成唯一标识用于判断播放状态
+    final voiceId = localPath ?? fileUrl ?? '';
+    final isPlaying = _playingVoiceId == voiceId && voiceId.isNotEmpty;
     
-    // 根据时长计算宽度（3-15秒对应100-200宽度）
-    final width = 100.0 + (duration.clamp(0, 60) / 60.0 * 100.0);
+    // 根据时长计算宽度（1-60秒对应120-220宽度）
+    final width = 120.0 + (duration.clamp(1, 60) / 60.0 * 100.0);
+    
+    // 声波条数量
+    final waveCount = ((width - 80) / 6).floor().clamp(4, 12);
     
     return GestureDetector(
       onTap: () => _playVoiceMessage(localPath, fileUrl),
       child: Container(
         width: width,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isMine ? Colors.blue : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isMine ? null : Border.all(color: Colors.grey.shade200),
+        ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            // 播放/暂停图标
-            Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              color: isMine ? Colors.white : Colors.blue,
-              size: 24,
+            // 播放/暂停图标（带背景圆圈）
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: isPlaying 
+                    ? (isMine ? Colors.white.withOpacity(0.3) : Colors.blue.withOpacity(0.15))
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: isMine ? Colors.white : Colors.blue,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 8),
             // 声波动画
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(
-                  (width / 8).floor().clamp(4, 15),
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 3,
-                    height: isPlaying 
-                        ? 8 + ((index + DateTime.now().millisecond ~/ 100) % 4) * 5.0
-                        : 8 + (index % 3) * 4.0,
-                    decoration: BoxDecoration(
-                      color: isMine 
-                          ? Colors.white.withValues(alpha: isPlaying ? 1.0 : 0.7)
-                          : Colors.blue.withValues(alpha: isPlaying ? 0.9 : 0.6),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+              child: SizedBox(
+                height: 20,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: List.generate(
+                    waveCount,
+                    (index) {
+                      // 播放时有动画效果的高度
+                      double height;
+                      if (isPlaying) {
+                        // 播放时模拟声波动画（基于索引的伪随机高度）
+                        height = 6 + ((index * 3 + DateTime.now().millisecond ~/ 150) % 5) * 3.0;
+                      } else {
+                        // 静止时的固定高度模式
+                        height = 4 + (index % 3) * 4.0;
+                      }
+                      
+                      return Container(
+                        width: 3,
+                        height: height,
+                        decoration: BoxDecoration(
+                          color: isMine 
+                              ? Colors.white.withOpacity(isPlaying ? 1.0 : 0.6)
+                              : Colors.blue.withOpacity(isPlaying ? 0.9 : 0.5),
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            // 时长
-            Text(
-              '${duration}″',
-              style: TextStyle(
-                fontSize: 14,
-                color: isMine ? Colors.white : Colors.black87,
+            // 时长（播放时显示不同颜色）
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: isPlaying ? BoxDecoration(
+                color: isMine ? Colors.white.withOpacity(0.2) : Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ) : null,
+              child: Text(
+                '${duration}″',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
+                  color: isMine ? Colors.white : Colors.black87,
+                ),
               ),
             ),
           ],
@@ -1544,6 +1671,20 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _playVoiceMessage(String? localPath, String? fileUrl) async {
     print('🔊 播放语音: localPath=$localPath, fileUrl=$fileUrl');
     
+    // 生成唯一标识
+    final voiceId = localPath ?? fileUrl ?? '';
+    if (voiceId.isEmpty) {
+      EasyLoading.showError('语音文件不存在');
+      return;
+    }
+    
+    // 如果正在播放同一个文件，则暂停
+    if (_playingVoiceId == voiceId) {
+      await _audioPlayer.stop();
+      setState(() => _playingVoiceId = null);
+      return;
+    }
+    
     final pathHelper = FilePathHelper.instance;
     
     // 1. 检查本地文件是否存在（支持相对路径）
@@ -1552,14 +1693,14 @@ class _ChatPageState extends State<ChatPage> {
       final fullPath = await pathHelper.toFullPath(localPath);
       final file = File(fullPath);
       if (await file.exists()) {
-        await _playLocalVoice(fullPath);
+        await _playLocalVoice(fullPath, voiceId);
         return;
       }
     }
     
     // 2. 尝试从网络下载
     if (fileUrl != null && fileUrl.isNotEmpty) {
-      await _downloadAndPlayVoice(fileUrl);
+      await _downloadAndPlayVoice(fileUrl, voiceId);
       return;
     }
     
@@ -1568,21 +1709,14 @@ class _ChatPageState extends State<ChatPage> {
   }
   
   /// 播放本地语音文件
-  Future<void> _playLocalVoice(String path) async {
+  Future<void> _playLocalVoice(String path, String voiceId) async {
     try {
-      // 如果正在播放同一个文件，则暂停
-      if (_playingVoiceId == path) {
-        await _audioPlayer.stop();
-        setState(() => _playingVoiceId = null);
-        return;
-      }
-      
       // 停止之前的播放
       await _audioPlayer.stop();
       
       // 开始播放
       await _audioPlayer.play(DeviceFileSource(path));
-      setState(() => _playingVoiceId = path);
+      setState(() => _playingVoiceId = voiceId);
       
       // 监听播放完成
       _audioPlayer.onPlayerComplete.listen((_) {
@@ -1593,12 +1727,13 @@ class _ChatPageState extends State<ChatPage> {
       
     } catch (e) {
       print('❌ 播放语音失败: $e');
+      setState(() => _playingVoiceId = null);
       EasyLoading.showError('播放失败');
     }
   }
   
   /// 下载并播放语音
-  Future<void> _downloadAndPlayVoice(String url) async {
+  Future<void> _downloadAndPlayVoice(String url, String voiceId) async {
     if (_isDownloading) {
       EasyLoading.showInfo('正在下载...');
       return;
@@ -1623,11 +1758,12 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.dismiss();
       
       // 播放
-      await _playLocalVoice(file.path);
+      await _playLocalVoice(file.path, voiceId);
       
     } catch (e) {
       print('❌ 下载语音失败: $e');
       EasyLoading.showError('下载失败');
+      setState(() => _playingVoiceId = null);
     } finally {
       setState(() => _isDownloading = false);
     }
@@ -1637,13 +1773,14 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildImageMessage(Map<String, dynamic> message, bool isMine, String status) {
     final localPath = message['imageLocalPath'] as String?;
     final imageUrl = message['imageUrl'] as String?;
-    
+    print("localPath: $localPath");
+    print("imageUrl: $imageUrl");
     Widget imageWidget;
     
     // 将相对路径转换为完整路径
     final pathHelper = FilePathHelper.instance;
     final fullPath = localPath != null ? pathHelper.toFullPathSync(localPath) : null;
-    
+    print("fullPath: $fullPath");
     if (fullPath != null && File(fullPath).existsSync()) {
       // 显示本地图片
       imageWidget = Image.file(

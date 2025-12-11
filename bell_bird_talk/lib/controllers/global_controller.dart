@@ -125,19 +125,31 @@ class GlobalController extends GetxController {
   
   /// 退出登录
   Future<void> logout() async {
-    // 清空状态
+    // 1. 调用 SDK 退出登录（断开 MQTT 连接）
+    try {
+      final nativeService = IOSNativeService();
+      final result = await nativeService.imLogout();
+      print('🚪 SDK 退出登录结果: $result');
+    } catch (e) {
+      print('⚠️ SDK 退出登录异常: $e');
+    }
+    
+    // 2. 清空状态
     token.value = '';
     currentUser.value = null;
     isLoggedIn.value = false;
     unreadCount.value = 0;
     
-    // 清空本地存储
+    // 3. 清空本地存储
     await StorageUtil().remove(AppConstants.keyToken);
     await StorageUtil().remove(AppConstants.keyUserInfo);
     await StorageUtil().remove(AppConstants.keyUserId);
     
-    // 清除 HTTP 客户端的 Token
+    // 4. 清除 HTTP 客户端的 Token
     HttpClient().clearToken();
+    
+    // 5. 清空消息回调
+    newMessage.value = null;
     
     print('✅ 用户已退出登录');
   }

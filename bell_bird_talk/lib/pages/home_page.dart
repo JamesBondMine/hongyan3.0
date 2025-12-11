@@ -39,15 +39,21 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
   
-  /// 注册消息回调（单聊、群聊、社区）
+  /// 注册消息回调（单聊、群聊、社区、系统、命令）
   Future<void> _registerMessageCallbacks() async {
     // 设置消息接收回调
     _nativeService.onMessageReceived = _handleReceivedMessage;
     
+    // 设置系统消息回调
+    _nativeService.onSystemMessage = _handleSystemMessage;
+    
+    // 设置命令消息回调
+    _nativeService.onCommandMessage = _handleCommandMessage;
+    
     // 注册底层回调
     final result = await _nativeService.imRegisterMessageCallbacks();
     if (result['errorCode'] == 0) {
-      print('✅ 消息回调注册成功');
+      print('✅ 消息回调注册成功（单聊、群聊、社区、系统、命令）');
     } else {
       print('❌ 消息回调注册失败: ${result['message']}');
     }
@@ -72,6 +78,22 @@ class _HomePageState extends State<HomePage> {
     
     // 通知 GlobalController 更新聊天列表
     _globalCtrl.onNewMessageReceived(message);
+  }
+  
+  /// 处理系统消息
+  void _handleSystemMessage(Map<String, dynamic> message) {
+    print('📨 首页收到系统消息: $message');
+    
+    // TODO: 根据系统消息类型进行处理
+    // 例如：账号被踢下线、系统维护通知等
+  }
+  
+  /// 处理命令消息
+  void _handleCommandMessage(int eventType, Map<String, dynamic> message) {
+    print('📨 首页收到命令消息: eventType=$eventType, data=$message');
+    
+    // TODO: 根据命令类型进行处理
+    // 例如：强制更新、配置变更等
   }
   
   

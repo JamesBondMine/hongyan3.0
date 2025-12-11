@@ -235,6 +235,9 @@ class NativeBridgeHandler: NSObject {
         case "imUpdateUserInfo":
             imUpdateUserInfo(call: call, result: result)
         
+        case "imLogout":
+            imLogout(call: call, result: result)
+        
         // ---------- 文件管理 ----------
         case "imPrepareUpload":
             imPrepareUpload(call: call, result: result)
@@ -1563,7 +1566,7 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 注册消息回调（单聊、群聊、社区）
+    /// 注册消息回调（单聊、群聊、社区、系统、命令）
     private func imRegisterMessageCallbacks(result: @escaping FlutterResult) {
         print("📝 注册消息回调...")
         
@@ -1589,6 +1592,43 @@ class NativeBridgeHandler: NSObject {
             self.sendMessageToFlutter(eventData)
         }
         
+        // 设置系统消息回调
+        messageManager.onSystemMessage = { [weak self] messageData in
+            guard let self = self else { return }
+            
+            var eventData: [String: Any] = [
+                "message_type": "system",
+            ]
+            
+            for (key, value) in messageData {
+                if let stringKey = key as? String {
+                    eventData[stringKey] = value
+                }
+            }
+            
+            print("📨 转发系统消息到 Flutter: \(eventData)")
+            self.sendSystemMessageToFlutter(eventData)
+        }
+        
+        // 设置命令消息回调
+        messageManager.onCommandMessage = { [weak self] eventType, messageData in
+            guard let self = self else { return }
+            
+            var eventData: [String: Any] = [
+                "message_type": "command",
+                "event_type": eventType,
+            ]
+            
+            for (key, value) in messageData {
+                if let stringKey = key as? String {
+                    eventData[stringKey] = value
+                }
+            }
+            
+            print("📨 转发命令消息到 Flutter: \(eventData)")
+            self.sendCommandMessageToFlutter(eventData)
+        }
+        
         // 注册底层回调
         messageManager.registerMessageCallbacks()
         
@@ -1604,6 +1644,8 @@ class NativeBridgeHandler: NSObject {
         
         let messageManager = IMSDKMessageManager.shared()
         messageManager.onMessageReceived = nil
+        messageManager.onSystemMessage = nil
+        messageManager.onCommandMessage = nil
         messageManager.unregisterMessageCallbacks()
         
         result([
@@ -1626,6 +1668,38 @@ class NativeBridgeHandler: NSObject {
         
         channel.invokeMethod("onMessageReceived", arguments: data)
         print("📤 消息已推送到 Flutter: \(data)")
+    }
+    
+    /// 发送系统消息到 Flutter
+    private func sendSystemMessageToFlutter(_ data: [String: Any]) {
+        guard let messenger = binaryMessenger else {
+            print("⚠️ binaryMessenger 未初始化")
+            return
+        }
+        
+        let channel = FlutterMethodChannel(
+            name: "com.bell_bird_talk/native_bridge",
+            binaryMessenger: messenger
+        )
+        
+        channel.invokeMethod("onSystemMessage", arguments: data)
+        print("📤 系统消息已推送到 Flutter: \(data)")
+    }
+    
+    /// 发送命令消息到 Flutter
+    private func sendCommandMessageToFlutter(_ data: [String: Any]) {
+        guard let messenger = binaryMessenger else {
+            print("⚠️ binaryMessenger 未初始化")
+            return
+        }
+        
+        let channel = FlutterMethodChannel(
+            name: "com.bell_bird_talk/native_bridge",
+            binaryMessenger: messenger
+        )
+        
+        channel.invokeMethod("onCommandMessage", arguments: data)
+        print("📤 命令消息已推送到 Flutter: \(data)")
     }
     
     // MARK: - 用户管理
@@ -1695,6 +1769,29 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "UPDATE_USER_ERROR",
                               message: "更新用户请求失败",
+                              details: nil))
+        }
+    }
+    
+    /// 退出登录
+    private func imLogout(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        print("🚪 Flutter调用退出登录")
+        
+        let reqId = IMSDKUserManager.shared().logout { errorCode, message, data, reqId in
+            print("✅ 退出登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            let response: [String: Any] = [
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? ""
+            ]
+            
+            result(response)
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "LOGOUT_ERROR",
+                              message: "退出登录请求失败",
                               details: nil))
         }
     }
