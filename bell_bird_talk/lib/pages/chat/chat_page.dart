@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 import '../../services/file_path_helper.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_queue.dart';
@@ -637,6 +639,7 @@ class _ChatPageState extends State<ChatPage> {
                   _showResendDialog(localId, type);
                 }
               },
+              onLongPress: () => _showMessageMenu(message, isMine),
               child: Container(
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.65,
@@ -681,6 +684,208 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  /// 显示重发确认对话框
+  /// 显示消息长按菜单
+  void _showMessageMenu(Map<String, dynamic> message, bool isMine) {
+    final type = message['type'] as String? ?? 'text';
+    final content = message['content'] as String? ?? '';
+    final localId = message['localId'] as String?;
+    final imageLocalPath = message['imageLocalPath'] as String?;
+    final imageUrl = message['imageUrl'] as String?;
+    final fileLocalPath = message['fileLocalPath'] as String?;
+    final fileUrl = message['fileUrl'] as String?;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖动条
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              
+              // 复制（文本消息）
+              if (type == 'text' && content.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.copy, color: Colors.blue),
+                  title: const Text('复制'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Clipboard.setData(ClipboardData(text: content));
+                    EasyLoading.showSuccess('已复制');
+                  },
+                ),
+              
+              // 分享
+              ListTile(
+                leading: const Icon(Icons.share, color: Colors.green),
+                title: const Text('分享'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _shareMessage(type, content, imageLocalPath, imageUrl, fileLocalPath, fileUrl);
+                },
+              ),
+              
+              // 转发
+              ListTile(
+                leading: const Icon(Icons.forward, color: Colors.orange),
+                title: const Text('转发'),
+                onTap: () {
+                  Navigator.pop(context);
+                  EasyLoading.showInfo('转发功能开发中');
+                },
+              ),
+              
+              // 收藏
+              ListTile(
+                leading: const Icon(Icons.star_border, color: Colors.amber),
+                title: const Text('收藏'),
+                onTap: () {
+                  Navigator.pop(context);
+                  EasyLoading.showInfo('收藏功能开发中');
+                },
+              ),
+              
+              // 删除（自己的消息）
+              if (isMine && localId != null)
+                ListTile(
+                  leading: Icon(Icons.delete_outline, color: Colors.red[400]),
+                  title: const Text('删除'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showDeleteMessageDialog(localId);
+                  },
+                ),
+              
+              // 撤回（自己的消息，2分钟内）
+              if (isMine && localId != null)
+                ListTile(
+                  leading: Icon(Icons.undo, color: Colors.grey[600]),
+                  title: const Text('撤回'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    EasyLoading.showInfo('撤回功能开发中');
+                  },
+                ),
+              
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  /// 分享消息
+  Future<void> _shareMessage(
+    String type, 
+    String content, 
+    String? imageLocalPath, 
+    String? imageUrl,
+    String? fileLocalPath,
+    String? fileUrl,
+  ) async {
+    try {
+      final pathHelper = FilePathHelper.instance;
+      
+      if (type == 'text') {
+        // 分享文本
+        await Share.share(content);
+      } else if (type == 'image') {
+        // 分享图片
+        String? filePath;
+        if (imageLocalPath != null) {
+          filePath = await pathHelper.toFullPath(imageLocalPath);
+        }
+        
+        if (filePath != null && File(filePath).existsSync()) {
+          await Share.shareXFiles([XFile(filePath)]);
+        } else if (imageUrl != null) {
+          // 分享图片链接
+          await Share.share(imageUrl);
+        } else {
+          EasyLoading.showError('无法分享此图片');
+        }
+      } else if (type == 'voice') {
+        // 分享语音
+        String? filePath;
+        if (fileLocalPath != null) {
+          filePath = await pathHelper.toFullPath(fileLocalPath);
+        }
+        
+        if (filePath != null && File(filePath).existsSync()) {
+          await Share.shareXFiles([XFile(filePath)]);
+        } else if (fileUrl != null) {
+          await Share.share(fileUrl);
+        } else {
+          EasyLoading.showError('无法分享此语音');
+        }
+      } else {
+        EasyLoading.showInfo('暂不支持分享此类型消息');
+      }
+    } catch (e) {
+      print('分享失败: $e');
+      EasyLoading.showError('分享失败');
+    }
+  }
+  
+  /// 显示删除消息确认对话框
+  void _showDeleteMessageDialog(String localId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除消息'),
+        content: const Text('确定要删除此消息吗？删除后不可恢复。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _deleteMessage(localId);
+            },
+            child: Text('删除', style: TextStyle(color: Colors.red[400])),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 删除消息
+  Future<void> _deleteMessage(String localId) async {
+    try {
+      // 从数据库删除
+      await _messageDatabase.deleteMessage(localId);
+      
+      // 从列表中移除
+      setState(() {
+        _messages.removeWhere((msg) => msg['localId'] == localId);
+      });
+      
+      EasyLoading.showSuccess('已删除');
+    } catch (e) {
+      print('删除消息失败: $e');
+      EasyLoading.showError('删除失败');
+    }
   }
 
   /// 显示重发确认对话框
