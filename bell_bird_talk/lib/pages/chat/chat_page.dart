@@ -850,11 +850,32 @@ class _ChatPageState extends State<ChatPage> {
   
   /// 处理语音发送
   void _handleVoiceSend(VoiceRecordResult result) {
-    // TODO: 发送语音消息
-    print('📢 发送语音: ${result.filePath}, 时长: ${result.duration}s');
-    EasyLoading.showSuccess('语音录制完成 ${result.duration}s');
-    
+    // 关闭面板
     setState(() => _showVoicePanel = false);
+    
+    // 发送语音消息
+    _sendVoiceMessage(result.filePath, result.duration);
+  }
+  
+  /// 发送语音消息
+  Future<void> _sendVoiceMessage(String voicePath, int duration) async {
+    // 创建语音消息
+    final message = ChatMessage.voice(
+      convId: widget.convId,
+      senderId: _currentUserId,
+      receiverId: widget.targetUserId,
+      localPath: voicePath,
+      duration: duration,
+    );
+    
+    // 添加到消息列表
+    setState(() {
+      _addChatMessageToList(message);
+    });
+    _scrollToBottom();
+    
+    // 通过队列发送
+    _messageQueue.sendMessage(message);
   }
 
   void _toggleEmojiPicker() {
@@ -1212,6 +1233,10 @@ class _ChatPageState extends State<ChatPage> {
       return _buildImageMessage(message, isMine, status);
     }
     
+    if (type == 'voice') {
+      return _buildVoiceMessage(message, isMine, status);
+    }
+    
     // 默认文本消息
     return Text(
       content,
@@ -1220,6 +1245,71 @@ class _ChatPageState extends State<ChatPage> {
         color: isMine ? Colors.white : Colors.black87,
       ),
     );
+  }
+  
+  /// 构建语音消息
+  Widget _buildVoiceMessage(Map<String, dynamic> message, bool isMine, String status) {
+    final duration = message['voiceDuration'] as int? ?? 0;
+    final localPath = message['fileLocalPath'] as String?;
+    final fileUrl = message['fileUrl'] as String?;
+    
+    // 根据时长计算宽度（3-15秒对应100-200宽度）
+    final width = 100.0 + (duration.clamp(0, 60) / 60.0 * 100.0);
+    
+    return GestureDetector(
+      onTap: () => _playVoiceMessage(localPath, fileUrl),
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 播放图标
+            Icon(
+              Icons.play_arrow,
+              color: isMine ? Colors.white : Colors.blue,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            // 声波动画
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(
+                  (width / 8).floor().clamp(4, 15),
+                  (index) => Container(
+                    width: 3,
+                    height: 8 + (index % 3) * 4.0,
+                    decoration: BoxDecoration(
+                      color: isMine 
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : Colors.blue.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // 时长
+            Text(
+              '${duration}″',
+              style: TextStyle(
+                fontSize: 14,
+                color: isMine ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// 播放语音消息
+  void _playVoiceMessage(String? localPath, String? fileUrl) {
+    // TODO: 实现语音播放
+    print('🔊 播放语音: $localPath 或 $fileUrl');
+    EasyLoading.showInfo('语音播放功能开发中');
   }
 
   /// 构建图片消息

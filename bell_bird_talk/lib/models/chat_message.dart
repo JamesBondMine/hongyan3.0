@@ -214,6 +214,27 @@ class ChatMessage {
       imageHeight: height,
     );
   }
+  
+  /// 创建语音消息
+  factory ChatMessage.voice({
+    required String convId,
+    required String senderId,
+    required String receiverId,
+    required String localPath,
+    required int duration,
+  }) {
+    return ChatMessage(
+      localId: _generateLocalId(),
+      convId: convId,
+      senderId: senderId,
+      receiverId: receiverId,
+      type: MessageType.voice,
+      isMine: true,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      fileLocalPath: localPath,
+      voiceDuration: duration,
+    );
+  }
 
   /// 生成本地消息ID
   static String _generateLocalId() {

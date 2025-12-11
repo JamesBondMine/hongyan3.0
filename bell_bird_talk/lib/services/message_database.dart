@@ -582,6 +582,19 @@ class MessageDatabase {
     );
   }
 
+  /// 更新语音消息URL
+  Future<void> updateVoiceUrl(String localId, String voiceUrl) async {
+    final db = await database;
+    await db.update(
+      'messages',
+      {
+        'file_url': voiceUrl,
+      },
+      where: 'local_id = ?',
+      whereArgs: [localId],
+    );
+  }
+
   /// 获取会话消息列表
   Future<List<ChatMessage>> getMessages(String convId, {int limit = 50, int offset = 0}) async {
     final db = await database;

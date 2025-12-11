@@ -148,6 +148,9 @@ class MessageQueueManager {
         case MessageType.image:
           success = await _sendImageMessage(message);
           break;
+        case MessageType.voice:
+          success = await _sendVoiceMessage(message);
+          break;
         // 其他类型暂时不支持
         default:
           success = false;
@@ -303,6 +306,98 @@ class MessageQueueManager {
       
     } catch (e) {
       print('❌ 图片上传异常: $e');
+      message.errorMessage = '上传异常: $e';
+      return false;
+    }
+  }
+
+  /// 发送语音消息
+  Future<bool> _sendVoiceMessage(ChatMessage message) async {
+    final localPath = message.fileLocalPath;
+    if (localPath == null || localPath.isEmpty) {
+      message.errorMessage = '语音文件路径为空';
+      return false;
+    }
+    
+    final file = File(localPath);
+    if (!await file.exists()) {
+      message.errorMessage = '语音文件不存在';
+      return false;
+    }
+    
+    try {
+      // 1. 获取上传凭证
+      final fileName = localPath.split('/').last;
+      final fileSize = await file.length();
+      final contentType = lookupMimeType(localPath) ?? 'audio/m4a';
+      
+      print('📤 准备上传语音: $fileName, $fileSize bytes, $contentType, 时长: ${message.voiceDuration}s');
+      
+      final prepareResult = await _nativeService.imPrepareUpload(
+        businessModule: 'message',
+        fileName: fileName,
+        fileSize: fileSize,
+        contentType: contentType,
+      );
+      
+      if (prepareResult['errorCode'] != 0) {
+        message.errorMessage = prepareResult['message'] ?? '获取上传凭证失败';
+        return false;
+      }
+      
+      // 2. 解析上传凭证
+      final tokenDataStr = prepareResult['data'] as String?;
+      if (tokenDataStr == null || tokenDataStr.isEmpty) {
+        message.errorMessage = '上传凭证数据为空';
+        return false;
+      }
+      
+      final tokenData = json.decode(tokenDataStr) as Map<String, dynamic>;
+      final uploadUrl = tokenData['upload_url'] as String?;
+      final method = tokenData['method'] as String?;
+      final fileUrl = tokenData['file_url'] as String?;
+      
+      if (uploadUrl == null || method == null || fileUrl == null) {
+        message.errorMessage = '上传凭证信息不完整';
+        return false;
+      }
+      
+      print('📤 语音上传URL: $uploadUrl, 方法: $method');
+      
+      // 3. 执行上传
+      bool uploadSuccess = false;
+      if (method.toUpperCase() == 'PUT') {
+        uploadSuccess = await _uploadWithPut(uploadUrl, file, tokenData['headers'] as Map<String, dynamic>?);
+      } else if (method.toUpperCase() == 'POST') {
+        uploadSuccess = await _uploadWithPost(
+          uploadUrl, 
+          file, 
+          tokenData['file_path'] as String?,
+          tokenData['headers'] as Map<String, dynamic>?,
+          tokenData['form_data'] as Map<String, dynamic>?,
+        );
+      } else {
+        message.errorMessage = '不支持的上传方法: $method';
+        return false;
+      }
+      
+      if (!uploadSuccess) {
+        message.errorMessage = '语音文件上传失败';
+        return false;
+      }
+      
+      // 4. 更新语音URL
+      message.fileUrl = fileUrl;
+      await _database.updateVoiceUrl(message.localId, fileUrl);
+      
+      print('✅ 语音上传成功: $fileUrl');
+      
+      // 5. TODO: 发送语音消息到服务器（目前暂不实现）
+      // 由于语音消息SDK接口还没对接，这里只是上传成功就算发送成功
+      return true;
+      
+    } catch (e) {
+      print('❌ 语音上传异常: $e');
       message.errorMessage = '上传异常: $e';
       return false;
     }
