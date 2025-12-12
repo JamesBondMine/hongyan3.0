@@ -481,6 +481,109 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
+- (int)sendImageMessage:(NSString *)imageUrl
+            thumbnailUrl:(NSString * _Nullable)thumbnailUrl
+                  width:(int32_t)width
+                 height:(int32_t)height
+         conversationId:(NSString *)conversationId
+             receiverId:(NSString *)receiverId
+             completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送图片消息: imageUrl=%@, thumbnailUrl=%@, width=%d, height=%d, conversationId=%@, receiverId=%@",
+          imageUrl, thumbnailUrl, width, height, conversationId, receiverId);
+    
+    // 创建 ImageMessage
+    ImageMessage *imageMsg = [[ImageMessage alloc] init];
+    imageMsg.originalURL = imageUrl;
+    if (thumbnailUrl && thumbnailUrl.length > 0) {
+        imageMsg.thumbnailURL = thumbnailUrl;
+    }
+    if (width > 0) {
+        imageMsg.width = width;
+    }
+    if (height > 0) {
+        imageMsg.height = height;
+    }
+    
+    // 序列化 ImageMessage
+    NSData *protoData = [imageMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ ImageMessage 序列化失败");
+        return -1;
+    }
+    
+    NSLog(@"📦 ImageMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
+    
+    // 调用 SDK 发送
+    uint64_t reqId = 0;
+    int result = send_single_message(
+        SendMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Image,  // msgType = 1 (IMAGE)
+        receiverId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_single_message (图片): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendVoiceMessage:(NSString *)audioUrl
+                duration:(int32_t)duration
+          conversationId:(NSString *)conversationId
+              receiverId:(NSString *)receiverId
+              completion:(IMSDKMessageCompletion)completion {
+    
+    
+    
+    // 创建 VoiceMessage
+    VoiceMessage *voiceMsg = [[VoiceMessage alloc] init];
+    voiceMsg.audioURL = audioUrl;
+    voiceMsg.name = @"voice";
+    voiceMsg.size = 300;
+    voiceMsg.ext =audioUrl;
+    if (duration > 0) {
+        voiceMsg.duration = duration;
+    }
+    NSLog(@"🍎 发送语音消息: audioUrl=%@, name=%@, ext=%@,  size=%d, duration=%d, conversationId=%@, receiverId=%@",
+          voiceMsg.audioURL,voiceMsg.name, voiceMsg.ext, voiceMsg.size, voiceMsg.duration, conversationId, receiverId);
+    // 序列化 VoiceMessage
+    NSData *protoData = [voiceMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ VoiceMessage 序列化失败");
+        return -1;
+    }
+    
+    NSLog(@"📦 VoiceMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
+    
+    // 调用 SDK 发送
+    uint64_t reqId = 0;
+    int result = send_single_message(
+        SendMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Voice,  // msgType = 3 (VOICE)
+        receiverId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_single_message (语音): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
 // ==================== 拉取历史消息 ====================
 
 - (int)pullMessagesWithConversationId:(NSString *)conversationId

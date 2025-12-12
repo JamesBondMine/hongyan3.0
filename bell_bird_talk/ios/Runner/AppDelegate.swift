@@ -224,6 +224,10 @@ class NativeBridgeHandler: NSObject {
         // ---------- 消息管理 ----------
         case "imSendTextMessage":
             imSendTextMessage(call: call, result: result)
+        case "imSendImageMessage":
+            imSendImageMessage(call: call, result: result)
+        case "imSendVoiceMessage":
+            imSendVoiceMessage(call: call, result: result)
         case "imPullMessages":
             imPullMessages(call: call, result: result)
         case "imRegisterMessageCallbacks":
@@ -237,6 +241,12 @@ class NativeBridgeHandler: NSObject {
         
         case "imLogout":
             imLogout(call: call, result: result)
+        
+        case "imChangePassword":
+            imChangePassword(call: call, result: result)
+        
+        case "imResetPassword":
+            imResetPassword(call: call, result: result)
         
         // ---------- 文件管理 ----------
         case "imPrepareUpload":
@@ -1527,6 +1537,84 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 发送图片消息
+    private func imSendImageMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let imageUrl = args["image_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let receiverId = args["receiver_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let thumbnailUrl = args["thumbnail_url"] as? String
+        let width = args["width"] as? Int ?? 0
+        let height = args["height"] as? Int ?? 0
+        
+        print("📤 发送图片消息: imageUrl=\(imageUrl), thumbnailUrl=\(thumbnailUrl ?? ""), width=\(width), height=\(height), conversationId=\(conversationId), receiverId=\(receiverId)")
+        
+        let code = IMSDKMessageManager.shared().sendImageMessage(
+            imageUrl,
+            thumbnailUrl: thumbnailUrl,
+            width: Int32(width),
+            height: Int32(height),
+            conversationId: conversationId,
+            receiverId: receiverId
+        ) { errorCode, reqId, data in
+            print("✅ 发送图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_MESSAGE_ERROR",
+                              message: "发送图片消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送语音消息
+    private func imSendVoiceMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let audioUrl = args["audio_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let receiverId = args["receiver_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let duration = args["duration"] as? Int ?? 0
+        
+        print("📤 发送语音消息: audioUrl=\(audioUrl), duration=\(duration), conversationId=\(conversationId), receiverId=\(receiverId)")
+        
+        let code = IMSDKMessageManager.shared().sendVoiceMessage(
+            audioUrl,
+            duration: Int32(duration),
+            conversationId: conversationId,
+            receiverId: receiverId
+        ) { errorCode, reqId, data in
+            print("✅ 发送语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_MESSAGE_ERROR",
+                              message: "发送语音消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 拉取历史消息
     private func imPullMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1792,6 +1880,74 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "LOGOUT_ERROR",
                               message: "退出登录请求失败",
+                              details: nil))
+        }
+    }
+    
+    /// 修改密码
+    private func imChangePassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let userId = args["user_id"] as? String,
+              let oldPassword = args["old_password"] as? String,
+              let newPassword = args["new_password"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("🔐 修改密码: userId=\(userId)")
+        
+        let code = IMSDKAuthManager.shared().changePassword(withUserId: userId, oldPassword: oldPassword, newPassword: newPassword, completion: { errorCode, reqId, data in
+            print("✅ 修改密码回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "修改成功" : "修改失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "CHANGE_PASSWORD_ERROR",
+                              message: "修改密码请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 重置密码
+    private func imResetPassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let captchaId = args["captcha_id"] as? String,
+              let code = args["code"] as? String,
+              let newPassword = args["new_password"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let phone = args["phone"] as? String
+        let email = args["email"] as? String
+        
+        if phone == nil && email == nil {
+            result(FlutterError(code: "INVALID_ARGS", message: "必须提供手机号或邮箱", details: nil))
+            return
+        }
+        
+        print("🔐 重置密码: phone=\(phone ?? ""), email=\(email ?? ""), captchaId=\(captchaId)")
+        
+        let resultCode = IMSDKAuthManager.shared().resetPassword(withPhone: phone, email: email, captchaId: captchaId, captchaCode: code, newPassword: newPassword, completion:{ errorCode, reqId, data in
+            print("✅ 重置密码回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "重置成功" : "重置失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if resultCode != 0 {
+            result(FlutterError(code: "RESET_PASSWORD_ERROR",
+                              message: "重置密码请求失败: \(resultCode)",
                               details: nil))
         }
     }

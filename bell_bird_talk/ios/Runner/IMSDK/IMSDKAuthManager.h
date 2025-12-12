@@ -108,6 +108,34 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
                   accountId:(NSString * _Nullable)accountId
                  completion:(IMSDKAuthCompletion)completion;
 
+// ==================== 密码管理 ====================
+
+/// 修改密码
+/// @param userId 用户ID（必填）
+/// @param oldPassword 旧密码（必填）
+/// @param newPassword 新密码（必填）
+/// @param completion 修改结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)changePasswordWithUserId:(NSString *)userId
+                     oldPassword:(NSString *)oldPassword
+                     newPassword:(NSString *)newPassword
+                      completion:(IMSDKAuthCompletion)completion;
+
+/// 重置密码（忘记密码）
+/// @param phone 手机号（可选，与email二选一）
+/// @param email 邮箱（可选，与phone二选一）
+/// @param captchaId 验证码ID（必填）
+/// @param captchaCode 验证码答案（必填）
+/// @param newPassword 新密码（必填）
+/// @param completion 重置结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)resetPasswordWithPhone:(NSString * _Nullable)phone
+                        email:(NSString * _Nullable)email
+                    captchaId:(NSString *)captchaId
+                  captchaCode:(NSString *)captchaCode
+                  newPassword:(NSString *)newPassword
+                   completion:(IMSDKAuthCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

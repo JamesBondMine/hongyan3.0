@@ -35,6 +35,7 @@ class GlobalController extends GetxController {
   
   // 刷新触发器（用于通知页面刷新）
   final RxInt refreshFriendList = 0.obs;
+  final RxInt refreshFriendRequests = 0.obs;
   final RxInt refreshChatList = 0.obs;
   
   // 新消息通知（用于实时更新聊天列表）
@@ -43,13 +44,23 @@ class GlobalController extends GetxController {
   /// 触发好友列表刷新
   void triggerFriendListRefresh() => refreshFriendList.value++;
   
+  /// 触发好友申请列表刷新
+  void triggerFriendRequestsRefresh() => refreshFriendRequests.value++;
+  
   /// 触发聊天列表刷新
   void triggerChatListRefresh() => refreshChatList.value++;
   
   /// 触发所有列表刷新
   void triggerAllListRefresh() {
     refreshFriendList.value++;
+    refreshFriendRequests.value++;
     refreshChatList.value++;
+  }
+  
+  /// 触发联系人相关刷新（好友列表 + 好友申请）
+  void triggerContactRefresh() {
+    refreshFriendList.value++;
+    refreshFriendRequests.value++;
   }
   
   /// 收到新消息，通知聊天列表更新

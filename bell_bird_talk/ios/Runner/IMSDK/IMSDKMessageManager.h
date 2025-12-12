@@ -86,6 +86,36 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
             receiverId:(NSString *)receiverId
             completion:(IMSDKMessageCompletion)completion;
 
+/// 发送图片消息
+/// @param imageUrl 图片URL
+/// @param thumbnailUrl 缩略图URL（可选）
+/// @param width 图片宽度（可选）
+/// @param height 图片高度（可选）
+/// @param conversationId 会话ID
+/// @param receiverId 接收者ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendImageMessage:(NSString *)imageUrl
+            thumbnailUrl:(NSString * _Nullable)thumbnailUrl
+                  width:(int32_t)width
+                 height:(int32_t)height
+         conversationId:(NSString *)conversationId
+             receiverId:(NSString *)receiverId
+             completion:(IMSDKMessageCompletion)completion;
+
+/// 发送语音消息
+/// @param audioUrl 语音文件URL
+/// @param duration 语音时长（秒）
+/// @param conversationId 会话ID
+/// @param receiverId 接收者ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendVoiceMessage:(NSString *)audioUrl
+                duration:(int32_t)duration
+          conversationId:(NSString *)conversationId
+              receiverId:(NSString *)receiverId
+              completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息

@@ -1,4 +1,5 @@
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
+import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -277,8 +278,7 @@ class SideMenuContent extends StatelessWidget {
   /// 打开安全设置
   void _openSecuritySettings(BuildContext context) {
     Navigator.pop(context);
-    EasyLoading.showInfo('安全设置（开发中）');
-    // TODO: Get.toNamed('/settings/security');
+    Get.to(() => const SecuritySettingsPage());
   }
 
   /// 打开语言设置

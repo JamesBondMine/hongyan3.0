@@ -18,6 +18,7 @@ import '../../models/chat_message.dart';
 import '../../controllers/global_controller.dart';
 import '../../widgets/voice_record_panel.dart';
 import 'chat_detail_page.dart';
+import 'image_preview_page.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -260,6 +261,7 @@ class _ChatPageState extends State<ChatPage> {
     if (existIndex != -1) {
       _messages[existIndex] = msgMap;
     } else {
+      print("添加消息到列表: $msgMap");
       _messages.add(msgMap);
     }
   }
@@ -278,17 +280,13 @@ class _ChatPageState extends State<ChatPage> {
         limit: 50,
       );
       
-      print('📥 拉取历史消息结果: $result');
+      print('📥 拉取网络🛜历史消息结果: $result');
       
       if (result['errorCode'] == 0) {
         final data = result['data'];
         if (data != null && data is String && data.isNotEmpty) {
           try {
             final dataMap = json.decode(data) as Map<String, dynamic>;
-            print('📥 历史消息数据: $dataMap');
-            
-            // 打印所有字段
-            print('📥 返回字段: ${dataMap.keys.toList()}');
             
             // 解析消息列表
             final messages = dataMap['messages'] as List<dynamic>?;
@@ -320,9 +318,9 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 解析并显示历史消息
   void _parseAndDisplayMessages(List<dynamic> messages) {
-    print('📥 解析 API 消息: ${messages.length} 条');
     
     for (final msg in messages) {
+      print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
       if (msg is Map<String, dynamic>) {
         // 尝试解析消息结构
         final msgId = msg['msg_id'] ?? msg['message_id'] ?? msg['id'] ?? '';
@@ -332,6 +330,7 @@ class _ChatPageState extends State<ChatPage> {
         final mType = msg['m_type'] as int? ?? 0;
         final imageUrl = msg['image_url'] as String?;
         final fileUrl = msg['file_url'] as String?;
+        final audioUrl = msg['audio_url'] as String?;
         final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
         
         // 判断是否是自己发的消息（根据发送者ID判断）
@@ -355,6 +354,7 @@ class _ChatPageState extends State<ChatPage> {
           'senderId': senderId.toString(),
           'imageUrl': imageUrl,
           'fileUrl': fileUrl,
+          'audioUrl': audioUrl,
           'voiceDuration': voiceDuration,
         };
         
@@ -371,7 +371,7 @@ class _ChatPageState extends State<ChatPage> {
         final timestampInt = timestamp is int ? timestamp : 0;
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
         final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
-        print('📝 消息: type=$msgType, content=$content, isMine=$isMine, senderId=$senderId, time=$formattedTime');
+        print('\n*****************\n 🛜 网络消息:  content=$content, msgId=$msgId, senderId=$senderId, fileUrl=$fileUrl,audioUrl=$audioUrl time=$formattedTime\n*****************\n');
       }
     }
     
@@ -682,6 +682,10 @@ class _ChatPageState extends State<ChatPage> {
               Flexible(
                 child: GestureDetector(
                   onTap: () {
+                    // 图片消息的点击在 _buildImageMessage 中处理
+                    if (isImageMessage) {
+                      return;
+                    }
                     // 点击失败的消息重新发送
                     if (status == 'failed' && localId != null) {
                       _showResendDialog(localId, type);
@@ -1461,15 +1465,11 @@ class _ChatPageState extends State<ChatPage> {
   /// 从相册选择图片
   Future<void> _pickImageFromGallery() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1920,
-        imageQuality: 85,
-      );
-      
-      if (image != null) {
-        await _sendImageMessage(image.path);
+      final List<XFile>? images = await _imagePicker.pickMultiImage();
+      if (images != null) {
+        for (var image in images) {
+          await _sendImageMessage(image.path);
+        }
       }
     } catch (e) {
       print('选择图片失败: $e');
@@ -1781,6 +1781,7 @@ class _ChatPageState extends State<ChatPage> {
     final pathHelper = FilePathHelper.instance;
     final fullPath = localPath != null ? pathHelper.toFullPathSync(localPath) : null;
     print("fullPath: $fullPath");
+
     if (fullPath != null && File(fullPath).existsSync()) {
       // 显示本地图片
       imageWidget = Image.file(
@@ -1828,13 +1829,41 @@ class _ChatPageState extends State<ChatPage> {
         child: const Icon(Icons.image, size: 40, color: Colors.grey),
       );
     }
-    
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: imageWidget,
-        ),
+    print("\n\n---------------------------------\n构建图片消息\n message: ${message['id']} content: ${message['content']} localPath: $localPath imageUrl: $imageUrl \n---------------------------------\n\n");
+    return GestureDetector(
+      onTap: () {
+        // 收集所有图片消息
+        final imageMessages = _messages.where((m) {
+          final msgType = m['type'] as String? ?? '';
+          final msgLocalPath = m['imageLocalPath'] as String?;
+          final msgImageUrl = m['imageUrl'] as String?;
+          return msgType == 'image' && (msgLocalPath != null || msgImageUrl != null);
+        }).toList();
+        
+        if (imageMessages.isEmpty) {
+          return;
+        }
+        
+        // 找到当前图片的索引
+        final currentIndex = imageMessages.indexWhere((m) => m['id'] == message['id']);
+        final initialIndex = currentIndex >= 0 ? currentIndex : 0;
+        
+        // 跳转到预览页面
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ImagePreviewPage(
+              imageMessages: imageMessages,
+              initialIndex: initialIndex,
+            ),
+          ),
+        );
+      },
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: imageWidget,
+          ),
         // 发送中遮罩
         if (status == 'sending' || status == 'pending')
           Positioned.fill(
@@ -1868,7 +1897,8 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }

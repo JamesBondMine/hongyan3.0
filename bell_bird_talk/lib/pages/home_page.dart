@@ -80,12 +80,15 @@ class _HomePageState extends State<HomePage> {
     _globalCtrl.onNewMessageReceived(message);
   }
   
-  /// 处理系统消息
+  /// 处理系统消息  被加好友  是系统消息
   void _handleSystemMessage(Map<String, dynamic> message) {
     print('📨 首页收到系统消息: $message');
     
-    // TODO: 根据系统消息类型进行处理
-    // 例如：账号被踢下线、系统维护通知等
+    // 收到系统消息，刷新联系人列表和好友申请列表
+    // 系统消息可能包括：好友申请、好友通过、好友删除等
+    _globalCtrl.triggerContactRefresh();
+    
+    print('✅ 已触发联系人和好友申请列表刷新');
   }
   
   /// 处理命令消息

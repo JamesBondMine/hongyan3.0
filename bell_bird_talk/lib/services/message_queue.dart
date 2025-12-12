@@ -329,9 +329,39 @@ class MessageQueueManager {
       
       print('✅ 图片上传成功: $fileUrl');
       
-      // 5. TODO: 发送图片消息到服务器（目前暂不实现）
-      // 由于图片消息SDK接口还没对接，这里只是上传成功就算发送成功
-      return true;
+      // 5. 发送图片消息到服务器
+      print('📤 开始发送图片消息到服务器...');
+      final sendResult = await _nativeService.imSendImageMessage(
+        imageUrl: fileUrl,
+        conversationId: message.convId,
+        receiverId: message.receiverId,
+        thumbnailUrl: message.imageThumbnailUrl,
+        width: message.imageWidth,
+        height: message.imageHeight,
+      );
+      
+      if (sendResult['errorCode'] == 0) {
+        // 更新服务器消息ID
+        if (sendResult['data'] != null) {
+          try {
+            final data = sendResult['data'] is String 
+                ? json.decode(sendResult['data']) 
+                : sendResult['data'];
+            if (data is Map && data['msg_id'] != null) {
+              message.serverId = data['msg_id'].toString();
+              await _database.updateMessageServerId(message.localId, message.serverId!);
+            }
+          } catch (e) {
+            print('解析图片消息ID失败: $e');
+          }
+        }
+        print('✅ 图片消息发送成功');
+        return true;
+      } else {
+        message.errorMessage = sendResult['message'] ?? '发送图片消息失败';
+        print('❌ 图片消息发送失败: ${message.errorMessage}');
+        return false;
+      }
       
     } catch (e) {
       print('❌ 图片上传异常: $e');
@@ -448,9 +478,37 @@ class MessageQueueManager {
       
       print('✅ 语音上传成功: $fileUrl');
       
-      // 5. TODO: 发送语音消息到服务器（目前暂不实现）
-      // 由于语音消息SDK接口还没对接，这里只是上传成功就算发送成功
-      return true;
+      // 5. 发送语音消息到服务器
+      print('📤 开始发送语音消息到服务器...');
+      final sendResult = await _nativeService.imSendVoiceMessage(
+        audioUrl: fileUrl,
+        duration: message.voiceDuration ?? 0,
+        conversationId: message.convId,
+        receiverId: message.receiverId,
+      );
+      
+      if (sendResult['errorCode'] == 0) {
+        // 更新服务器消息ID
+        if (sendResult['data'] != null) {
+          try {
+            final data = sendResult['data'] is String 
+                ? json.decode(sendResult['data']) 
+                : sendResult['data'];
+            if (data is Map && data['msg_id'] != null) {
+              message.serverId = data['msg_id'].toString();
+              await _database.updateMessageServerId(message.localId, message.serverId!);
+            }
+          } catch (e) {
+            print('解析语音消息ID失败: $e');
+          }
+        }
+        print('✅ 语音消息发送成功');
+        return true;
+      } else {
+        message.errorMessage = sendResult['message'] ?? '发送语音消息失败';
+        print('❌ 语音消息发送失败: ${message.errorMessage}');
+        return false;
+      }
       
     } catch (e) {
       print('❌ 语音上传异常: $e');

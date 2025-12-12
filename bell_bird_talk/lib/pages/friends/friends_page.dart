@@ -44,7 +44,8 @@ class _FriendsPageState extends State<FriendsPage> {
   final int _pageSize = 20;
   bool _hasMore = true;
 
-  Worker? _refreshWorker;
+  Worker? _refreshFriendListWorker;
+  Worker? _refreshFriendRequestsWorker;
   
   @override
   void initState() {
@@ -53,16 +54,31 @@ class _FriendsPageState extends State<FriendsPage> {
     _loadContactGroups();   // 加载联系人分组
     _loadFriends();
     
-    // 监听全局刷新信号
-    _refreshWorker = ever(
-      Get.find<GlobalController>().refreshFriendList,
-      (_) => _refreshFriends(),
+    final globalCtrl = Get.find<GlobalController>();
+    
+    // 监听好友列表刷新信号
+    _refreshFriendListWorker = ever(
+      globalCtrl.refreshFriendList,
+      (_) {
+        print('📨 收到好友列表刷新信号');
+        _loadFriends(refresh: true);
+      },
+    );
+    
+    // 监听好友申请列表刷新信号
+    _refreshFriendRequestsWorker = ever(
+      globalCtrl.refreshFriendRequests,
+      (_) {
+        print('📨 收到好友申请列表刷新信号');
+        _loadFriendRequests();
+      },
     );
   }
 
   @override
   void dispose() {
-    _refreshWorker?.dispose();
+    _refreshFriendListWorker?.dispose();
+    _refreshFriendRequestsWorker?.dispose();
     _searchController.dispose();
     super.dispose();
   }

@@ -452,6 +452,33 @@ class IOSNativeService {
     );
   }
   
+  /// 修改密码
+  /// @param userId 用户ID
+  /// @param oldPassword 旧密码
+  /// @param newPassword 新密码
+  /// @return 修改结果
+  Future<Map<String, dynamic>> imChangePassword({
+    required String userId,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'user_id': userId,
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      };
+      
+      print('🔐 修改密码请求: userId=$userId');
+      
+      final result = await _bridge.invokeMethod<Map>('imChangePassword', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('修改密码错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 重置密码
   /// @param phone 手机号（和email二选一）
   /// @param email 邮箱（和phone二选一）
@@ -478,11 +505,9 @@ class IOSNativeService {
       
       if (phone != null) {
         params['phone'] = phone;
-        params['reset_type'] = 'sms';
       }
       if (email != null) {
         params['email'] = email;
-        params['reset_type'] = 'email';
       }
       
       print('🔐 重置密码请求: $params');
@@ -950,6 +975,66 @@ class IOSNativeService {
       if (ext != null) params['ext'] = ext;
       
       final result = await _bridge.invokeMethod<Map>('imSendTextMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送图片消息
+  /// @param imageUrl 图片URL
+  /// @param conversationId 会话ID
+  /// @param receiverId 接收者ID
+  /// @param thumbnailUrl 缩略图URL（可选）
+  /// @param width 图片宽度（可选）
+  /// @param height 图片高度（可选）
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendImageMessage({
+    required String imageUrl,
+    required String conversationId,
+    required String receiverId,
+    String? thumbnailUrl,
+    int? width,
+    int? height,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'image_url': imageUrl,
+        'conversation_id': conversationId,
+        'receiver_id': receiverId,
+      };
+      if (thumbnailUrl != null) params['thumbnail_url'] = thumbnailUrl;
+      if (width != null) params['width'] = width;
+      if (height != null) params['height'] = height;
+      
+      final result = await _bridge.invokeMethod<Map>('imSendImageMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送语音消息
+  /// @param audioUrl 语音文件URL
+  /// @param duration 语音时长（秒）
+  /// @param conversationId 会话ID
+  /// @param receiverId 接收者ID
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendVoiceMessage({
+    required String audioUrl,
+    required int duration,
+    required String conversationId,
+    required String receiverId,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'audio_url': audioUrl,
+        'duration': duration,
+        'conversation_id': conversationId,
+        'receiver_id': receiverId,
+      };
+      
+      final result = await _bridge.invokeMethod<Map>('imSendVoiceMessage', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};
