@@ -667,11 +667,11 @@ class IOSNativeService {
   /// @param userId 要删除的好友用户ID
   /// @return 删除结果
   Future<Map<String, dynamic>> imDeleteContact({
-    required String userId,
+    required String contact_user_id,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imDeleteContact', {
-        'user_id': userId,
+        'contact_user_id': contact_user_id,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
@@ -819,6 +819,37 @@ class IOSNativeService {
     }
   }
   
+  /// 创建联系人分组
+  /// @param groupName 分组名称（必填）
+  /// @param groupColor 分组颜色（可选）
+  /// @param groupOrder 排序权重（可选）
+  /// @param groupIcon 分组图标（可选）
+  /// @param groupDescription 分组描述（可选）
+  /// @return 创建结果
+  Future<Map<String, dynamic>> imCreateContactGroup({
+    required String groupName,
+    String? groupColor,
+    int? groupOrder,
+    String? groupIcon,
+    String? groupDescription,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_name': groupName,
+      };
+      if (groupColor != null) params['group_color'] = groupColor;
+      if (groupOrder != null) params['group_order'] = groupOrder;
+      if (groupIcon != null) params['group_icon'] = groupIcon;
+      if (groupDescription != null) params['group_description'] = groupDescription;
+      
+      final result = await _bridge.invokeMethod<Map>('imCreateContactGroup', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('创建联系人分组错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -874,6 +905,54 @@ class IOSNativeService {
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取未读会话列表
+  /// @return 未读会话列表
+  Future<Map<String, dynamic>> imGetUnreadConversations({
+    int page = 1,
+    int pageSize = 20,
+    int convType = -1,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetUnreadConversations', {
+        'page': page,
+        'page_size': pageSize,
+        'conv_type': convType,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取未读会话列表错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 更新会话信息
+  /// @param convId 会话ID（必填）
+  /// @param displayName 显示名称（可选）
+  /// @param avatarUrl 头像URL（可选）
+  /// @param description 描述（可选）
+  /// @return 更新结果
+  Future<Map<String, dynamic>> imUpdateConversation({
+    required String convId,
+    String? displayName,
+    String? avatarUrl,
+    String? description,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'conv_id': convId,
+      };
+      if (displayName != null) params['display_name'] = displayName;
+      if (avatarUrl != null) params['avatar_url'] = avatarUrl;
+      if (description != null) params['description'] = description;
+      
+      final result = await _bridge.invokeMethod<Map>('imUpdateConversation', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('更新会话错误: $e');
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

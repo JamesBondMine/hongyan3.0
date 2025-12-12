@@ -56,6 +56,7 @@ class _ChatPageState extends State<ChatPage> {
   final MessageQueueManager _messageQueue = MessageQueueManager();
   final MessageDatabase _messageDatabase = MessageDatabase();
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  final Map<String, String> _voiceCache = {}; // 缓存远程语音的本地路径（key=url）
   
   // 语音播放器
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -106,15 +107,15 @@ class _ChatPageState extends State<ChatPage> {
     _newMessageWorker = ever(_globalCtrl.newMessage, _onNewMessageFromCallback);
   }
 
-  /// 加载消息（先加载本地，再从API同步）
+  /// 加载消息（对方消息只从网络获取；自己发送的消息合并本地+网络）
   Future<void> _loadMessages() async {
-    // 1. 先加载本地消息（快速显示）
-    await _loadLocalMessages();
-    
-    // 2. 再从 API 拉取最新消息
+    // 1. 先加载本地仅自己发送的消息（用于发送中/失败的展示与重发）
+    await _loadLocalMyMessages();
+
+    // 2. 再从 API 拉取最新消息，确保对方消息来自网络
     await _loadHistory();
-    
-    // 3. 按时间排序
+
+    // 按时间排序
     _sortMessagesByTime();
   }
 
@@ -129,18 +130,21 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  /// 加载本地消息
-  Future<void> _loadLocalMessages() async {
+  /// 仅加载本地“我发送的”消息，用于与网络消息合并展示
+  Future<void> _loadLocalMyMessages() async {
     final localMessages = await _messageDatabase.getMessages(widget.convId);
-    print('📦 加载本地消息: ${localMessages.length} 条');
-    if (localMessages.isNotEmpty) {
-      for (final msg in localMessages) {
-        _addChatMessageToList(msg);
-      }
-      _sortMessagesByTime();
-      setState(() {});
-      _scrollToBottom();
+    if (localMessages.isEmpty) return;
+
+    final myMessages = localMessages.where((msg) => msg.senderId == _currentUserId).toList();
+    if (myMessages.isEmpty) return;
+
+    print('📦 加载本地我发送的消息: ${myMessages.length} 条');
+    for (final msg in myMessages) {
+      _addChatMessageToList(msg);
     }
+    _sortMessagesByTime();
+    setState(() {});
+    _scrollToBottom();
   }
 
   /// 按时间排序消息列表
@@ -1567,10 +1571,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildVoiceMessage(Map<String, dynamic> message, bool isMine, String status) {
     final duration = message['voiceDuration'] as int? ?? 0;
     final localPath = message['fileLocalPath'] as String?;
-    final fileUrl = message['fileUrl'] as String?;
+    final audioUrl = message['audioUrl'] as String?;
     
     // 生成唯一标识用于判断播放状态
-    final voiceId = localPath ?? fileUrl ?? '';
+    final voiceId = localPath ?? audioUrl ?? '';
     final isPlaying = _playingVoiceId == voiceId && voiceId.isNotEmpty;
     
     // 根据时长计算宽度（1-60秒对应120-220宽度）
@@ -1580,7 +1584,7 @@ class _ChatPageState extends State<ChatPage> {
     final waveCount = ((width - 80) / 6).floor().clamp(4, 12);
     
     return GestureDetector(
-      onTap: () => _playVoiceMessage(localPath, fileUrl),
+      onTap: () => _playVoiceMessage(localPath, audioUrl),
       child: Container(
         width: width,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1668,11 +1672,11 @@ class _ChatPageState extends State<ChatPage> {
   }
   
   /// 播放语音消息
-  Future<void> _playVoiceMessage(String? localPath, String? fileUrl) async {
-    print('🔊 播放语音: localPath=$localPath, fileUrl=$fileUrl');
+  Future<void> _playVoiceMessage(String? localPath, String? audioUrl) async {
+    print('🔊 播放语音: localPath=$localPath, fileUrl=$audioUrl');
     
     // 生成唯一标识
-    final voiceId = localPath ?? fileUrl ?? '';
+    final voiceId = localPath ?? audioUrl ?? '';
     if (voiceId.isEmpty) {
       EasyLoading.showError('语音文件不存在');
       return;
@@ -1698,13 +1702,24 @@ class _ChatPageState extends State<ChatPage> {
       }
     }
     
-    // 2. 尝试从网络下载
-    if (fileUrl != null && fileUrl.isNotEmpty) {
-      await _downloadAndPlayVoice(fileUrl, voiceId);
+    // 2. 检查已缓存的远程语音
+    if (audioUrl != null && _voiceCache.containsKey(audioUrl)) {
+      final cachedPath = _voiceCache[audioUrl]!;
+      if (File(cachedPath).existsSync()) {
+        await _playLocalVoice(cachedPath, voiceId);
+        return;
+      } else {
+        _voiceCache.remove(audioUrl);
+      }
+    }
+    
+    // 3. 尝试从网络下载
+    if (audioUrl != null && audioUrl.isNotEmpty) {
+      await _downloadAndPlayVoice(audioUrl, voiceId);
       return;
     }
     
-    // 3. 都没有，提示错误
+    // 4. 都没有，提示错误
     EasyLoading.showError('语音文件不存在');
   }
   
@@ -1735,34 +1750,45 @@ class _ChatPageState extends State<ChatPage> {
   /// 下载并播放语音
   Future<void> _downloadAndPlayVoice(String url, String voiceId) async {
     if (_isDownloading) {
-      EasyLoading.showInfo('正在下载...');
       return;
     }
     
     try {
       setState(() => _isDownloading = true);
-      EasyLoading.show(status: '下载中...');
       
-      // 下载文件
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) {
         throw Exception('下载失败: ${response.statusCode}');
       }
       
-      // 保存到临时目录
-      final dir = await getTemporaryDirectory();
-      final fileName = 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      final file = File('${dir.path}/$fileName');
-      await file.writeAsBytes(response.bodyBytes);
+      // 保存到本地持久目录（voices_cache）
+      final docDir = await getApplicationDocumentsDirectory();
+      final voicesDir = Directory('${docDir.path}/voices_cache');
+      if (!voicesDir.existsSync()) {
+        voicesDir.createSync(recursive: true);
+      }
+      String fileName;
+      try {
+        final parsed = Uri.parse(url);
+        fileName = parsed.pathSegments.isNotEmpty ? parsed.pathSegments.last : '';
+      } catch (_) {
+        fileName = '';
+      }
+      if (fileName.isEmpty) {
+        fileName = 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      }
+      final filePath = '${voicesDir.path}/$fileName';
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes, flush: true);
       
-      EasyLoading.dismiss();
+      // 缓存路径用于下次直接播放
+      _voiceCache[url] = filePath;
       
       // 播放
       await _playLocalVoice(file.path, voiceId);
       
     } catch (e) {
       print('❌ 下载语音失败: $e');
-      EasyLoading.showError('下载失败');
       setState(() => _playingVoiceId = null);
     } finally {
       setState(() => _isDownloading = false);

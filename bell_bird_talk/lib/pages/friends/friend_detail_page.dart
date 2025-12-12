@@ -11,10 +11,12 @@ import '../chat/chat_page.dart';
 /// 好友详情页面
 class FriendDetailPage extends StatefulWidget {
   final FriendModel friend;
+  VoidCallback onDelete;
   
-  const FriendDetailPage({
+  FriendDetailPage({
     super.key,
     required this.friend,
+    required this.onDelete,
   });
 
   @override
@@ -733,10 +735,11 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               EasyLoading.show(status: '删除中...');
               
               try {
-                final result = await _nativeService.imDeleteContact(userId: _friend.id);
+                final result = await _nativeService.imDeleteContact(contact_user_id: _friend.id);
                 
                 if (result['errorCode'] == 0) {
                   EasyLoading.showSuccess('已删除好友');
+                  widget.onDelete();
                   Get.back(result: true);  // 返回并刷新列表
                 } else {
                   EasyLoading.showError(result['message'] ?? '删除失败');

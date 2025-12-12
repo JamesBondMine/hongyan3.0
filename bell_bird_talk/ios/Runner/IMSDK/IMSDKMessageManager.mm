@@ -131,7 +131,7 @@ static void SendMessageCallback(int errorCode, const char* data, int dataLen, ui
 
 /// 拉取消息回调
 static void PullMessagesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📥 拉取消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSLog(@"🍎 拉取消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
     // ⚠️ 重要：在异步分发之前拷贝数据！
     NSData *responseData = nil;
@@ -195,6 +195,10 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
                         } else if (msg.mType == ImMessage_MessageType_Image && msg.imageMessage) {
                             msgDict[@"content"] = @"[图片]";
                             msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";
+                        } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
+                            msgDict[@"content"] = @"[语音]";
+                            msgDict[@"audio_url"] = msg.voiceMessage.audioURL ?: @"";
+                            msgDict[@"duration"] = @(msg.voiceMessage.duration);
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }

@@ -204,6 +204,8 @@ class NativeBridgeHandler: NSObject {
             imRejectFriendRequest(call: call, result: result)
         case "imGetContactGroups":
             imGetContactGroups(call: call, result: result)
+        case "imCreateContactGroup":
+            imCreateContactGroup(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         
@@ -212,6 +214,10 @@ class NativeBridgeHandler: NSObject {
             imGetConversationList(call: call, result: result)
         case "imGetConversation":
             imGetConversation(call: call, result: result)
+        case "imGetUnreadConversations":
+            imGetUnreadConversations(call: call, result: result)
+        case "imUpdateConversation":
+            imUpdateConversation(call: call, result: result)
         case "imCreateConversation":
             imCreateConversation(call: call, result: result)
         case "imDeleteConversation":
@@ -1056,14 +1062,14 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+        guard let contact_user_id = args["contact_user_id"] as? String, !contact_user_id.isEmpty else {
             result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
             return
         }
         
-        print("🗑️ 删除联系人: \(userId)")
+        print("🗑️ 删除联系人: \(contact_user_id)")
         
-        let code = IMSDKContactManager.shared().deleteContact(withUserId: userId) { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().deleteContact(withUserId: contact_user_id) { errorCode, reqId, data in
             print("✅ 删除联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -1288,6 +1294,39 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 创建联系人分组
+    private func imCreateContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupName = args["group_name"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let groupColor = args["group_color"] as? String
+        let groupOrder = args["group_order"] as? Int32 ?? 0
+        let groupIcon = args["group_icon"] as? String
+        let groupDescription = args["group_description"] as? String
+        
+        print("📁 创建联系人分组: groupName=\(groupName)")
+        
+        let code = IMSDKContactManager.shared().createContactGroup(withName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription, completion: { errorCode, reqId, data in
+            print("✅ 创建联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "CREATE_CONTACT_GROUP_ERROR",
+                              message: "创建联系人分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1371,6 +1410,73 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CONVERSATION_ERROR",
                               message: "获取会话请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取未读会话列表
+    private func imGetUnreadConversations(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        print("📋 获取未读会话列表")
+        
+        let args = call.arguments as? [String: Any]
+        let page = args?["page"] as? Int ?? 1
+        let pageSize = args?["page_size"] as? Int ?? 20
+        let convTypeValue = args?["conv_type"] as? Int ?? -1
+        let convType = IMConversationType(rawValue: convTypeValue) ?? IMConversationType(rawValue: -1) ?? .single
+        
+        let code = IMSDKConversationManager.shared().getUnreadConversations(withPage: Int32(page), pageSize: Int32(pageSize), convType: convType, completion: { errorCode, reqId, data in
+            print("✅ 获取未读会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_UNREAD_CONVERSATIONS_ERROR",
+                              message: "获取未读会话列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 更新会话信息
+    private func imUpdateConversation(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let convId = args["conv_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        var params: [String: Any] = [:]
+        if let displayName = args["display_name"] as? String {
+            params["display_name"] = displayName
+        }
+        if let avatarUrl = args["avatar_url"] as? String {
+            params["avatar_url"] = avatarUrl
+        }
+        if let description = args["description"] as? String {
+            params["description"] = description
+        }
+        
+        print("📋 更新会话: convId=\(convId), params=\(params)")
+        
+        let code = IMSDKConversationManager.shared().updateConversation(withId: convId, params: params) { errorCode, reqId, data in
+            print("✅ 更新会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "更新成功" : "更新失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_CONVERSATION_ERROR",
+                              message: "更新会话请求发送失败: \(code)",
                               details: nil))
         }
     }

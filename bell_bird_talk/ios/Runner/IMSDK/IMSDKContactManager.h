@@ -130,6 +130,21 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
                        pageSize:(int)pageSize
                      completion:(IMSDKContactCompletion)completion;
 
+/// 创建联系人分组
+/// @param groupName 分组名称（必填）
+/// @param groupColor 分组颜色（可选）
+/// @param groupOrder 排序权重（可选）
+/// @param groupIcon 分组图标（可选）
+/// @param groupDescription 分组描述（可选）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)createContactGroupWithName:(NSString *)groupName
+                        groupColor:(NSString * _Nullable)groupColor
+                        groupOrder:(int32_t)groupOrder
+                         groupIcon:(NSString * _Nullable)groupIcon
+                   groupDescription:(NSString * _Nullable)groupDescription
+                        completion:(IMSDKContactCompletion)completion;
+
 // ==================== 联系人备注 ====================
 
 /// 设置联系人备注

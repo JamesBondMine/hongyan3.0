@@ -188,7 +188,9 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       color: Colors.white,
       child: InkWell(
         onTap: () {
-          Get.to(() => FriendDetailPage(friend: friend));
+          Get.to(() => FriendDetailPage(friend: friend, onDelete: () { 
+            return _onSearchChanged('');
+           },));
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
