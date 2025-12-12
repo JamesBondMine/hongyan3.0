@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
@@ -1506,17 +1507,21 @@ class _ChatPageState extends State<ChatPage> {
     setState(() => _showMorePanel = false);
     
     try {
+      // 先压缩图片
+      final compressedPath = await _compressImage(imagePath);
+      final pathToUse = compressedPath ?? imagePath;
+      
       // 获取图片尺寸
-      final file = File(imagePath);
+      final file = File(pathToUse);
       if (!await file.exists()) {
-        print('❌ 图片文件不存在: $imagePath');
+        print('❌ 图片文件不存在: $pathToUse');
         return;
       }
       final decodedImage = await decodeImageFromList(await file.readAsBytes());
       
       // 将图片复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
-      final relativePath = await pathHelper.copyToPermanentStorage(imagePath, 'images');
+      final relativePath = await pathHelper.copyToPermanentStorage(pathToUse, 'images');
       
       print('📷 图片已保存: $relativePath');
       
@@ -1540,6 +1545,66 @@ class _ChatPageState extends State<ChatPage> {
       _messageQueue.sendMessage(message);
     } catch (e) {
       print('❌ 发送图片失败: $e');
+    }
+  }
+
+  /// 压缩图片，返回压缩后的路径（失败则返回 null）。
+  /// 规则：仅对大于1MB的文件压缩，目标不超过1MB，分层次降低质量。
+  Future<String?> _compressImage(String sourcePath) async {
+    const int oneMB = 1024 * 1024;
+    try {
+      final srcFile = File(sourcePath);
+      if (!await srcFile.exists()) return null;
+      final srcSize = await srcFile.length();
+      if (srcSize <= oneMB) {
+        // 小于等于1MB无需压缩
+        return null;
+      }
+
+      final targetDir = await getTemporaryDirectory();
+      final baseName = 'cmp_${DateTime.now().millisecondsSinceEpoch}';
+      final tryQualities = [80, 70, 60, 50, 40, 30];
+
+      for (final q in tryQualities) {
+        final targetPath = '${targetDir.path}/$baseName\_q$q.jpg';
+        final result = await FlutterImageCompress.compressAndGetFile(
+          sourcePath,
+          targetPath,
+          quality: q,
+          minWidth: 1280,
+          minHeight: 1280,
+        );
+        if (result != null && File(result.path).existsSync()) {
+          final newSize = await File(result.path).length();
+          print('✅ 图片压缩: q=$q size=${newSize / 1024}KB path=${result.path}');
+          if (newSize <= oneMB) {
+            return result.path;
+          } else {
+            // 继续尝试更低质量
+            continue;
+          }
+        }
+      }
+
+      // 最低质量后仍大于1MB，则使用最后结果（已尽力）
+      final fallbackPath = '${targetDir.path}/$baseName\_fallback.jpg';
+      final fallback = await FlutterImageCompress.compressAndGetFile(
+        sourcePath,
+        fallbackPath,
+        quality: 20,
+        minWidth: 1280,
+        minHeight: 1280,
+      );
+      if (fallback != null && File(fallback.path).existsSync()) {
+        print('⚠️ 图片压缩未达1MB，使用最低质量结果: ${fallback.path}');
+        return fallback.path;
+      }
+
+      print('⚠️ 图片压缩失败，使用原图');
+      return null;
+    } catch (e) {
+      print('⚠️ 图片压缩异常，使用原图: $e');
+      return null;
     }
   }
 
@@ -1677,8 +1742,9 @@ class _ChatPageState extends State<ChatPage> {
     
     // 生成唯一标识
     final voiceId = localPath ?? audioUrl ?? '';
-    if (voiceId.isEmpty) {
-      EasyLoading.showError('语音文件不存在');
+    if (voiceId.isEmpty || (audioUrl != null && audioUrl.isEmpty)) {
+      // audioUrl 为空，可能是回调解析不完整；尝试刷新历史消息补全
+      _loadHistory();
       return;
     }
     
@@ -1703,7 +1769,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     
     // 2. 检查已缓存的远程语音
-    if (audioUrl != null && _voiceCache.containsKey(audioUrl)) {
+    if (audioUrl != null && audioUrl.isNotEmpty && _voiceCache.containsKey(audioUrl)) {
       final cachedPath = _voiceCache[audioUrl]!;
       if (File(cachedPath).existsSync()) {
         await _playLocalVoice(cachedPath, voiceId);
@@ -1719,8 +1785,8 @@ class _ChatPageState extends State<ChatPage> {
       return;
     }
     
-    // 4. 都没有，提示错误
-    EasyLoading.showError('语音文件不存在');
+    // 4. 都没有，尝试刷新历史消息以补齐资源
+    _loadHistory();
   }
   
   /// 播放本地语音文件

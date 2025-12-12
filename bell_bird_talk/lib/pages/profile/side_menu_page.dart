@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:flutter/material.dart';
@@ -177,7 +178,7 @@ class SideMenuContent extends StatelessWidget {
             
             // 查看资料按钮
             OutlinedButton(
-              onPressed: () => Get.toNamed('/profile'),
+              onPressed: () => Get.to(() => const ProfilePage()),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white),
