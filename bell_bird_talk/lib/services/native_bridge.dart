@@ -638,6 +638,7 @@ class IOSNativeService {
     String? targetValue,
     String? targetPhone,
     String? targetEmail,
+    int? groupId,  // 分组ID（可选）
   }) async {
     try {
       final Map<String, dynamic> params = {
@@ -645,6 +646,10 @@ class IOSNativeService {
         'target_value': targetPhone ?? targetEmail,
         'channel': channel,
       };
+      
+      if (groupId != null && groupId > 0) {
+        params['group_id'] = groupId;
+      }
       
       if (message != null && message.isNotEmpty) {
         params['message'] = message;
@@ -723,13 +728,19 @@ class IOSNativeService {
     int page = 1,
     int pageSize = 20,
     int relationship = -1,  // 默认获取全部
+    int? groupId,  // 分组ID（可选，null表示不按分组过滤）
   }) async {
     try {
-      final result = await _bridge.invokeMethod<Map>('imGetContactList', {
+      final Map<String, dynamic> params = {
         'page': page,
         'page_size': pageSize,
         'relationship': relationship,
-      });
+      };
+      if (groupId != null && groupId > 0) {
+        params['group_id'] = groupId;
+      }
+      
+      final result = await _bridge.invokeMethod<Map>('imGetContactList', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};

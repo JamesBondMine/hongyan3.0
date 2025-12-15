@@ -12,3 +12,4 @@
 #import "IMSDK/IMSDKMessageManager.h"
 #import "IMSDK/IMSDKUserManager.h"
 #import "IMSDK/IMSDKFileManager.h"
+#import "IMSDK/IMSDKGroupManager.h"

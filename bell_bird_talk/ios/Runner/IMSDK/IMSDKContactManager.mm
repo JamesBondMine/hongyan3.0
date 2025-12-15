@@ -249,7 +249,18 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         contact.message = message;
         contact.remark = message;
     }
-//    
+    
+    // 设置分组ID（可选）
+    NSNumber *groupIdObj = params[@"group_id"];
+    if (groupIdObj != nil) {
+        int64_t groupId = [groupIdObj longLongValue];
+        if (groupId > 0) {
+            contact.groupId = groupId;
+            NSLog(@"📁 设置分组ID: %lld", groupId);
+        }
+    }
+    
+//
     // 设置目标手机号（可选）
     NSString *targetPhone = params[@"target_phone"];
     if (targetPhone && targetPhone.length > 0) {
@@ -276,7 +287,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 //        contact.targetValue = targetAccountId;
     }
     
-    NSLog(@"\n添加好友信息\n==============================\n targetValue: %@ \n addChannel:%d \n targetPhone:%@ \n message:%@ \n targetAccountId:%@ \n targetEmail:%@ \n",contact.targetValue,contact.addChannel,contact.targetPhone,contact.message,contact.targetAccountId,contact.targetEmail);
+    NSLog(@"\n添加好友信息\n==============================\n targetValue: %@ \n addChannel:%d \n targetPhone:%@ \n message:%@ \n targetAccountId:%@ \n targetEmail:%@ \n groupId:%lld \n",contact.targetValue,contact.addChannel,contact.targetPhone,contact.message,contact.targetAccountId,contact.targetEmail,contact.groupId);
     
     // 序列化为 Protobuf 二进制数据
     NSData *serializedData = [contact data];
@@ -474,13 +485,19 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 - (int)getContactListWithPage:(int)page
                      pageSize:(int)pageSize
                  relationship:(int)relationship
+                       groupId:(int64_t)groupId
                    completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d", page, pageSize, relationship);
+    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d, groupId=%lld", page, pageSize, relationship, groupId);
     
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.page = page;
     query.pageSize = pageSize;
+    
+    // 设置分组ID（如果大于0）
+    if (groupId > 0) {
+        query.groupId = groupId;
+    }
     
     // relationship: 0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部（不设置）
     if (relationship >= 0) {

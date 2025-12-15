@@ -37,7 +37,6 @@ class _FriendsPageState extends State<FriendsPage> {
   // 好友分组
   final List<FriendGroup> _groups = [
     FriendGroup(id: 'all', name: '全部', isDefault: true),
-    FriendGroup(id: 'special', name: '特别关心', isDefault: true),
   ];
   String _selectedGroupId = 'all';  // 当前选中的分组
   
@@ -207,9 +206,27 @@ class _FriendsPageState extends State<FriendsPage> {
     }
     
     try {
+      // 根据选中的分组获取 groupId
+      int? groupId;
+      if (_selectedGroupId != 'all' && _selectedGroupId != 'special') {
+        // 查找对应的分组对象
+        final selectedGroup = _groups.firstWhere(
+          (g) => g.id == _selectedGroupId,
+          orElse: () => _groups.first,
+        );
+        // 将字符串形式的 groupId 转换为 int（FriendGroup.id 是 group_id 的字符串形式）
+        if (selectedGroup.id.isNotEmpty) {
+          final parsedId = int.tryParse(selectedGroup.id);
+          if (parsedId != null && parsedId > 0) {
+            groupId = parsedId;
+          }
+        }
+      }
+      
       final result = await _nativeService.imGetContactList(
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
+        groupId: groupId,
       );
       
       print('📋 好友列表结果: $result');
@@ -230,7 +247,12 @@ class _FriendsPageState extends State<FriendsPage> {
             if (refresh) {
               _friends.clear();
             }
-            _friends.addAll(newFriends);
+            
+            // 去重：根据好友ID去重，避免重复数据
+            final existingIds = _friends.map((f) => f.id).toSet();
+            final uniqueNewFriends = newFriends.where((f) => !existingIds.contains(f.id)).toList();
+            
+            _friends.addAll(uniqueNewFriends);
             _filteredFriends = _sortAndGroupFriends(List.from(_friends));
             _hasMore = newFriends.length >= _pageSize;
             if (!refresh) {
@@ -848,30 +870,10 @@ class _FriendsPageState extends State<FriendsPage> {
       _selectedGroupId = groupId;
     });
     
-    // 根据分组筛选好友
-    _filterFriendsByGroup(groupId);
+    // 切换分组时，重新从服务器加载该分组的好友列表
+    _loadFriends(refresh: true);
   }
   
-  /// 根据分组筛选好友
-  void _filterFriendsByGroup(String groupId) {
-    setState(() {
-      if (groupId == 'all') {
-        // 全部好友
-        _filteredFriends = List.from(_friends);
-      } else if (groupId == 'special') {
-        // 特别关心：TODO 根据实际标签筛选
-        _filteredFriends = [];
-      } else {
-        // 自定义分组：TODO 根据分组ID筛选
-        _filteredFriends = [];
-      }
-    });
-    
-    // 如果有搜索关键词，继续过滤
-    if (_searchController.text.isNotEmpty) {
-      _filterFriends(_searchController.text);
-    }
-  }
   
   /// 显示分组设置
   void _showGroupSettings() {
@@ -948,7 +950,8 @@ class _FriendsPageState extends State<FriendsPage> {
                 // 如果删除的是当前选中的分组，切回全部
                 if (_selectedGroupId == group.id) {
                   _selectedGroupId = 'all';
-                  _filterFriendsByGroup('all');
+                  // 重新加载全部好友列表
+                  _loadFriends(refresh: true);
                 }
               });
               EasyLoading.showSuccess('分组已删除');

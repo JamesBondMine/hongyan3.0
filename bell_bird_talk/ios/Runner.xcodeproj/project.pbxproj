@@ -13,6 +13,7 @@
 		2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A0BE5F82EE428A1001FF039 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A7ADB6C2EDD2A6F00D0B045 /* libnet_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */; };
 		2A7ADED02EDD7AAF00D0B045 /* libabsl_random_distributions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEA62EDD7AAF00D0B045 /* libabsl_random_distributions.a */; };
 		2A7ADED12EDD7AAF00D0B045 /* libabsl_scoped_set_env.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEB32EDD7AAF00D0B045 /* libabsl_scoped_set_env.a */; };
@@ -116,6 +117,7 @@
 		2A7ADF352EDD807300D0B045 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF342EDD807300D0B045 /* libcurses.tbd */; };
 		2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */; };
 		2ACV0001EDDCCA7E00000001 /* IMSDKConversationManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */; };
+		2AD65F762EEFAC9000D9C5A1 /* IMSDKGroupManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */; };
 		2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */; };
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
@@ -180,6 +182,8 @@
 		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A0BE5F62EE428A1001FF039 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
+		2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GroupPb.pbobjc.m; sourceTree = "<group>"; };
 		2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnet_core.a; sourceTree = "<group>"; };
 		2A7ADB702EDD3E6B00D0B045 /* callback_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callback_types.h; sourceTree = "<group>"; };
 		2A7ADB712EDD3E6B00D0B045 /* common_definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_definitions.h; sourceTree = "<group>"; };
@@ -288,6 +292,8 @@
 		2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
 		2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKConversationManager.mm; sourceTree = "<group>"; };
 		2ACV0003EDDCCA7E00000003 /* IMSDKConversationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKConversationManager.h; sourceTree = "<group>"; };
+		2AD65F742EEFAC9000D9C5A1 /* IMSDKGroupManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKGroupManager.h; sourceTree = "<group>"; };
+		2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKGroupManager.mm; sourceTree = "<group>"; };
 		2AD9E3352ED409A800C4E6A3 /* DataTransViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTransViewController.h; sourceTree = "<group>"; };
 		2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransViewController.mm; sourceTree = "<group>"; };
 		2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DataTransViewController.xib; sourceTree = "<group>"; };
@@ -463,6 +469,8 @@
 		2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */ = {
 			isa = PBXGroup;
 			children = (
+				2AD65F742EEFAC9000D9C5A1 /* IMSDKGroupManager.h */,
+				2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */,
 				2AE9F1A32EDD500000000003 /* IMSDKManager.h */,
 				2AE9F1A12EDD500000000002 /* IMSDKManager.mm */,
 				2AE9F1A62EDD500000000006 /* IMSDKAuthManager.h */,
@@ -489,6 +497,8 @@
 				2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */,
 				2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */,
 				2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */,
+				2A0BE5F62EE428A1001FF039 /* GroupPb.pbobjc.h */,
+				2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */,
 				2A7ADECF2EDD7AAF00D0B045 /* ios_sdk_la */,
 				2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */,
 				2A7ADB702EDD3E6B00D0B045 /* callback_types.h */,
@@ -949,12 +959,14 @@
 				2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */,
 				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
 				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
+				2A0BE5F82EE428A1001FF039 /* GroupPb.pbobjc.m in Sources */,
 				2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */,
 				2ACV0001EDDCCA7E00000001 /* IMSDKConversationManager.mm in Sources */,
 				2AMG0001EDDCCA7E00000001 /* IMSDKMessageManager.mm in Sources */,
 				2AUS0001EDDCCA7E00000001 /* IMSDKUserManager.mm in Sources */,
 				2AFL0001EDDCCA7E00000001 /* IMSDKFileManager.mm in Sources */,
 				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
+				2AD65F762EEFAC9000D9C5A1 /* IMSDKGroupManager.mm in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
 				2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,

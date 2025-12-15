@@ -1158,10 +1158,11 @@ class NativeBridgeHandler: NSObject {
         let page = args["page"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
         let relationship = args["relationship"] as? Int ?? -1  // 默认 -1 表示获取全部
+        let groupId = args["group_id"] as? Int64 ?? 0  // 默认 0 表示不按分组过滤
         
-        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship)")
+        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship), groupId=\(groupId)")
         
-        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship)) { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship), groupId: groupId) { errorCode, reqId, data in
             print("✅ 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -2205,26 +2206,39 @@ class NativeBridgeHandler: NSObject {
     /// 创建群聊
     private func imCreateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
-              let groupName = args["group_name"] as? String, !groupName.isEmpty,
-              let memberIds = args["member_ids"] as? [String], !memberIds.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "群名称和成员列表不能为空", details: nil))
+              let groupName = args["group_name"] as? String, !groupName.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "群名称不能为空", details: nil))
             return
         }
         
         let avatarUrl = args["avatar_url"] as? String
+        let memberIds = args["member_ids"] as? [String] ?? []
         
-        print("📋 创建群聊: groupName=\(groupName), memberIds=\(memberIds)")
+        // 群组类型：0=普通群, 1=超级群（默认使用普通群）
+        let groupType = args["group_type"] as? Int ?? 0
+        // 最大成员数（默认500）
+        let maxMemberCount = args["max_member_count"] as? Int32 ?? 500
         
-        let code = IMSDKConversationManager.shared().createGroup(withName: groupName, memberIds: memberIds, avatarUrl: avatarUrl) { errorCode, reqId, data in
-            print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "创建成功" : "创建失败",
-                "data": data ?? ""
-            ])
-        }
+        print("📋 创建群聊: groupName=\(groupName), memberIds=\(memberIds), avatarUrl=\(avatarUrl ?? "nil")")
+        
+        let code = IMSDKGroupManager.shared().createGroup(
+            withName: groupName,
+            groupAvatar: avatarUrl,
+            groupDescription: nil,
+            groupType: Int32(groupType),
+            maxMemberCount: maxMemberCount,
+            initialMembers: memberIds.isEmpty ? nil : memberIds as [String],
+            completion: { errorCode, reqId, data in
+                print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
+                
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "创建成功" : "创建失败",
+                    "data": data ?? ""
+                ])
+            }
+        )
         
         if code != 0 {
             result(FlutterError(code: "CREATE_GROUP_ERROR",
