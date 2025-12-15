@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
+import '../friends/blacklist_page.dart';
 
 /// 个人资料页面
 class ProfilePage extends StatefulWidget {
@@ -291,6 +292,13 @@ class _ProfilePageState extends State<ProfilePage> {
             label: '消息通知',
             value: '',
             onTap: () => EasyLoading.showInfo('消息通知设置'),
+          ),
+          
+          _buildInfoItem(
+            icon: Icons.block,
+            label: '黑名单',
+            value: '',
+            onTap: () => Get.to(() => const BlacklistPage()),
           ),
           
           _buildInfoItem(

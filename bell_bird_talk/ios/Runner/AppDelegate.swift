@@ -1971,8 +1971,12 @@ class NativeBridgeHandler: NSObject {
     /// 退出登录
     private func imLogout(call: FlutterMethodCall, result: @escaping FlutterResult) {
         print("🚪 Flutter调用退出登录")
+        let args = call.arguments as? [String: Any] ?? [:]
+        let userId = args["user_id"] as? String
+        let clientIp = args["client_ip"] as? String
+        let reason = args["reason"] as? NSNumber
         
-        let reqId = IMSDKUserManager.shared().logout { errorCode, message, data, reqId in
+        let reqId = IMSDKUserManager.shared().logout(withUserId: userId, clientIp: clientIp, reason: reason) { errorCode, message, data, reqId in
             print("✅ 退出登录回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             let response: [String: Any] = [

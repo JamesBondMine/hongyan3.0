@@ -200,11 +200,37 @@ static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_
     });
 }
 
-- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion {
+- (uint64_t)logoutWithUserId:(NSString * _Nullable)userId
+                    clientIp:(NSString * _Nullable)clientIp
+                      reason:(NSNumber * _Nullable)reason
+                  completion:(IMSDKUserCompletion)completion {
     NSLog(@"🚪 开始退出登录...");
     
+    Logout *lo = [[Logout alloc] init];
+    if (userId && userId.length > 0) {
+        lo.userId = userId;
+    }
+    if (clientIp && clientIp.length > 0) {
+        lo.clientIp = clientIp;
+    }
+    if (reason != nil) {
+        lo.reason = (LogoutReason)[reason intValue];
+    }
+    
+    NSData *protoBody = [lo data];
+    if (!protoBody || protoBody.length == 0) {
+        NSLog(@"❌ 退出登录 Protobuf 序列化失败");
+        if (completion) {
+            completion(-1, @"序列化失败", nil, 0);
+        }
+        return 0;
+    }
+    
+    const char *data = (const char *)protoBody.bytes;
+    int dataLen = (int)protoBody.length;
+    
     uint64_t reqId = 0;
-    int result = logout(LogoutCallback, NULL, 0, reqId);
+    int result = logout(LogoutCallback, data, dataLen, reqId);
     
     if (result == 0 && reqId > 0) {
         if (completion) {
@@ -219,6 +245,10 @@ static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_
     }
     
     return reqId;
+}
+
+- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion {
+    return [self logoutWithUserId:nil clientIp:nil reason:nil completion:completion];
 }
 
 @end

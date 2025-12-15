@@ -139,7 +139,7 @@ class GlobalController extends GetxController {
     // 1. 调用 SDK 退出登录（断开 MQTT 连接）
     try {
       final nativeService = IOSNativeService();
-      final result = await nativeService.imLogout();
+      final result = await nativeService.imLogout(userId: currentUser.value?.id);
       print('🚪 SDK 退出登录结果: $result');
     } catch (e) {
       print('⚠️ SDK 退出登录异常: $e');

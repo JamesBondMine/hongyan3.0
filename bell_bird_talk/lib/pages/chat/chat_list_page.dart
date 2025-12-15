@@ -66,6 +66,23 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
+    @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
+      body: Column(
+        children: [
+          // 筛选栏
+          _buildFilterBar(),
+          // 会话列表
+          Expanded(
+            child: _buildConversationList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _refreshWorker?.dispose();
@@ -682,22 +699,6 @@ class _ChatListPageState extends State<ChatListPage> {
     setState(() {});
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
-      body: Column(
-        children: [
-          // 筛选栏
-          _buildFilterBar(),
-          // 会话列表
-          Expanded(
-            child: _buildConversationList(),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// 构建筛选栏
   Widget _buildFilterBar() {
@@ -1005,10 +1006,10 @@ class _ChatListPageState extends State<ChatListPage> {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: _getAvatarColor(conversation.convType),
-                  backgroundImage: conversation.avatar != null
+                  backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
                       ? NetworkImage(conversation.avatar!)
                       : null,
-                  child: conversation.avatar == null
+                  child: (conversation.avatar == null || conversation.avatar!.isEmpty)
                       ? Text(
                           _getAvatarText(conversation),
                           style: const TextStyle(

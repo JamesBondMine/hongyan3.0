@@ -227,6 +227,7 @@ class _FriendsPageState extends State<FriendsPage> {
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
         groupId: groupId,
+        relationship: -1,
       );
       
       print('📋 好友列表结果: $result');
@@ -265,6 +266,9 @@ class _FriendsPageState extends State<FriendsPage> {
           
           // 应用搜索过滤
           _filterFriends(_searchController.text);
+
+          // 联系人更新后，触发会话列表刷新
+          Get.find<GlobalController>().triggerChatListRefresh();
         } else {
           setState(() {
             if (refresh) {
@@ -426,9 +430,8 @@ class _FriendsPageState extends State<FriendsPage> {
     // 先按显示名称排序
     final sorted = List<FriendModel>.from(friends);
     sorted.sort((a, b) {
-      final letterA = _getFirstLetter(a.displayName);
-      final letterB = _getFirstLetter(b.displayName);
-      
+      final letterA = _getFirstLetterFromPinyin(a);
+      final letterB = _getFirstLetterFromPinyin(b);
       // 先按首字母排序
       if (letterA != letterB) {
         // # 放在最后
@@ -437,11 +440,25 @@ class _FriendsPageState extends State<FriendsPage> {
         return letterA.compareTo(letterB);
       }
       
-      // 首字母相同，按名称排序
+      // 首字母相同，按拼音整体排序（再按显示名兜底）
+      final cmpPinyin = a.pinyin.compareTo(b.pinyin);
+      if (cmpPinyin != 0) return cmpPinyin;
       return a.displayName.compareTo(b.displayName);
     });
     
     return sorted;
+  }
+
+  /// 从拼音获取首字母，若无则回退 displayName
+  String _getFirstLetterFromPinyin(FriendModel friend) {
+    final pinyin = friend.pinyin.trim();
+    if (pinyin.isNotEmpty) {
+      final c = pinyin[0].toUpperCase();
+      if (RegExp(r'[A-Z]').hasMatch(c)) {
+        return c;
+      }
+    }
+    return _getFirstLetter(friend.displayName);
   }
 
   /// 获取分组后的好友列表（按首字母分组）
@@ -449,7 +466,7 @@ class _FriendsPageState extends State<FriendsPage> {
     final grouped = <String, List<FriendModel>>{};
     
     for (final friend in _filteredFriends) {
-      final letter = _getFirstLetter(friend.displayName);
+      final letter = _getFirstLetterFromPinyin(friend);
       grouped.putIfAbsent(letter, () => []).add(friend);
     }
     
@@ -1125,7 +1142,7 @@ class _FriendsPageState extends State<FriendsPage> {
           ],
         ),
         title: Text(
-          friend.displayName,
+          '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
           style: const TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 16,
@@ -1133,7 +1150,7 @@ class _FriendsPageState extends State<FriendsPage> {
         ),
         subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
             ? Text(
-                'ID: ${friend.accountId}',
+                'ID: ${friend.accountId}  ${friend.displayName}',
                 style: TextStyle(
                   color: Colors.grey[500],
                   fontSize: 13,

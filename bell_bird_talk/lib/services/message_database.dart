@@ -545,7 +545,7 @@ class MessageDatabase {
   /// 插入消息
   Future<void> insertMessage(ChatMessage message) async {
     final db = await database;
-    print('插入消息数据库: ${message.toDbMap()}');
+    print('插入消息数据库--单条: ${message.toDbMap()}');
     await db.insert(
       'messages',
       message.toDbMap(),
@@ -558,6 +558,7 @@ class MessageDatabase {
     final db = await database;
     final batch = db.batch();
     for (final message in messages) {
+      print('插入消息数据库--批量: ${message.displayContent}');
       batch.insert(
         'messages',
         message.toDbMap(),

@@ -608,13 +608,21 @@ class IOSNativeService {
   }
   
   /// 退出登录
-  /// 调用 SDK 退出登录接口，断开 MQTT 连接
-  /// @return 退出结果
-  Future<Map<String, dynamic>> imLogout() async {
+  /// 可选传入 userId/clientIp/reason，调用 SDK 退出登录接口
+  Future<Map<String, dynamic>> imLogout({
+    String? userId,
+    String? clientIp,
+    int? reason,
+  }) async {
     try {
       print('🚪 开始退出登录...');
       
-      final result = await _bridge.invokeMethod<Map>('imLogout');
+      final Map<String, dynamic> params = {};
+      if (userId != null && userId.isNotEmpty) params['user_id'] = userId;
+      if (clientIp != null && clientIp.isNotEmpty) params['client_ip'] = clientIp;
+      if (reason != null) params['reason'] = reason;
+      
+      final result = await _bridge.invokeMethod<Map>('imLogout', params.isEmpty ? null : params);
       print('🚪 退出登录结果: $result');
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

@@ -297,7 +297,7 @@ class _ChatPageState extends State<ChatPage> {
             final messages = dataMap['messages'] as List<dynamic>?;
             if (messages != null && messages.isNotEmpty) {
               print('📥 获取到 ${messages.length} 条历史消息');
-              _parseAndDisplayMessages(messages);
+              await _parseAndDisplayMessages(messages);
             } else {
               print('📥 暂无历史消息');
             }
@@ -322,8 +322,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 解析并显示历史消息
-  void _parseAndDisplayMessages(List<dynamic> messages) {
-    
+  Future<void> _parseAndDisplayMessages(List<dynamic> messages) async {
+    // 判断会话在本地是否已有消息
+    final bool convHasLocal =
+        (await _messageDatabase.getMessages(widget.convId, limit: 1)).isNotEmpty;
+    final List<ChatMessage> toInsertBatch = [];
+
     for (final msg in messages) {
       print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
       if (msg is Map<String, dynamic>) {
@@ -337,6 +341,7 @@ class _ChatPageState extends State<ChatPage> {
         final fileUrl = msg['file_url'] as String?;
         final audioUrl = msg['audio_url'] as String?;
         final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
+        final timestampInt = timestamp is int ? timestamp : 0;
         
         // 判断是否是自己发的消息（根据发送者ID判断）
         final isMine = senderId == _currentUserId;
@@ -354,7 +359,7 @@ class _ChatPageState extends State<ChatPage> {
           'content': content.toString(),
           'type': msgType,
           'isMine': isMine,
-          'timestamp': timestamp is int ? timestamp : 0,
+          'timestamp': timestampInt,
           'status': 'sent',
           'senderId': senderId.toString(),
           'imageUrl': imageUrl,
@@ -372,12 +377,46 @@ class _ChatPageState extends State<ChatPage> {
           _messages[existIndex] = msgMap;
         }
         
+        // 组装数据库实体
+        final msgTypeEnum = msgType == 'image'
+            ? MessageType.image
+            : msgType == 'voice'
+                ? MessageType.voice
+                : MessageType.text;
+        final chatMessage = ChatMessage(
+          localId: msgId.toString(),
+          serverId: msgId.toString(),
+          convId: widget.convId,
+          senderId: senderId.toString(),
+          receiverId: isMine ? widget.targetUserId : _currentUserId,
+          type: msgTypeEnum,
+          status: MessageStatus.sent,
+          isMine: isMine,
+          createdAt: timestampInt,
+          sentAt: timestampInt,
+          isRead: isMine ? true : false,
+          textContent: msgTypeEnum == MessageType.text ? content.toString() : null,
+          imageUrl: msgTypeEnum == MessageType.image ? imageUrl : null,
+          fileUrl: msgTypeEnum == MessageType.voice ? (audioUrl ?? fileUrl) : fileUrl,
+          voiceDuration: msgTypeEnum == MessageType.voice ? voiceDuration : null,
+        );
+        if (convHasLocal) {
+          // 会话已有消息，逐条插入（replace）
+          await _messageDatabase.insertMessage(chatMessage);
+        } else {
+          toInsertBatch.add(chatMessage);
+        }
+
         // 格式化时间戳用于日志
-        final timestampInt = timestamp is int ? timestamp : 0;
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
         final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
         print('\n*****************\n 🛜 网络消息:  content=$content, msgId=$msgId, senderId=$senderId, fileUrl=$fileUrl,audioUrl=$audioUrl time=$formattedTime\n*****************\n');
       }
+    }
+
+    // 如果此前没有本地消息，则批量插入
+    if (!convHasLocal && toInsertBatch.isNotEmpty) {
+      await _messageDatabase.insertMessages(toInsertBatch);
     }
     
     // 排序并更新UI
@@ -411,6 +450,11 @@ class _ChatPageState extends State<ChatPage> {
     });
     _messageController.clear();
     _scrollToBottom();
+
+
+
+    final message = ChatMessage.text(convId: widget.convId, senderId: _currentUserId, receiverId: widget.targetUserId, content: text);
+    await _messageQueue.sendMessage(message);
     
     try {
       // 调用 SDK 发送消息
@@ -421,7 +465,13 @@ class _ChatPageState extends State<ChatPage> {
       );
       
       print('📤 发送消息结果: $result');
-      
+      // final message = ChatMessage.text(convId: widget.convId, senderId: _currentUserId, receiverId: widget.targetUserId, content: text);
+    // // 添加到消息列表
+    //   setState(() {
+    //     _addChatMessageToList(message);
+    //   });
+    //   _scrollToBottom();
+    await _messageQueue.sendMessage(message);
       if (result['errorCode'] == 0) {
         // 发送成功，更新消息状态
         setState(() {
@@ -609,8 +659,69 @@ class _ChatPageState extends State<ChatPage> {
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final message = _messages[index];
-        return _buildMessageItem(message);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_shouldShowTimeSeparator(index))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildTimeSeparator(message['timestamp'] as int? ?? 0),
+              ),
+            _buildMessageItem(message),
+          ],
+        );
       },
+    );
+  }
+
+  /// 判断是否需要显示时间分隔（与上一条消息间隔>=1小时或是第一条）
+  bool _shouldShowTimeSeparator(int index) {
+    if (index == 0) return true;
+    final curr = _messages[index]['timestamp'] as int? ?? 0;
+    final prev = _messages[index - 1]['timestamp'] as int? ?? 0;
+    if (curr == 0 || prev == 0) return false;
+    return (curr - prev).abs() >= 3600 * 1000;
+  }
+
+  /// 时间分隔组件
+  Widget _buildTimeSeparator(int timestamp) {
+    if (timestamp <= 0) return const SizedBox.shrink();
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    String formatted;
+    final isSameDay =
+        dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day;
+    final yesterday = now.subtract(const Duration(days: 1));
+    final isYesterday = dateTime.year == yesterday.year &&
+        dateTime.month == yesterday.month &&
+        dateTime.day == yesterday.day;
+
+    if (isSameDay) {
+      // 今天：只显示时间
+      formatted = DateFormat('HH:mm').format(dateTime);
+    } else if (isYesterday) {
+      // 昨天：显示“昨天 HH:mm”
+      formatted = '昨天 ${DateFormat('HH:mm').format(dateTime)}';
+    } else if (dateTime.year == now.year) {
+      // 今年其他日期：MM-dd HH:mm
+      formatted = DateFormat('MM-dd HH:mm').format(dateTime);
+    } else {
+      // 其他年份：完整日期
+      formatted = DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        formatted,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[700],
+        ),
+      ),
     );
   }
 

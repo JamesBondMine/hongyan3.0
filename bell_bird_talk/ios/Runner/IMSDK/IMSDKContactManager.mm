@@ -405,6 +405,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     Block *blockObj = [[Block alloc] init];
     blockObj.targetUserId = userId;
     
+    
     NSData *protoBody = [blockObj data];
     if (!protoBody || protoBody.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");

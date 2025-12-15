@@ -449,7 +449,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           _buildMenuItem(
             icon: Icons.block_outlined,
             iconColor: Colors.orange,
-            label: '加入黑名单',
+            label: _friend.relationship==3 ? '取消黑名单' : '加入黑名单',
             onTap: () => _confirmBlockFriend(),
           ),
           
@@ -682,12 +682,18 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
     );
   }
   
-  /// 确认拉黑好友
+  /// 确认拉黑/取消拉黑好友
   void _confirmBlockFriend() {
+    final bool isBlocked = _friend.relationship == 3; // 3 = 已在黑名单
+    final String title = isBlocked ? '取消黑名单' : '加入黑名单';
+    final String content = isBlocked
+        ? '确定要将「${_friend.displayName}」移出黑名单吗？\n\n移出后，对方可以再次向你发送消息。'
+        : '确定要将「${_friend.displayName}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。';
+
     Get.dialog(
       AlertDialog(
-        title: const Text('加入黑名单'),
-        content: Text('确定要将「${_friend.displayName}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。'),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
@@ -699,11 +705,20 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               EasyLoading.show(status: '处理中...');
               
               try {
-                final result = await _nativeService.imBlockContact(userId: _friend.id);
+                final result = isBlocked
+                    ? await _nativeService.imUnblockContact(userId: _friend.id)
+                    : await _nativeService.imBlockContact(userId: _friend.id);
                 
                 if (result['errorCode'] == 0) {
-                  EasyLoading.showSuccess('已加入黑名单');
-                  Get.back(result: true);  // 返回并刷新列表
+                  EasyLoading.showSuccess(isBlocked ? '已取消黑名单' : '已加入黑名单');
+                  setState(() {
+                    _friend = _friend.copyWith(relationship: isBlocked ? 1 : 3);
+                    _hasChanges = true;
+                  });
+                  // 触发全局列表刷新（好友列表、会话列表等）
+                  Get.find<GlobalController>().triggerAllListRefresh();
+                  // 返回并刷新
+                  Get.back(result: true);
                 } else {
                   EasyLoading.showError(result['message'] ?? '操作失败');
                 }
@@ -711,7 +726,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                 EasyLoading.showError('操作失败');
               }
             },
-            child: const Text('确定', style: TextStyle(color: Colors.orange)),
+            child: Text(isBlocked ? '确定' : '确定', style: const TextStyle(color: Colors.orange)),
           ),
         ],
       ),
