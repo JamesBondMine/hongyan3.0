@@ -1,14 +1,53 @@
+import 'dart:convert';
 import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
+import 'package:bell_bird_talk/pages/notification/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
+import '../../services/native_bridge.dart';
 
 /// 侧边栏菜单内容
-class SideMenuContent extends StatelessWidget {
+class SideMenuContent extends StatefulWidget {
   const SideMenuContent({super.key});
+
+  @override
+  State<SideMenuContent> createState() => _SideMenuContentState();
+}
+
+class _SideMenuContentState extends State<SideMenuContent> {
+  final IOSNativeService _nativeService = IOSNativeService();
+  int _notificationUnread = 0;
+  bool _fetchingUnread = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationUnread();
+  }
+
+  Future<void> _loadNotificationUnread() async {
+    if (_fetchingUnread) return;
+    setState(() => _fetchingUnread = true);
+    final result = await _nativeService.imGetNotificationUnreadCount();
+    if (!mounted) return;
+    if (result['errorCode'] == 0) {
+      final dataStr = result['data'] as String? ?? '';
+      try {
+        if (dataStr.isNotEmpty) {
+          final map = Map<String, dynamic>.from(jsonDecode(dataStr));
+          final unread = (map['total_unread'] as num?)?.toInt() ?? 0;
+          setState(() => _notificationUnread = unread);
+        } else {
+          setState(() => _notificationUnread = 0);
+        }
+      } catch (_) {
+        // ignore parse errors
+      }
+    }
+    if (mounted) setState(() => _fetchingUnread = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +69,20 @@ class SideMenuContent extends StatelessWidget {
                 _buildMenuItem(
                   icon: Icons.notifications_outlined,
                   title: '通知',
-                  subtitle: '消息提醒设置',
+                  subtitle: _notificationUnread > 0 ? '未读 $_notificationUnread' : '消息提醒',
+                  trailing: _notificationUnread > 0
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '$_notificationUnread',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        )
+                      : null,
                   onTap: () => _openNotificationSettings(context),
                 ),
                 _buildMenuItem(
@@ -270,10 +322,10 @@ class SideMenuContent extends StatelessWidget {
   }
 
   /// 打开通知设置
-  void _openNotificationSettings(BuildContext context) {
+  void _openNotificationSettings(BuildContext context) async {
     Navigator.pop(context);
-    EasyLoading.showInfo('通知设置（开发中）');
-    // TODO: Get.toNamed('/settings/notification');
+    await Get.to(() => const NotificationPage());
+    _loadNotificationUnread();
   }
 
   /// 打开安全设置

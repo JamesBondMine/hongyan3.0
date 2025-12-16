@@ -257,6 +257,20 @@ NET_API int set_client_info(const char* platform, const char* platformVersion, c
 
 //NET_API void send_message(CB_S_I_S_I cCallback,  char* operationID, unsigned char* message, int len, char* recvID);
 NET_API int send_single_message(CB_I_S_I_U cCallback, const char* message, int len, const char* conversationId, int msgType, const char* recvID, uint64_t &reqId);
+
+/**
+ * 发送联系人消息
+ * Topic: /im/contact/{targetId}/send
+ * @param cCallback 回调函数（用于接收发送结果，参数：errorCode, data, dataLen, reqId）
+ * @param message 消息数据（序列化后的消息体）
+ * @param len 数据长度
+ * @param conversationId 会话ID
+ * @param msgType 消息类型
+ * @param targetId 目标用户ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int send_contact_message(CB_I_S_I_U cCallback, const char* message, int len, const char* conversationId, int msgType, const char* targetId, uint64_t &reqId);
 //NET_API int send_message(unsigned char* message, int len, int conversationType);
 NET_API void find_message_list(CB_S_I_S_S cCallback, char* operationID, char* findMessageOptions);
 NET_API void get_advanced_history_message_list(CB_S_I_S_S cCallback, char* operationID, char* getMessageOptions);
@@ -411,6 +425,20 @@ NET_API int accept_friend_request(CB_I_S_I_U cCallback, const char* data, int le
  * @return 0表示成功，其它表示错误码 
  */
 NET_API int reject_friend_request(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+// ============================================
+// 黑名单管理接口
+// ============================================
+
+/**
+ * 查询黑名单状态
+ * @param cCallback 回调函数（用于接收查询结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ */
+NET_API int get_black_status(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 联系人分组管理接口
@@ -665,6 +693,66 @@ NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int le
  * @return 0表示成功，其它表示错误码 
  */
 NET_API int pull_messages(CB_I_S_I_U cCallback, const char* data, int len, uint64_t& reqId);
+
+/**
+ * 拉取通知消息
+ * Topic: /im/CHAT/{userId}/pullNotification
+ * @param cCallback 回调函数（用于接收拉取到的通知消息列表，参数：errorCode, data, dataLen, reqId）
+ * @param data 拉取参数（序列化后的数据）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int pull_notification(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 标记通知已读
+ * Topic: /im/CHAT/{userId}/markNotificationRead
+ * @param cCallback 回调函数（用于接收标记结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 标记参数（序列化后的数据，包含通知ID等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int mark_notification_read(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 标记全部通知已读
+ * Topic: /im/CHAT/{userId}/markAllNotificationRead
+ * @param cCallback 回调函数（用于接收标记结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 标记参数（序列化后的数据，可选）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int mark_all_notification_read(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 删除通知
+ * Topic: /im/CHAT/{userId}/deleteNotification
+ * @param cCallback 回调函数（用于接收删除结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 删除参数（序列化后的数据，包含通知ID等）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int delete_notification(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取未读通知数量
+ * Topic: /im/CHAT/{userId}/getNotificationUnreadCount
+ * @param cCallback 回调函数（用于接收未读数量，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据，可选）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int get_notification_unread_count(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 本地消息查询接口

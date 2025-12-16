@@ -485,29 +485,29 @@ class _FriendsPageState extends State<FriendsPage> {
         RefreshIndicator(
           onRefresh: _refreshFriends,
           child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification is ScrollEndNotification &&
-                  notification.metrics.extentAfter < 100 &&
-                  _hasMore &&
-                  !_isLoading) {
-                _loadMore();
-              }
-              return false;
-            },
-            child: CustomScrollView(
+      onNotification: (notification) {
+        if (notification is ScrollEndNotification &&
+            notification.metrics.extentAfter < 100 &&
+            _hasMore &&
+            !_isLoading) {
+          _loadMore();
+        }
+        return false;
+      },
+      child: CustomScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(), // 确保可以下拉刷新
-              slivers: [
-                // 新消息入口（好友申请、群组申请）
-                SliverToBoxAdapter(child: _buildRequestsEntry()),
-                
-                // 好友分组
-                SliverToBoxAdapter(child: _buildGroupTabs()),
-                
+        slivers: [
+          // 新消息入口（好友申请、群组申请）
+          SliverToBoxAdapter(child: _buildRequestsEntry()),
+          
+          // 好友分组
+          SliverToBoxAdapter(child: _buildGroupTabs()),
+          
                 // 好友列表（按首字母分组）
-                if (_filteredFriends.isEmpty)
-                  SliverFillRemaining(child: _buildEmptyView())
-                else
+          if (_filteredFriends.isEmpty)
+            SliverFillRemaining(child: _buildEmptyView())
+          else
                   _buildGroupedFriendList(),
               ],
             ),
@@ -889,7 +889,7 @@ class _FriendsPageState extends State<FriendsPage> {
     
     // 切换分组时，重新从服务器加载该分组的好友列表
     _loadFriends(refresh: true);
-  }
+    }
   
   
   /// 显示分组设置
@@ -904,6 +904,7 @@ class _FriendsPageState extends State<FriendsPage> {
         groups: _groups,
         onAddGroup: _addGroup,
         onDeleteGroup: _deleteGroup,
+        onUpdateGroup: _updateGroup,
       ),
     );
   }
@@ -931,7 +932,7 @@ class _FriendsPageState extends State<FriendsPage> {
       print('📁 创建联系人分组结果: $result');
       
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组创建成功');
+    EasyLoading.showSuccess('分组创建成功');
         // 刷新分组列表
         await _loadContactGroups();
       } else {
@@ -962,22 +963,76 @@ class _FriendsPageState extends State<FriendsPage> {
           TextButton(
             onPressed: () {
               Get.back();
-              setState(() {
-                _groups.removeWhere((g) => g.id == group.id);
-                // 如果删除的是当前选中的分组，切回全部
-                if (_selectedGroupId == group.id) {
-                  _selectedGroupId = 'all';
-                  // 重新加载全部好友列表
-                  _loadFriends(refresh: true);
-                }
-              });
-              EasyLoading.showSuccess('分组已删除');
+              _confirmDeleteGroup(group);
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteGroup(FriendGroup group) async {
+    EasyLoading.show(status: '删除分组中...');
+    try {
+      final gid = int.tryParse(group.id) ?? 0;
+      final result = await _nativeService.imDeleteContactGroup(groupId: gid);
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('分组已删除');
+        await _loadContactGroups();
+        if (_selectedGroupId == group.id) {
+          _selectedGroupId = 'all';
+          await _loadFriends(refresh: true);
+        }
+      } else {
+        EasyLoading.showError(result['message'] ?? '删除失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('删除失败，请稍后重试');
+    }
+  }
+
+  Future<void> _updateGroup(FriendGroup group) async {
+    final controller = TextEditingController(text: group.name);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改分组名称'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '请输入新的分组名称'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
+          ],
+        );
+      },
+    );
+    if (newName == null) return;
+    if (newName.isEmpty) {
+      EasyLoading.showError('分组名称不能为空');
+      return;
+    }
+    if (newName == group.name) return;
+
+    EasyLoading.show(status: '更新分组中...');
+    try {
+      final gid = int.tryParse(group.id) ?? 0;
+      final result = await _nativeService.imUpdateContactGroup(
+        groupId: gid,
+        groupName: newName,
+      );
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('分组已更新');
+        await _loadContactGroups();
+      } else {
+        EasyLoading.showError(result['message'] ?? '更新失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('更新失败，请稍后重试');
+    }
   }
 
   /// 空视图
@@ -1183,11 +1238,13 @@ class _GroupSettingsSheet extends StatefulWidget {
   final List<FriendGroup> groups;
   final Future<void> Function(String) onAddGroup;
   final Function(FriendGroup) onDeleteGroup;
+  final Future<void> Function(FriendGroup) onUpdateGroup;
   
   const _GroupSettingsSheet({
     required this.groups,
     required this.onAddGroup,
     required this.onDeleteGroup,
+    required this.onUpdateGroup,
   });
 
   @override
@@ -1212,9 +1269,9 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
       ),
       child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           // 拖动条
           Container(
             width: 40,
@@ -1287,10 +1344,10 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
                       if (name.isNotEmpty) {
                         await widget.onAddGroup(name);
                         if (mounted) {
-                          setState(() {
-                            _isAdding = false;
-                            _nameController.clear();
-                          });
+                        setState(() {
+                          _isAdding = false;
+                          _nameController.clear();
+                        });
                         }
                       }
                     },
@@ -1328,7 +1385,7 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
           
           // 底部安全区域
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
-          ],
+        ],
         ),
       ),
     );
@@ -1378,12 +1435,24 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
                 ),
               ),
             )
-          : IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onDeleteGroup(group);
-              },
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await widget.onUpdateGroup(group);
+                  },
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    widget.onDeleteGroup(group);
+                  },
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                ),
+              ],
             ),
     );
   }

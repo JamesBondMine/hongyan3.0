@@ -133,6 +133,32 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                                 limit:(int)limit
                            completion:(IMSDKMessageCompletion)completion;
 
+// ==================== 通知 ====================
+
+/// 获取通知未读数量
+/// @param notificationTypes 通知类型过滤（可选）
+/// @param completion 结果回调
+- (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
+                                completion:(IMSDKMessageCompletion)completion;
+
+/// 拉取通知列表
+/// @param notificationTypes 通知类型过滤（可选）
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+- (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
+                             page:(int32_t)page
+                         pageSize:(int32_t)pageSize
+                        completion:(IMSDKMessageCompletion)completion;
+
+/// 标记通知已读
+/// @param notificationIds 通知ID列表
+/// @param readTime 读取时间（毫秒，可选，默认当前时间）
+/// @param completion 结果回调
+- (int)markNotificationsRead:(NSArray<NSNumber *> *)notificationIds
+                    readTime:(int64_t)readTime
+                  completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 回调管理（内部使用） ====================
 
 /// 设置回调

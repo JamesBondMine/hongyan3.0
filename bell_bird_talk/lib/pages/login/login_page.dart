@@ -385,15 +385,15 @@ class LoginPage extends StatelessWidget {
           children: [
             // 左侧：模式切换
             TextButton(
-              onPressed: controller.toggleSmsLoginMode,
-              child: Text(
-                controller.smsUsePassword.value ? '验证码登录' : '密码登录',
-                style: TextStyle(
-                  color: Colors.blue[600],
-                  fontSize: 13,
-                ),
+            onPressed: controller.toggleSmsLoginMode,
+            child: Text(
+              controller.smsUsePassword.value ? '验证码登录' : '密码登录',
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontSize: 13,
               ),
             ),
+          ),
             // 右侧：忘记密码（仅在密码登录模式下显示）
             if (controller.smsUsePassword.value)
               TextButton(
@@ -479,15 +479,15 @@ class LoginPage extends StatelessWidget {
           children: [
             // 左侧：模式切换
             TextButton(
-              onPressed: controller.toggleEmailLoginMode,
-              child: Text(
-                controller.emailUsePassword.value ? '验证码登录' : '密码登录',
-                style: TextStyle(
-                  color: Colors.blue[600],
-                  fontSize: 13,
-                ),
+            onPressed: controller.toggleEmailLoginMode,
+            child: Text(
+              controller.emailUsePassword.value ? '验证码登录' : '密码登录',
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontSize: 13,
               ),
             ),
+          ),
             // 右侧：忘记密码（仅在密码登录模式下显示）
             if (controller.emailUsePassword.value)
               TextButton(

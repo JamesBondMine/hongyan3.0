@@ -112,10 +112,10 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _loadMessages() async {
     // 1. 先加载本地仅自己发送的消息（用于发送中/失败的展示与重发）
     await _loadLocalMyMessages();
-
+    
     // 2. 再从 API 拉取最新消息，确保对方消息来自网络
     await _loadHistory();
-
+    
     // 按时间排序
     _sortMessagesByTime();
   }
@@ -141,11 +141,11 @@ class _ChatPageState extends State<ChatPage> {
 
     print('📦 加载本地我发送的消息: ${myMessages.length} 条');
     for (final msg in myMessages) {
-      _addChatMessageToList(msg);
-    }
-    _sortMessagesByTime();
-    setState(() {});
-    _scrollToBottom();
+        _addChatMessageToList(msg);
+      }
+      _sortMessagesByTime();
+      setState(() {});
+      _scrollToBottom();
   }
 
   /// 按时间排序消息列表
@@ -327,7 +327,7 @@ class _ChatPageState extends State<ChatPage> {
     final bool convHasLocal =
         (await _messageDatabase.getMessages(widget.convId, limit: 1)).isNotEmpty;
     final List<ChatMessage> toInsertBatch = [];
-
+    
     for (final msg in messages) {
       print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
       if (msg is Map<String, dynamic>) {
@@ -406,7 +406,7 @@ class _ChatPageState extends State<ChatPage> {
         } else {
           toInsertBatch.add(chatMessage);
         }
-
+        
         // 格式化时间戳用于日志
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
         final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
@@ -434,85 +434,25 @@ class _ChatPageState extends State<ChatPage> {
       _isSending = true;
     });
     
-    // 先添加到本地列表（显示发送中状态）
-    final localMsgId = DateTime.now().millisecondsSinceEpoch.toString();
-    final newMessage = {
-      'id': localMsgId,
-      'content': text,
-      'isMine': true,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-      'status': 'sending', // sending, sent, failed
-      'senderId': _currentUserId,
-    };
-    
-    setState(() {
-      _messages.add(newMessage);
-    });
-    _messageController.clear();
-    _scrollToBottom();
-
-
-
-    final message = ChatMessage.text(convId: widget.convId, senderId: _currentUserId, receiverId: widget.targetUserId, content: text);
-    await _messageQueue.sendMessage(message);
-    
     try {
-      // 调用 SDK 发送消息
-      final result = await _nativeService.imSendTextMessage(
-        content: text,
-        conversationId: widget.convId,
+      // 构造文本消息并加入本地列表
+      final message = ChatMessage.text(
+        convId: widget.convId,
+        senderId: _currentUserId,
         receiverId: widget.targetUserId,
+        content: text,
       );
       
-      print('📤 发送消息结果: $result');
-      // final message = ChatMessage.text(convId: widget.convId, senderId: _currentUserId, receiverId: widget.targetUserId, content: text);
-    // // 添加到消息列表
-    //   setState(() {
-    //     _addChatMessageToList(message);
-    //   });
-    //   _scrollToBottom();
-    await _messageQueue.sendMessage(message);
-      if (result['errorCode'] == 0) {
-        // 发送成功，更新消息状态
         setState(() {
-          final index = _messages.indexWhere((m) => m['id'] == localMsgId);
-          if (index != -1) {
-            _messages[index]['status'] = 'sent';
-            // 更新服务器返回的消息ID
-            if (result['data'] != null) {
-              try {
-                final data = result['data'] is String 
-                    ? (result['data'] as String).isNotEmpty 
-                        ? result['data'] 
-                        : null
-                    : result['data'];
-                if (data != null) {
-                  // 可以解析服务器返回的消息ID等信息
-                }
-              } catch (e) {
-                print('解析发送结果失败: $e');
-              }
-            }
-          }
-        });
-      } else {
-        // 发送失败
-        setState(() {
-          final index = _messages.indexWhere((m) => m['id'] == localMsgId);
-          if (index != -1) {
-            _messages[index]['status'] = 'failed';
-          }
-        });
-        EasyLoading.showError('发送失败: ${result['message']}');
-      }
+        _addChatMessageToList(message);
+      });
+      _scrollToBottom();
+      _messageController.clear();
+
+      // 通过队列发送（持久化 + 状态统一处理）
+      await _messageQueue.sendMessage(message);
     } catch (e) {
       print('发送消息异常: $e');
-      setState(() {
-        final index = _messages.indexWhere((m) => m['id'] == localMsgId);
-        if (index != -1) {
-          _messages[index]['status'] = 'failed';
-        }
-      });
       EasyLoading.showError('发送失败');
     } finally {
       setState(() {
@@ -1584,7 +1524,7 @@ class _ChatPageState extends State<ChatPage> {
       final List<XFile>? images = await _imagePicker.pickMultiImage();
       if (images != null) {
         for (var image in images) {
-          await _sendImageMessage(image.path);
+        await _sendImageMessage(image.path);
         }
       }
     } catch (e) {
@@ -1884,7 +1824,7 @@ class _ChatPageState extends State<ChatPage> {
       final cachedPath = _voiceCache[audioUrl]!;
       if (File(cachedPath).existsSync()) {
         await _playLocalVoice(cachedPath, voiceId);
-        return;
+      return;
       } else {
         _voiceCache.remove(audioUrl);
       }
@@ -2062,11 +2002,11 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
       child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: imageWidget,
-          ),
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: imageWidget,
+        ),
         // 发送中遮罩
         if (status == 'sending' || status == 'pending')
           Positioned.fill(
@@ -2100,7 +2040,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ),
-        ],
+      ],
       ),
     );
   }

@@ -66,7 +66,7 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
@@ -586,7 +586,7 @@ class _ChatListPageState extends State<ChatListPage> {
       EasyLoading.showError('加载失败，请稍后重试');
     }
   }
-  
+
   /// 刷新会话列表（带超时控制）
   /// 刷新会话列表（带超时控制）
   Future<void> _refreshConversations() async {
@@ -735,7 +735,7 @@ class _ChatListPageState extends State<ChatListPage> {
             await _refreshConversations();
           } else {
             // 其他筛选类型：仅本地过滤
-            _filterConversations();
+          _filterConversations();
           }
         },
         child: Container(

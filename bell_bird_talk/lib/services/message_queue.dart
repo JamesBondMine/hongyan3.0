@@ -356,7 +356,7 @@ class MessageQueueManager {
           }
         }
         print('✅ 图片消息发送成功');
-        return true;
+      return true;
       } else {
         message.errorMessage = sendResult['message'] ?? '发送图片消息失败';
         print('❌ 图片消息发送失败: ${message.errorMessage}');
@@ -503,7 +503,7 @@ class MessageQueueManager {
           }
         }
         print('✅ 语音消息发送成功');
-        return true;
+      return true;
       } else {
         message.errorMessage = sendResult['message'] ?? '发送语音消息失败';
         print('❌ 语音消息发送失败: ${message.errorMessage}');

@@ -869,6 +869,48 @@ class IOSNativeService {
     }
   }
   
+  /// 更新联系人分组
+  Future<Map<String, dynamic>> imUpdateContactGroup({
+    required int groupId,
+    String? groupName,
+    String? groupColor,
+    int? groupOrder,
+    String? groupIcon,
+    String? groupDescription,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+      };
+      if (groupName != null) params['group_name'] = groupName;
+      if (groupColor != null) params['group_color'] = groupColor;
+      if (groupOrder != null) params['group_order'] = groupOrder;
+      if (groupIcon != null) params['group_icon'] = groupIcon;
+      if (groupDescription != null) params['group_description'] = groupDescription;
+      
+      final result = await _bridge.invokeMethod<Map>('imUpdateContactGroup', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('更新联系人分组错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 删除联系人分组
+  Future<Map<String, dynamic>> imDeleteContactGroup({
+    required int groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imDeleteContactGroup', {
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('删除联系人分组错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -976,6 +1018,56 @@ class IOSNativeService {
     }
   }
   
+  // ---------- 通知 ----------
+
+  /// 获取通知未读数量
+  Future<Map<String, dynamic>> imGetNotificationUnreadCount({
+    List<String>? types,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetNotificationUnreadCount', {
+        if (types != null) 'types': types,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 拉取通知列表
+  Future<Map<String, dynamic>> imPullNotifications({
+    List<String>? types,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imPullNotifications', {
+        'page': page,
+        'page_size': pageSize,
+        if (types != null) 'types': types,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 标记通知已读
+  Future<Map<String, dynamic>> imMarkNotificationRead({
+    required List<int> notificationIds,
+    int? readTime,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imMarkNotificationRead', {
+        'notification_ids': notificationIds,
+        if (readTime != null) 'read_time': readTime,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 创建会话
   /// @param convType 会话类型（0=单聊, 2=群聊）
   /// @param targetId 目标ID（单聊为对方用户ID，群聊为群ID）

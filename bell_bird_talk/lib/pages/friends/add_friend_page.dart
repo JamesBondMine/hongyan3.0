@@ -259,81 +259,81 @@ class _AddFriendPageState extends State<AddFriendPage> {
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 标题
-                Row(
-                  children: [
-                    const Text(
-                      '添加好友',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 标题
+              Row(
+                children: [
+                  const Text(
+                    '添加好友',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                
-                // 用户信息
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.blue[100],
-                      backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
-                          ? NetworkImage(user.avatar!)
-                          : null,
-                      child: (user.avatar == null || user.avatar!.isEmpty)
-                          ? Text(
-                              user.nickname.isNotEmpty
-                                  ? user.nickname[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.nickname,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const Divider(),
+              
+              // 用户信息
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.blue[100],
+                    backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
+                        ? NetworkImage(user.avatar!)
+                        : null,
+                    child: (user.avatar == null || user.avatar!.isEmpty)
+                        ? Text(
+                            user.nickname.isNotEmpty
+                                ? user.nickname[0].toUpperCase()
+                                : '?',
                             style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.nickname,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (user.accountId != null && user.accountId!.isNotEmpty)
+                          Text(
+                            'ID: ${user.accountId}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
                             ),
                           ),
-                          if (user.accountId != null && user.accountId!.isNotEmpty)
-                            Text(
-                              'ID: ${user.accountId}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
-                            ),
-                        ],
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
                 
                 const SizedBox(height: 20),
                 
@@ -382,41 +382,41 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 20),
-                
-                // 验证消息
-                const Text(
-                  '验证消息',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+              
+              const SizedBox(height: 20),
+              
+              // 验证消息
+              const Text(
+                '验证消息',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: messageController,
-                  maxLines: 3,
-                  maxLength: 100,
-                  decoration: InputDecoration(
-                    hintText: '请输入验证消息',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                maxLength: 100,
+                decoration: InputDecoration(
+                  hintText: '请输入验证消息',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // 发送按钮
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 发送按钮
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
                       int? groupIdInt;
                       if (selectedGroupId != null && selectedGroupId!.isNotEmpty) {
                         groupIdInt = int.tryParse(selectedGroupId!);
@@ -426,27 +426,27 @@ class _AddFriendPageState extends State<AddFriendPage> {
                         messageController.text.trim(),
                         groupId: groupIdInt,
                       );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      elevation: 0,
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    child: const Text(
-                      '发送申请',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '发送申请',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 16),
-              ],
+              ),
+              
+              const SizedBox(height: 16),
+            ],
             ),
           ),
         ),

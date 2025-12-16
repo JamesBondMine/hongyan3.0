@@ -9,6 +9,8 @@
 #import "network_lib.h"
 #import "MessagePb.pbobjc.h"
 #import "ConvPb.pbobjc.h"
+#import "ChatPb.pbobjc.h"
+#import "SystemPb.pbobjc.h"
 
 // ==================== 私有方法前向声明 ====================
 
@@ -64,6 +66,145 @@ static void SystemMessageCallback(const char* data, int dataLen) {
 static void CommandMessageCallback(int eventType, const char* data, int dataLen) {
     NSLog(@"📨 收到命令消息: eventType=%d, dataLen=%d", eventType, dataLen);
     [[IMSDKMessageManager sharedManager] handleCommandMessageWithEventType:eventType data:data length:dataLen];
+}
+
+/// 通知未读数回调
+static void NotificationUnreadCountCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔔 通知未读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData.length > 0) {
+                NSError *parseError = nil;
+                NotificationUnreadCountResult *result = [NotificationUnreadCountResult parseFromData:responseData error:&parseError];
+                if (result && !parseError) {
+                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                    json[@"total_unread"] = @(result.totalUnread);
+                    if (result.typeUnread.count > 0) {
+                        json[@"type_unread"] = result.typeUnread;
+                    }
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                } else {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"total_unread\":0}";
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
+}
+
+/// 拉取通知回调
+static void PullNotificationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔔 拉取通知回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData.length > 0) {
+                NSError *parseError = nil;
+                NotificationPullList *list = [NotificationPullList parseFromData:responseData error:&parseError];
+                if (list && !parseError) {
+                    NSMutableArray *arr = [NSMutableArray array];
+                    for (Notification *n in list.notificationsArray) {
+                        NSMutableDictionary *item = [NSMutableDictionary dictionary];
+                        item[@"id"] = @(n.id_p);
+                        item[@"notification_type"] = n.notificationType ?: @"";
+                        item[@"title"] = n.title ?: @"";
+                        item[@"content"] = n.content ?: @"";
+                        item[@"business_type"] = n.businessType ?: @"";
+                        item[@"server_msg_id"] = n.serverMsgId ?: @"";
+                        item[@"related_user_id"] = n.relatedUserId ?: @"";
+                        item[@"related_request_id"] = @(n.relatedRequestId);
+                        item[@"status"] = @(n.status);
+                        item[@"create_time"] = @(n.createTime);
+                        item[@"read_time"] = @(n.readTime);
+                        item[@"expire_time"] = @(n.expireTime);
+                        [arr addObject:item];
+                    }
+                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                    json[@"notifications"] = arr;
+                    if (list.hasPage) {
+                        NSMutableDictionary *page = [NSMutableDictionary dictionary];
+                        page[@"page"] = @(list.page.page);
+                        page[@"size"] = @(list.page.size);
+                        page[@"total_count"] = @(list.page.totalCount);
+                        page[@"total_pages"] = @(list.page.totalPages);
+                        page[@"has_previous"] = @(list.page.hasPrevious);
+                        page[@"has_next"] = @(list.page.hasNext);
+                        json[@"page"] = page;
+                    }
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                } else {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"notifications\":[]}";
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
+}
+
+/// 标记通知已读回调
+static void MarkNotificationReadCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔔 标记通知已读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData.length > 0) {
+                NSError *parseError = nil;
+                NotificationMarkReadResult *result = [NotificationMarkReadResult parseFromData:responseData error:&parseError];
+                if (result && !parseError) {
+                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                    json[@"success_count"] = @(result.successCount);
+                    if (result.failedIdsArray_Count > 0) {
+                        NSMutableArray *failed = [NSMutableArray array];
+                        for (NSUInteger i = 0; i < result.failedIdsArray_Count; i++) {
+                            [failed addObject:@([result.failedIdsArray valueAtIndex:i])];
+                        }
+                        json[@"failed_ids"] = failed;
+                    }
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                } else {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"success_count\":0}";
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
 }
 
 // ==================== 回调函数 ====================
@@ -732,6 +873,92 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
             self.onCommandMessage(eventType, messageData);
         }
     });
+}
+
+// ==================== 通知 ====================
+
+- (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
+                                completion:(IMSDKMessageCompletion)completion {
+    NotificationUnreadCount *req = [NotificationUnreadCount message];
+    if (notificationTypes.count > 0) {
+        [req.notificationTypesArray addObjectsFromArray:notificationTypes];
+    }
+    
+    NSData *protoData = [req data];
+    
+    
+    uint64_t reqId = 0;
+    int code = get_notification_unread_count(
+        NotificationUnreadCountCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    return code;
+}
+
+- (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
+                             page:(int32_t)page
+                         pageSize:(int32_t)pageSize
+                        completion:(IMSDKMessageCompletion)completion {
+    NotificationPull *req = [NotificationPull message];
+    if (notificationTypes.count > 0) {
+        [req.notificationTypesArray addObjectsFromArray:notificationTypes];
+    }
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 20;
+    req.page = pg;
+    
+    NSData *protoData = [req data];
+    uint64_t reqId = 0;
+    int code = pull_notification(
+        PullNotificationCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    return code;
+}
+
+- (int)markNotificationsRead:(NSArray<NSNumber *> *)notificationIds
+                    readTime:(int64_t)readTime
+                  completion:(IMSDKMessageCompletion)completion {
+    if (notificationIds.count == 0) {
+        if (completion) {
+            completion(-1, 0, @"{\"message\":\"notificationIds 不能为空\"}");
+        }
+        return -1;
+    }
+    
+    NotificationMarkRead *req = [NotificationMarkRead message];
+    for (NSNumber *num in notificationIds) {
+        [req.notificationIdsArray addValue:num.longLongValue];
+    }
+    int64_t ts = readTime > 0 ? readTime : (int64_t)([[NSDate date] timeIntervalSince1970] * 1000);
+    req.readTime = ts;
+    
+    NSData *protoData = [req data];
+    uint64_t reqId = 0;
+    int code = mark_notification_read(
+        MarkNotificationReadCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    return code;
 }
 
 @end

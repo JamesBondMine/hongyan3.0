@@ -206,6 +206,10 @@ class NativeBridgeHandler: NSObject {
             imGetContactGroups(call: call, result: result)
         case "imCreateContactGroup":
             imCreateContactGroup(call: call, result: result)
+        case "imUpdateContactGroup":
+            imUpdateContactGroup(call: call, result: result)
+        case "imDeleteContactGroup":
+            imDeleteContactGroup(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         
@@ -220,6 +224,13 @@ class NativeBridgeHandler: NSObject {
             imUpdateConversation(call: call, result: result)
         case "imCreateConversation":
             imCreateConversation(call: call, result: result)
+        // ---------- 通知 ----------
+        case "imGetNotificationUnreadCount":
+            imGetNotificationUnreadCount(call: call, result: result)
+        case "imPullNotifications":
+            imPullNotifications(call: call, result: result)
+        case "imMarkNotificationRead":
+            imMarkNotificationRead(call: call, result: result)
         case "imDeleteConversation":
             imDeleteConversation(call: call, result: result)
         case "imMarkConversationRead":
@@ -1328,6 +1339,66 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 更新联系人分组
+    private func imUpdateContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? Int64 ?? (args["group_id"] as? Int).map({ Int64($0) }) else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        let groupName = args["group_name"] as? String
+        let groupColor = args["group_color"] as? String
+        let groupOrder = (args["group_order"] as? Int32) ?? (args["group_order"] as? Int).map { Int32($0) } ?? 0
+        let groupIcon = args["group_icon"] as? String
+        let groupDescription = args["group_description"] as? String
+        
+        print("📁 更新联系人分组: groupId=\(groupId), name=\(groupName ?? "")")
+        
+        let code = IMSDKContactManager.shared().updateContactGroup(withId: groupId, groupName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription) { errorCode, reqId, data in
+            print("✅ 更新联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "更新成功" : "更新失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_CONTACT_GROUP_ERROR",
+                              message: "更新联系人分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 删除联系人分组
+    private func imDeleteContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? Int64 ?? (args["group_id"] as? Int).map({ Int64($0) }) else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        print("📁 删除联系人分组: groupId=\(groupId)")
+        
+        let code = IMSDKContactManager.shared().deleteContactGroup(withId: groupId) { errorCode, reqId, data in
+            print("✅ 删除联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "删除成功" : "删除失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_CONTACT_GROUP_ERROR",
+                              message: "删除联系人分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1602,6 +1673,98 @@ class NativeBridgeHandler: NSObject {
             result(FlutterError(code: "CLEAR_MESSAGES_ERROR",
                               message: "清空消息请求发送失败: \(code)",
                               details: nil))
+        }
+    }
+    
+    // MARK: - 通知
+    
+    /// 获取通知未读数量
+    private func imGetNotificationUnreadCount(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let types = args["types"] as? [String]
+        
+        print("🔔 获取通知未读数量: types=\(types ?? [])")
+        
+        let code = IMSDKMessageManager.shared().getNotificationUnreadCount(withTypes: types) { errorCode, reqId, data in
+            print("🔔 通知未读回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_NOTIFICATION_UNREAD_ERROR",
+                                message: "获取通知未读请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 拉取通知列表
+    private func imPullNotifications(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let types = args["types"] as? [String]
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 20
+        
+        print("🔔 拉取通知: page=\(page), pageSize=\(pageSize), types=\(types ?? [])")
+        
+        let code = IMSDKMessageManager.shared().pullNotifications(withTypes: types, page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("🔔 拉取通知回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "PULL_NOTIFICATION_ERROR",
+                                message: "拉取通知请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 标记通知已读
+    private func imMarkNotificationRead(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        guard let ids = args["notification_ids"] as? [Any], !ids.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "notification_ids 不能为空", details: nil))
+            return
+        }
+        let readTimeArg = args["read_time"]
+        let readTime = (readTimeArg as? Int64) ?? (readTimeArg as? Int).map { Int64($0) } ?? 0
+        
+        let idNumbers: [NSNumber] = ids.compactMap {
+            if let n = $0 as? NSNumber { return n }
+            if let s = $0 as? String, let v = Int64(s) { return NSNumber(value: v) }
+            return nil
+        }
+        
+        if idNumbers.isEmpty {
+            result(FlutterError(code: "INVALID_ARGS", message: "notification_ids 解析失败", details: nil))
+            return
+        }
+        
+        print("🔔 标记通知已读: ids=\(idNumbers), readTime=\(readTime)")
+        
+        let code = IMSDKMessageManager.shared().markNotificationsRead(idNumbers, readTime: readTime) { errorCode, reqId, data in
+            print("🔔 标记通知已读回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "标记成功" : "标记失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "MARK_NOTIFICATION_READ_ERROR",
+                                message: "标记通知已读请求发送失败: \(code)",
+                                details: nil))
         }
     }
     
