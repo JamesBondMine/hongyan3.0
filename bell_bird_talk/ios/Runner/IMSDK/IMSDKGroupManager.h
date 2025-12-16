@@ -32,6 +32,7 @@ typedef void (^IMSDKGroupCompletion)(int errorCode, uint64_t reqId, NSString * _
 /// @param initialMembers 初始成员ID列表（可选）
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
+///
 - (int)createGroupWithName:(NSString *)groupName
                 groupAvatar:(NSString * _Nullable)groupAvatar
            groupDescription:(NSString * _Nullable)groupDescription

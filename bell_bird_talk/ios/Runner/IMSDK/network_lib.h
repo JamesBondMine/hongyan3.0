@@ -651,7 +651,7 @@ NET_API int get_group_info(CB_I_S_I_U cCallback, const char* data, int len, uint
 /**
  * 添加群组成员
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
- * @param data 添加成员参数（序列化后的数据，包含群组ID、成员ID列表等）
+ * @param data 添加成员参数（序列化后的数据）
  * @param len 数据长度
  * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码 
@@ -661,7 +661,7 @@ NET_API int add_group_member(CB_I_S_I_U cCallback, const char* data, int len, ui
 /**
  * 移除群组成员
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
- * @param data 移除成员参数（序列化后的数据，包含群组ID、成员ID列表等）
+ * @param data 移除成员参数（序列化后的数据）
  * @param len 数据长度
  * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码 
@@ -679,6 +679,98 @@ NET_API int remove_group_member(CB_I_S_I_U cCallback, const char* data, int len,
  * @return 0表示成功，其它表示错误码 
  */
 NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int len, int msgType, const char* groupId, uint64_t* outReqId);
+
+/**
+ * 获取群组列表
+ * Topic: /im/group/{userId}/listGroups
+ * @param cCallback 回调函数（用于接收群组列表结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的查询参数
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码 
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int list_groups(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 更新群组信息
+ */
+NET_API int update_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 解散群组
+ */
+NET_API int dissolve_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 退出群组
+ */
+NET_API int leave_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取群组成员列表
+ */
+NET_API int get_group_members(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 设置群内昵称
+ */
+NET_API int set_group_alias(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 申请加入群组
+ */
+NET_API int apply_join_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 审批加入申请
+ */
+NET_API int approve_join_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 拒绝加入申请
+ */
+NET_API int reject_join_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取群组申请列表
+ */
+NET_API int get_group_application_list(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 分配群组角色
+ */
+NET_API int assign_group_role(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 撤销群组角色
+ */
+NET_API int revoke_group_role(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 转让群主
+ */
+NET_API int transfer_group_owner(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 设置群组策略
+ */
+NET_API int set_group_policy(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取群组策略
+ */
+NET_API int get_group_policy(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 群组静音
+ */
+NET_API int mute_group(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 查询群组禁言状态
+ */
+NET_API int get_group_mute_status(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 消息拉取接口

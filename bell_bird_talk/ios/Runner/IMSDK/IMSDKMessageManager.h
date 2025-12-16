@@ -157,7 +157,7 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
 /// @param completion 结果回调
 - (int)markNotificationsRead:(NSArray<NSNumber *> *)notificationIds
                     readTime:(int64_t)readTime
-                  completion:(IMSDKMessageCompletion)completion;
+                           completion:(IMSDKMessageCompletion)completion;
 
 // ==================== 回调管理（内部使用） ====================
 

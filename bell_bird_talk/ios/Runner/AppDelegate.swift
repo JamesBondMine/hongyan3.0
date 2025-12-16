@@ -210,6 +210,10 @@ class NativeBridgeHandler: NSObject {
             imUpdateContactGroup(call: call, result: result)
         case "imDeleteContactGroup":
             imDeleteContactGroup(call: call, result: result)
+        case "imGetGroupList":
+            imGetGroupList(call: call, result: result)
+        case "imGetGroupMembers":
+            imGetGroupMembers(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         
@@ -1399,6 +1403,64 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 获取群组列表
+    private func imGetGroupList(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let groupType = args["group_type"] as? Int ?? -1
+        let status = args["status"] as? Int ?? -1
+        let keyword = args["keyword"] as? String
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 50
+        
+        print("📁 获取群组列表: type=\(groupType), status=\(status), page=\(page), size=\(pageSize), keyword=\(keyword ?? "")")
+        
+        let code = IMSDKGroupManager.shared().getGroupList(withType: Int32(groupType), status: Int32(status), keyword: keyword, page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("📁 群组列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_GROUP_LIST_ERROR",
+                                message: "获取群组列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取群成员列表
+    private func imGetGroupMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        let status = args["status"] as? Int ?? 0
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 50
+        
+        print("📁 获取群成员列表: groupId=\(groupId), status=\(status), page=\(page), size=\(pageSize)")
+        
+        let code = IMSDKGroupManager.shared().getGroupMembers(withGroupId: groupId, status: Int32(status), page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+            print("📁 群成员列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_GROUP_MEMBERS_ERROR",
+                                message: "获取群成员列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1764,7 +1826,7 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "MARK_NOTIFICATION_READ_ERROR",
                                 message: "标记通知已读请求发送失败: \(code)",
-                                details: nil))
+                              details: nil))
         }
     }
     
@@ -2396,15 +2458,15 @@ class NativeBridgeHandler: NSObject {
             maxMemberCount: maxMemberCount,
             initialMembers: memberIds.isEmpty ? nil : memberIds as [String],
             completion: { errorCode, reqId, data in
-                print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
-                
-                result([
-                    "errorCode": errorCode,
-                    "reqId": reqId,
-                    "message": errorCode == 0 ? "创建成功" : "创建失败",
-                    "data": data ?? ""
-                ])
-            }
+            print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        }
         )
         
         if code != 0 {

@@ -78,22 +78,22 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
               runSpacing: 8,
               children: [
                 if (type.isNotEmpty)
-                  _chip('类型', type),
+                  // _chip('类型', type),
                 _chip('状态', status == 0 ? '未读' : '已读'),
                 if (createTime != null) _chip('时间', _formatTime(createTime)),
               ],
             ),
-            const SizedBox(height: 16),
-            _sectionTitle('内容详情'),
-            if (contentJson.isNotEmpty)
-              _codeBox(_prettyJson(contentJson))
-            else if (rawContent.isNotEmpty)
-              _codeBox(rawContent)
-            else
-              const Text('无内容'),
-            const SizedBox(height: 16),
-            _sectionTitle('原始数据'),
-            _codeBox(_prettyJson(_item)),
+            // const SizedBox(height: 16),
+            // _sectionTitle('内容详情'),
+            // if (contentJson.isNotEmpty)
+            //   _codeBox(_prettyJson(contentJson))
+            // else if (rawContent.isNotEmpty)
+            //   _codeBox(rawContent)
+            // else
+            //   const Text('无内容'),
+            // const SizedBox(height: 16),
+            // _sectionTitle('原始数据'),
+            // _codeBox(_prettyJson(_item)),
           ],
         ),
       ),

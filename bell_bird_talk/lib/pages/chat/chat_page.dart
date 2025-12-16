@@ -27,6 +27,8 @@ class ChatPage extends StatefulWidget {
   final String displayName;
   final String? avatar;
   final String targetUserId;
+  final int convType; // 0=单聊,2=群聊
+  final PreferredSizeWidget? customAppBar;
   
   const ChatPage({
     super.key,
@@ -34,6 +36,8 @@ class ChatPage extends StatefulWidget {
     required this.displayName,
     this.avatar,
     required this.targetUserId,
+    this.convType = 0,
+    this.customAppBar,
   });
 
   @override
@@ -279,7 +283,7 @@ class _ChatPageState extends State<ChatPage> {
       // 使用 pull_messages 接口拉取历史消息
       final result = await _nativeService.imPullMessages(
         conversationId: widget.convId,
-        convType: 0,  // 单聊
+        convType: widget.convType,
         targetId: widget.targetUserId,
         lastSeq: 0,   // 0 表示从最新开始
         limit: 50,
@@ -477,7 +481,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: _buildAppBar(),
+      appBar: widget.customAppBar ?? _buildAppBar(),
       body: Column(
         children: [
           // 消息列表
@@ -545,7 +549,7 @@ class _ChatPageState extends State<ChatPage> {
                   targetId: widget.targetUserId,
                   displayName: widget.displayName,
                   avatarUrl: widget.avatar ?? '',
-                  convType: 0, // 单聊
+                  convType: widget.convType,
                 ),
               ),
             );

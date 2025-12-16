@@ -911,6 +911,51 @@ class IOSNativeService {
     }
   }
   
+  // ---------- 群组 ----------
+  /// 获取群组列表
+  Future<Map<String, dynamic>> imGetGroupList({
+    // int groupType = -1,
+    // int status = -1,
+    // String? keyword,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetGroupList', {
+        // 'group_type': groupType,
+        // 'status': status,
+        // 'keyword': keyword,
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取群组列表错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取群成员列表
+  Future<Map<String, dynamic>> imGetGroupMembers({
+    required String groupId,
+    int status = 0,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetGroupMembers', {
+        'group_id': groupId,
+        'status': status,
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取群成员列表错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -940,7 +985,7 @@ class IOSNativeService {
   Future<Map<String, dynamic>> imGetConversationList({
     int page = 1,
     int pageSize = 20,
-    int convType = -1,
+    int convType = 2,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetConversationList', {

@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/pages/models/friend_model.dart';
+import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
+import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -7,7 +9,7 @@ import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
 import 'friend_detail_page.dart';
-import 'friend_requests_page.dart' hide FriendRequestModel;
+import 'friend_requests_page.dart';
 import 'friend_search_page.dart';
 
 /// 好友列表页面
@@ -619,19 +621,17 @@ class _FriendsPageState extends State<FriendsPage> {
           
           Divider(height: 1, indent: 56, color: Colors.grey[100]),
           
-          // 群组申请入口
+          // 群组入口
           _buildRequestEntryItem(
             icon: Icons.group_add,
             iconColor: Colors.blue,
             iconBgColor: Colors.blue[50]!,
-            title: '群组申请',
+            title: '群组',
             count: _groupRequestCount,
             onTap: () async {
-              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.group));
-              if (result == true) {
-                // 有群组申请被处理，刷新好友列表（可能加入了新群）
-                _loadFriends(refresh: true);
-              }
+              await Get.to(() => const GroupListPage());
+              // 返回后可选择刷新，确保显示最新好友/群关联
+              // _loadFriends(refresh: true);
             },
           ),
         ],

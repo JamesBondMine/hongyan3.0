@@ -118,6 +118,148 @@ static void JoinGroupCallback(int errorCode, const char* data, int dataLen, uint
     });
 }
 
+/// 获取群组成员列表回调
+static void GetGroupMembersCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 获取群组成员列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData && responseData.length > 0) {
+                NSError *parseError = nil;
+                members *result = [members parseFromData:responseData error:&parseError];
+                if (result && !parseError) {
+                    NSMutableArray *memberArr = [NSMutableArray array];
+                    for (GroupMember *m in result.membersArray) {
+                        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                        dict[@"group_id"] = m.groupId ?: @"";
+                        dict[@"user_id"] = m.userId ?: @"";
+                        dict[@"member_alias"] = m.memberAlias ?: @"";
+                        dict[@"join_type"] = @(m.joinType);
+                        dict[@"join_time"] = @(m.joinTime);
+                        dict[@"inviter_user_id"] = m.inviterUserId ?: @"";
+                        dict[@"status"] = @(m.status);
+                        dict[@"mute_until"] = @(m.muteUntil);
+                        dict[@"is_admin"] = @(m.isAdmin);
+                        dict[@"last_read_time"] = @(m.lastReadTime);
+                        if (m.rolesArray_Count > 0) {
+                            NSMutableArray *roles = [NSMutableArray arrayWithCapacity:m.rolesArray_Count];
+                            for (NSUInteger i = 0; i < m.rolesArray_Count; i++) {
+                                id roleVal = m.rolesArray[i];
+                                if (roleVal) {
+                                    [roles addObject:roleVal];
+                                }
+                            }
+                            dict[@"roles"] = roles;
+                        }
+                        [memberArr addObject:dict];
+                    }
+                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                    json[@"members"] = memberArr;
+                    if (result.hasPage) {
+                        NSMutableDictionary *page = [NSMutableDictionary dictionary];
+                        page[@"page"] = @(result.page.page);
+                        page[@"size"] = @(result.page.size);
+                        page[@"total_count"] = @(result.page.totalCount);
+                        page[@"total_pages"] = @(result.page.totalPages);
+                        page[@"has_previous"] = @(result.page.hasPrevious);
+                        page[@"has_next"] = @(result.page.hasNext);
+                        json[@"page"] = page;
+                    }
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                } else {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"members\":[]}";
+            }
+            
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
+/// 获取群组列表回调
+static void ListGroupsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 获取群组列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData && responseData.length > 0) {
+                NSError *parseError = nil;
+                // 优先解析为 GroupListSearchResult
+                GroupListSearchResult *result = [GroupListSearchResult parseFromData:responseData error:&parseError];
+                if (!result || parseError) {
+                    parseError = nil;
+                }
+                NSMutableArray *groups = [NSMutableArray array];
+                if (result) {
+                    for (Group *group in result.groupsArray) {
+                        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                        dict[@"group_id"] = group.groupId ?: @"";
+                        dict[@"group_name"] = group.groupName ?: @"";
+                        dict[@"group_avatar"] = group.groupAvatar ?: @"";
+                        dict[@"group_description"] = group.groupDescription ?: @"";
+                        dict[@"group_type"] = @(group.groupType);
+                        dict[@"max_member_count"] = @(group.maxMemberCount);
+                        dict[@"creator_user_id"] = group.creatorUserId ?: @"";
+                        dict[@"status"] = @(group.status);
+                        dict[@"is_muted"] = @(group.isMuted);
+                        dict[@"created_at"] = @(group.createdAt);
+                        dict[@"updated_at"] = @(group.updatedAt);
+                        dict[@"version"] = @(group.version);
+                        [groups addObject:dict];
+                    }
+                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                    json[@"groups"] = groups;
+                    if (result.hasPage) {
+                        NSMutableDictionary *page = [NSMutableDictionary dictionary];
+                        page[@"page"] = @(result.page.page);
+                        page[@"size"] = @(result.page.size);
+                        page[@"total_count"] = @(result.page.totalCount);
+                        page[@"total_pages"] = @(result.page.totalPages);
+                        page[@"has_previous"] = @(result.page.hasPrevious);
+                        page[@"has_next"] = @(result.page.hasNext);
+                        json[@"page"] = page;
+                    }
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                } else if (responseData.length > 0) {
+                    // 尝试直接作为字符串
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"groups\":[]}";
+            }
+            
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
 /// 获取群组信息回调
 static void GetGroupInfoCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📬 获取群组信息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -612,12 +754,28 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return -1;
     }
     
-    // TODO: network_lib.h 中没有 get_group_members 接口，暂时返回错误
-    NSLog(@"⚠️ 获取群组成员列表接口暂未实现");
-    if (completion) {
-        completion(-1, 0, @"获取群组成员列表接口暂未实现");
+    // 目前 group_pb 未定义专门的查询对象，这里仅携带分页信息，userId 从会话中获取
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 50;
+    
+    members *req = [members message];
+    req.page = pg;
+    // groupId/status 目前由服务端从会话上下文和路由中解析，如需扩展可在 proto 中增加查询对象
+    
+    NSData *protoData = [req data];
+    uint64_t reqId = 0;
+    int code = get_group_members(
+        GetGroupMembersCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.groupCallbacks[@(reqId)] = completion;
     }
-    return -1;
+    return code;
 }
 
 - (int)setGroupMemberAliasWithGroupId:(NSString *)groupId
@@ -646,14 +804,29 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
                       page:(int)page
                   pageSize:(int)pageSize
                 completion:(IMSDKGroupCompletion)completion {
-    NSLog(@"📁 获取群组列表");
+    NSLog(@"📁 获取群组列表: type=%d, status=%d, page=%d, size=%d, keyword=%@", groupType, status, page, pageSize, keyword ?: @"");
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 20;
     
-    // TODO: network_lib.h 中没有 get_group_list 接口，暂时返回错误
-    NSLog(@"⚠️ 获取群组列表接口暂未实现");
-    if (completion) {
-        completion(-1, 0, @"获取群组列表接口暂未实现");
+    
+    GroupListSearchResult *req = [GroupListSearchResult message]; // 仅使用 page 作为查询容器
+    req.page = pg;
+    // 目前 group_pb 未提供专用查询对象，服务端按 userId 查询，额外过滤暂未支持；keyword/type/status 如有需要可扩展字段
+    
+    NSData *protoData = [req data];
+    uint64_t reqId = 0;
+    int code = list_groups(
+        ListGroupsCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.groupCallbacks[@(reqId)] = completion;
     }
-    return -1;
+    return code;
 }
 
 #pragma mark - 群组申请和审批
