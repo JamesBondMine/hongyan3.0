@@ -333,6 +333,41 @@ static void GetGroupInfoCallback(int errorCode, const char* data, int dataLen, u
     });
 }
 
+/// 更新群组信息回调
+static void UpdateGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 更新群组信息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSString *dataStr = nil;
+    if (data && dataLen > 0) {
+        NSData *resp = [NSData dataWithBytes:data length:dataLen];
+        dataStr = [[NSString alloc] initWithData:resp encoding:NSUTF8StringEncoding];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        IMSDKGroupCompletion completion = manager.groupCallbacks[@(reqId)];
+        if (completion) {
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:@(reqId)];
+        }
+    });
+}
+
+/// 设置群内昵称回调
+static void SetAliasCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 设置群内昵称回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSString *dataStr = nil;
+    if (data && dataLen > 0) {
+        NSData *resp = [NSData dataWithBytes:data length:dataLen];
+        dataStr = [[NSString alloc] initWithData:resp encoding:NSUTF8StringEncoding];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        IMSDKGroupCompletion completion = manager.groupCallbacks[@(reqId)];
+        if (completion) {
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:@(reqId)];
+        }
+    });
+}
 /// 添加群组成员回调
 static void AddGroupMemberCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📬 添加群组成员回调: errorCode=%d, reqId=%llu", errorCode, reqId);
@@ -594,12 +629,50 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return -1;
     }
     
-    // TODO: network_lib.h 中没有 update_group 接口，暂时返回错误
-    NSLog(@"⚠️ 更新群组信息接口暂未实现");
-    if (completion) {
-        completion(-1, 0, @"更新群组信息接口暂未实现");
+    UpdateGroup *req = [UpdateGroup message];
+    req.groupId = groupId;
+    if (groupName && groupName.length > 0) req.groupName = groupName;
+    if (groupAvatar && groupAvatar.length > 0) req.groupAvatar = groupAvatar;
+    if (groupAnnouncement && groupAnnouncement.length > 0) req.groupAnnouncement = groupAnnouncement;
+    if (groupDescription && groupDescription.length > 0) req.groupDescription = groupDescription;
+    if (version > 0) req.version = version;
+    
+    NSData *protoData = [req data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ 序列化 UpdateGroup 失败");
+        return -2;
     }
-    return -1;
+    
+    uint64_t reqId = 0;
+    if (completion) {
+        static uint64_t tempId = 21000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int code = update_group(
+            UpdateGroupCallback,
+            (const char *)protoData.bytes,
+            (int)protoData.length,
+            reqId
+        );
+        
+        if (code == 0) {
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        return code;
+    }
+    
+    return update_group(
+        UpdateGroupCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
 }
 
 - (int)dissolveGroupWithId:(NSString *)groupId
@@ -788,12 +861,51 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return -1;
     }
     
-    // TODO: network_lib.h 中没有 set_group_member_alias 接口，暂时返回错误
-    NSLog(@"⚠️ 设置群内昵称接口暂未实现");
-    if (completion) {
-        completion(-1, 0, @"设置群内昵称接口暂未实现");
+    if (!memberAlias || memberAlias.length == 0) {
+        NSLog(@"❌ 群昵称不能为空");
+        return -1;
     }
-    return -1;
+    
+    SetAlias *req = [SetAlias message];
+    req.groupId = groupId;
+    req.memberAlias = memberAlias;
+    
+    NSData *protoData = [req data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ 序列化 SetAlias 失败");
+        return -2;
+    }
+    
+    uint64_t reqId = 0;
+    if (completion) {
+        static uint64_t tempId = 22000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int code = set_group_alias(
+            SetAliasCallback,
+            (const char *)protoData.bytes,
+            (int)protoData.length,
+            reqId
+        );
+        
+        if (code == 0) {
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        return code;
+    }
+    
+    return set_group_alias(
+        SetAliasCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        reqId
+    );
 }
 
 #pragma mark - 群组查询

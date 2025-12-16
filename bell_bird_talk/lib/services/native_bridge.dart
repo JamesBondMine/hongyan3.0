@@ -956,6 +956,65 @@ class IOSNativeService {
     }
   }
   
+  /// 更新群信息（名称 / 头像 / 公告 / 描述）
+  Future<Map<String, dynamic>> imUpdateGroup({
+    required String groupId,
+    String? groupName,
+    String? groupAvatar,
+    String? groupAnnouncement,
+    String? groupDescription,
+    int version = 1,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+        'version': version,
+      };
+      if (groupName != null) params['group_name'] = groupName;
+      if (groupAvatar != null) params['group_avatar'] = groupAvatar;
+      if (groupAnnouncement != null) params['group_announcement'] = groupAnnouncement;
+      if (groupDescription != null) params['group_description'] = groupDescription;
+      
+      final result = await _bridge.invokeMethod<Map>('imUpdateGroup', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('更新群信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 设置群内昵称
+  Future<Map<String, dynamic>> imSetGroupAlias({
+    required String groupId,
+    required String alias,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSetGroupAlias', {
+        'group_id': groupId,
+        'alias': alias,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('设置群昵称错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取群信息
+  Future<Map<String, dynamic>> imGetGroupInfo({
+    required String groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetGroupInfo', {
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取群信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -1112,7 +1171,7 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
-
+  
   /// 创建会话
   /// @param convType 会话类型（0=单聊, 2=群聊）
   /// @param targetId 目标ID（单聊为对方用户ID，群聊为群ID）

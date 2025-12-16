@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import '../../services/native_bridge.dart';
 
 class GroupDetailPage extends StatefulWidget {
@@ -23,10 +26,14 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   bool _loading = false;
   List<Map<String, dynamic>> _members = [];
+  late String _groupName;
+  String? _groupAvatar;
 
   @override
   void initState() {
     super.initState();
+    _groupName = widget.groupName;
+    _groupAvatar = widget.groupAvatar;
     _loadMembers();
   }
 
@@ -56,7 +63,26 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     } else {
       EasyLoading.showError(result['message']?.toString() ?? '获取群成员失败');
     }
+    await _refreshGroupInfo();
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _refreshGroupInfo() async {
+    final res = await _nativeService.imGetGroupInfo(groupId: widget.groupId);
+    if (res['errorCode'] == 0) {
+      final dataStr = res['data'] as String? ?? '';
+      if (dataStr.isNotEmpty) {
+        try {
+          final map = json.decode(dataStr) as Map<String, dynamic>;
+          final groupName = (map['group_name'] as String?) ?? _groupName;
+          final groupAvatar = (map['group_avatar'] as String?) ?? _groupAvatar;
+          setState(() {
+            _groupName = groupName;
+            _groupAvatar = groupAvatar;
+          });
+        } catch (_) {}
+      }
+    }
   }
 
   @override
@@ -87,21 +113,48 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 
   Widget _buildGroupHeader(int memberCount) {
     return ListTile(
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor: Colors.blue.shade50,
-        backgroundImage: (widget.groupAvatar != null && widget.groupAvatar!.isNotEmpty)
-            ? NetworkImage(widget.groupAvatar!)
-            : null,
-        child: (widget.groupAvatar == null || widget.groupAvatar!.isEmpty)
-            ? Text(
-                widget.groupName.isNotEmpty ? widget.groupName.characters.first : '#',
-                style: const TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
-              )
-            : null,
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.blue.shade50,
+            backgroundImage: (_groupAvatar != null && _groupAvatar!.isNotEmpty)
+                ? NetworkImage(_groupAvatar!)
+                : null,
+            child: (_groupAvatar == null || _groupAvatar!.isEmpty)
+                ? Text(
+                    _groupName.isNotEmpty ? _groupName.characters.first : '#',
+                    style: const TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
+                  )
+                : null,
+          ),
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: GestureDetector(
+              onTap: _pickAndUpdateAvatar,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.camera_alt, size: 16, color: Colors.blue),
+              ),
+            ),
+          ),
+        ],
       ),
       title: Text(
-        widget.groupName,
+        _groupName,
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
@@ -189,6 +242,13 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     return Column(
       children: [
         ListTile(
+          leading: const Icon(Icons.image_outlined, color: Colors.purple),
+          title: const Text('修改群头像'),
+          subtitle: const Text('填写图片URL'),
+          onTap: _editGroupAvatar,
+        ),
+        const Divider(height: 1),
+        ListTile(
           leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
           title: const Text('添加群成员'),
           onTap: () {
@@ -199,9 +259,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         ListTile(
           leading: const Icon(Icons.person_outline, color: Colors.green),
           title: const Text('设置我的群昵称'),
-          onTap: () {
-            EasyLoading.showInfo('设置群昵称功能待实现');
-          },
+          onTap: _editGroupAlias,
         ),
         const Divider(height: 1),
         SwitchListTile(
@@ -243,7 +301,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   }
 
   Future<void> _editGroupName() async {
-    final controller = TextEditingController(text: widget.groupName);
+    final controller = TextEditingController(text: _groupName);
     final newName = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -260,8 +318,164 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         );
       },
     );
-    if (newName == null || newName.isEmpty || newName == widget.groupName) return;
-    EasyLoading.showInfo('修改群名称功能待实现');
+    if (newName == null || newName.isEmpty || newName == _groupName) return;
+    EasyLoading.show(status: '修改群名称...');
+    final res = await _nativeService.imUpdateGroup(
+      groupId: widget.groupId,
+      groupName: newName,
+      version: 1,
+    );
+    if (!mounted) return;
+    if (res['errorCode'] == 0) {
+      EasyLoading.showSuccess('修改成功');
+      await _refreshGroupInfo();
+    } else {
+      EasyLoading.showError(res['message']?.toString() ?? '修改失败');
+    }
+  }
+
+  Future<void> _editGroupAvatar() async {
+    final controller = TextEditingController(text: _groupAvatar ?? '');
+    final newUrl = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改群头像'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '输入头像图片URL'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
+          ],
+        );
+      },
+    );
+    if (newUrl == null || newUrl.isEmpty || newUrl == _groupAvatar) return;
+    EasyLoading.show(status: '修改群头像...');
+    final res = await _nativeService.imUpdateGroup(
+      groupId: widget.groupId,
+      groupAvatar: newUrl,
+      version: 1,
+    );
+    if (!mounted) return;
+    if (res['errorCode'] == 0) {
+      EasyLoading.showSuccess('修改成功');
+      await _refreshGroupInfo();
+    } else {
+      EasyLoading.showError(res['message']?.toString() ?? '修改失败');
+    }
+  }
+
+  Future<void> _editGroupAlias() async {
+    final controller = TextEditingController();
+    final alias = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('设置我的群昵称'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '请输入群昵称'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
+          ],
+        );
+      },
+    );
+    if (alias == null || alias.isEmpty) return;
+    EasyLoading.show(status: '设置群昵称...');
+    final res = await _nativeService.imSetGroupAlias(
+      groupId: widget.groupId,
+      alias: alias,
+    );
+    if (!mounted) return;
+    if (res['errorCode'] == 0) {
+      EasyLoading.showSuccess('设置成功');
+      _loadMembers();
+    } else {
+      EasyLoading.showError(res['message']?.toString() ?? '设置失败');
+    }
+  }
+
+  Future<void> _pickAndUpdateAvatar() async {
+    final picker = ImagePicker();
+    final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
+    if (img == null) return;
+    EasyLoading.show(status: '上传群头像...');
+    try {
+      final file = File(img.path);
+      final fileName = file.path.split('/').last;
+      final fileSize = await file.length();
+      final prepare = await _nativeService.imPrepareUpload(
+        businessModule: 'group_avatar',
+        fileName: fileName,
+        fileSize: fileSize,
+        contentType: 'image/jpeg',
+      );
+      if (prepare['errorCode'] != 0) {
+        EasyLoading.showError(prepare['message']?.toString() ?? '获取上传凭证失败');
+        return;
+      }
+      final url = await _uploadWithPrepared(prepare, file.path);
+      if (url == null || url.isEmpty) {
+        EasyLoading.showError('上传失败');
+        return;
+      }
+      final res = await _nativeService.imUpdateGroup(
+        groupId: widget.groupId,
+        groupAvatar: url,
+        version: 1,
+      );
+      if (!mounted) return;
+      if (res['errorCode'] == 0) {
+        EasyLoading.showSuccess('群头像已更新');
+        await _refreshGroupInfo();
+      } else {
+        EasyLoading.showError(res['message']?.toString() ?? '更新群头像失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('上传失败: $e');
+    }
+  }
+
+  Future<String?> _uploadWithPrepared(Map<String, dynamic> prepare, String path) async {
+    final method = (prepare['method'] as String?)?.toUpperCase() ?? 'PUT';
+    final uploadUrl = prepare['upload_url'] as String? ?? '';
+    if (uploadUrl.isEmpty) return null;
+    final headers = (prepare['headers'] as Map?)?.cast<String, dynamic>() ?? {};
+    final formData = (prepare['form_data'] as Map?)?.cast<String, dynamic>();
+    final fileUrl = prepare['file_url'] as String?;
+
+    final file = File(path);
+    if (!await file.exists()) return null;
+
+    if (method == 'POST' && formData != null && formData.isNotEmpty) {
+      final req = http.MultipartRequest('POST', Uri.parse(uploadUrl));
+      formData.forEach((k, v) {
+        req.fields[k] = v.toString();
+      });
+      req.files.add(await http.MultipartFile.fromPath('file', path));
+      headers.forEach((k, v) => req.headers[k] = v.toString());
+      final resp = await req.send();
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        return fileUrl ?? prepare['file_path'] as String?;
+      }
+    } else {
+      final bytes = await file.readAsBytes();
+      final resp = await http.put(
+        Uri.parse(uploadUrl),
+        headers: headers.map((k, v) => MapEntry(k, v.toString())),
+        body: bytes,
+      );
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        return fileUrl ?? prepare['file_path'] as String?;
+      }
+    }
+    return null;
   }
 }
 

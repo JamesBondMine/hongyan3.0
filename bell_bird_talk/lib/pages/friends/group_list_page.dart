@@ -88,10 +88,10 @@ class _GroupListPageState extends State<GroupListPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            Text(
-                              'ID: $gid${type == 1 ? " · 超级群" : ""}',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                            ),
+                            // Text(
+                            //   'ID: $gid${type == 1 ? " · 超级群" : ""}',
+                            //   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            // ),
                           ],
                         ),
                         onTap: () => _enterGroupChat(gid: gid, name: name, avatar: avatar, type: type),

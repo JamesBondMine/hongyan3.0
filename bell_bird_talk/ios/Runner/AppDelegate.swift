@@ -214,6 +214,12 @@ class NativeBridgeHandler: NSObject {
             imGetGroupList(call: call, result: result)
         case "imGetGroupMembers":
             imGetGroupMembers(call: call, result: result)
+        case "imUpdateGroup":
+            imUpdateGroup(call: call, result: result)
+        case "imSetGroupAlias":
+            imSetGroupAlias(call: call, result: result)
+        case "imGetGroupInfo":
+            imGetGroupInfo(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         
@@ -1458,6 +1464,93 @@ class NativeBridgeHandler: NSObject {
             result(FlutterError(code: "GET_GROUP_MEMBERS_ERROR",
                                 message: "获取群成员列表请求发送失败: \(code)",
                               details: nil))
+        }
+    }
+    
+    /// 更新群信息（名称/头像/公告/描述）
+    private func imUpdateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        let groupName = args["group_name"] as? String
+        let groupAvatar = args["group_avatar"] as? String
+        let groupAnnouncement = args["group_announcement"] as? String
+        let groupDescription = args["group_description"] as? String
+        let version = (args["version"] as? Int32) ?? (args["version"] as? Int).map { Int32($0) } ?? 1
+        
+        print("📁 更新群信息: groupId=\(groupId), name=\(groupName ?? ""), avatar=\(groupAvatar ?? "")")
+        
+        let code = IMSDKGroupManager.shared().updateGroup(withId: groupId, groupName: groupName, groupAvatar: groupAvatar, groupAnnouncement: groupAnnouncement, groupDescription: groupDescription, version: version) { errorCode, reqId, data in
+            print("📁 更新群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "更新成功" : "更新失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_GROUP_ERROR",
+                                message: "更新群信息请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 设置群内昵称
+    private func imSetGroupAlias(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String,
+              let alias = args["alias"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id 或 alias", details: nil))
+            return
+        }
+        
+        print("📁 设置群昵称: groupId=\(groupId), alias=\(alias)")
+        
+        let code = IMSDKGroupManager.shared().setGroupMemberAliasWithGroupId(groupId, memberAlias: alias, completion: { errorCode, reqId, data in
+            print("📁 设置群昵称回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "设置成功" : "设置失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "SET_GROUP_ALIAS_ERROR",
+                                message: "设置群昵称请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 获取群信息
+    private func imGetGroupInfo(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        print("📁 获取群信息: groupId=\(groupId)")
+        
+        let code = IMSDKGroupManager.shared().getGroupInfo(withId: groupId) { errorCode, reqId, data in
+            print("📁 获取群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_GROUP_INFO_ERROR",
+                                message: "获取群信息请求发送失败: \(code)",
+                                details: nil))
         }
     }
     
