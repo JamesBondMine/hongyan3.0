@@ -340,6 +340,15 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
                             msgDict[@"content"] = @"[语音]";
                             msgDict[@"audio_url"] = msg.voiceMessage.audioURL ?: @"";
                             msgDict[@"duration"] = @(msg.voiceMessage.duration);
+                        } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
+                            msgDict[@"content"] = @"[视频]";
+                            msgDict[@"duration"] = @(msg.videoMessage.duration);
+                            msgDict[@"image_url"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"cover_url"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"video_url"] = msg.videoMessage.videoURL ?: @"";
+                            msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }
@@ -680,6 +689,69 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
+/// 发送视频消息
+- (int)sendVideoMessage:(NSString *)videoUrl
+               coverURL:(NSString * _Nullable)coverURL
+               duration:(int32_t)duration
+                  width:(int32_t)width
+                 height:(int32_t)height
+                   size:(int64_t)size
+         conversationId:(NSString *)conversationId
+             receiverId:(NSString *)receiverId
+             completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送视频消息: videoUrl=%@, coverURL=%@, duration=%d, width=%d, height=%d, size=%lld, conversationId=%@, receiverId=%@",
+          videoUrl, coverURL, duration, width, height, size, conversationId, receiverId);
+    
+    // 创建 VideoMessage
+    VideoMessage *videoMsg = [[VideoMessage alloc] init];
+    videoMsg.videoURL = videoUrl;
+    if (coverURL && coverURL.length > 0) {
+        videoMsg.coverURL = coverURL;
+    }
+    if (duration > 0) {
+        videoMsg.duration = duration;
+    }
+    if (width > 0) {
+        videoMsg.coverWidth = width;
+    }
+    if (height > 0) {
+        videoMsg.coverHeight = height;
+    }
+    if (size > 0) {
+        videoMsg.size = size;
+    }
+    
+    // 序列化 VideoMessage
+    NSData *protoData = [videoMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ VideoMessage 序列化失败");
+        return -1;
+    }
+    
+    NSLog(@"📦 VideoMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
+    
+    // 调用 SDK 发送
+    uint64_t reqId = 0;
+    int result = send_single_message(
+        SendMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Video,  // msgType = 2 (VIDEO)
+        receiverId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_single_message (视频): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
 - (int)sendVoiceMessage:(NSString *)audioUrl
                 duration:(int32_t)duration
           conversationId:(NSString *)conversationId
@@ -885,7 +957,13 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     }
     
     NSData *protoData = [req data];
-    
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        if (completion) {
+            completion(-1, 0, @"{\"message\":\"Protobuf 序列化失败\"}");
+        }
+        return -1;
+    }
     
     uint64_t reqId = 0;
     int code = get_notification_unread_count(
@@ -894,6 +972,8 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         (int)protoData.length,
         reqId
     );
+    
+    NSLog(@"🔔 调用 get_notification_unread_count: result=%d, reqId=%llu", code, reqId);
     
     if (code == 0 && completion) {
         [self setCallback:completion forReqId:reqId];

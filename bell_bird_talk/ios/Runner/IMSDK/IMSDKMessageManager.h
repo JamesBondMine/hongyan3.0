@@ -116,6 +116,27 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
               receiverId:(NSString *)receiverId
               completion:(IMSDKMessageCompletion)completion;
 
+/// 发送视频消息
+/// @param videoUrl 视频文件URL
+/// @param coverURL 封面图URL（可选）
+/// @param duration 视频时长（秒，可选）
+/// @param width 视频宽度（可选）
+/// @param height 视频高度（可选）
+/// @param size 视频文件大小（字节，可选）
+/// @param conversationId 会话ID
+/// @param receiverId 接收者ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendVideoMessage:(NSString *)videoUrl
+               coverURL:(NSString * _Nullable)coverURL
+               duration:(int32_t)duration
+                  width:(int32_t)width
+                 height:(int32_t)height
+                   size:(int64_t)size
+         conversationId:(NSString *)conversationId
+             receiverId:(NSString *)receiverId
+             completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息

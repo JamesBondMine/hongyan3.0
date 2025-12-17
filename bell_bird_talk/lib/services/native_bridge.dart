@@ -630,6 +630,17 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+
+  /// 注销当前用户
+  /// 调用底层 delete_user 接口，删除当前登录账号
+  Future<Map<String, dynamic>> imDeleteUser() async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imDeleteUser');
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
   
   // ---------- 联系人管理 ----------
   
@@ -818,6 +829,23 @@ class IOSNativeService {
   }
   
   // ---------- 联系人分组 ----------
+
+  /// 搜索联系人
+  /// @param keyword 搜索关键词（昵称、备注、ID 等）
+  /// @return 搜索结果列表
+  Future<Map<String, dynamic>> imSearchContact({
+    required String keyword,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSearchContact', {
+        'keyword': keyword,
+      });
+      return result?.cast<String, dynamic>() ??
+          {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
   
   /// 获取联系人分组列表
   /// @param page 页码（从1开始）
@@ -1044,7 +1072,7 @@ class IOSNativeService {
   Future<Map<String, dynamic>> imGetConversationList({
     int page = 1,
     int pageSize = 20,
-    int convType = 2,
+    int convType = 0,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetConversationList', {
@@ -1329,6 +1357,45 @@ class IOSNativeService {
       };
       
       final result = await _bridge.invokeMethod<Map>('imSendVoiceMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 发送视频消息
+  /// @param videoUrl 视频文件URL
+  /// @param coverUrl 封面图URL（可选）
+  /// @param duration 视频时长（秒，可选）
+  /// @param width 视频宽度（可选）
+  /// @param height 视频高度（可选）
+  /// @param size 视频文件大小（字节，可选）
+  /// @param conversationId 会话ID
+  /// @param receiverId 接收者ID
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendVideoMessage({
+    required String videoUrl,
+    required String conversationId,
+    required String receiverId,
+    String? coverUrl,
+    int? duration,
+    int? width,
+    int? height,
+    int? size,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'video_url': videoUrl,
+        'conversation_id': conversationId,
+        'receiver_id': receiverId,
+      };
+      if (coverUrl != null) params['cover_url'] = coverUrl;
+      if (duration != null) params['duration'] = duration;
+      if (width != null) params['width'] = width;
+      if (height != null) params['height'] = height;
+      if (size != null) params['size'] = size;
+
+      final result = await _bridge.invokeMethod<Map>('imSendVideoMessage', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       return {'errorCode': -999, 'message': e.toString()};

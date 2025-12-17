@@ -242,13 +242,6 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.image_outlined, color: Colors.purple),
-          title: const Text('修改群头像'),
-          subtitle: const Text('填写图片URL'),
-          onTap: _editGroupAvatar,
-        ),
-        const Divider(height: 1),
-        ListTile(
           leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
           title: const Text('添加群成员'),
           onTap: () {
@@ -334,39 +327,6 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
-  Future<void> _editGroupAvatar() async {
-    final controller = TextEditingController(text: _groupAvatar ?? '');
-    final newUrl = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('修改群头像'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: '输入头像图片URL'),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
-          ],
-        );
-      },
-    );
-    if (newUrl == null || newUrl.isEmpty || newUrl == _groupAvatar) return;
-    EasyLoading.show(status: '修改群头像...');
-    final res = await _nativeService.imUpdateGroup(
-      groupId: widget.groupId,
-      groupAvatar: newUrl,
-      version: 1,
-    );
-    if (!mounted) return;
-    if (res['errorCode'] == 0) {
-      EasyLoading.showSuccess('修改成功');
-      await _refreshGroupInfo();
-    } else {
-      EasyLoading.showError(res['message']?.toString() ?? '修改失败');
-    }
-  }
 
   Future<void> _editGroupAlias() async {
     final controller = TextEditingController();
@@ -405,32 +365,106 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final picker = ImagePicker();
     final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
     if (img == null) return;
+    
     EasyLoading.show(status: '上传群头像...');
+    
     try {
-      final file = File(img.path);
-      final fileName = file.path.split('/').last;
-      final fileSize = await file.length();
-      final prepare = await _nativeService.imPrepareUpload(
+      // 1. 获取文件信息
+      final File imageFile = File(img.path);
+      final int fileSize = await imageFile.length();
+      final String fileName = 'group_avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String contentType = 'image/jpeg';
+      
+      print('📦 文件信息: fileName=$fileName, size=$fileSize');
+      
+      // 2. 获取上传凭证
+      final prepareResult = await _nativeService.imPrepareUpload(
         businessModule: 'group_avatar',
         fileName: fileName,
         fileSize: fileSize,
-        contentType: 'image/jpeg',
+        contentType: contentType,
       );
-      if (prepare['errorCode'] != 0) {
-        EasyLoading.showError(prepare['message']?.toString() ?? '获取上传凭证失败');
+      
+      print('📋 上传凭证结果: $prepareResult');
+      
+      final int errorCode = prepareResult['errorCode'] as int? ?? -1;
+      if (errorCode != 0) {
+        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败');
         return;
       }
-      final url = await _uploadWithPrepared(prepare, file.path);
-      if (url == null || url.isEmpty) {
-        EasyLoading.showError('上传失败');
+      
+      // 3. 解析凭证数据
+      final String? dataStr = prepareResult['data'] as String?;
+      if (dataStr == null || dataStr.isEmpty) {
+        EasyLoading.showError('上传凭证数据为空');
         return;
       }
+      
+      final Map<String, dynamic> tokenData = json.decode(dataStr);
+      print('📦 凭证详情: $tokenData');
+      
+      final String uploadUrl = tokenData['upload_url'] ?? '';
+      final String fileUrl = tokenData['file_url'] ?? '';
+      final String method = tokenData['method'] ?? 'POST';
+      final String objectKey = tokenData['file_path'] ?? '';
+      final String uploadMode = tokenData['upload_mode'] ?? '';
+      final String providerCode = tokenData['provider_code'] ?? '';
+      final Map<String, dynamic> headers = Map<String, dynamic>.from(tokenData['headers'] ?? {});
+      final Map<String, dynamic> formData = Map<String, dynamic>.from(tokenData['form_data'] ?? {});
+      
+      // STS 凭证（腾讯云等）
+      final String bucketName = tokenData['bucket_name'] ?? '';
+      final String region = tokenData['region'] ?? '';
+      final String stsAccessKeyId = tokenData['sts_access_key_id'] ?? '';
+      final String stsAccessKeySecret = tokenData['sts_access_key_secret'] ?? '';
+      final String stsSecurityToken = tokenData['sts_security_token'] ?? '';
+      
+      print('📤 开始上传: uploadMode=$uploadMode, provider=$providerCode');
+      
+      // 4. 上传图片
+      bool uploadSuccess = false;
+      
+      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
+        // 腾讯云 STS SDK 上传
+        uploadSuccess = await _uploadWithTencentSTS(
+          localFilePath: imageFile.path,
+          objectKey: objectKey,
+          bucketName: bucketName,
+          region: region,
+          secretId: stsAccessKeyId,
+          secretKey: stsAccessKeySecret,
+          token: stsSecurityToken,
+        );
+      } else if (uploadUrl.isNotEmpty) {
+        // HTTP 上传（PUT 或 POST）
+        if (method.toUpperCase() == 'PUT') {
+          uploadSuccess = await _uploadWithPut(uploadUrl, imageFile, headers);
+        } else {
+          uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, objectKey, headers, formData);
+        }
+      } else {
+        EasyLoading.showError('不支持的上传模式: $uploadMode');
+        return;
+      }
+      
+      if (!uploadSuccess) {
+        EasyLoading.showError('图片上传失败');
+        return;
+      }
+      
+      print('✅ 图片上传成功: fileUrl=$fileUrl');
+      
+      // 5. 更新群头像
+      EasyLoading.show(status: '更新群头像...');
+      
       final res = await _nativeService.imUpdateGroup(
         groupId: widget.groupId,
-        groupAvatar: url,
+        groupAvatar: fileUrl,
         version: 1,
       );
+      
       if (!mounted) return;
+      
       if (res['errorCode'] == 0) {
         EasyLoading.showSuccess('群头像已更新');
         await _refreshGroupInfo();
@@ -438,44 +472,113 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         EasyLoading.showError(res['message']?.toString() ?? '更新群头像失败');
       }
     } catch (e) {
+      print('❌ 上传群头像异常: $e');
       EasyLoading.showError('上传失败: $e');
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 
-  Future<String?> _uploadWithPrepared(Map<String, dynamic> prepare, String path) async {
-    final method = (prepare['method'] as String?)?.toUpperCase() ?? 'PUT';
-    final uploadUrl = prepare['upload_url'] as String? ?? '';
-    if (uploadUrl.isEmpty) return null;
-    final headers = (prepare['headers'] as Map?)?.cast<String, dynamic>() ?? {};
-    final formData = (prepare['form_data'] as Map?)?.cast<String, dynamic>();
-    final fileUrl = prepare['file_url'] as String?;
-
-    final file = File(path);
-    if (!await file.exists()) return null;
-
-    if (method == 'POST' && formData != null && formData.isNotEmpty) {
-      final req = http.MultipartRequest('POST', Uri.parse(uploadUrl));
-      formData.forEach((k, v) {
-        req.fields[k] = v.toString();
-      });
-      req.files.add(await http.MultipartFile.fromPath('file', path));
-      headers.forEach((k, v) => req.headers[k] = v.toString());
-      final resp = await req.send();
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        return fileUrl ?? prepare['file_path'] as String?;
-      }
-    } else {
+  /// PUT 方式上传
+  Future<bool> _uploadWithPut(String url, File file, Map<String, dynamic> headers) async {
+    try {
       final bytes = await file.readAsBytes();
-      final resp = await http.put(
-        Uri.parse(uploadUrl),
+      
+      final response = await http.put(
+        Uri.parse(url),
         headers: headers.map((k, v) => MapEntry(k, v.toString())),
         body: bytes,
       );
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        return fileUrl ?? prepare['file_path'] as String?;
-      }
+      
+      print('📤 PUT 上传响应: ${response.statusCode}');
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ PUT 上传失败: $e');
+      return false;
     }
-    return null;
+  }
+
+  /// POST 表单方式上传
+  Future<bool> _uploadWithPost(
+    String url, 
+    File file, 
+    String filePath,
+    Map<String, dynamic> headers, 
+    Map<String, dynamic> formData,
+  ) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      
+      // 添加表单字段
+      formData.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
+      
+      // 添加文件
+      final fileName = filePath.isNotEmpty ? filePath.split('/').last : 'file';
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        filename: fileName,
+      ));
+      
+      // 添加 headers
+      headers.forEach((key, value) {
+        request.headers[key] = value.toString();
+      });
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('📤 POST 上传响应: ${response.statusCode}');
+      print('📤 响应内容: ${response.body}');
+      
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ POST 上传失败: $e');
+      return false;
+    }
+  }
+
+  /// 腾讯云 STS SDK 上传
+  Future<bool> _uploadWithTencentSTS({
+    required String localFilePath,
+    required String objectKey,
+    required String bucketName,
+    required String region,
+    required String secretId,
+    required String secretKey,
+    required String token,
+  }) async {
+    try {
+      print('📤 腾讯云 STS 上传开始...');
+      print('  - localFilePath: $localFilePath');
+      print('  - objectKey: $objectKey');
+      print('  - bucket: $bucketName');
+      print('  - region: $region');
+      
+      final result = await _nativeService.imUploadWithTencentSTS(
+        localFilePath: localFilePath,
+        objectKey: objectKey,
+        bucketName: bucketName,
+        region: region,
+        secretId: secretId,
+        secretKey: secretKey,
+        token: token,
+      );
+      
+      final bool success = result['success'] == true;
+      if (success) {
+        print('✅ 腾讯云上传成功: ${result['url']}');
+      } else {
+        print('❌ 腾讯云上传失败: ${result['error']}');
+      }
+      
+      return success;
+    } catch (e) {
+      print('❌ 腾讯云 STS 上传异常: $e');
+      return false;
+    }
   }
 }
 

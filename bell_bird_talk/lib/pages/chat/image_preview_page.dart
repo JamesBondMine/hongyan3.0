@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
+import 'package:video_player/video_player.dart';
 import '../../services/file_path_helper.dart';
-import '../../utils/permission_util.dart';
 
 /// 图片预览页面
 class ImagePreviewPage extends StatefulWidget {
@@ -29,6 +29,8 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
   late PageController _pageController;
   late int _currentIndex;
   bool _showControls = true;
+  final Map<int, VideoPlayerController> _videoControllers = {};
+  final Map<int, Future<void>> _videoInitFutures = {};
   
   @override
   void initState() {
@@ -40,6 +42,9 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    for (final ctrl in _videoControllers.values) {
+      ctrl.dispose();
+    }
     super.dispose();
   }
   
@@ -158,6 +163,89 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
     
     return _buildErrorWidget();
   }
+
+  /// 构建视频 Widget（直接播放）
+  Widget _buildVideoWidget(Map<String, dynamic> message, int index) {
+    final localPath = message['videoLocalPath'] as String? ??
+        message['fileLocalPath'] as String? ??
+        message['imageLocalPath'] as String?;
+    final videoUrl = message['videoUrl'] as String? ??
+        message['fileUrl'] as String? ??
+        message['audioUrl'] as String?;
+
+    VideoPlayerController _ensureController() {
+      if (_videoControllers.containsKey(index)) {
+        return _videoControllers[index]!;
+      }
+      VideoPlayerController controller;
+      if (localPath != null && localPath.isNotEmpty) {
+        final pathHelper = FilePathHelper.instance;
+        final fullPath = pathHelper.toFullPathSync(localPath);
+        controller = VideoPlayerController.file(File(fullPath));
+      } else if (videoUrl != null && videoUrl.isNotEmpty) {
+        controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      } else {
+        controller = VideoPlayerController.networkUrl(Uri.parse(''));
+      }
+      _videoControllers[index] = controller;
+      _videoInitFutures[index] = controller.initialize();
+      controller.setLooping(true);
+      return controller;
+    }
+
+    final controller = _ensureController();
+    final initFuture = _videoInitFutures[index]!;
+
+    return FutureBuilder<void>(
+      future: initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+        if (snapshot.hasError) {
+          return _buildErrorWidget();
+        }
+        if (!controller.value.isPlaying) {
+          controller.play();
+        }
+        final aspect = controller.value.aspectRatio == 0
+            ? 16 / 9
+            : controller.value.aspectRatio;
+        return Center(
+          child: AspectRatio(
+            aspectRatio: aspect,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                VideoPlayer(controller),
+                GestureDetector(
+                  onTap: () {
+                    if (controller.value.isPlaying) {
+                      controller.pause();
+                    } else {
+                      controller.play();
+                    }
+                    setState(() {});
+                  },
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: controller.value.isPlaying ? 0.0 : 1.0,
+                    child: const Icon(
+                      Icons.play_circle_fill,
+                      size: 64,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
   
   /// 构建错误 Widget
   Widget _buildErrorWidget() {
@@ -192,12 +280,20 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
               controller: _pageController,
               itemCount: widget.imageMessages.length,
               onPageChanged: (index) {
+                final prev = _currentIndex;
+                if (_videoControllers.containsKey(prev)) {
+                  _videoControllers[prev]?.pause();
+                }
                 setState(() {
                   _currentIndex = index;
                 });
               },
               itemBuilder: (context, index) {
                 final message = widget.imageMessages[index];
+                final type = (message['type'] as String?) ?? 'image';
+                if (type == 'video') {
+                  return Center(child: _buildVideoWidget(message, index));
+                }
                 return InteractiveViewer(
                   minScale: 0.5,
                   maxScale: 3.0,

@@ -152,6 +152,9 @@ class MessageQueueManager {
         case MessageType.voice:
           success = await _sendVoiceMessage(message);
           break;
+        case MessageType.video:
+          success = await _sendVideoMessage(message);
+          break;
         // 其他类型暂时不支持
         default:
           success = false;
@@ -231,6 +234,7 @@ class MessageQueueManager {
     // 将相对路径转换为完整路径
     final pathHelper = FilePathHelper.instance;
     final fullPath = await pathHelper.toFullPath(localPath);
+    final coverLocalPath = message.imageLocalPath;
     
     final file = File(fullPath);
     if (!await file.exists()) {
@@ -285,6 +289,74 @@ class MessageQueueManager {
       
       // 3. 执行上传
       bool uploadSuccess = false;
+      String? coverUrl;
+      // 3.1 先上传封面（如果有）
+      if (coverLocalPath != null) {
+        final coverFull = await pathHelper.toFullPath(coverLocalPath);
+        final coverFile = File(coverFull);
+        if (!await coverFile.exists()) {
+          print('⚠️ 视频封面不存在，跳过封面上传');
+        } else {
+          final coverName = coverFull.split('/').last;
+          final coverSize = await coverFile.length();
+          final coverContentType = lookupMimeType(coverFull) ?? 'image/png';
+
+          final coverPrepare = await _nativeService.imPrepareUpload(
+            businessModule: 'message',
+            fileName: coverName,
+            fileSize: coverSize,
+            contentType: coverContentType,
+          );
+          if (coverPrepare['errorCode'] == 0) {
+            final coverDataStr = coverPrepare['data'] as String?;
+            if (coverDataStr != null && coverDataStr.isNotEmpty) {
+              final coverToken = json.decode(coverDataStr) as Map<String, dynamic>;
+              final coverUploadUrl = coverToken['upload_url'] as String? ?? '';
+              final coverMethod = coverToken['method'] as String? ?? '';
+              final coverUploadMode = coverToken['upload_mode'] as String? ?? '';
+              final coverProvider = coverToken['provider_code'] as String? ?? '';
+
+              bool coverOk = false;
+              if (coverUploadMode == 'STS_SDK' && coverProvider == 'tencent') {
+                coverOk = await _uploadWithTencentSTS(
+                  localFilePath: coverFull,
+                  objectKey: coverToken['file_path'] as String? ?? '',
+                  bucketName: coverToken['bucket_name'] as String? ?? '',
+                  region: coverToken['region'] as String? ?? '',
+                  secretId: coverToken['sts_access_key_id'] as String? ?? '',
+                  secretKey: coverToken['sts_access_key_secret'] as String? ?? '',
+                  token: coverToken['sts_security_token'] as String? ?? '',
+                );
+              } else if (coverUploadUrl.isNotEmpty) {
+                if (coverMethod.toUpperCase() == 'PUT') {
+                  coverOk = await _uploadWithPut(
+                    coverUploadUrl,
+                    coverFile,
+                    coverToken['headers'] as Map<String, dynamic>?,
+                  );
+                } else if (coverMethod.toUpperCase() == 'POST') {
+                  coverOk = await _uploadWithPost(
+                    coverUploadUrl,
+                    coverFile,
+                    coverToken['file_path'] as String?,
+                    coverToken['headers'] as Map<String, dynamic>?,
+                    coverToken['form_data'] as Map<String, dynamic>?,
+                  );
+                }
+              }
+
+              if (coverOk) {
+                coverUrl = coverToken['file_url'] as String? ?? '';
+                message.imageUrl = coverUrl;
+                await _database.updateImageUrl(message.localId, coverUrl, null);
+                print('✅ 封面上传成功: $coverUrl');
+              } else {
+                print('⚠️ 封面上传失败，但继续上传视频主体');
+              }
+            }
+          }
+        }
+      }
       
       if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
         // 腾讯云 STS SDK 上传
@@ -432,7 +504,7 @@ class MessageQueueManager {
       
       print('📤 语音上传模式: $uploadMode, 提供商: $providerCode');
       
-      // 3. 执行上传
+      // 3.2 上传视频主体
       bool uploadSuccess = false;
       
       if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
@@ -512,6 +584,231 @@ class MessageQueueManager {
       
     } catch (e) {
       print('❌ 语音上传异常: $e');
+      message.errorMessage = '上传异常: $e';
+      return false;
+    }
+  }
+
+  /// 发送视频消息
+  Future<bool> _sendVideoMessage(ChatMessage message) async {
+    final localPath = message.fileLocalPath;
+    if (localPath == null || localPath.isEmpty) {
+      message.errorMessage = '视频文件路径为空';
+      return false;
+    }
+
+    // 将相对路径转换为完整路径
+    final pathHelper = FilePathHelper.instance;
+    final fullPath = await pathHelper.toFullPath(localPath);
+    final coverLocalPath = message.imageLocalPath;
+
+    final file = File(fullPath);
+    if (!await file.exists()) {
+      message.errorMessage = '视频文件不存在';
+      return false;
+    }
+
+    try {
+      // 1. 获取上传凭证
+      final fileName = fullPath.split('/').last;
+      final fileSize = await file.length();
+      final contentType = lookupMimeType(fullPath) ?? 'video/mp4';
+
+      print('📤 准备上传视频: $fileName, $fileSize bytes, $contentType');
+
+      final prepareResult = await _nativeService.imPrepareUpload(
+        businessModule: 'message',
+        fileName: fileName,
+        fileSize: fileSize,
+        contentType: contentType,
+      );
+
+      if (prepareResult['errorCode'] != 0) {
+        message.errorMessage = prepareResult['message'] ?? '获取上传凭证失败';
+        return false;
+      }
+
+      // 2. 解析上传凭证
+      final tokenDataStr = prepareResult['data'] as String?;
+      if (tokenDataStr == null || tokenDataStr.isEmpty) {
+        message.errorMessage = '上传凭证数据为空';
+        return false;
+      }
+
+      final tokenData = json.decode(tokenDataStr) as Map<String, dynamic>;
+      final uploadUrl = tokenData['upload_url'] as String? ?? '';
+      final method = tokenData['method'] as String? ?? '';
+      final fileUrl = tokenData['file_url'] as String? ?? '';
+      final uploadMode = tokenData['upload_mode'] as String? ?? '';
+      final providerCode = tokenData['provider_code'] as String? ?? '';
+
+      // STS 凭证
+      final objectKey = tokenData['file_path'] as String? ?? '';
+      final bucketName = tokenData['bucket_name'] as String? ?? '';
+      final region = tokenData['region'] as String? ?? '';
+      final stsAccessKeyId = tokenData['sts_access_key_id'] as String? ?? '';
+      final stsAccessKeySecret = tokenData['sts_access_key_secret'] as String? ?? '';
+      final stsSecurityToken = tokenData['sts_security_token'] as String? ?? '';
+
+      print('📤 上传模式: $uploadMode, 提供商: $providerCode');
+
+      // 3. 执行上传
+      String? coverUrl;
+      // 3.1 上传封面（如有）
+      if (coverLocalPath != null && coverLocalPath.isNotEmpty) {
+        final coverFull = await pathHelper.toFullPath(coverLocalPath);
+        final coverFile = File(coverFull);
+        if (await coverFile.exists()) {
+          final coverName = coverFull.split('/').last;
+          final coverSize = await coverFile.length();
+          final coverContentType = lookupMimeType(coverFull) ?? 'image/png';
+
+          final coverPrepare = await _nativeService.imPrepareUpload(
+            businessModule: 'message',
+            fileName: coverName,
+            fileSize: coverSize,
+            contentType: coverContentType,
+          );
+
+          if (coverPrepare['errorCode'] == 0) {
+            final coverDataStr = coverPrepare['data'] as String?;
+            if (coverDataStr != null && coverDataStr.isNotEmpty) {
+              final coverToken = json.decode(coverDataStr) as Map<String, dynamic>;
+              final coverUploadUrl = coverToken['upload_url'] as String? ?? '';
+              final coverMethod = coverToken['method'] as String? ?? '';
+              final coverUploadMode = coverToken['upload_mode'] as String? ?? '';
+              final coverProvider = coverToken['provider_code'] as String? ?? '';
+
+              bool coverOk = false;
+              if (coverUploadMode == 'STS_SDK' && coverProvider == 'tencent') {
+                coverOk = await _uploadWithTencentSTS(
+                  localFilePath: coverFull,
+                  objectKey: coverToken['file_path'] as String? ?? '',
+                  bucketName: coverToken['bucket_name'] as String? ?? '',
+                  region: coverToken['region'] as String? ?? '',
+                  secretId: coverToken['sts_access_key_id'] as String? ?? '',
+                  secretKey: coverToken['sts_access_key_secret'] as String? ?? '',
+                  token: coverToken['sts_security_token'] as String? ?? '',
+                );
+              } else if (coverUploadUrl.isNotEmpty) {
+                if (coverMethod.toUpperCase() == 'PUT') {
+                  coverOk = await _uploadWithPut(
+                    coverUploadUrl,
+                    coverFile,
+                    coverToken['headers'] as Map<String, dynamic>?,
+                  );
+                } else if (coverMethod.toUpperCase() == 'POST') {
+                  coverOk = await _uploadWithPost(
+                    coverUploadUrl,
+                    coverFile,
+                    coverToken['file_path'] as String?,
+                    coverToken['headers'] as Map<String, dynamic>?,
+                    coverToken['form_data'] as Map<String, dynamic>?,
+                  );
+                }
+              }
+
+              if (coverOk) {
+                coverUrl = coverToken['file_url'] as String? ?? '';
+                message.imageUrl = coverUrl;
+                await _database.updateImageUrl(message.localId, coverUrl, null);
+                print('✅ 封面上传成功: $coverUrl');
+              } else {
+                print('⚠️ 封面上传失败，但继续上传视频主体');
+              }
+            }
+          }
+        }
+      }
+
+      // 3.2 上传视频主体
+      bool uploadSuccess = false;
+
+      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
+        // 腾讯云 STS SDK 上传
+        uploadSuccess = await _uploadWithTencentSTS(
+          localFilePath: fullPath,
+          objectKey: objectKey,
+          bucketName: bucketName,
+          region: region,
+          secretId: stsAccessKeyId,
+          secretKey: stsAccessKeySecret,
+          token: stsSecurityToken,
+        );
+      } else if (uploadUrl.isNotEmpty) {
+        // HTTP 上传（PUT 或 POST）
+        if (method.toUpperCase() == 'PUT') {
+          uploadSuccess = await _uploadWithPut(
+            uploadUrl,
+            file,
+            tokenData['headers'] as Map<String, dynamic>?,
+          );
+        } else if (method.toUpperCase() == 'POST') {
+          uploadSuccess = await _uploadWithPost(
+            uploadUrl,
+            file,
+            tokenData['file_path'] as String?,
+            tokenData['headers'] as Map<String, dynamic>?,
+            tokenData['form_data'] as Map<String, dynamic>?,
+          );
+        } else {
+          message.errorMessage = '不支持的上传方法: $method';
+          return false;
+        }
+      } else {
+        message.errorMessage = '不支持的上传模式: $uploadMode';
+        return false;
+      }
+
+      if (!uploadSuccess) {
+        message.errorMessage = '文件上传失败';
+        return false;
+      }
+
+      // 4. 更新视频URL
+      message.fileUrl = fileUrl;
+      await _database.updateVoiceUrl(message.localId, fileUrl);
+
+      print('✅ 视频上传成功: $fileUrl');
+
+      // 5. 发送视频消息到服务器
+      print('📤 开始发送视频消息到服务器...');
+      final sendResult = await _nativeService.imSendVideoMessage(
+        videoUrl: fileUrl,
+        coverUrl: coverUrl,
+        conversationId: message.convId,
+        receiverId: message.receiverId,
+        duration: message.videoDuration,
+        width: message.imageWidth,
+        height: message.imageHeight,
+        size: fileSize,
+      );
+
+      if (sendResult['errorCode'] == 0) {
+        // 更新服务器消息ID
+        if (sendResult['data'] != null) {
+          try {
+            final data = sendResult['data'] is String
+                ? json.decode(sendResult['data'])
+                : sendResult['data'];
+            if (data is Map && data['msg_id'] != null) {
+              message.serverId = data['msg_id'].toString();
+              await _database.updateMessageServerId(
+                  message.localId, message.serverId!);
+            }
+          } catch (e) {
+            print('解析视频消息ID失败: $e');
+          }
+        }
+        print('✅ 视频消息发送成功');
+        return true;
+      } else {
+        message.errorMessage = sendResult['message'] ?? '发送视频消息失败';
+        print('❌ 视频消息发送失败: ${message.errorMessage}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ 视频上传异常: $e');
       message.errorMessage = '上传异常: $e';
       return false;
     }

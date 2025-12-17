@@ -194,6 +194,8 @@ class NativeBridgeHandler: NSObject {
             imUnblockContact(call: call, result: result)
         case "imGetContactList":
             imGetContactList(call: call, result: result)
+        case "imSearchContact":
+            imSearchContact(call: call, result: result)
         
         // ---------- 好友申请 ----------
         case "imGetFriendRequests":
@@ -253,6 +255,8 @@ class NativeBridgeHandler: NSObject {
             imSendTextMessage(call: call, result: result)
         case "imSendImageMessage":
             imSendImageMessage(call: call, result: result)
+        case "imSendVideoMessage":
+            imSendVideoMessage(call: call, result: result)
         case "imSendVoiceMessage":
             imSendVoiceMessage(call: call, result: result)
         case "imPullMessages":
@@ -268,6 +272,8 @@ class NativeBridgeHandler: NSObject {
         
         case "imLogout":
             imLogout(call: call, result: result)
+        case "imDeleteUser":
+            imDeleteUser(call: call, result: result)
         
         case "imChangePassword":
             imChangePassword(call: call, result: result)
@@ -1201,6 +1207,41 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 搜索联系人
+    private func imSearchContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let keyword = (args["keyword"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        print("🔍 搜索联系人: keyword=\(keyword)")
+        
+        guard !keyword.isEmpty else {
+            result([
+                "errorCode": -1,
+                "reqId": 0,
+                "message": "搜索关键词不能为空",
+                "data": ""
+            ])
+            return
+        }
+        
+        let code = IMSDKContactManager.shared().searchContact(withKeyword: keyword) { errorCode, reqId, data in
+            print("✅ 搜索联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "搜索成功" : "搜索失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEARCH_CONTACT_ERROR",
+                              message: "搜索联系人请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     // MARK: - 好友申请
     
     /// 获取好友申请列表
@@ -2040,6 +2081,51 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 发送视频消息
+    private func imSendVideoMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let videoUrl = args["video_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let receiverId = args["receiver_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let coverUrl = args["cover_url"] as? String
+        let duration = args["duration"] as? Int ?? 0
+        let width = args["width"] as? Int ?? 0
+        let height = args["height"] as? Int ?? 0
+        let size = args["size"] as? Int64 ?? 0
+        
+        print("📤 发送视频消息: videoUrl=\(videoUrl), coverUrl=\(coverUrl ?? ""), duration=\(duration), size=\(size), conversationId=\(conversationId), receiverId=\(receiverId)")
+        
+        let code = IMSDKMessageManager.shared().sendVideoMessage(
+            videoUrl,
+            coverURL: coverUrl,
+            duration: Int32(duration),
+            width: Int32(width),
+            height: Int32(height),
+            size: size,
+            conversationId: conversationId,
+            receiverId: receiverId
+        ) { errorCode, reqId, data in
+            print("✅ 发送视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_MESSAGE_ERROR",
+                              message: "发送视频消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 拉取历史消息
     private func imPullMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -2309,6 +2395,28 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "LOGOUT_ERROR",
                               message: "退出登录请求失败",
+                              details: nil))
+        }
+    }
+    
+    /// 注销用户
+    private func imDeleteUser(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        print("🗑 Flutter调用注销用户")
+        
+        let code = IMSDKAuthManager.shared().deleteCurrentUser(completion:  { errorCode, reqId, data in
+            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "注销成功" : "注销失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_USER_ERROR",
+                              message: "注销用户请求失败: \(code)",
                               details: nil))
         }
     }

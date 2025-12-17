@@ -20,6 +20,11 @@ import '../../controllers/global_controller.dart';
 import '../../widgets/voice_record_panel.dart';
 import 'chat_detail_page.dart';
 import 'image_preview_page.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
+import 'user_info_page.dart';
+import '../friends/friend_detail_page.dart';
+import '../models/friend_model.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -264,7 +269,6 @@ class _ChatPageState extends State<ChatPage> {
       'errorMessage': message.errorMessage,
       'voiceDuration': message.voiceDuration,
     };
-    
     // 检查是否已存在
     final existIndex = _messages.indexWhere((m) => m['localId'] == message.localId);
     if (existIndex != -1) {
@@ -296,6 +300,9 @@ class _ChatPageState extends State<ChatPage> {
         if (data != null && data is String && data.isNotEmpty) {
           try {
             final dataMap = json.decode(data) as Map<String, dynamic>;
+
+                print("组装消息: $dataMap");
+    
             
             // 解析消息列表
             final messages = dataMap['messages'] as List<dynamic>?;
@@ -345,7 +352,20 @@ class _ChatPageState extends State<ChatPage> {
         final fileUrl = msg['file_url'] as String?;
         final audioUrl = msg['audio_url'] as String?;
         final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
+        final videoUrl = msg['video_url'] as String?;
+        final thumbnailUrl = msg['thumbnail_url'] as String?;
+        final videoDuration = msg['duration'] as int? ?? 0;
         final timestampInt = timestamp is int ? timestamp : 0;
+
+        // 发送者昵称和头像（如果有，主要用于群聊展示）
+        final dynamic rawSenderName = msg['sender_name'] ??
+            msg['nickname'] ??
+            msg['from_nick'] ??
+            msg['from_name'];
+        final String? senderName = rawSenderName != null ? rawSenderName.toString() : null;
+        final dynamic rawSenderAvatar =
+            msg['sender_avatar'] ?? msg['avatar'] ?? msg['face_url'] ?? msg['faceURL'];
+        final String? senderAvatar = rawSenderAvatar != null ? rawSenderAvatar.toString() : null;
         
         // 判断是否是自己发的消息（根据发送者ID判断）
         final isMine = senderId == _currentUserId;
@@ -354,6 +374,8 @@ class _ChatPageState extends State<ChatPage> {
         String msgType = 'text';
         if (mType == 1 || imageUrl != null) {
           msgType = 'image';
+        } else if (mType == 2 || videoUrl != null) {
+          msgType = 'video';
         } else if (mType == 3 || (fileUrl != null && voiceDuration > 0)) {
           msgType = 'voice';
         }
@@ -366,12 +388,18 @@ class _ChatPageState extends State<ChatPage> {
           'timestamp': timestampInt,
           'status': 'sent',
           'senderId': senderId.toString(),
-          'imageUrl': imageUrl,
+          'senderName': senderName,
+          'senderAvatar': senderAvatar,
+          'imageUrl': imageUrl ?? thumbnailUrl,
           'fileUrl': fileUrl,
           'audioUrl': audioUrl,
           'voiceDuration': voiceDuration,
+          'videoUrl': videoUrl,
+          'thumbnailUrl': thumbnailUrl,
+          'videoDuration': videoDuration,
         };
         
+        print("组装消息2: $msgMap");
         // 检查是否已存在（通过 id 去重）
         final existIndex = _messages.indexWhere((m) => m['id'] == msgId.toString());
         if (existIndex == -1) {
@@ -386,7 +414,9 @@ class _ChatPageState extends State<ChatPage> {
             ? MessageType.image
             : msgType == 'voice'
                 ? MessageType.voice
-                : MessageType.text;
+                : msgType == 'video'
+                    ? MessageType.video
+                    : MessageType.text;
         final chatMessage = ChatMessage(
           localId: msgId.toString(),
           serverId: msgId.toString(),
@@ -400,9 +430,18 @@ class _ChatPageState extends State<ChatPage> {
           sentAt: timestampInt,
           isRead: isMine ? true : false,
           textContent: msgTypeEnum == MessageType.text ? content.toString() : null,
-          imageUrl: msgTypeEnum == MessageType.image ? imageUrl : null,
-          fileUrl: msgTypeEnum == MessageType.voice ? (audioUrl ?? fileUrl) : fileUrl,
+          imageUrl: msgTypeEnum == MessageType.image
+              ? imageUrl
+              : msgTypeEnum == MessageType.video
+                  ? (thumbnailUrl ?? imageUrl)
+                  : null,
+          fileUrl: msgTypeEnum == MessageType.voice
+              ? (audioUrl ?? fileUrl)
+              : msgTypeEnum == MessageType.video
+                  ? videoUrl ?? fileUrl
+                  : fileUrl,
           voiceDuration: msgTypeEnum == MessageType.voice ? voiceDuration : null,
+          videoDuration: msgTypeEnum == MessageType.video ? videoDuration : null,
         );
         if (convHasLocal) {
           // 会话已有消息，逐条插入（replace）
@@ -462,6 +501,89 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _isSending = false;
       });
+    }
+  }
+
+  /// 处理头像点击事件
+  Future<void> _onAvatarTap(
+    String userId, {
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    try {
+      // 检查是否是好友
+      final result = await _nativeService.imGetContactList(
+        page: 1,
+        pageSize: 1000,
+        relationship: 0, // 只获取好友关系
+      );
+      
+      bool isFriend = false;
+      FriendModel? friendInfo;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr);
+            final contacts = data['contacts'] as List? ?? [];
+
+            // 查找是否是该用户的好友
+            for (final contact in contacts) {
+              final contactUserId = contact['contact_user_id']?.toString() ?? '';
+              if (contactUserId == userId) {
+                isFriend = true;
+                friendInfo = FriendModel.fromJson(contact);
+                break;
+              }
+            }
+          } catch (e) {
+            print('❌ 解析好友列表失败: $e');
+          }
+        }
+      }
+      
+      // 根据是否是好友跳转到不同页面
+      if (isFriend && friendInfo != null) {
+        // 是好友，跳转到好友详情页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FriendDetailPage(
+              friend: friendInfo!,
+              onDelete: () {
+                // 删除好友后返回
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        );
+      } else {
+        // 不是好友，跳转到用户信息页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserInfoPage(
+              userId: userId,
+              displayName: displayName ?? userId,
+              avatar: avatarUrl,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ 处理头像点击失败: $e');
+      // 如果检查失败，默认跳转到用户信息页面
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserInfoPage(
+            userId: userId,
+            displayName: displayName ?? userId,
+            avatar: avatarUrl,
+          ),
+        ),
+      );
     }
   }
 
@@ -676,9 +798,20 @@ class _ChatPageState extends State<ChatPage> {
     final senderId = message['senderId'] as String? ?? '';
     final timestamp = message['timestamp'] as int? ?? 0;
     final isImageMessage = type == 'image';
+    final bool isGroupChat = widget.convType == 2;
+
+    // 当前这条消息的发送人信息
+    final String messageSenderId = senderId;
+    final String senderName =
+        ((message['senderName'] as String?)?.trim().isNotEmpty ?? false)
+            ? (message['senderName'] as String)
+            : messageSenderId;
+    final String? senderAvatar = message['senderAvatar'] as String?;
     
     // 用 senderId 判断是否是自己发的消息（更可靠）
-    final isMine = senderId.isNotEmpty ? senderId == _currentUserId : (message['isMine'] as bool? ?? false);
+    final isMine = messageSenderId.isNotEmpty
+        ? messageSenderId == _currentUserId
+        : (message['isMine'] as bool? ?? false);
     
     // 对方发的消息如果是发送失败状态，则不显示（不合逻辑的数据）
     if (!isMine && status == 'failed') {
@@ -712,22 +845,43 @@ class _ChatPageState extends State<ChatPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMine) ...[
-                // 对方头像
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: widget.avatar != null && widget.avatar!.isNotEmpty
-                      ? NetworkImage(widget.avatar!)
-                      : null,
-                  child: widget.avatar == null || widget.avatar!.isEmpty
-                      ? Text(
-                          widget.displayName.isNotEmpty ? widget.displayName[0] : '?',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : null,
+                // 对方头像（可点击）
+                Builder(
+                  builder: (context) {
+                    // 单聊：使用会话级头像；群聊：使用每条消息发送人的头像/昵称
+                    final String? avatarUrlToUse =
+                        isGroupChat ? senderAvatar : widget.avatar;
+                    final String displayNameForInitial =
+                        isGroupChat ? senderName : widget.displayName;
+
+                    return GestureDetector(
+                      onTap: () => _onAvatarTap(
+                        messageSenderId,
+                        displayName: displayNameForInitial,
+                        avatarUrl: avatarUrlToUse,
+                      ),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage: avatarUrlToUse != null &&
+                                avatarUrlToUse.isNotEmpty
+                            ? NetworkImage(avatarUrlToUse)
+                            : null,
+                        child: (avatarUrlToUse == null ||
+                                avatarUrlToUse.isEmpty)
+                            ? Text(
+                                displayNameForInitial.isNotEmpty
+                                    ? displayNameForInitial[0]
+                                    : '?',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 8),
               ],
@@ -1525,15 +1679,27 @@ class _ChatPageState extends State<ChatPage> {
   /// 从相册选择图片
   Future<void> _pickImageFromGallery() async {
     try {
-      final List<XFile>? images = await _imagePicker.pickMultiImage();
+      final List<XFile>? images = await _imagePicker.pickMultipleMedia(
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+        limit: 9,
+      );
       if (images != null) {
-        for (var image in images) {
-        await _sendImageMessage(image.path);
+        for (var media in images) {
+          final path = media.path;
+          final ext = path.split('.').last.toLowerCase();
+          final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(ext);
+          if (isImage) {
+            await _sendImageMessage(path);
+          } else {
+            await _sendVideoMessage(path);
+          }
         }
       }
     } catch (e) {
-      print('选择图片失败: $e');
-      EasyLoading.showError('选择图片失败');
+      print('选择媒体失败: $e');
+      EasyLoading.showError('选择媒体失败');
     }
   }
 
@@ -1600,6 +1766,78 @@ class _ChatPageState extends State<ChatPage> {
       _messageQueue.sendMessage(message);
     } catch (e) {
       print('❌ 发送图片失败: $e');
+    }
+  }
+
+  /// 发送视频消息
+  Future<void> _sendVideoMessage(String videoPath) async {
+    // 收起面板
+    setState(() => _showMorePanel = false);
+    
+    try {
+      // 获取视频时长
+      int? durationSeconds;
+      try {
+        final controller = VideoPlayerController.file(File(videoPath));
+        await controller.initialize();
+        durationSeconds = controller.value.duration.inSeconds;
+        await controller.dispose();
+      } catch (_) {}
+
+      // 生成缩略图
+      String? thumbTemp;
+      int? thumbWidth;
+      int? thumbHeight;
+      try {
+        thumbTemp = await VideoThumbnail.thumbnailFile(
+          video: videoPath,
+          imageFormat: ImageFormat.PNG,
+          maxWidth: 512,
+          quality: 75,
+        );
+        if (thumbTemp != null) {
+          final bytes = await File(thumbTemp).readAsBytes();
+          final decoded = await decodeImageFromList(bytes);
+          thumbWidth = decoded.width;
+          thumbHeight = decoded.height;
+        }
+      } catch (e) {
+        print('⚠️ 生成视频缩略图失败: $e');
+      }
+
+      // 将视频复制到永久存储目录（避免临时缓存被清理）
+      final pathHelper = FilePathHelper.instance;
+      final relativePath = await pathHelper.copyToPermanentStorage(videoPath, 'videos');
+      String? thumbRelativePath;
+      if (thumbTemp != null) {
+        thumbRelativePath = await pathHelper.copyToPermanentStorage(thumbTemp, 'images');
+      }
+      
+      print('🎬 视频已保存: $relativePath');
+      
+      // 创建视频消息（存储相对路径）
+      final message = ChatMessage.video(
+        convId: widget.convId,
+        senderId: _currentUserId,
+        receiverId: widget.targetUserId,
+        localPath: relativePath,
+        coverLocalPath: thumbRelativePath,
+        duration: durationSeconds,
+        coverWidth: thumbWidth,
+        coverHeight: thumbHeight,
+      );
+      
+      // 添加到消息列表
+      setState(() {
+        _addChatMessageToList(message);
+      });
+      _scrollToBottom();
+      
+      // 通过队列发送（队列中会用完整路径读取文件）
+      _messageQueue.sendMessage(message);
+    } catch (e) {
+      print('❌ 发送视频失败: $e');
+      EasyLoading.showError('发送视频失败');
     }
   }
 
@@ -1675,6 +1913,10 @@ class _ChatPageState extends State<ChatPage> {
     
     if (type == 'voice') {
       return _buildVoiceMessage(message, isMine, status);
+    }
+
+    if (type == 'video') {
+      return _buildVideoMessage(message, isMine, status);
     }
     
     // 默认文本消息
@@ -1976,7 +2218,7 @@ class _ChatPageState extends State<ChatPage> {
         child: const Icon(Icons.image, size: 40, color: Colors.grey),
       );
     }
-    print("\n\n---------------------------------\n构建图片消息\n message: ${message['id']} content: ${message['content']} localPath: $localPath imageUrl: $imageUrl \n---------------------------------\n\n");
+    // print("\n\n---------------------------------\n构建图片消息\n message: ${message['id']} content: ${message['content']} localPath: $localPath imageUrl: $imageUrl \n---------------------------------\n\n");
     return GestureDetector(
       onTap: () {
         // 收集所有图片消息
@@ -2045,6 +2287,169 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
       ],
+      ),
+    );
+  }
+
+  /// 构建视频消息（显示缩略图并可点击播放/预览）
+  Widget _buildVideoMessage(Map<String, dynamic> message, bool isMine, String status) {
+    print("message视频: $message");
+    final localThumbPath = message['imageLocalPath'] as String?;
+    final thumbUrl = message['imageUrl'] as String?;
+    final videoUrl = message['videoUrl'] as String? ?? message['fileUrl'] as String?;
+    final duration = message['videoDuration'] as int? ?? 0;
+    Widget thumbWidget;
+
+    // 将相对路径转换为完整路径
+    final pathHelper = FilePathHelper.instance;
+    final fullThumbPath = localThumbPath != null ? pathHelper.toFullPathSync(localThumbPath) : null;
+
+    if (fullThumbPath != null && File(fullThumbPath).existsSync()) {
+      thumbWidget = Image.file(
+        File(fullThumbPath),
+        width: 180,
+        height: 120,
+        fit: BoxFit.cover,
+      );
+    } else if (thumbUrl != null && thumbUrl.isNotEmpty) {
+      thumbWidget = Image.network(
+        thumbUrl,
+        width: 180,
+        height: 120,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            width: 180,
+            height: 120,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: progress.expectedTotalBytes != null
+                    ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 180,
+            height: 120,
+            color: Colors.grey[300],
+            child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+          );
+        },
+      );
+    } else {
+      thumbWidget = Container(
+        width: 180,
+        height: 120,
+        color: Colors.grey[300],
+        child: const Icon(Icons.videocam, size: 40, color: Colors.grey),
+      );
+    }
+
+    // 显示时长
+    String durationText = '';
+    if (duration > 0) {
+      final d = Duration(seconds: duration);
+      final mm = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+      final ss = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+      durationText = '$mm:$ss';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        // 预览或播放视频
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ImagePreviewPage(
+              imageMessages: [
+                {
+                  'type': 'video',
+                  'videoUrl': videoUrl,
+                  'coverUrl': thumbUrl,
+                  'thumbnailUrl': thumbUrl,
+                  'imageLocalPath': localThumbPath,
+                  'videoLocalPath': message['fileLocalPath'],
+                  'fileLocalPath': message['fileLocalPath'],
+                  'id': message['id'],
+                }
+              ],
+              initialIndex: 0,
+            ),
+          ),
+        );
+      },
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: thumbWidget,
+          ),
+          // 播放按钮
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+              ),
+            ),
+          ),
+          // 时长角标
+          if (durationText.isNotEmpty)
+            Positioned(
+              right: 8,
+              bottom: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  durationText,
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ),
+            ),
+          // 发送中遮罩
+          if (status == 'sending' || status == 'pending')
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            ),
+          // 发送失败遮罩
+          if (status == 'failed')
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 36,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

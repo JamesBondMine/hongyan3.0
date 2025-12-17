@@ -165,6 +165,24 @@ class GlobalController extends GetxController {
     print('✅ 用户已退出登录');
   }
   
+  /// 注销当前用户（删除账号）
+  Future<Map<String, dynamic>> deleteAccount() async {
+    Map<String, dynamic> result = {'errorCode': -1, 'message': '未知错误'};
+    try {
+      final nativeService = IOSNativeService();
+      result = await nativeService.imDeleteUser();
+      print('🗑 SDK 注销用户结果: $result');
+      if (result['errorCode'] == 0) {
+        // 本地也做一次彻底登出清理
+        await logout();
+      }
+    } catch (e) {
+      print('⚠️ SDK 注销用户异常: $e');
+      result = {'errorCode': -999, 'message': e.toString()};
+    }
+    return result;
+  }
+  
   /// 更新用户信息
   Future<void> updateUserInfo(UserModel user) async {
     currentUser.value = user;

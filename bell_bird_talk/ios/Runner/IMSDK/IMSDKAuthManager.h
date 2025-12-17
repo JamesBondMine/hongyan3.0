@@ -136,6 +136,11 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
                   newPassword:(NSString *)newPassword
                    completion:(IMSDKAuthCompletion)completion;
 
+/// 注销当前登录用户
+/// @param completion 回调（errorCode, reqId, data）
+/// @return 0 表示请求发送成功，其他为错误码
+- (int)deleteCurrentUserWithCompletion:(IMSDKAuthCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

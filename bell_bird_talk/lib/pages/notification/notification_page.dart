@@ -33,7 +33,7 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _loadUnread() async {
-    final result = await _nativeService.imGetNotificationUnreadCount();
+    final result = await _nativeService.imGetNotificationUnreadCount(types: ['0']);
     if (!mounted) return;
     if (result['errorCode'] == 0) {
       final dataStr = result['data'] as String? ?? '';

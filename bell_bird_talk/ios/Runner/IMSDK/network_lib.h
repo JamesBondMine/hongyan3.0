@@ -183,6 +183,18 @@ NET_API int get_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64
 NET_API int update_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
+ * 注销用户
+ * Topic: /im/user/{userId}/delete
+ * @param cCallback 回调函数（用于接收注销用户的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的注销用户请求数据
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note 需要用户已登录，userId 自动从 MqttSession 中获取
+ */
+NET_API int delete_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
  * 修改密码
  * Topic: /im/USER/{userId}/changePassword
  * @param cCallback 回调函数（用于接收修改密码的结果，参数：errorCode, data, dataLen, reqId）
@@ -673,12 +685,13 @@ NET_API int remove_group_member(CB_I_S_I_U cCallback, const char* data, int len,
  * @param cCallback 回调函数（用于接收发送结果，参数：errorCode, data, dataLen, reqId）
  * @param message 序列化的消息体（IM body 体的数据）
  * @param len 消息长度
+ * @param conversationId 会话ID
  * @param msgType 消息类型
  * @param groupId 群组ID（必需）
  * @param outReqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码 
  */
-NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int len, int msgType, const char* groupId, uint64_t* outReqId);
+NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int len, const char* conversationId, int msgType, const char* groupId, uint64_t* outReqId);
 
 /**
  * 获取群组列表

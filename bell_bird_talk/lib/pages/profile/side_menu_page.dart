@@ -5,6 +5,7 @@ import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:bell_bird_talk/pages/notification/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 
@@ -30,7 +31,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
   Future<void> _loadNotificationUnread() async {
     if (_fetchingUnread) return;
     setState(() => _fetchingUnread = true);
-    final result = await _nativeService.imGetNotificationUnreadCount();
+    final result = await _nativeService.imGetNotificationUnreadCount(types: ['1']);
     if (!mounted) return;
     if (result['errorCode'] == 0) {
       final dataStr = result['data'] as String? ?? '';
@@ -102,6 +103,12 @@ class _SideMenuContentState extends State<SideMenuContent> {
                   title: '关于我们',
                   subtitle: '版本 1.0.0',
                   onTap: () => _openAboutPage(context),
+                ),
+                _buildMenuItem(
+                  icon: Icons.delete_forever_outlined,
+                  title: '注销账号',
+                  subtitle: '注销后账号将无法恢复',
+                  onTap: () => _showDeleteAccountConfirm(context, globalController),
                 ),
               ],
             ),
@@ -425,6 +432,45 @@ class _SideMenuContentState extends State<SideMenuContent> {
             },
             child: const Text(
               '退出',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 显示注销账号确认
+  void _showDeleteAccountConfirm(BuildContext context, GlobalController controller) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('注销账号'),
+        content: const Text('注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // 关闭对话框
+              Navigator.pop(context); // 关闭侧边栏
+              
+              EasyLoading.show(status: '正在注销账号...');
+              final result = await controller.deleteAccount();
+              EasyLoading.dismiss();
+
+              if (result['errorCode'] == 0) {
+                EasyLoading.showSuccess('账号已注销');
+                Get.offAllNamed('/login');
+              } else {
+                final msg = result['message']?.toString() ?? '注销失败';
+                EasyLoading.showError(msg);
+              }
+            },
+            child: const Text(
+              '确定注销',
               style: TextStyle(color: Colors.red),
             ),
           ),

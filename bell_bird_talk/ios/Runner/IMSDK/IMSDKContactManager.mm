@@ -559,7 +559,6 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.keyword = keyword;
-    
     NSData *protoBody = [query data];
     if (!protoBody || protoBody.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
