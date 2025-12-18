@@ -28,6 +28,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   List<Map<String, dynamic>> _members = [];
   late String _groupName;
   String? _groupAvatar;
+  String? _groupDescription;
 
   @override
   void initState() {
@@ -76,9 +77,11 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           final map = json.decode(dataStr) as Map<String, dynamic>;
           final groupName = (map['group_name'] as String?) ?? _groupName;
           final groupAvatar = (map['group_avatar'] as String?) ?? _groupAvatar;
+          final groupDescription = map['group_description'] as String?;
           setState(() {
             _groupName = groupName;
             _groupAvatar = groupAvatar;
+            _groupDescription = groupDescription;
           });
         } catch (_) {}
       }
@@ -250,6 +253,24 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         ),
         const Divider(height: 1),
         ListTile(
+          leading: const Icon(Icons.description_outlined, color: Colors.orange),
+          title: const Text('群描述'),
+          subtitle: _groupDescription != null && _groupDescription!.isNotEmpty
+              ? Text(
+                  _groupDescription!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                )
+              : const Text(
+                  '未设置',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+          onTap: _editGroupDescription,
+        ),
+        const Divider(height: 1),
+        ListTile(
           leading: const Icon(Icons.person_outline, color: Colors.green),
           title: const Text('设置我的群昵称'),
           onTap: _editGroupAlias,
@@ -327,6 +348,51 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
+
+  Future<void> _editGroupDescription() async {
+    final controller = TextEditingController(text: _groupDescription ?? '');
+    final description = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改群描述'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: '请输入群描述',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 5,
+            maxLength: 200,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('保存'),
+            ),
+          ],
+        );
+      },
+    );
+    if (description == null) return; // 允许设置为空
+    EasyLoading.show(status: '修改群描述...');
+    final res = await _nativeService.imUpdateGroup(
+      groupId: widget.groupId,
+      groupDescription: description.isEmpty ? null : description,
+      version: 1,
+    );
+    if (!mounted) return;
+    if (res['errorCode'] == 0) {
+      EasyLoading.showSuccess('修改成功');
+      await _refreshGroupInfo();
+    } else {
+      EasyLoading.showError(res['message']?.toString() ?? '修改失败');
+    }
+  }
 
   Future<void> _editGroupAlias() async {
     final controller = TextEditingController();

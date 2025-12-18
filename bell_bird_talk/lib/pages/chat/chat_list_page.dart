@@ -301,13 +301,13 @@ class _ChatListPageState extends State<ChatListPage> {
                   .toList();
               
               // 调用原生更新会话接口，确保会话信息同步到 SDK
-              for (final conv in networkConversations) {
-                _nativeService.imUpdateConversation(
-                  convId: conv.convId,
-                  displayName: conv.displayName,
-                  avatarUrl: conv.avatar,
-                );
-              }
+              // for (final conv in networkConversations) {
+              //   _nativeService.imUpdateConversation(
+              //     convId: conv.convId,
+              //     displayName: conv.displayName,
+              //     avatarUrl: conv.avatar,
+              //   );
+              // }
               
               // 合并本地和网络数据
               final mergedConversations = await _mergeConversations(

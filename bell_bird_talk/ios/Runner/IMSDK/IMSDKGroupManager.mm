@@ -638,7 +638,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     if (version > 0) req.version = version;
     
     
-    NSLog(@"🍎 更新群组信息: 群ID=%@、群名称=%@、群头像=%@、群描述=%@、", req.groupId, req.groupName, req.groupAvatar, req.groupDescription);
+    NSLog(@"\n🍎 更新群组信息: 群ID=%@、群名称=%@、群头像=%@、群描述=%@、", req.groupId, req.groupName, req.groupAvatar, req.groupDescription);
     
     NSData *protoData = [req data];
     if (!protoData || protoData.length == 0) {
