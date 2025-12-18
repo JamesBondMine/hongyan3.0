@@ -196,6 +196,18 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         child: Center(child: Text('暂无群成员')),
       );
     }
+    
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    final isOwner = currentUserId.isNotEmpty && 
+                    _creatorUserId != null && 
+                    currentUserId == _creatorUserId;
+    
+    // 构建成员列表，如果是群主则在最后添加"添加"按钮
+    final List<Widget> memberWidgets = _members.map((m) => _buildMemberItem(m)).toList();
+    if (isOwner) {
+      memberWidgets.add(_buildAddMemberButton());
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -211,7 +223,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           child: Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: _members.map((m) => _buildMemberItem(m)).toList(),
+            children: memberWidgets,
           ),
         ),
       ],
@@ -252,18 +264,121 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       ),
     );
   }
+  
+  Widget _buildAddMemberButton() {
+    return SizedBox(
+      width: 64,
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: _showAddMemberDialog,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.blue.shade300, width: 2),
+              ),
+              child: Icon(
+                Icons.add,
+                color: Colors.blue.shade700,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '添加',
+            style: TextStyle(fontSize: 12, color: Colors.blue),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<void> _showAddMemberDialog() async {
+    // 加载联系人列表
+    EasyLoading.show(status: '加载联系人...');
+    
+    try {
+      final result = await _nativeService.imGetContactList(
+        page: 1,
+        pageSize: 200,
+      );
+      
+      if (!mounted) return;
+      EasyLoading.dismiss();
+      
+      if (result['errorCode'] != 0) {
+        EasyLoading.showError('获取联系人失败');
+        return;
+      }
+      
+      final dataStr = result['data'] as String? ?? '';
+      if (dataStr.isEmpty) {
+        EasyLoading.showInfo('暂无联系人可添加');
+        return;
+      }
+      
+      final map = json.decode(dataStr) as Map<String, dynamic>;
+      final contacts = (map['contacts'] as List?) ?? [];
+      
+      if (contacts.isEmpty) {
+        EasyLoading.showInfo('暂无联系人可添加');
+        return;
+      }
+      
+      // 过滤掉已经是群成员的联系人
+      final memberUserIds = _members.map((m) => (m['user_id'] as String?) ?? '').toSet();
+      final availableContacts = contacts.where((contact) {
+        final userId = (contact['contact_user_id'] as String?) ?? '';
+        return userId.isNotEmpty && !memberUserIds.contains(userId);
+      }).toList();
+      
+      if (availableContacts.isEmpty) {
+        EasyLoading.showInfo('所有联系人已在群中');
+        return;
+      }
+      
+      // 显示选择对话框
+      if (!mounted) return;
+      final selectedUserIds = await showDialog<Set<String>>(
+        context: context,
+        builder: (context) => _AddMemberDialog(contacts: availableContacts),
+      );
+      
+      if (selectedUserIds == null || selectedUserIds.isEmpty) {
+        return;
+      }
+      
+      // 调用添加群成员接口
+      EasyLoading.show(status: '添加群成员...');
+      final addResult = await _nativeService.imAddGroupMembers(
+        groupId: widget.groupId,
+        userIds: selectedUserIds.toList(),
+      );
+      
+      if (!mounted) return;
+      
+      if (addResult['errorCode'] == 0) {
+        EasyLoading.showSuccess('添加成功');
+        // 刷新成员列表
+        await _loadMembers();
+      } else {
+        EasyLoading.showError(addResult['message']?.toString() ?? '添加失败');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      EasyLoading.dismiss();
+      EasyLoading.showError('操作失败: $e');
+    }
+  }
 
   Widget _buildSettingSection() {
     return Column(
       children: [
-        ListTile(
-          leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
-          title: const Text('添加群成员'),
-          onTap: () {
-            EasyLoading.showInfo('添加群成员功能待实现');
-          },
-        ),
-        const Divider(height: 1),
+        
         ListTile(
           leading: const Icon(Icons.description_outlined, color: Colors.orange),
           title: const Text('群描述'),
@@ -366,38 +481,15 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess(isOwner ? '群聊已解散' : '已退出群聊');
         
-        // 返回到 group_list_page 并刷新列表
-        // 先关闭当前页面（group_detail_page）
-        Navigator.pop(context);
-        
-        // 等待页面关闭动画完成
-        await Future.delayed(const Duration(milliseconds: 200));
-        
+        // 一次性返回到 GroupListPage 并刷新列表
+        // 使用 pushAndRemoveUntil 清除所有路由直到首页，然后推入 GroupListPage
         if (!mounted) return;
         
-        // 关闭群聊页面（group_chat_page）
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        
-        // 等待页面关闭动画完成
-        await Future.delayed(const Duration(milliseconds: 200));
-        
-        if (!mounted) return;
-        
-        // 返回到首页，然后导航到 group_list_page（会重新创建页面，自动刷新）
-        Navigator.popUntil(context, (route) => route.isFirst);
-        
-        // 延迟一下，确保页面已经返回
-        await Future.delayed(const Duration(milliseconds: 300));
-        
-        if (!mounted) return;
-        
-        // 导航到 group_list_page（会重新创建页面，initState 会自动调用 _loadGroups 刷新）
-        Navigator.of(context).push(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => const GroupListPage(),
           ),
+          (route) => route.isFirst, // 保留首页路由
         );
       } else {
         EasyLoading.showError(result['message']?.toString() ?? '操作失败');
@@ -739,6 +831,154 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       print('❌ 腾讯云 STS 上传异常: $e');
       return false;
     }
+  }
+}
+
+/// 添加群成员对话框
+class _AddMemberDialog extends StatefulWidget {
+  final List<dynamic> contacts;
+  
+  const _AddMemberDialog({required this.contacts});
+  
+  @override
+  State<_AddMemberDialog> createState() => _AddMemberDialogState();
+}
+
+class _AddMemberDialogState extends State<_AddMemberDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  Set<String> _selectedUserIds = {};
+  List<dynamic> _filteredContacts = [];
+  
+  @override
+  void initState() {
+    super.initState();
+    _filteredContacts = List.from(widget.contacts);
+    _searchController.addListener(_filterContacts);
+  }
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+  
+  void _filterContacts() {
+    final keyword = _searchController.text.toLowerCase().trim();
+    setState(() {
+      if (keyword.isEmpty) {
+        _filteredContacts = List.from(widget.contacts);
+      } else {
+        _filteredContacts = widget.contacts.where((contact) {
+          final nickname = (contact['nickname'] ?? '').toString().toLowerCase();
+          final remark = (contact['remark'] ?? '').toString().toLowerCase();
+          final userId = (contact['contact_user_id'] ?? '').toString().toLowerCase();
+          return nickname.contains(keyword) ||
+                 remark.contains(keyword) ||
+                 userId.contains(keyword);
+        }).toList();
+      }
+    });
+  }
+  
+  void _toggleSelection(String userId) {
+    setState(() {
+      if (_selectedUserIds.contains(userId)) {
+        _selectedUserIds.remove(userId);
+      } else {
+        _selectedUserIds.add(userId);
+      }
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Column(
+          children: [
+            // 标题栏
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Text(
+                    '选择联系人',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('取消'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _selectedUserIds.isEmpty
+                        ? null
+                        : () => Navigator.pop(context, _selectedUserIds),
+                    child: Text('确定(${_selectedUserIds.length})'),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            // 搜索框
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: '搜索联系人',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            // 联系人列表
+            Expanded(
+              child: _filteredContacts.isEmpty
+                  ? const Center(child: Text('暂无联系人'))
+                  : ListView.builder(
+                      itemCount: _filteredContacts.length,
+                      itemBuilder: (context, index) {
+                        final contact = _filteredContacts[index];
+                        final userId = (contact['contact_user_id'] as String?) ?? '';
+                        final nickname = (contact['nickname'] as String?) ?? '未知';
+                        final remark = (contact['remark'] as String?) ?? '';
+                        final avatar = (contact['avatar'] as String?) ?? '';
+                        final displayName = remark.isNotEmpty ? remark : nickname;
+                        final isSelected = _selectedUserIds.contains(userId);
+                        
+                        return ListTile(
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey.shade300,
+                            backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                            child: avatar.isEmpty
+                                ? Text(
+                                    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                                    style: const TextStyle(color: Colors.white),
+                                  )
+                                : null,
+                          ),
+                          title: Text(displayName),
+                          subtitle: remark.isNotEmpty ? Text(nickname) : null,
+                          trailing: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => _toggleSelection(userId),
+                          ),
+                          onTap: () => _toggleSelection(userId),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

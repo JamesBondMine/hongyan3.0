@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../services/native_bridge.dart';
 import 'chat_page.dart';
 import 'group_detail_page.dart';
 
@@ -23,6 +25,42 @@ class GroupChatPage extends StatefulWidget {
 }
 
 class _GroupChatPageState extends State<GroupChatPage> {
+  final IOSNativeService _nativeService = IOSNativeService();
+  List<Map<String, dynamic>> _groupMembers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroupMembers();
+  }
+
+  Future<void> _loadGroupMembers() async {
+    try {
+      final result = await _nativeService.imGetGroupMembers(
+        groupId: widget.groupId,
+        page: 1,
+        pageSize: 200,
+      );
+      if (!mounted) return;
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final map = json.decode(dataStr) as Map<String, dynamic>;
+            final list = (map['members'] as List?) ?? [];
+            setState(() {
+              _groupMembers = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
+            });
+          } catch (e) {
+            print('解析群成员失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取群成员失败: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 直接使用 ChatPage，传入自定义导航栏以避免双 AppBar
@@ -32,6 +70,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       avatar: widget.groupAvatar,
       targetUserId: widget.groupId,
       convType: 2, // 群聊
+      groupMembers: _groupMembers, // 传递群成员列表
       customAppBar: AppBar(
         title: Text(widget.groupName),
         actions: [

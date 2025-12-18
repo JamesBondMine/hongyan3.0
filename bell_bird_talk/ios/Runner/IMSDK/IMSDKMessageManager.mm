@@ -837,6 +837,7 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     TextMessage *textMsg = [[TextMessage alloc] init];
     textMsg.content = content;
     
+    
     // 序列化 TextMessage
     NSData *protoData = [textMsg data];
     if (!protoData || protoData.length == 0) {
@@ -844,19 +845,21 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
         return -1;
     }
     
+    
+    
     // 调用 SDK 发送群聊消息
     uint64_t reqId = 0;
-    int result = send_contact_message(
+    int result = send_group_message(
         SendGroupMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         conversationId.UTF8String,
         (int)ImMessage_MessageType_Text,  // msgType = 0 (TEXT)
         groupId.UTF8String,
-        reqId
+        &reqId  // 输出参数，需要传指针
     );
     
-    NSLog(@"📤 调用 send_contact_message (群聊文本): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_group_message (群聊文本): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -898,17 +901,17 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     
     // 调用 SDK 发送群聊消息
     uint64_t reqId = 0;
-    int result = send_contact_message(
+    int result = send_group_message(
         SendGroupMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         conversationId.UTF8String,
         (int)ImMessage_MessageType_Image,  // msgType = 1 (IMAGE)
         groupId.UTF8String,
-        reqId
+        &reqId  // 输出参数，需要传指针
     );
     
-    NSLog(@"📤 调用 send_contact_message (群聊图片): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_group_message (群聊图片): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -945,17 +948,132 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     
     // 调用 SDK 发送群聊消息
     uint64_t reqId = 0;
-    int result = send_contact_message(
+    int result = send_group_message(
         SendGroupMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         conversationId.UTF8String,
         (int)ImMessage_MessageType_Voice,  // msgType = 3 (VOICE)
         groupId.UTF8String,
-        reqId
+        &reqId  // 输出参数，需要传指针
     );
     
-    NSLog(@"📤 调用 send_contact_message (群聊语音): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_group_message (群聊语音): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendGroupVideoMessage:(NSString *)videoUrl
+                     coverURL:(NSString * _Nullable)coverURL
+                     duration:(int32_t)duration
+                        width:(int32_t)width
+                       height:(int32_t)height
+                         size:(int64_t)size
+               conversationId:(NSString *)conversationId
+                      groupId:(NSString *)groupId
+                   completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送群聊视频消息: videoUrl=%@, coverURL=%@, duration=%d, width=%d, height=%d, size=%lld, conversationId=%@, groupId=%@",
+          videoUrl, coverURL, duration, width, height, size, conversationId, groupId);
+    
+    // 创建 VideoMessage
+    VideoMessage *videoMsg = [[VideoMessage alloc] init];
+    videoMsg.videoURL = videoUrl;
+    if (coverURL && coverURL.length > 0) {
+        videoMsg.coverURL = coverURL;
+    }
+    if (duration > 0) {
+        videoMsg.duration = duration;
+    }
+    if (width > 0) {
+        videoMsg.coverWidth = width;
+    }
+    if (height > 0) {
+        videoMsg.coverHeight = height;
+    }
+    if (size > 0) {
+        videoMsg.size = size;
+    }
+    
+    // 序列化 VideoMessage
+    NSData *protoData = [videoMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ VideoMessage 序列化失败");
+        return -1;
+    }
+    
+    NSLog(@"📦 VideoMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
+    
+    // 调用 SDK 发送群聊消息
+    uint64_t reqId = 0;
+    int result = send_group_message(
+        SendGroupMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Video,  // msgType = 2 (VIDEO)
+        groupId.UTF8String,
+        &reqId  // 输出参数，需要传指针
+    );
+    
+    NSLog(@"📤 调用 send_group_message (群聊视频): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendGroupAtMessage:(NSString *)content
+          conversationId:(NSString *)conversationId
+                 groupId:(NSString *)groupId
+              atInfoList:(NSArray<NSDictionary *> *)atInfoList
+                   isAll:(BOOL)isAll
+              completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送群聊@消息: content=%@, conversationId=%@, groupId=%@, isAll=%@", 
+          content, conversationId, groupId, isAll ? @"YES" : @"NO");
+    
+    // 创建 AtMessage
+    AtMessage *atMsg = [[AtMessage alloc] init];
+    atMsg.content = content;
+    atMsg.isAll = isAll;
+    
+    // 添加@成员信息
+    if (!isAll && atInfoList && atInfoList.count > 0) {
+        for (NSDictionary *atInfo in atInfoList) {
+            AtInfo *info = [[AtInfo alloc] init];
+            info.userId = atInfo[@"user_id"] ?: @"";
+            info.nickName = atInfo[@"nickname"] ?: @"";
+            [atMsg.atInfoArray addObject:info];
+        }
+    }
+    
+    // 序列化 AtMessage
+    NSData *protoData = [atMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ AtMessage 序列化失败");
+        return -1;
+    }
+    
+    // 调用 SDK 发送群聊@消息
+    uint64_t reqId = 0;
+    int result = send_group_message(
+        SendGroupMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_AtMessage,  // msgType = 10 (AT_MESSAGE)
+        groupId.UTF8String,
+        &reqId  // 输出参数，需要传指针
+    );
+    
+    NSLog(@"📤 调用 send_group_message (群聊@消息): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -1106,6 +1224,8 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                             msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
+                        } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
+                            msgDict[@"content"] = msg.atMessage.content;
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }

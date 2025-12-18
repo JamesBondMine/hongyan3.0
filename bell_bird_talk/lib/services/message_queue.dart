@@ -871,16 +871,34 @@ class MessageQueueManager {
 
       // 5. 发送视频消息到服务器
       print('📤 开始发送视频消息到服务器...');
-      final sendResult = await _nativeService.imSendVideoMessage(
-        videoUrl: fileUrl,
-        coverUrl: coverUrl,
-        conversationId: message.convId,
-        receiverId: message.receiverId,
-        duration: message.videoDuration,
-        width: message.imageWidth,
-        height: message.imageHeight,
-        size: fileSize,
-      );
+      
+      // 判断是群组消息还是单聊消息
+      final userId = await _getCurrentUserId();
+      final conversation = await _database.getConversation(userId, message.convId);
+      final convType = conversation?.convType ?? 0;
+      final isGroupChat = convType == 2;
+      
+      final sendResult = isGroupChat
+          ? await _nativeService.imSendGroupVideoMessage(
+              videoUrl: fileUrl,
+              coverUrl: coverUrl,
+              conversationId: message.convId,
+              groupId: message.receiverId,
+              duration: message.videoDuration,
+              width: message.imageWidth,
+              height: message.imageHeight,
+              size: fileSize,
+            )
+          : await _nativeService.imSendVideoMessage(
+              videoUrl: fileUrl,
+              coverUrl: coverUrl,
+              conversationId: message.convId,
+              receiverId: message.receiverId,
+              duration: message.videoDuration,
+              width: message.imageWidth,
+              height: message.imageHeight,
+              size: fileSize,
+            );
 
       if (sendResult['errorCode'] == 0) {
         // 更新服务器消息ID

@@ -180,6 +180,42 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                      groupId:(NSString *)groupId
                   completion:(IMSDKMessageCompletion)completion;
 
+/// 发送群聊视频消息
+/// @param videoUrl 视频文件URL
+/// @param coverURL 封面图URL（可选）
+/// @param duration 视频时长（秒）
+/// @param width 视频宽度（可选）
+/// @param height 视频高度（可选）
+/// @param size 视频文件大小（字节，可选）
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendGroupVideoMessage:(NSString *)videoUrl
+                     coverURL:(NSString * _Nullable)coverURL
+                     duration:(int32_t)duration
+                        width:(int32_t)width
+                       height:(int32_t)height
+                         size:(int64_t)size
+               conversationId:(NSString *)conversationId
+                      groupId:(NSString *)groupId
+                   completion:(IMSDKMessageCompletion)completion;
+
+/// 发送群聊@消息
+/// @param content 消息内容
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param atInfoList @成员信息列表，格式：[{'user_id': 'xxx', 'nickname': 'xxx'}]
+/// @param isAll 是否@所有人
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendGroupAtMessage:(NSString *)content
+          conversationId:(NSString *)conversationId
+                 groupId:(NSString *)groupId
+              atInfoList:(NSArray<NSDictionary *> *)atInfoList
+                   isAll:(BOOL)isAll
+              completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息

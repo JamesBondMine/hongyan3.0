@@ -1089,6 +1089,32 @@ class IOSNativeService {
     }
   }
   
+  /// 添加群组成员
+  /// @param groupId 群组ID（必填）
+  /// @param userIds 用户ID列表（必填）
+  /// @param reason 邀请理由（可选）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imAddGroupMembers({
+    required String groupId,
+    required List<String> userIds,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+        'user_ids': userIds,
+      };
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      final result = await _bridge.invokeMethod<Map>('imAddGroupMembers', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('添加群成员错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -1200,6 +1226,73 @@ class IOSNativeService {
         'duration': duration,
         'conversation_id': conversationId,
         'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送群聊视频消息
+  /// @param videoUrl 视频文件URL
+  /// @param coverUrl 封面图URL（可选）
+  /// @param duration 视频时长（秒）
+  /// @param width 视频宽度（可选）
+  /// @param height 视频高度（可选）
+  /// @param size 视频文件大小（字节，可选）
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendGroupVideoMessage({
+    required String videoUrl,
+    String? coverUrl,
+    int? duration,
+    int? width,
+    int? height,
+    int? size,
+    required String conversationId,
+    required String groupId,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'video_url': videoUrl,
+        'conversation_id': conversationId,
+        'group_id': groupId,
+      };
+      if (coverUrl != null) params['cover_url'] = coverUrl;
+      if (duration != null) params['duration'] = duration;
+      if (width != null) params['width'] = width;
+      if (height != null) params['height'] = height;
+      if (size != null) params['size'] = size;
+      
+      final result = await _bridge.invokeMethod<Map>('imSendGroupVideoMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送群聊@消息
+  /// @param content 消息内容
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @param atInfoList @成员信息列表，格式：[{'user_id': 'xxx', 'nickname': 'xxx'}]
+  /// @param isAll 是否@所有人
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendGroupAtMessage({
+    required String content,
+    required String conversationId,
+    required String groupId,
+    required List<Map<String, dynamic>> atInfoList,
+    bool isAll = false,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSendGroupAtMessage', {
+        'content': content,
+        'conversation_id': conversationId,
+        'group_id': groupId,
+        'at_info_list': atInfoList,
+        'is_all': isAll,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
@@ -1647,14 +1740,14 @@ class IOSNativeService {
         final data = call.arguments as Map<dynamic, dynamic>?;
         if (data != null) {
           final message = data.cast<String, dynamic>();
-          print('📨 Flutter 收到消息: $message');
+          print('📨 Flutter 收到消息1: $message');
           onMessageReceived?.call(message);
         }
       } else if (call.method == 'onSystemMessage') {
         final data = call.arguments as Map<dynamic, dynamic>?;
         if (data != null) {
           final message = data.cast<String, dynamic>();
-          print('📨 Flutter 收到系统消息: $message');
+          print('📨 Flutter 收到系统消息2: $message');
           onSystemMessage?.call(message);
         }
       } else if (call.method == 'onCommandMessage') {
@@ -1662,7 +1755,7 @@ class IOSNativeService {
         if (data != null) {
           final message = data.cast<String, dynamic>();
           final eventType = message['event_type'] as int? ?? 0;
-          print('📨 Flutter 收到命令消息: eventType=$eventType, data=$message');
+          print('📨 Flutter 收到命令消息3: eventType=$eventType, data=$message');
           onCommandMessage?.call(eventType, message);
         }
       }

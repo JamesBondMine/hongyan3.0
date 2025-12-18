@@ -226,6 +226,8 @@ class NativeBridgeHandler: NSObject {
             imDissolveGroup(call: call, result: result)
         case "imLeaveGroup":
             imLeaveGroup(call: call, result: result)
+        case "imAddGroupMembers":
+            imAddGroupMembers(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         case "imMoveContactToGroup":
@@ -271,6 +273,10 @@ class NativeBridgeHandler: NSObject {
             imSendGroupImageMessage(call: call, result: result)
         case "imSendGroupVoiceMessage":
             imSendGroupVoiceMessage(call: call, result: result)
+        case "imSendGroupVideoMessage":
+            imSendGroupVideoMessage(call: call, result: result)
+        case "imSendGroupAtMessage":
+            imSendGroupAtMessage(call: call, result: result)
         case "imPullMessages":
             imPullMessages(call: call, result: result)
         case "imPullGroupMessages":
@@ -1668,6 +1674,36 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 添加群组成员
+    private func imAddGroupMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String,
+              let userIds = args["user_ids"] as? [String] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id 或 user_ids", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("📁 添加群组成员: groupId=\(groupId), userIds=\(userIds), reason=\(reason ?? "")")
+        
+        let code = IMSDKGroupManager.shared().addGroupMembers(withGroupId: groupId, userIds: userIds, reason: reason) { errorCode, reqId, data in
+            print("📁 添加群组成员回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "添加成功" : "添加失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "ADD_GROUP_MEMBERS_ERROR",
+                                message: "添加群组成员请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -2374,6 +2410,96 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEND_GROUP_MESSAGE_ERROR",
                               message: "发送群聊语音消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送群聊视频消息
+    private func imSendGroupVideoMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let videoUrl = args["video_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let coverUrl = args["cover_url"] as? String
+        let duration = args["duration"] as? Int ?? 0
+        let width = args["width"] as? Int ?? 0
+        let height = args["height"] as? Int ?? 0
+        let size = args["size"] as? Int64 ?? 0
+        
+        print("📤 发送群聊视频消息: videoUrl=\(videoUrl), coverUrl=\(coverUrl ?? ""), duration=\(duration), width=\(width), height=\(height), size=\(size), conversationId=\(conversationId), groupId=\(groupId)")
+        
+        let code = IMSDKMessageManager.shared().sendGroupVideoMessage(
+            videoUrl,
+            coverURL: coverUrl,
+            duration: Int32(duration),
+            width: Int32(width),
+            height: Int32(height),
+            size: size,
+            conversationId: conversationId,
+            groupId: groupId
+        ) { errorCode, reqId, data in
+            print("✅ 发送群聊视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_GROUP_MESSAGE_ERROR",
+                              message: "发送群聊视频消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送群聊@消息
+    private func imSendGroupAtMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let content = args["content"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String,
+              let atInfoList = args["at_info_list"] as? [[String: Any]] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let isAll = args["is_all"] as? Bool ?? false
+        
+        print("📤 发送群聊@消息: content=\(content), conversationId=\(conversationId), groupId=\(groupId), isAll=\(isAll), atInfoList=\(atInfoList)")
+        
+        // 转换atInfoList格式
+        let atInfoArray = atInfoList.map { info -> [String: String] in
+            var dict: [String: String] = [:]
+            if let userId = info["user_id"] as? String {
+                dict["user_id"] = userId
+            }
+            if let nickname = info["nickname"] as? String {
+                dict["nickname"] = nickname
+            }
+            return dict
+        }
+        
+        let code = IMSDKMessageManager.shared().sendGroup(atMessage: content, conversationId: conversationId, groupId: groupId, atInfoList: atInfoArray, isAll: isAll, completion:{ errorCode, reqId, data in
+            print("✅ 发送群聊@消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_GROUP_AT_MESSAGE_ERROR",
+                              message: "发送群聊@消息请求失败: \(code)",
                               details: nil))
         }
     }

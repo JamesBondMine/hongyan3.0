@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_database.dart';
+import '../../controllers/global_controller.dart';
 import '../chat/group_chat_page.dart';
+import '../chat/models/chat_model.dart';
 
 class GroupListPage extends StatefulWidget {
   const GroupListPage({super.key});
@@ -13,6 +17,8 @@ class GroupListPage extends StatefulWidget {
 
 class _GroupListPageState extends State<GroupListPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final MessageDatabase _database = MessageDatabase();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
   bool _loading = false;
   List<Map<String, dynamic>> _groups = [];
 
@@ -112,44 +118,101 @@ class _GroupListPageState extends State<GroupListPage> {
       EasyLoading.showError('群组ID缺失');
       return;
     }
+    
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    if (currentUserId.isEmpty) {
+      EasyLoading.showError('用户未登录');
+      return;
+    }
+    
     EasyLoading.show(status: '进入群聊...');
+    
     try {
-      final res = await _nativeService.imCreateConversation(
-        convType: 2,
-        targetId: gid,
-        displayName: name,
-        avatarUrl: avatar.isNotEmpty ? avatar : null,
+      String? convId;
+      
+      // 先查询数据库中是否存在该群组的会话
+      final conversations = await _database.getConversations(
+        currentUserId,
+        convType: 2, // 群聊类型
       );
-      if (res['errorCode'] == 0) {
-        final dataStr = res['data'] as String? ?? '';
-        String? convId;
-        if (dataStr.isNotEmpty) {
-          try {
-            final map = json.decode(dataStr) as Map<String, dynamic>;
-            convId = (map['conv_id'] as String?) ?? (map['convId'] as String?);
-          } catch (_) {}
-        }
-        if (convId == null || convId.isEmpty) {
-          EasyLoading.showError('未获取到会话ID');
+      
+      // 查找是否有该群组的会话（通过 targetId 匹配）
+      ConversationModel? existingConversation;
+      try {
+        existingConversation = conversations.firstWhere(
+          (conv) => conv.targetId == gid,
+        );
+      } catch (e) {
+        // 没有找到匹配的会话
+        existingConversation = null;
+      }
+      
+      if (existingConversation != null && existingConversation.convId.isNotEmpty) {
+        // 数据库中已存在该会话，直接使用
+        convId = existingConversation.convId;
+        print('✅ 从数据库中找到会话: convId=$convId');
+      } else {
+        // 数据库中不存在，需要创建会话
+        print('📝 数据库中不存在会话，创建新会话...');
+        final res = await _nativeService.imCreateConversation(
+          convType: 2,
+          targetId: gid,
+          displayName: name,
+          avatarUrl: avatar.isNotEmpty ? avatar : null,
+        );
+        
+        if (res['errorCode'] == 0) {
+          final dataStr = res['data'] as String? ?? '';
+          if (dataStr.isNotEmpty) {
+            try {
+              final map = json.decode(dataStr) as Map<String, dynamic>;
+              convId = (map['conv_id'] as String?) ?? (map['convId'] as String?);
+              
+              // 创建会话对象并保存到数据库
+              if (convId != null && convId.isNotEmpty) {
+                final conversation = ConversationModel(
+                  convId: convId,
+                  displayName: name,
+                  avatar: avatar.isNotEmpty ? avatar : null,
+                  convType: 2,
+                  targetId: gid,
+                  unreadCount: 0,
+                );
+                
+                await _database.upsertConversation(currentUserId, conversation);
+                print('✅ 会话已保存到数据库: convId=$convId');
+              }
+            } catch (e) {
+              print('❌ 解析会话数据失败: $e');
+            }
+          }
+        } else {
+          EasyLoading.showError(res['message']?.toString() ?? '创建会话失败');
           return;
         }
-        EasyLoading.dismiss();
-        if (!mounted) return;
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => GroupChatPage(
-              convId: convId!,
-              groupId: gid,
-              groupName: name,
-              groupAvatar: avatar.isNotEmpty ? avatar : null,
-            ),
-          ),
-        );
-      } else {
-        EasyLoading.showError(res['message']?.toString() ?? '创建会话失败');
       }
+      
+      if (convId == null || convId.isEmpty) {
+        EasyLoading.showError('未获取到会话ID');
+        return;
+      }
+      
+      EasyLoading.dismiss();
+      if (!mounted) return;
+      
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => GroupChatPage(
+            convId: convId!,
+            groupId: gid,
+            groupName: name,
+            groupAvatar: avatar.isNotEmpty ? avatar : null,
+          ),
+        ),
+      );
     } catch (e) {
-      EasyLoading.showError('进入群聊失败');
+      print('❌ 进入群聊失败: $e');
+      EasyLoading.showError('进入群聊失败: $e');
     }
   }
 }
