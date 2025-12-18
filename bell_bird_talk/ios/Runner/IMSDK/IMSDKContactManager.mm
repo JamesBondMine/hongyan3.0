@@ -1149,6 +1149,73 @@ static void DeleteContactGroupCallback(int errorCode, const char* data, int data
     return delete_contact_group(DeleteContactGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
 }
 
+/// 移动联系人到分组回调
+static void MoveContactToGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 移动联系人到分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKContactCompletion completion = manager.contactCallbacks[key];
+        
+        if (completion) {
+            NSString *message = @"移动成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"移动失败";
+            }
+            
+            completion(errorCode, reqId, message);
+            [manager.contactCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+- (int)moveContactToGroupWithContactUserId:(NSString *)contactUserId
+                                    groupId:(int64_t)groupId
+                                 completion:(IMSDKContactCompletion)completion {
+    if (!contactUserId || contactUserId.length == 0) {
+        NSLog(@"❌ 联系人用户ID不能为空");
+        return -1;
+    }
+    
+    NSLog(@"📁 移动联系人到分组: contactUserId=%@, groupId=%lld", contactUserId, groupId);
+    
+    ContactMoveToGroup *moveReq = [[ContactMoveToGroup alloc] init];
+    moveReq.contactUserId = contactUserId;
+    moveReq.groupId = groupId;
+    
+    NSData *protoData = [moveReq data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ 序列化 ContactMoveToGroup 失败");
+        return -2;
+    }
+    
+    uint64_t reqId = 0;
+    if (completion) {
+        static uint64_t tempId = 19000;
+        NSNumber *tempKey = @(tempId++);
+        self.contactCallbacks[tempKey] = completion;
+        
+        int result = move_contact_to_group(MoveContactToGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
+        if (result == 0) {
+            if (reqId != 0) {
+                self.contactCallbacks[@(reqId)] = completion;
+                [self.contactCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            [self.contactCallbacks removeObjectForKey:tempKey];
+        }
+        return result;
+    }
+    
+    return move_contact_to_group(MoveContactToGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
+}
+
 // ==================== 联系人备注 ====================
 
 /// 设置备注回调

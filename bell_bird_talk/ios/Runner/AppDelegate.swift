@@ -224,6 +224,8 @@ class NativeBridgeHandler: NSObject {
             imGetGroupInfo(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
+        case "imMoveContactToGroup":
+            imMoveContactToGroup(call: call, result: result)
         
         // ---------- 会话管理 ----------
         case "imGetConversationList":
@@ -1621,6 +1623,34 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SET_REMARK_ERROR",
                               message: "设置备注请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 移动联系人到分组
+    private func imMoveContactToGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let contactUserId = args["contact_user_id"] as? String,
+              let groupId = args["group_id"] as? Int64 ?? (args["group_id"] as? Int).map({ Int64($0) }) else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 contact_user_id 或 group_id", details: nil))
+            return
+        }
+        
+        print("📁 移动联系人到分组: contactUserId=\(contactUserId), groupId=\(groupId)")
+        
+        let code = IMSDKContactManager.shared().moveContactToGroup(withContactUserId: contactUserId, groupId: groupId, completion: { errorCode, reqId, data in
+            print("✅ 移动联系人到分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "移动成功" : (data ?? "移动失败")
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "MOVE_CONTACT_TO_GROUP_ERROR",
+                              message: "移动联系人到分组请求发送失败: \(code)",
                               details: nil))
         }
     }

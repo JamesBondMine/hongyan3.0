@@ -169,6 +169,14 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 - (int)deleteContactGroupWithId:(int64_t)groupId
                       completion:(IMSDKContactCompletion)completion;
 
+/// 移动联系人到分组
+/// @param contactUserId 联系人用户ID（必填）
+/// @param groupId 目标分组ID（必填，0表示移除分组）
+/// @param completion 结果回调
+- (int)moveContactToGroupWithContactUserId:(NSString *)contactUserId
+                                    groupId:(int64_t)groupId
+                                 completion:(IMSDKContactCompletion)completion;
+
 // ==================== 联系人备注 ====================
 
 /// 设置联系人备注

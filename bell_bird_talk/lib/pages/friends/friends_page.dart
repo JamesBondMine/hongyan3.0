@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -116,11 +117,8 @@ class _FriendsPageState extends State<FriendsPage> {
       final result = await _nativeService.imGetFriendRequests(
         status: 0,  // 只获取待处理的
         page: 1,
-        pageSize: 50,
+        pageSize: 1,
       );
-      
-      print('📋 好友申请列表结果: $result');
-      
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -149,9 +147,6 @@ class _FriendsPageState extends State<FriendsPage> {
         page: 1,
         pageSize: 100,
       );
-      
-      print('📁 联系人分组列表结果: $result');
-      
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -299,6 +294,7 @@ class _FriendsPageState extends State<FriendsPage> {
     await Future.wait([
       _loadFriendRequests(),
       _loadFriends(refresh: true),
+      _loadContactGroups(),
     ]);
   }
 
@@ -900,13 +896,81 @@ class _FriendsPageState extends State<FriendsPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _GroupSettingsSheet(
+      builder: (context) => GroupSettingsSheet(
         groups: _groups,
         onAddGroup: _addGroup,
         onDeleteGroup: _deleteGroup,
         onUpdateGroup: _updateGroup,
       ),
     );
+  }
+  
+  /// 显示移动到分组弹窗
+  Future<void> _showMoveToGroupDialog(FriendModel friend) async {
+    // 获取好友当前所在的分组ID（从数据库查询）
+    String? currentGroupId;
+    try {
+      final userId = Get.find<GlobalController>().currentUser.value?.id;
+      if (userId != null) {
+        final contactData = await MessageDatabase().getContact(userId, friend.id);
+        if (contactData != null && contactData['group_id'] != null) {
+          currentGroupId = contactData['group_id'].toString();
+        }
+      }
+    } catch (e) {
+      print('获取好友分组失败: $e');
+    }
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _MoveToGroupSheet(
+        friend: friend,
+        groups: _groups,
+        currentGroupId: currentGroupId,
+        onMoveToGroup: (groupId) => _moveFriendToGroup(friend, groupId),
+        onShowGroupSettings: () {
+          Navigator.pop(context); // 关闭移动到分组弹窗
+          _showGroupSettings(); // 打开分组管理弹窗
+        },
+      ),
+    );
+  }
+  
+  /// 移动好友到分组
+  Future<void> _moveFriendToGroup(FriendModel friend, String groupId) async {
+    EasyLoading.show(status: '正在移动...');
+    
+    try {
+      // 将 groupId 转换为 int（如果是 'all' 则传 0 表示移除分组）
+      int targetGroupId = 0;
+      if (groupId != 'all' && groupId != 'special') {
+        final parsedId = int.tryParse(groupId);
+        if (parsedId != null && parsedId > 0) {
+          targetGroupId = parsedId;
+        }
+      }
+      
+      // 调用移动联系人到分组的方法
+      final result = await _nativeService.imMoveContactToGroup(
+        contactUserId: friend.id,
+        groupId: targetGroupId,
+      );
+      
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('移动成功');
+        // 刷新好友列表
+        await _loadFriends(refresh: true);
+      } else {
+        EasyLoading.showError(result['message'] ?? '移动失败');
+      }
+    } catch (e) {
+      print('移动好友到分组错误: $e');
+      EasyLoading.showError('移动失败，请稍后重试');
+    }
   }
   
   /// 添加分组
@@ -1156,65 +1220,68 @@ class _FriendsPageState extends State<FriendsPage> {
   Widget _buildFriendItem(FriendModel friend) {
     return Container(
       color: Colors.white,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.blue[100],
-              backgroundImage: (friend.avatar != null && friend.avatar!.isNotEmpty)
-                  ? NetworkImage(friend.avatar!)
-                  : null,
-              child: (friend.avatar == null || friend.avatar!.isEmpty)
-                  ? Text(
-                      friend.displayName.isNotEmpty 
-                          ? friend.displayName[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    )
-                  : null,
-            ),
-            // 在线状态指示器
-            if (friend.isOnline)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+      child: GestureDetector(
+        onLongPress: () => _showMoveToGroupDialog(friend),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: Stack(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.blue[100],
+                backgroundImage: (friend.avatar != null && friend.avatar!.isNotEmpty)
+                    ? NetworkImage(friend.avatar!)
+                    : null,
+                child: (friend.avatar == null || friend.avatar!.isEmpty)
+                    ? Text(
+                        friend.displayName.isNotEmpty 
+                            ? friend.displayName[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      )
+                    : null,
+              ),
+              // 在线状态指示器
+              if (friend.isOnline)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
                   ),
                 ),
-              ),
-          ],
-        ),
-        title: Text(
-          '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
+            ],
           ),
+          title: Text(
+            '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+          subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
+              ? Text(
+                  'ID: ${friend.accountId}  ${friend.displayName}',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : null,
+          onTap: () => _showFriendDetail(friend),
         ),
-        subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
-            ? Text(
-                'ID: ${friend.accountId}  ${friend.displayName}',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 13,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        onTap: () => _showFriendDetail(friend),
       ),
     );
   }
@@ -1233,33 +1300,21 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 }
 
-/// 分组设置底部弹窗
-class _GroupSettingsSheet extends StatefulWidget {
+/// 移动到分组底部弹窗
+class _MoveToGroupSheet extends StatelessWidget {
+  final FriendModel friend;
   final List<FriendGroup> groups;
-  final Future<void> Function(String) onAddGroup;
-  final Function(FriendGroup) onDeleteGroup;
-  final Future<void> Function(FriendGroup) onUpdateGroup;
+  final String? currentGroupId;
+  final Function(String) onMoveToGroup;
+  final VoidCallback onShowGroupSettings;
   
-  const _GroupSettingsSheet({
+  const _MoveToGroupSheet({
+    required this.friend,
     required this.groups,
-    required this.onAddGroup,
-    required this.onDeleteGroup,
-    required this.onUpdateGroup,
+    required this.currentGroupId,
+    required this.onMoveToGroup,
+    required this.onShowGroupSettings,
   });
-
-  @override
-  State<_GroupSettingsSheet> createState() => _GroupSettingsSheetState();
-}
-
-class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
-  final TextEditingController _nameController = TextEditingController();
-  bool _isAdding = false;  // 是否正在添加分组
-  
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1267,8 +1322,6 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1289,84 +1342,21 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
             child: Row(
               children: [
                 const Text(
-                  '分组管理',
+                  '移动到分组',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _isAdding = !_isAdding;
-                      if (!_isAdding) {
-                        _nameController.clear();
-                      }
-                    });
-                  },
-                  icon: Icon(_isAdding ? Icons.close : Icons.add, size: 18),
-                  label: Text(_isAdding ? '取消' : '新建分组'),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 20),
+                  onPressed: onShowGroupSettings,
+                  tooltip: '添加分组',
                 ),
               ],
             ),
           ),
-          
-          // 新建分组输入框
-          if (_isAdding)
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _nameController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: '输入分组名称',
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final name = _nameController.text.trim();
-                      if (name.isNotEmpty) {
-                        await widget.onAddGroup(name);
-                        if (mounted) {
-                        setState(() {
-                          _isAdding = false;
-                          _nameController.clear();
-                        });
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text('创建'),
-                  ),
-                ],
-              ),
-            ),
           
           const Divider(height: 1),
           
@@ -1375,10 +1365,53 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
             child: ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: widget.groups.length,
+              itemCount: groups.length,
               itemBuilder: (context, index) {
-                final group = widget.groups[index];
-                return _buildGroupItem(group);
+                final group = groups[index];
+                final isCurrentGroup = currentGroupId != null && 
+                    (currentGroupId == group.id || 
+                     (currentGroupId == 'all' && group.id == 'all'));
+                
+                return ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: group.isDefault ? Colors.blue[50] : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      group.id == 'special' ? Icons.star : Icons.folder,
+                      color: group.isDefault ? Colors.blue : Colors.grey[600],
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    group.name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isCurrentGroup ? Colors.grey[400] : Colors.black,
+                    ),
+                  ),
+                  subtitle: Text(
+                    group.isDefault ? '默认分组' : '${group.count} 位好友',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 13,
+                    ),
+                  ),
+                  trailing: isCurrentGroup
+                      ? const Icon(Icons.check, color: Colors.blue)
+                      : null,
+                  enabled: !isCurrentGroup,
+                  onTap: isCurrentGroup
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          onMoveToGroup(group.id);
+                        },
+                );
               },
             ),
           ),
@@ -1386,74 +1419,7 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
           // 底部安全区域
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
-        ),
       ),
-    );
-  }
-  
-  Widget _buildGroupItem(FriendGroup group) {
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: group.isDefault ? Colors.blue[50] : Colors.grey[100],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          group.id == 'special' ? Icons.star : Icons.folder,
-          color: group.isDefault ? Colors.blue : Colors.grey[600],
-          size: 20,
-        ),
-      ),
-      title: Text(
-        group.name,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        group.isDefault ? '默认分组' : '${group.count} 位好友',
-        style: TextStyle(
-          color: Colors.grey[500],
-          fontSize: 13,
-        ),
-      ),
-      trailing: group.isDefault
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '不可删除',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 12,
-                ),
-              ),
-            )
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await widget.onUpdateGroup(group);
-                  },
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onDeleteGroup(group);
-                  },
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                ),
-              ],
-            ),
     );
   }
 }

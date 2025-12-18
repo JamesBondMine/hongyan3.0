@@ -542,13 +542,14 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
-    
+    const char *targetId = [groupId UTF8String];
+
     if (completion) {
         static uint64_t tempId = 20000;
         NSNumber *tempKey = @(tempId++);
         self.groupCallbacks[tempKey] = completion;
         
-        int result = join_group(JoinGroupCallback, data, dataLen, reqId);
+        int result = join_group(JoinGroupCallback, data, dataLen,targetId, reqId);
         
         if (result == 0) {
             NSLog(@"✅ 加入群组请求发送成功: reqId=%llu", reqId);
@@ -564,7 +565,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return result;
     }
     
-    return join_group(JoinGroupCallback, data, dataLen, reqId);
+    return join_group(JoinGroupCallback, data, dataLen,targetId, reqId);
 }
 
 - (int)getGroupInfoWithId:(NSString *)groupId
@@ -589,6 +590,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
+    const char *targetId = [groupId UTF8String];
     uint64_t reqId = 0;
     
     if (completion) {
@@ -596,7 +598,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         NSNumber *tempKey = @(tempId++);
         self.groupCallbacks[tempKey] = completion;
         
-        int result = get_group_info(GetGroupInfoCallback, data, dataLen, reqId);
+        int result = get_group_info(GetGroupInfoCallback, data, dataLen, targetId, reqId);
         
         if (result == 0) {
             NSLog(@"✅ 获取群组信息请求发送成功: reqId=%llu", reqId);
@@ -612,7 +614,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return result;
     }
     
-    return get_group_info(GetGroupInfoCallback, data, dataLen, reqId);
+    return get_group_info(GetGroupInfoCallback, data, dataLen, targetId, reqId);
 }
 
 - (int)updateGroupWithId:(NSString *)groupId
@@ -622,8 +624,6 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
           groupDescription:(NSString * _Nullable)groupDescription
                   version:(int32_t)version
                completion:(IMSDKGroupCompletion)completion {
-    NSLog(@"📁 更新群组信息: groupId=%@", groupId);
-    
     if (!groupId || groupId.length == 0) {
         NSLog(@"❌ 群组ID不能为空");
         return -1;
@@ -637,6 +637,9 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     if (groupDescription && groupDescription.length > 0) req.groupDescription = groupDescription;
     if (version > 0) req.version = version;
     
+    
+    NSLog(@"🍎 更新群组信息: 群ID=%@、群名称=%@、群头像=%@、群描述=%@、", req.groupId, req.groupName, req.groupAvatar, req.groupDescription);
+    
     NSData *protoData = [req data];
     if (!protoData || protoData.length == 0) {
         NSLog(@"❌ 序列化 UpdateGroup 失败");
@@ -648,11 +651,12 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         static uint64_t tempId = 21000;
         NSNumber *tempKey = @(tempId++);
         self.groupCallbacks[tempKey] = completion;
-        
+        const char *targetId = [groupId UTF8String];
         int code = update_group(
             UpdateGroupCallback,
             (const char *)protoData.bytes,
             (int)protoData.length,
+                                targetId,
             reqId
         );
         
@@ -666,11 +670,12 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         }
         return code;
     }
-    
+    const char *targetId = [groupId UTF8String];
     return update_group(
         UpdateGroupCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
+                        targetId,
         reqId
     );
 }
@@ -730,13 +735,13 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
-    
+    const char *targetId = [groupId UTF8String];
     if (completion) {
         static uint64_t tempId = 20000;
         NSNumber *tempKey = @(tempId++);
         self.groupCallbacks[tempKey] = completion;
         
-        int result = add_group_member(AddGroupMemberCallback, data, dataLen, reqId);
+        int result = add_group_member(AddGroupMemberCallback, data, dataLen, targetId,reqId);
         
         if (result == 0) {
             NSLog(@"✅ 添加群组成员请求发送成功: reqId=%llu", reqId);
@@ -752,7 +757,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return result;
     }
     
-    return add_group_member(AddGroupMemberCallback, data, dataLen, reqId);
+    return add_group_member(AddGroupMemberCallback, data, dataLen, targetId,reqId);
 }
 
 - (int)removeGroupMembersWithGroupId:(NSString *)groupId
@@ -790,13 +795,13 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
-    
+    const char *targetId = [groupId UTF8String];
     if (completion) {
         static uint64_t tempId = 20000;
         NSNumber *tempKey = @(tempId++);
         self.groupCallbacks[tempKey] = completion;
         
-        int result = remove_group_member(RemoveGroupMemberCallback, data, dataLen, reqId);
+        int result = remove_group_member(RemoveGroupMemberCallback, data, dataLen,targetId, reqId);
         
         if (result == 0) {
             NSLog(@"✅ 移除群组成员请求发送成功: reqId=%llu", reqId);
@@ -812,7 +817,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return result;
     }
     
-    return remove_group_member(RemoveGroupMemberCallback, data, dataLen, reqId);
+    return remove_group_member(RemoveGroupMemberCallback, data, dataLen,targetId, reqId);
 }
 
 - (int)getGroupMembersWithGroupId:(NSString *)groupId
@@ -840,10 +845,12 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     
     NSData *protoData = [req data];
     uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
     int code = get_group_members(
         GetGroupMembersCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
+                                 targetId,
         reqId
     );
     
@@ -877,7 +884,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         NSLog(@"❌ 序列化 SetAlias 失败");
         return -2;
     }
-    
+    const char *targetId = [groupId UTF8String];
     uint64_t reqId = 0;
     if (completion) {
         static uint64_t tempId = 22000;
@@ -888,6 +895,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
             SetAliasCallback,
             (const char *)protoData.bytes,
             (int)protoData.length,
+                                   targetId,
             reqId
         );
         
@@ -906,6 +914,7 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         SetAliasCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
+                           targetId,
         reqId
     );
 }
@@ -928,12 +937,15 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     req.page = pg;
     // 目前 group_pb 未提供专用查询对象，服务端按 userId 查询，额外过滤暂未支持；keyword/type/status 如有需要可扩展字段
     
+    const char *targetId = [@"1" UTF8String];
+    
     NSData *protoData = [req data];
     uint64_t reqId = 0;
     int code = list_groups(
         ListGroupsCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
+                           targetId,
         reqId
     );
     

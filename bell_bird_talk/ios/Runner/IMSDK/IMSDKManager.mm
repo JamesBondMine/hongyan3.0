@@ -78,7 +78,7 @@
         
 //        NSString *serverIP = @"10.226.6.88";
 //        int serverPort = 5280;
-//        
+
         // 先测试服务器连通性
         NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
         BOOL isReachable = [self pingHost:serverIP port:serverPort timeout:3.0];

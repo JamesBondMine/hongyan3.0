@@ -1062,6 +1062,25 @@ class IOSNativeService {
     }
   }
   
+  /// 移动联系人到分组
+  /// @param contactUserId 联系人用户ID
+  /// @param groupId 目标分组ID（0表示移除分组）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imMoveContactToGroup({
+    required String contactUserId,
+    required int groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imMoveContactToGroup', {
+        'contact_user_id': contactUserId,
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   // ---------- 会话管理 ----------
   
   /// 获取会话列表
