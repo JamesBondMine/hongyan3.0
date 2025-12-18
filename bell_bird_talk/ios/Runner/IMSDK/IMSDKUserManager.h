@@ -60,19 +60,12 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 - (uint64_t)updateAvatar:(NSString *)avatarUrl
               completion:(IMSDKUserCompletion)completion;
 
-/// 退出登录
-/// @param userId 用户ID（可选，传入则写入 Logout proto）
-/// @param clientIp 客户端 IP（可选）
-/// @param reason 登出原因（可选，遵循 LogoutReason 枚举，缺省 USER_LOGOUT）
+/// 注销用户
+/// @param reason 注销原因（可选）
 /// @param completion 完成回调
 /// @return 请求ID
-- (uint64_t)logoutWithUserId:(NSString * _Nullable)userId
-                    clientIp:(NSString * _Nullable)clientIp
-                      reason:(NSNumber * _Nullable)reason
-                  completion:(IMSDKUserCompletion)completion;
-
-/// 退出登录（兼容旧签名）
-- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion;
+- (uint64_t)deactivateAccountWithReason:(NSString * _Nullable)reason
+                             completion:(IMSDKUserCompletion)completion;
 
 @end
 

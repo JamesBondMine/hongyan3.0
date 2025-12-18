@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../models/friend_model.dart';
 import 'friend_detail_page.dart';
-import '../../services/native_bridge.dart';
 
 /// 好友搜索页面
 class FriendSearchPage extends StatefulWidget {
@@ -22,11 +19,9 @@ class FriendSearchPage extends StatefulWidget {
 class _FriendSearchPageState extends State<FriendSearchPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final IOSNativeService _nativeService = IOSNativeService();
   
   List<FriendModel> _filteredFriends = [];
   String _searchText = '';
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -46,78 +41,30 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
     super.dispose();
   }
 
-  /// 输入变化时更新文本，但真正的搜索走后端
+  /// 搜索过滤
   void _onSearchChanged(String value) {
     setState(() {
-      _searchText = value.trim();
+      _searchText = value.trim().toLowerCase();
+      if (_searchText.isEmpty) {
+        _filteredFriends = widget.friends;
+      } else {
+        _filteredFriends = widget.friends.where((friend) {
+          final nickname = friend.nickname.toLowerCase();
+          final remark = (friend.remark ?? '').toLowerCase();
+          final id = friend.id.toLowerCase();
+          return nickname.contains(_searchText) ||
+                 remark.contains(_searchText) ||
+                 id.contains(_searchText);
+        }).toList();
+      }
     });
   }
 
   /// 清空搜索
   void _clearSearch() {
     _searchController.clear();
-    setState(() {
-      _searchText = '';
-      _filteredFriends = widget.friends;
-    });
+    _onSearchChanged('');
     _focusNode.requestFocus();
-  }
-
-  /// 调用后端搜索联系人
-  Future<void> _doSearch() async {
-    final keyword = _searchText.trim();
-    if (keyword.isEmpty) {
-      setState(() {
-        _filteredFriends = widget.friends;
-      });
-      return;
-    }
-
-    setState(() {
-      _isSearching = true;
-    });
-
-    try {
-      final result = await _nativeService.imSearchContact(keyword: keyword);
-      final errorCode = result['errorCode'] as int? ?? -1;
-      if (errorCode != 0) {
-        EasyLoading.showError(result['message']?.toString() ?? '搜索失败');
-        return;
-      }
-
-      final dataStr = result['data'] as String? ?? '';
-      if (dataStr.isEmpty) {
-        setState(() {
-          _filteredFriends = [];
-        });
-        return;
-      }
-
-      final decoded = json.decode(dataStr);
-      List<dynamic> list;
-      if (decoded is List) {
-        list = decoded;
-      } else if (decoded is Map && decoded['contacts'] is List) {
-        list = decoded['contacts'] as List;
-      } else {
-        list = [];
-      }
-
-      final friends = list
-          .map((e) => FriendModel.fromJson(
-              (e as Map).cast<String, dynamic>()))
-          .toList();
-
-      setState(() {
-        _filteredFriends = friends;
-      });
-    } catch (e) {
-      EasyLoading.showError('搜索异常: $e');
-    } finally {
-      setState(() {
-        _isSearching = false;
-      });
-    }
   }
 
   @override
@@ -174,23 +121,12 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
         ),
         style: const TextStyle(fontSize: 15),
         textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _doSearch(),
       ),
       actions: [
         if (_searchText.isNotEmpty)
           IconButton(
             icon: Icon(Icons.close, color: Colors.grey[600]),
             onPressed: _clearSearch,
-          ),
-        IconButton(
-          icon: _isSearching
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.search, color: Colors.blue),
-          onPressed: _isSearching ? null : _doSearch,
           ),
       ],
     );
@@ -252,9 +188,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
       color: Colors.white,
       child: InkWell(
         onTap: () {
-          Get.to(() => FriendDetailPage(friend: friend, onDelete: () { 
-            return _onSearchChanged('');
-           },));
+          Get.to(() => FriendDetailPage(friend: friend));
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -9,8 +9,6 @@
 #import "network_lib.h"
 #import "MessagePb.pbobjc.h"
 #import "ConvPb.pbobjc.h"
-#import "ChatPb.pbobjc.h"
-#import "SystemPb.pbobjc.h"
 
 // ==================== 私有方法前向声明 ====================
 
@@ -19,15 +17,6 @@
 - (void)handleReceivedMessageWithData:(const char *)data
                                length:(int)dataLen
                              convType:(IMMessageConvType)convType;
-
-/// 处理系统消息
-- (void)handleSystemMessageWithData:(const char *)data
-                             length:(int)dataLen;
-
-/// 处理命令消息
-- (void)handleCommandMessageWithEventType:(int)eventType
-                                     data:(const char *)data
-                                   length:(int)dataLen;
 @end
 
 // ==================== 全局消息回调（被动接收） ====================
@@ -54,157 +43,6 @@ static void CommunityMessageCallback(const char* data, int dataLen) {
     [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
                                                                 length:dataLen
                                                               convType:IMMessageConvTypeCommunity];
-}
-
-/// 系统消息回调
-static void SystemMessageCallback(const char* data, int dataLen) {
-    NSLog(@"📨 收到系统消息: dataLen=%d", dataLen);
-    [[IMSDKMessageManager sharedManager] handleSystemMessageWithData:data length:dataLen];
-}
-
-/// 命令消息回调
-static void CommandMessageCallback(int eventType, const char* data, int dataLen) {
-    NSLog(@"📨 收到命令消息: eventType=%d, dataLen=%d", eventType, dataLen);
-    [[IMSDKMessageManager sharedManager] handleCommandMessageWithEventType:eventType data:data length:dataLen];
-}
-
-/// 通知未读数回调
-static void NotificationUnreadCountCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"🔔 通知未读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
-        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
-        if (completion) {
-            NSString *dataStr = nil;
-            if (errorCode == 0 && responseData.length > 0) {
-                NSError *parseError = nil;
-                NotificationUnreadCountResult *result = [NotificationUnreadCountResult parseFromData:responseData error:&parseError];
-                if (result && !parseError) {
-                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
-                    json[@"total_unread"] = @(result.totalUnread);
-                    if (result.typeUnread.count > 0) {
-                        json[@"type_unread"] = result.typeUnread;
-                    }
-                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                    if (jsonData) {
-                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                    }
-                } else {
-                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                }
-            } else if (errorCode == 0) {
-                dataStr = @"{\"total_unread\":0}";
-            }
-            completion(errorCode, reqId, dataStr);
-            [manager removeCallbackForReqId:reqId];
-        }
-    });
-}
-
-/// 拉取通知回调
-static void PullNotificationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"🔔 拉取通知回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
-        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
-        if (completion) {
-            NSString *dataStr = nil;
-            if (errorCode == 0 && responseData.length > 0) {
-                NSError *parseError = nil;
-                NotificationPullList *list = [NotificationPullList parseFromData:responseData error:&parseError];
-                if (list && !parseError) {
-                    NSMutableArray *arr = [NSMutableArray array];
-                    for (Notification *n in list.notificationsArray) {
-                        NSMutableDictionary *item = [NSMutableDictionary dictionary];
-                        item[@"id"] = @(n.id_p);
-                        item[@"notification_type"] = n.notificationType ?: @"";
-                        item[@"title"] = n.title ?: @"";
-                        item[@"content"] = n.content ?: @"";
-                        item[@"business_type"] = n.businessType ?: @"";
-                        item[@"server_msg_id"] = n.serverMsgId ?: @"";
-                        item[@"related_user_id"] = n.relatedUserId ?: @"";
-                        item[@"related_request_id"] = @(n.relatedRequestId);
-                        item[@"status"] = @(n.status);
-                        item[@"create_time"] = @(n.createTime);
-                        item[@"read_time"] = @(n.readTime);
-                        item[@"expire_time"] = @(n.expireTime);
-                        [arr addObject:item];
-                    }
-                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
-                    json[@"notifications"] = arr;
-                    if (list.hasPage) {
-                        NSMutableDictionary *page = [NSMutableDictionary dictionary];
-                        page[@"page"] = @(list.page.page);
-                        page[@"size"] = @(list.page.size);
-                        page[@"total_count"] = @(list.page.totalCount);
-                        page[@"total_pages"] = @(list.page.totalPages);
-                        page[@"has_previous"] = @(list.page.hasPrevious);
-                        page[@"has_next"] = @(list.page.hasNext);
-                        json[@"page"] = page;
-                    }
-                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                    if (jsonData) {
-                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                    }
-                } else {
-                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                }
-            } else if (errorCode == 0) {
-                dataStr = @"{\"notifications\":[]}";
-            }
-            completion(errorCode, reqId, dataStr);
-            [manager removeCallbackForReqId:reqId];
-        }
-    });
-}
-
-/// 标记通知已读回调
-static void MarkNotificationReadCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"🔔 标记通知已读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
-        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
-        if (completion) {
-            NSString *dataStr = nil;
-            if (errorCode == 0 && responseData.length > 0) {
-                NSError *parseError = nil;
-                NotificationMarkReadResult *result = [NotificationMarkReadResult parseFromData:responseData error:&parseError];
-                if (result && !parseError) {
-                    NSMutableDictionary *json = [NSMutableDictionary dictionary];
-                    json[@"success_count"] = @(result.successCount);
-                    if (result.failedIdsArray_Count > 0) {
-                        NSMutableArray *failed = [NSMutableArray array];
-                        for (NSUInteger i = 0; i < result.failedIdsArray_Count; i++) {
-                            [failed addObject:@([result.failedIdsArray valueAtIndex:i])];
-                        }
-                        json[@"failed_ids"] = failed;
-                    }
-                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                    if (jsonData) {
-                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                    }
-                } else {
-                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                }
-            } else if (errorCode == 0) {
-                dataStr = @"{\"success_count\":0}";
-            }
-            completion(errorCode, reqId, dataStr);
-            [manager removeCallbackForReqId:reqId];
-        }
-    });
 }
 
 // ==================== 回调函数 ====================
@@ -272,7 +110,7 @@ static void SendMessageCallback(int errorCode, const char* data, int dataLen, ui
 
 /// 拉取消息回调
 static void PullMessagesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"🍎 拉取消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSLog(@"📥 拉取消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
     // ⚠️ 重要：在异步分发之前拷贝数据！
     NSData *responseData = nil;
@@ -336,19 +174,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
                         } else if (msg.mType == ImMessage_MessageType_Image && msg.imageMessage) {
                             msgDict[@"content"] = @"[图片]";
                             msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";
-                        } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
-                            msgDict[@"content"] = @"[语音]";
-                            msgDict[@"audio_url"] = msg.voiceMessage.audioURL ?: @"";
-                            msgDict[@"duration"] = @(msg.voiceMessage.duration);
-                        } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
-                            msgDict[@"content"] = @"[视频]";
-                            msgDict[@"duration"] = @(msg.videoMessage.duration);
-                            msgDict[@"image_url"] = msg.videoMessage.coverURL ?: @"";
-                            msgDict[@"cover_url"] = msg.videoMessage.coverURL ?: @"";
-                            msgDict[@"video_url"] = msg.videoMessage.videoURL ?: @"";
-                            msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
-                            msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
-                            msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }
@@ -418,7 +243,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         return;
     }
     
-    NSLog(@"📝 注册消息回调: 单聊、群聊、社区、系统、命令");
+    NSLog(@"📝 注册消息回调: 单聊、群聊、社区");
     
     // 注册单聊消息回调
     register_single_message_callback(SingleMessageCallback);
@@ -428,12 +253,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     
     // 注册社区消息回调
     register_community_message_callback(CommunityMessageCallback);
-    
-    // 注册系统消息回调
-    registe_system_message_listener(SystemMessageCallback);
-    
-    // 注册命令消息回调
-    registe_command_message_listener(CommandMessageCallback);
     
     _isCallbacksRegistered = YES;
     NSLog(@"✅ 消息回调注册完成");
@@ -450,8 +269,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     register_single_message_callback(NULL);
     register_group_message_callback(NULL);
     register_community_message_callback(NULL);
-    registe_system_message_listener(NULL);
-    registe_command_message_listener(NULL);
     
     _isCallbacksRegistered = NO;
     NSLog(@"✅ 消息回调取消注册完成");
@@ -635,172 +452,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
-- (int)sendImageMessage:(NSString *)imageUrl
-            thumbnailUrl:(NSString * _Nullable)thumbnailUrl
-                  width:(int32_t)width
-                 height:(int32_t)height
-         conversationId:(NSString *)conversationId
-             receiverId:(NSString *)receiverId
-             completion:(IMSDKMessageCompletion)completion {
-    
-    NSLog(@"📤 发送图片消息: imageUrl=%@, thumbnailUrl=%@, width=%d, height=%d, conversationId=%@, receiverId=%@",
-          imageUrl, thumbnailUrl, width, height, conversationId, receiverId);
-    
-    // 创建 ImageMessage
-    ImageMessage *imageMsg = [[ImageMessage alloc] init];
-    imageMsg.originalURL = imageUrl;
-    if (thumbnailUrl && thumbnailUrl.length > 0) {
-        imageMsg.thumbnailURL = thumbnailUrl;
-    }
-    if (width > 0) {
-        imageMsg.width = width;
-    }
-    if (height > 0) {
-        imageMsg.height = height;
-    }
-    
-    // 序列化 ImageMessage
-    NSData *protoData = [imageMsg data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ ImageMessage 序列化失败");
-        return -1;
-    }
-    
-    NSLog(@"📦 ImageMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
-    
-    // 调用 SDK 发送
-    uint64_t reqId = 0;
-    int result = send_single_message(
-        SendMessageCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        conversationId.UTF8String,
-        (int)ImMessage_MessageType_Image,  // msgType = 1 (IMAGE)
-        receiverId.UTF8String,
-        reqId
-    );
-    
-    NSLog(@"📤 调用 send_single_message (图片): result=%d, reqId=%llu", result, reqId);
-    
-    if (result == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    
-    return result;
-}
-
-/// 发送视频消息
-- (int)sendVideoMessage:(NSString *)videoUrl
-               coverURL:(NSString * _Nullable)coverURL
-               duration:(int32_t)duration
-                  width:(int32_t)width
-                 height:(int32_t)height
-                   size:(int64_t)size
-         conversationId:(NSString *)conversationId
-             receiverId:(NSString *)receiverId
-             completion:(IMSDKMessageCompletion)completion {
-    
-    NSLog(@"📤 发送视频消息: videoUrl=%@, coverURL=%@, duration=%d, width=%d, height=%d, size=%lld, conversationId=%@, receiverId=%@",
-          videoUrl, coverURL, duration, width, height, size, conversationId, receiverId);
-    
-    // 创建 VideoMessage
-    VideoMessage *videoMsg = [[VideoMessage alloc] init];
-    videoMsg.videoURL = videoUrl;
-    if (coverURL && coverURL.length > 0) {
-        videoMsg.coverURL = coverURL;
-    }
-    if (duration > 0) {
-        videoMsg.duration = duration;
-    }
-    if (width > 0) {
-        videoMsg.coverWidth = width;
-    }
-    if (height > 0) {
-        videoMsg.coverHeight = height;
-    }
-    if (size > 0) {
-        videoMsg.size = size;
-    }
-    
-    // 序列化 VideoMessage
-    NSData *protoData = [videoMsg data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ VideoMessage 序列化失败");
-        return -1;
-    }
-    
-    NSLog(@"📦 VideoMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
-    
-    // 调用 SDK 发送
-    uint64_t reqId = 0;
-    int result = send_single_message(
-        SendMessageCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        conversationId.UTF8String,
-        (int)ImMessage_MessageType_Video,  // msgType = 2 (VIDEO)
-        receiverId.UTF8String,
-        reqId
-    );
-    
-    NSLog(@"📤 调用 send_single_message (视频): result=%d, reqId=%llu", result, reqId);
-    
-    if (result == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    
-    return result;
-}
-
-- (int)sendVoiceMessage:(NSString *)audioUrl
-                duration:(int32_t)duration
-          conversationId:(NSString *)conversationId
-              receiverId:(NSString *)receiverId
-              completion:(IMSDKMessageCompletion)completion {
-    
-    
-    
-    // 创建 VoiceMessage
-    VoiceMessage *voiceMsg = [[VoiceMessage alloc] init];
-    voiceMsg.audioURL = audioUrl;
-    voiceMsg.name = @"voice";
-    voiceMsg.size = 300;
-    voiceMsg.ext =audioUrl;
-    if (duration > 0) {
-        voiceMsg.duration = duration;
-    }
-    NSLog(@"🍎 发送语音消息: audioUrl=%@, name=%@, ext=%@,  size=%d, duration=%d, conversationId=%@, receiverId=%@",
-          voiceMsg.audioURL,voiceMsg.name, voiceMsg.ext, voiceMsg.size, voiceMsg.duration, conversationId, receiverId);
-    // 序列化 VoiceMessage
-    NSData *protoData = [voiceMsg data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ VoiceMessage 序列化失败");
-        return -1;
-    }
-    
-    NSLog(@"📦 VoiceMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
-    
-    // 调用 SDK 发送
-    uint64_t reqId = 0;
-    int result = send_single_message(
-        SendMessageCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        conversationId.UTF8String,
-        (int)ImMessage_MessageType_Voice,  // msgType = 3 (VOICE)
-        receiverId.UTF8String,
-        reqId
-    );
-    
-    NSLog(@"📤 调用 send_single_message (语音): result=%d, reqId=%llu", result, reqId);
-    
-    if (result == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    
-    return result;
-}
-
 // ==================== 拉取历史消息 ====================
 
 - (int)pullMessagesWithConversationId:(NSString *)conversationId
@@ -866,179 +517,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     }
     
     return result;
-}
-
-// ==================== 系统消息处理 ====================
-
-- (void)handleSystemMessageWithData:(const char *)data length:(int)dataLen {
-    // 拷贝数据
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSMutableDictionary *messageData = [NSMutableDictionary dictionary];
-        
-        if (responseData && responseData.length > 0) {
-            // 尝试解析为 JSON 字符串
-            NSString *dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-            if (dataStr) {
-                messageData[@"raw_data"] = dataStr;
-            }
-            
-            // 尝试解析为 JSON 对象
-            NSError *jsonError = nil;
-            id jsonObj = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
-            if (jsonObj && !jsonError && [jsonObj isKindOfClass:[NSDictionary class]]) {
-                [messageData addEntriesFromDictionary:(NSDictionary *)jsonObj];
-            }
-        }
-        
-        messageData[@"type"] = @"system";
-        messageData[@"receive_time"] = @([[NSDate date] timeIntervalSince1970] * 1000);
-        
-        NSLog(@"📨 系统消息解析完成: %@", messageData);
-        
-        // 回调到 Flutter
-        if (self.onSystemMessage) {
-            self.onSystemMessage(messageData);
-        }
-    });
-}
-
-// ==================== 命令消息处理 ====================
-
-- (void)handleCommandMessageWithEventType:(int)eventType data:(const char *)data length:(int)dataLen {
-    // 拷贝数据
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSMutableDictionary *messageData = [NSMutableDictionary dictionary];
-        
-        if (responseData && responseData.length > 0) {
-            // 尝试解析为 JSON 字符串
-            NSString *dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-            if (dataStr) {
-                messageData[@"raw_data"] = dataStr;
-            }
-            
-            // 尝试解析为 JSON 对象
-            NSError *jsonError = nil;
-            id jsonObj = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
-            if (jsonObj && !jsonError && [jsonObj isKindOfClass:[NSDictionary class]]) {
-                [messageData addEntriesFromDictionary:(NSDictionary *)jsonObj];
-            }
-        }
-        
-        messageData[@"type"] = @"command";
-        messageData[@"event_type"] = @(eventType);
-        messageData[@"receive_time"] = @([[NSDate date] timeIntervalSince1970] * 1000);
-        
-        NSLog(@"📨 命令消息解析完成: eventType=%d, data=%@", eventType, messageData);
-        
-        // 回调到 Flutter
-        if (self.onCommandMessage) {
-            self.onCommandMessage(eventType, messageData);
-        }
-    });
-}
-
-// ==================== 通知 ====================
-
-- (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
-                                completion:(IMSDKMessageCompletion)completion {
-    NotificationUnreadCount *req = [NotificationUnreadCount message];
-    if (notificationTypes.count > 0) {
-        [req.notificationTypesArray addObjectsFromArray:notificationTypes];
-    }
-    
-    NSData *protoData = [req data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ Protobuf 序列化失败");
-        if (completion) {
-            completion(-1, 0, @"{\"message\":\"Protobuf 序列化失败\"}");
-        }
-        return -1;
-    }
-    
-    uint64_t reqId = 0;
-    int code = get_notification_unread_count(
-        NotificationUnreadCountCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        reqId
-    );
-    
-    NSLog(@"🔔 调用 get_notification_unread_count: result=%d, reqId=%llu", code, reqId);
-    
-    if (code == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    return code;
-}
-
-- (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
-                             page:(int32_t)page
-                         pageSize:(int32_t)pageSize
-                        completion:(IMSDKMessageCompletion)completion {
-    NotificationPull *req = [NotificationPull message];
-    if (notificationTypes.count > 0) {
-        [req.notificationTypesArray addObjectsFromArray:notificationTypes];
-    }
-    Page *pg = [Page message];
-    pg.page = page > 0 ? page : 1;
-    pg.size = pageSize > 0 ? pageSize : 20;
-    req.page = pg;
-    
-    NSData *protoData = [req data];
-    uint64_t reqId = 0;
-    int code = pull_notification(
-        PullNotificationCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        reqId
-    );
-    
-    if (code == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    return code;
-}
-
-- (int)markNotificationsRead:(NSArray<NSNumber *> *)notificationIds
-                    readTime:(int64_t)readTime
-                  completion:(IMSDKMessageCompletion)completion {
-    if (notificationIds.count == 0) {
-        if (completion) {
-            completion(-1, 0, @"{\"message\":\"notificationIds 不能为空\"}");
-        }
-        return -1;
-    }
-    
-    NotificationMarkRead *req = [NotificationMarkRead message];
-    for (NSNumber *num in notificationIds) {
-        [req.notificationIdsArray addValue:num.longLongValue];
-    }
-    int64_t ts = readTime > 0 ? readTime : (int64_t)([[NSDate date] timeIntervalSince1970] * 1000);
-    req.readTime = ts;
-    
-    NSData *protoData = [req data];
-    uint64_t reqId = 0;
-    int code = mark_notification_read(
-        MarkNotificationReadCallback,
-        (const char *)protoData.bytes,
-        (int)protoData.length,
-        reqId
-    );
-    
-    if (code == 0 && completion) {
-        [self setCallback:completion forReqId:reqId];
-    }
-    return code;
 }
 
 @end

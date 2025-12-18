@@ -249,18 +249,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
         contact.message = message;
         contact.remark = message;
     }
-    
-    // 设置分组ID（可选）
-    NSNumber *groupIdObj = params[@"group_id"];
-    if (groupIdObj != nil) {
-        int64_t groupId = [groupIdObj longLongValue];
-        if (groupId > 0) {
-            contact.groupId = groupId;
-            NSLog(@"📁 设置分组ID: %lld", groupId);
-        }
-    }
-    
-//
+//    
     // 设置目标手机号（可选）
     NSString *targetPhone = params[@"target_phone"];
     if (targetPhone && targetPhone.length > 0) {
@@ -287,7 +276,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 //        contact.targetValue = targetAccountId;
     }
     
-    NSLog(@"\n添加好友信息\n==============================\n targetValue: %@ \n addChannel:%d \n targetPhone:%@ \n message:%@ \n targetAccountId:%@ \n targetEmail:%@ \n groupId:%lld \n",contact.targetValue,contact.addChannel,contact.targetPhone,contact.message,contact.targetAccountId,contact.targetEmail,contact.groupId);
+    NSLog(@"\n添加好友信息\n==============================\n targetValue: %@ \n addChannel:%d \n targetPhone:%@ \n message:%@ \n targetAccountId:%@ \n targetEmail:%@ \n",contact.targetValue,contact.addChannel,contact.targetPhone,contact.message,contact.targetAccountId,contact.targetEmail);
     
     // 序列化为 Protobuf 二进制数据
     NSData *serializedData = [contact data];
@@ -348,18 +337,18 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 
 #pragma mark - 好友管理
 
-- (int)deleteContactWithUserId:(NSString *)contact_user_id
+- (int)deleteContactWithUserId:(NSString *)userId
                     completion:(IMSDKContactCompletion)completion {
-    NSLog(@"🗑️ 删除联系人: %@", contact_user_id);
+    NSLog(@"🗑️ 删除联系人: %@", userId);
     
-    if (!contact_user_id || contact_user_id.length == 0) {
+    if (!userId || userId.length == 0) {
         NSLog(@"❌ 用户ID不能为空");
         return -1;
     }
     
     // 创建 ContactQuery 对象
-    Contact *query = [[Contact alloc] init];
-    query.contactUserId = contact_user_id;
+    ContactQuery *query = [[ContactQuery alloc] init];
+    query.contactUserId = userId;
     
     NSData *protoBody = [query data];
     if (!protoBody || protoBody.length == 0) {
@@ -369,7 +358,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     
     const char *data = (const char *)protoBody.bytes;
     int dataLen = (int)protoBody.length;
-    const char *targetId = [contact_user_id UTF8String];
+    const char *targetId = [userId UTF8String];
     uint64_t reqId = 0;
     
     if (completion) {
@@ -404,7 +393,6 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     // 创建 Block 对象
     Block *blockObj = [[Block alloc] init];
     blockObj.targetUserId = userId;
-    
     
     NSData *protoBody = [blockObj data];
     if (!protoBody || protoBody.length == 0) {
@@ -486,19 +474,13 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 - (int)getContactListWithPage:(int)page
                      pageSize:(int)pageSize
                  relationship:(int)relationship
-                       groupId:(int64_t)groupId
                    completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d, groupId=%lld", page, pageSize, relationship, groupId);
+    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d", page, pageSize, relationship);
     
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.page = page;
     query.pageSize = pageSize;
-    
-    // 设置分组ID（如果大于0）
-    if (groupId > 0) {
-        query.groupId = groupId;
-    }
     
     // relationship: 0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部（不设置）
     if (relationship >= 0) {
@@ -559,6 +541,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.keyword = keyword;
+    
     NSData *protoBody = [query data];
     if (!protoBody || protoBody.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
@@ -895,258 +878,6 @@ static void ContactGroupsCallback(int errorCode, const char* data, int dataLen, 
     }
     
     return list_contact_groups(ContactGroupsCallback, data, dataLen, reqId);
-}
-
-// 创建分组回调
-static void CreateContactGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 创建联系人分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    
-    NSString *jsonString = nil;
-    if (data && dataLen > 0) {
-        NSData *responseData = [NSData dataWithBytes:data length:dataLen];
-        
-        // 尝试解析为 ContactGroup
-        NSError *error = nil;
-        ContactGroup *group = [ContactGroup parseFromData:responseData error:&error];
-        if (!error && group) {
-            NSMutableDictionary *groupDict = [NSMutableDictionary dictionary];
-            groupDict[@"group_id"] = @(group.groupId);
-            groupDict[@"group_name"] = group.groupName ?: @"";
-            groupDict[@"group_color"] = group.groupColor ?: @"";
-            groupDict[@"group_order"] = @(group.groupOrder);
-            groupDict[@"group_icon"] = group.groupIcon ?: @"";
-            groupDict[@"group_description"] = group.groupDescription ?: @"";
-            groupDict[@"contact_count"] = @(group.contactCount);
-            groupDict[@"create_time"] = @(group.createTime);
-            groupDict[@"update_time"] = @(group.updateTime);
-            
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:groupDict options:0 error:nil];
-            jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            NSLog(@"✅ 解析创建分组响应成功: %@", jsonString);
-        } else {
-            // 尝试直接作为字符串
-            jsonString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-            if (!jsonString) {
-                jsonString = @"{}";
-            }
-        }
-    }
-    
-    IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
-    IMSDKContactCompletion completion = manager.contactCallbacks[@(reqId)];
-    if (completion) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion(errorCode, reqId, jsonString);
-        });
-        [manager.contactCallbacks removeObjectForKey:@(reqId)];
-    }
-}
-
-- (int)createContactGroupWithName:(NSString *)groupName
-                        groupColor:(NSString * _Nullable)groupColor
-                        groupOrder:(int32_t)groupOrder
-                         groupIcon:(NSString * _Nullable)groupIcon
-                   groupDescription:(NSString * _Nullable)groupDescription
-                        completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📁 创建联系人分组: groupName=%@", groupName);
-    
-    if (!groupName || groupName.length == 0) {
-        NSLog(@"❌ 分组名称不能为空");
-        return -1;
-    }
-    
-    // 创建 GroupCreate Protobuf 对象
-    GroupCreate *groupCreate = [[GroupCreate alloc] init];
-    groupCreate.groupName = groupName;
-    if (groupColor && groupColor.length > 0) {
-        groupCreate.groupColor = groupColor;
-    }
-    if (groupOrder > 0) {
-        groupCreate.groupOrder = groupOrder;
-    }
-    if (groupIcon && groupIcon.length > 0) {
-        groupCreate.groupIcon = groupIcon;
-    }
-    if (groupDescription && groupDescription.length > 0) {
-        groupCreate.groupDescription = groupDescription;
-    }
-    
-    // 序列化为 Protobuf 二进制数据
-    NSData *serializedData = [groupCreate data];
-    if (!serializedData || serializedData.length == 0) {
-        NSLog(@"❌ Protobuf 序列化失败");
-        return -1;
-    }
-    
-    NSLog(@"📦 创建分组 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
-    
-    // 使用纯 Protobuf 二进制数据
-    const char *data = (const char *)serializedData.bytes;
-    int dataLen = (int)serializedData.length;
-    uint64_t reqId = 0;
-    
-    if (completion) {
-        static uint64_t tempId = 16000;
-        NSNumber *tempKey = @(tempId++);
-        self.contactCallbacks[tempKey] = completion;
-        
-        int result = create_contact_group(CreateContactGroupCallback, data, dataLen, reqId);
-        
-        if (result == 0) {
-            NSLog(@"✅ 创建分组请求发送成功: reqId=%llu", reqId);
-            if (reqId != 0) {
-                self.contactCallbacks[@(reqId)] = completion;
-                [self.contactCallbacks removeObjectForKey:tempKey];
-            }
-        } else {
-            NSLog(@"❌ 创建分组请求失败: %d", result);
-            [self.contactCallbacks removeObjectForKey:tempKey];
-        }
-        
-        return result;
-    }
-    
-    return create_contact_group(CreateContactGroupCallback, data, dataLen, reqId);
-}
-
-// 更新分组回调
-static void UpdateContactGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 更新联系人分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    NSString *jsonString = nil;
-    if (data && dataLen > 0) {
-        NSData *responseData = [NSData dataWithBytes:data length:dataLen];
-        NSError *error = nil;
-        ContactGroup *group = [ContactGroup parseFromData:responseData error:&error];
-        if (!error && group) {
-            NSMutableDictionary *groupDict = [NSMutableDictionary dictionary];
-            groupDict[@"group_id"] = @(group.groupId);
-            groupDict[@"group_name"] = group.groupName ?: @"";
-            groupDict[@"group_color"] = group.groupColor ?: @"";
-            groupDict[@"group_order"] = @(group.groupOrder);
-            groupDict[@"group_icon"] = group.groupIcon ?: @"";
-            groupDict[@"group_description"] = group.groupDescription ?: @"";
-            groupDict[@"contact_count"] = @(group.contactCount);
-            groupDict[@"create_time"] = @(group.createTime);
-            groupDict[@"update_time"] = @(group.updateTime);
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:groupDict options:0 error:nil];
-            if (jsonData) {
-                jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            }
-        } else {
-            jsonString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-        }
-    }
-    IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
-    IMSDKContactCompletion completion = manager.contactCallbacks[@(reqId)];
-    if (completion) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion(errorCode, reqId, jsonString);
-        });
-        [manager.contactCallbacks removeObjectForKey:@(reqId)];
-    }
-}
-
-// 删除分组回调
-static void DeleteContactGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 删除联系人分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    NSString *message = @"删除成功";
-    if (errorCode != 0 && data && dataLen > 0) {
-        NSData *resp = [NSData dataWithBytes:data length:dataLen];
-        message = [[NSString alloc] initWithData:resp encoding:NSUTF8StringEncoding] ?: @"删除失败";
-    }
-    IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
-    IMSDKContactCompletion completion = manager.contactCallbacks[@(reqId)];
-    if (completion) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion(errorCode, reqId, message);
-        });
-        [manager.contactCallbacks removeObjectForKey:@(reqId)];
-    }
-}
-
-- (int)updateContactGroupWithId:(int64_t)groupId
-                      groupName:(NSString * _Nullable)groupName
-                     groupColor:(NSString * _Nullable)groupColor
-                     groupOrder:(int32_t)groupOrder
-                      groupIcon:(NSString * _Nullable)groupIcon
-                groupDescription:(NSString * _Nullable)groupDescription
-                      completion:(IMSDKContactCompletion)completion {
-    if (groupId <= 0) {
-        NSLog(@"❌ 分组ID不能为空");
-        return -1;
-    }
-    NSLog(@"📁 更新联系人分组: groupId=%lld, name=%@", groupId, groupName);
-    
-    GroupUpdate *update = [GroupUpdate message];
-    update.groupId = groupId;
-    if (groupName && groupName.length > 0) update.groupName = groupName;
-    if (groupColor && groupColor.length > 0) update.groupColor = groupColor;
-    if (groupOrder > 0) update.groupOrder = groupOrder;
-    if (groupIcon && groupIcon.length > 0) update.groupIcon = groupIcon;
-    if (groupDescription && groupDescription.length > 0) update.groupDescription = groupDescription;
-    
-    NSData *protoData = [update data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ 序列化 GroupUpdate 失败");
-        return -2;
-    }
-    
-    uint64_t reqId = 0;
-    if (completion) {
-        static uint64_t tempId = 17000;
-        NSNumber *tempKey = @(tempId++);
-        self.contactCallbacks[tempKey] = completion;
-        
-        int result = update_contact_group(UpdateContactGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
-        if (result == 0) {
-            if (reqId != 0) {
-                self.contactCallbacks[@(reqId)] = completion;
-                [self.contactCallbacks removeObjectForKey:tempKey];
-            }
-        } else {
-            [self.contactCallbacks removeObjectForKey:tempKey];
-        }
-        return result;
-    }
-    
-    return update_contact_group(UpdateContactGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
-}
-
-- (int)deleteContactGroupWithId:(int64_t)groupId
-                      completion:(IMSDKContactCompletion)completion {
-    if (groupId <= 0) {
-        NSLog(@"❌ 分组ID不能为空");
-        return -1;
-    }
-    NSLog(@"📁 删除联系人分组: groupId=%lld", groupId);
-    
-    GroupQuery *query = [GroupQuery message];
-    query.groupId = groupId;
-    NSData *protoData = [query data];
-    if (!protoData || protoData.length == 0) {
-        NSLog(@"❌ 序列化 GroupQuery 失败");
-        return -2;
-    }
-    
-    uint64_t reqId = 0;
-    if (completion) {
-        static uint64_t tempId = 18000;
-        NSNumber *tempKey = @(tempId++);
-        self.contactCallbacks[tempKey] = completion;
-        
-        int result = delete_contact_group(DeleteContactGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
-        if (result == 0) {
-            if (reqId != 0) {
-                self.contactCallbacks[@(reqId)] = completion;
-                [self.contactCallbacks removeObjectForKey:tempKey];
-            }
-        } else {
-            [self.contactCallbacks removeObjectForKey:tempKey];
-        }
-        return result;
-    }
-    
-    return delete_contact_group(DeleteContactGroupCallback, (const char *)protoData.bytes, (int)protoData.length, reqId);
 }
 
 // ==================== 联系人备注 ====================

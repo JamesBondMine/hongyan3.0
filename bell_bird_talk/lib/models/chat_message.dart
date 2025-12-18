@@ -236,33 +236,6 @@ class ChatMessage {
     );
   }
 
-  /// 创建视频消息
-  factory ChatMessage.video({
-    required String convId,
-    required String senderId,
-    required String receiverId,
-    required String localPath,
-    String? coverLocalPath,
-    int? duration,
-    int? coverWidth,
-    int? coverHeight,
-  }) {
-    return ChatMessage(
-      localId: _generateLocalId(),
-      convId: convId,
-      senderId: senderId,
-      receiverId: receiverId,
-      type: MessageType.video,
-      isMine: true,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      fileLocalPath: localPath,
-      videoDuration: duration,
-      imageLocalPath: coverLocalPath,
-      imageWidth: coverWidth,
-      imageHeight: coverHeight,
-    );
-  }
-
   /// 生成本地消息ID
   static String _generateLocalId() {
     return 'local_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';

@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
-import '../friends/blacklist_page.dart';
 
 /// 个人资料页面
 class ProfilePage extends StatefulWidget {
@@ -292,13 +291,6 @@ class _ProfilePageState extends State<ProfilePage> {
             label: '消息通知',
             value: '',
             onTap: () => EasyLoading.showInfo('消息通知设置'),
-          ),
-          
-          _buildInfoItem(
-            icon: Icons.block,
-            label: '黑名单',
-            value: '',
-            onTap: () => Get.to(() => const BlacklistPage()),
           ),
           
           _buildInfoItem(
@@ -604,45 +596,26 @@ class _ProfilePageState extends State<ProfilePage> {
       final String uploadUrl = tokenData['upload_url'] ?? '';
       final String fileUrl = tokenData['file_url'] ?? '';
       final String method = tokenData['method'] ?? 'POST';
-      final String objectKey = tokenData['file_path'] ?? '';
-      final String uploadMode = tokenData['upload_mode'] ?? '';
-      final String providerCode = tokenData['provider_code'] ?? '';
+      final String filePath = tokenData['file_path'] ?? '';
       final Map<String, dynamic> headers = Map<String, dynamic>.from(tokenData['headers'] ?? {});
       final Map<String, dynamic> formData = Map<String, dynamic>.from(tokenData['form_data'] ?? {});
       
-      // STS 凭证（腾讯云等）
-      final String bucketName = tokenData['bucket_name'] ?? '';
-      final String region = tokenData['region'] ?? '';
-      final String stsAccessKeyId = tokenData['sts_access_key_id'] ?? '';
-      final String stsAccessKeySecret = tokenData['sts_access_key_secret'] ?? '';
-      final String stsSecurityToken = tokenData['sts_security_token'] ?? '';
+      if (uploadUrl.isEmpty) {
+        EasyLoading.showError('上传URL为空');
+        return;
+      }
       
-      print('📤 开始上传: uploadMode=$uploadMode, provider=$providerCode');
+      print('📤 开始上传: uploadUrl=$uploadUrl, method=$method');
       
       // 5. 上传图片
       bool uploadSuccess = false;
       
-      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
-        // 腾讯云 STS SDK 上传
-        uploadSuccess = await _uploadWithTencentSTS(
-          localFilePath: imageFile.path,
-          objectKey: objectKey,
-          bucketName: bucketName,
-          region: region,
-          secretId: stsAccessKeyId,
-          secretKey: stsAccessKeySecret,
-          token: stsSecurityToken,
-        );
-      } else if (uploadUrl.isNotEmpty) {
-        // HTTP 上传（PUT 或 POST）
-        if (method.toUpperCase() == 'PUT') {
-          uploadSuccess = await _uploadWithPut(uploadUrl, imageFile, headers);
-        } else {
-          uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, objectKey, headers, formData);
-        }
+      if (method.toUpperCase() == 'PUT') {
+        // PUT 方式上传（直接上传文件内容）
+        uploadSuccess = await _uploadWithPut(uploadUrl, imageFile, headers);
       } else {
-        EasyLoading.showError('不支持的上传模式: $uploadMode');
-        return;
+        // POST 方式上传（表单上传）
+        uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, filePath, headers, formData);
       }
       
       if (!uploadSuccess) {
@@ -734,47 +707,6 @@ class _ProfilePageState extends State<ProfilePage> {
       return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       print('❌ POST 上传失败: $e');
-      return false;
-    }
-  }
-  
-  /// 腾讯云 STS SDK 上传
-  Future<bool> _uploadWithTencentSTS({
-    required String localFilePath,
-    required String objectKey,
-    required String bucketName,
-    required String region,
-    required String secretId,
-    required String secretKey,
-    required String token,
-  }) async {
-    try {
-      print('📤 腾讯云 STS 上传开始...');
-      print('  - localFilePath: $localFilePath');
-      print('  - objectKey: $objectKey');
-      print('  - bucket: $bucketName');
-      print('  - region: $region');
-      
-      final result = await _nativeBridge.imUploadWithTencentSTS(
-        localFilePath: localFilePath,
-        objectKey: objectKey,
-        bucketName: bucketName,
-        region: region,
-        secretId: secretId,
-        secretKey: secretKey,
-        token: token,
-      );
-      
-      final bool success = result['success'] == true;
-      if (success) {
-        print('✅ 腾讯云上传成功: ${result['url']}');
-      } else {
-        print('❌ 腾讯云上传失败: ${result['error']}');
-      }
-      
-      return success;
-    } catch (e) {
-      print('❌ 腾讯云 STS 上传异常: $e');
       return false;
     }
   }

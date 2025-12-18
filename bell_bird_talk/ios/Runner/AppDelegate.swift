@@ -194,8 +194,6 @@ class NativeBridgeHandler: NSObject {
             imUnblockContact(call: call, result: result)
         case "imGetContactList":
             imGetContactList(call: call, result: result)
-        case "imSearchContact":
-            imSearchContact(call: call, result: result)
         
         // ---------- 好友申请 ----------
         case "imGetFriendRequests":
@@ -206,22 +204,6 @@ class NativeBridgeHandler: NSObject {
             imRejectFriendRequest(call: call, result: result)
         case "imGetContactGroups":
             imGetContactGroups(call: call, result: result)
-        case "imCreateContactGroup":
-            imCreateContactGroup(call: call, result: result)
-        case "imUpdateContactGroup":
-            imUpdateContactGroup(call: call, result: result)
-        case "imDeleteContactGroup":
-            imDeleteContactGroup(call: call, result: result)
-        case "imGetGroupList":
-            imGetGroupList(call: call, result: result)
-        case "imGetGroupMembers":
-            imGetGroupMembers(call: call, result: result)
-        case "imUpdateGroup":
-            imUpdateGroup(call: call, result: result)
-        case "imSetGroupAlias":
-            imSetGroupAlias(call: call, result: result)
-        case "imGetGroupInfo":
-            imGetGroupInfo(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         
@@ -230,19 +212,8 @@ class NativeBridgeHandler: NSObject {
             imGetConversationList(call: call, result: result)
         case "imGetConversation":
             imGetConversation(call: call, result: result)
-        case "imGetUnreadConversations":
-            imGetUnreadConversations(call: call, result: result)
-        case "imUpdateConversation":
-            imUpdateConversation(call: call, result: result)
         case "imCreateConversation":
             imCreateConversation(call: call, result: result)
-        // ---------- 通知 ----------
-        case "imGetNotificationUnreadCount":
-            imGetNotificationUnreadCount(call: call, result: result)
-        case "imPullNotifications":
-            imPullNotifications(call: call, result: result)
-        case "imMarkNotificationRead":
-            imMarkNotificationRead(call: call, result: result)
         case "imDeleteConversation":
             imDeleteConversation(call: call, result: result)
         case "imMarkConversationRead":
@@ -253,12 +224,6 @@ class NativeBridgeHandler: NSObject {
         // ---------- 消息管理 ----------
         case "imSendTextMessage":
             imSendTextMessage(call: call, result: result)
-        case "imSendImageMessage":
-            imSendImageMessage(call: call, result: result)
-        case "imSendVideoMessage":
-            imSendVideoMessage(call: call, result: result)
-        case "imSendVoiceMessage":
-            imSendVoiceMessage(call: call, result: result)
         case "imPullMessages":
             imPullMessages(call: call, result: result)
         case "imRegisterMessageCallbacks":
@@ -269,24 +234,12 @@ class NativeBridgeHandler: NSObject {
         // ---------- 用户管理 ----------
         case "imUpdateUserInfo":
             imUpdateUserInfo(call: call, result: result)
-        
-        case "imLogout":
-            imLogout(call: call, result: result)
-        case "imDeleteUser":
-            imDeleteUser(call: call, result: result)
-        
-        case "imChangePassword":
-            imChangePassword(call: call, result: result)
-        
-        case "imResetPassword":
-            imResetPassword(call: call, result: result)
+        case "imDeactivateAccount":
+            imDeactivateAccount(call: call, result: result)
         
         // ---------- 文件管理 ----------
         case "imPrepareUpload":
             imPrepareUpload(call: call, result: result)
-        
-        case "imUploadWithTencentSTS":
-            imUploadWithTencentSTS(call: call, result: result)
         
         // ---------- 群组管理 ----------
         case "imCreateGroup":
@@ -1089,14 +1042,14 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        guard let contact_user_id = args["contact_user_id"] as? String, !contact_user_id.isEmpty else {
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
             result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
             return
         }
         
-        print("🗑️ 删除联系人: \(contact_user_id)")
+        print("🗑️ 删除联系人: \(userId)")
         
-        let code = IMSDKContactManager.shared().deleteContact(withUserId: contact_user_id) { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().deleteContact(withUserId: userId) { errorCode, reqId, data in
             print("✅ 删除联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -1185,11 +1138,10 @@ class NativeBridgeHandler: NSObject {
         let page = args["page"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
         let relationship = args["relationship"] as? Int ?? -1  // 默认 -1 表示获取全部
-        let groupId = args["group_id"] as? Int64 ?? 0  // 默认 0 表示不按分组过滤
         
-        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship), groupId=\(groupId)")
+        print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship)")
         
-        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship), groupId: groupId) { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship)) { errorCode, reqId, data in
             print("✅ 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -1203,41 +1155,6 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CONTACT_LIST_ERROR",
                               message: "获取联系人列表请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 搜索联系人
-    private func imSearchContact(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any] ?? [:]
-        let keyword = (args["keyword"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        print("🔍 搜索联系人: keyword=\(keyword)")
-        
-        guard !keyword.isEmpty else {
-            result([
-                "errorCode": -1,
-                "reqId": 0,
-                "message": "搜索关键词不能为空",
-                "data": ""
-            ])
-            return
-        }
-        
-        let code = IMSDKContactManager.shared().searchContact(withKeyword: keyword) { errorCode, reqId, data in
-            print("✅ 搜索联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "搜索成功" : "搜索失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "SEARCH_CONTACT_ERROR",
-                              message: "搜索联系人请求发送失败: \(code)",
                               details: nil))
         }
     }
@@ -1357,244 +1274,6 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 创建联系人分组
-    private func imCreateContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupName = args["group_name"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        let groupColor = args["group_color"] as? String
-        let groupOrder = args["group_order"] as? Int32 ?? 0
-        let groupIcon = args["group_icon"] as? String
-        let groupDescription = args["group_description"] as? String
-        
-        print("📁 创建联系人分组: groupName=\(groupName)")
-        
-        let code = IMSDKContactManager.shared().createContactGroup(withName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription, completion: { errorCode, reqId, data in
-            print("✅ 创建联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "创建成功" : "创建失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if code != 0 {
-            result(FlutterError(code: "CREATE_CONTACT_GROUP_ERROR",
-                              message: "创建联系人分组请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 更新联系人分组
-    private func imUpdateContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? Int64 ?? (args["group_id"] as? Int).map({ Int64($0) }) else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
-            return
-        }
-        
-        let groupName = args["group_name"] as? String
-        let groupColor = args["group_color"] as? String
-        let groupOrder = (args["group_order"] as? Int32) ?? (args["group_order"] as? Int).map { Int32($0) } ?? 0
-        let groupIcon = args["group_icon"] as? String
-        let groupDescription = args["group_description"] as? String
-        
-        print("📁 更新联系人分组: groupId=\(groupId), name=\(groupName ?? "")")
-        
-        let code = IMSDKContactManager.shared().updateContactGroup(withId: groupId, groupName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription) { errorCode, reqId, data in
-            print("✅ 更新联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "更新成功" : "更新失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "UPDATE_CONTACT_GROUP_ERROR",
-                              message: "更新联系人分组请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 删除联系人分组
-    private func imDeleteContactGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? Int64 ?? (args["group_id"] as? Int).map({ Int64($0) }) else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
-            return
-        }
-        
-        print("📁 删除联系人分组: groupId=\(groupId)")
-        
-        let code = IMSDKContactManager.shared().deleteContactGroup(withId: groupId) { errorCode, reqId, data in
-            print("✅ 删除联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "删除成功" : "删除失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "DELETE_CONTACT_GROUP_ERROR",
-                              message: "删除联系人分组请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 获取群组列表
-    private func imGetGroupList(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any] ?? [:]
-        let groupType = args["group_type"] as? Int ?? -1
-        let status = args["status"] as? Int ?? -1
-        let keyword = args["keyword"] as? String
-        let page = args["page"] as? Int ?? 1
-        let pageSize = args["page_size"] as? Int ?? 50
-        
-        print("📁 获取群组列表: type=\(groupType), status=\(status), page=\(page), size=\(pageSize), keyword=\(keyword ?? "")")
-        
-        let code = IMSDKGroupManager.shared().getGroupList(withType: Int32(groupType), status: Int32(status), keyword: keyword, page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("📁 群组列表回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "GET_GROUP_LIST_ERROR",
-                                message: "获取群组列表请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 获取群成员列表
-    private func imGetGroupMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
-            return
-        }
-        let status = args["status"] as? Int ?? 0
-        let page = args["page"] as? Int ?? 1
-        let pageSize = args["page_size"] as? Int ?? 50
-        
-        print("📁 获取群成员列表: groupId=\(groupId), status=\(status), page=\(page), size=\(pageSize)")
-        
-        let code = IMSDKGroupManager.shared().getGroupMembers(withGroupId: groupId, status: Int32(status), page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("📁 群成员列表回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "GET_GROUP_MEMBERS_ERROR",
-                                message: "获取群成员列表请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 更新群信息（名称/头像/公告/描述）
-    private func imUpdateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
-            return
-        }
-        let groupName = args["group_name"] as? String
-        let groupAvatar = args["group_avatar"] as? String
-        let groupAnnouncement = args["group_announcement"] as? String
-        let groupDescription = args["group_description"] as? String
-        let version = (args["version"] as? Int32) ?? (args["version"] as? Int).map { Int32($0) } ?? 1
-        
-        print("📁 更新群信息: groupId=\(groupId), name=\(groupName ?? ""), avatar=\(groupAvatar ?? "")")
-        
-        let code = IMSDKGroupManager.shared().updateGroup(withId: groupId, groupName: groupName, groupAvatar: groupAvatar, groupAnnouncement: groupAnnouncement, groupDescription: groupDescription, version: version) { errorCode, reqId, data in
-            print("📁 更新群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "更新成功" : "更新失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "UPDATE_GROUP_ERROR",
-                                message: "更新群信息请求发送失败: \(code)",
-                                details: nil))
-        }
-    }
-    
-    /// 设置群内昵称
-    private func imSetGroupAlias(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? String,
-              let alias = args["alias"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id 或 alias", details: nil))
-            return
-        }
-        
-        print("📁 设置群昵称: groupId=\(groupId), alias=\(alias)")
-        
-        let code = IMSDKGroupManager.shared().setGroupMemberAliasWithGroupId(groupId, memberAlias: alias, completion: { errorCode, reqId, data in
-            print("📁 设置群昵称回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "设置成功" : "设置失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if code != 0 {
-            result(FlutterError(code: "SET_GROUP_ALIAS_ERROR",
-                                message: "设置群昵称请求发送失败: \(code)",
-                                details: nil))
-        }
-    }
-    
-    /// 获取群信息
-    private func imGetGroupInfo(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let groupId = args["group_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
-            return
-        }
-        
-        print("📁 获取群信息: groupId=\(groupId)")
-        
-        let code = IMSDKGroupManager.shared().getGroupInfo(withId: groupId) { errorCode, reqId, data in
-            print("📁 获取群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "GET_GROUP_INFO_ERROR",
-                                message: "获取群信息请求发送失败: \(code)",
-                                details: nil))
-        }
-    }
-    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1678,73 +1357,6 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CONVERSATION_ERROR",
                               message: "获取会话请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 获取未读会话列表
-    private func imGetUnreadConversations(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("📋 获取未读会话列表")
-        
-        let args = call.arguments as? [String: Any]
-        let page = args?["page"] as? Int ?? 1
-        let pageSize = args?["page_size"] as? Int ?? 20
-        let convTypeValue = args?["conv_type"] as? Int ?? -1
-        let convType = IMConversationType(rawValue: convTypeValue) ?? IMConversationType(rawValue: -1) ?? .single
-        
-        let code = IMSDKConversationManager.shared().getUnreadConversations(withPage: Int32(page), pageSize: Int32(pageSize), convType: convType, completion: { errorCode, reqId, data in
-            print("✅ 获取未读会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if code != 0 {
-            result(FlutterError(code: "GET_UNREAD_CONVERSATIONS_ERROR",
-                              message: "获取未读会话列表请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 更新会话信息
-    private func imUpdateConversation(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let convId = args["conv_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        var params: [String: Any] = [:]
-        if let displayName = args["display_name"] as? String {
-            params["display_name"] = displayName
-        }
-        if let avatarUrl = args["avatar_url"] as? String {
-            params["avatar_url"] = avatarUrl
-        }
-        if let description = args["description"] as? String {
-            params["description"] = description
-        }
-        
-        print("📋 更新会话: convId=\(convId), params=\(params)")
-        
-        let code = IMSDKConversationManager.shared().updateConversation(withId: convId, params: params) { errorCode, reqId, data in
-            print("✅ 更新会话回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "更新成功" : "更新失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "UPDATE_CONVERSATION_ERROR",
-                              message: "更新会话请求发送失败: \(code)",
                               details: nil))
         }
     }
@@ -1872,98 +1484,6 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    // MARK: - 通知
-    
-    /// 获取通知未读数量
-    private func imGetNotificationUnreadCount(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any] ?? [:]
-        let types = args["types"] as? [String]
-        
-        print("🔔 获取通知未读数量: types=\(types ?? [])")
-        
-        let code = IMSDKMessageManager.shared().getNotificationUnreadCount(withTypes: types) { errorCode, reqId, data in
-            print("🔔 通知未读回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "GET_NOTIFICATION_UNREAD_ERROR",
-                                message: "获取通知未读请求发送失败: \(code)",
-                                details: nil))
-        }
-    }
-    
-    /// 拉取通知列表
-    private func imPullNotifications(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any] ?? [:]
-        let types = args["types"] as? [String]
-        let page = args["page"] as? Int ?? 1
-        let pageSize = args["page_size"] as? Int ?? 20
-        
-        print("🔔 拉取通知: page=\(page), pageSize=\(pageSize), types=\(types ?? [])")
-        
-        let code = IMSDKMessageManager.shared().pullNotifications(withTypes: types, page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("🔔 拉取通知回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "PULL_NOTIFICATION_ERROR",
-                                message: "拉取通知请求发送失败: \(code)",
-                                details: nil))
-        }
-    }
-    
-    /// 标记通知已读
-    private func imMarkNotificationRead(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as? [String: Any] ?? [:]
-        guard let ids = args["notification_ids"] as? [Any], !ids.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "notification_ids 不能为空", details: nil))
-            return
-        }
-        let readTimeArg = args["read_time"]
-        let readTime = (readTimeArg as? Int64) ?? (readTimeArg as? Int).map { Int64($0) } ?? 0
-        
-        let idNumbers: [NSNumber] = ids.compactMap {
-            if let n = $0 as? NSNumber { return n }
-            if let s = $0 as? String, let v = Int64(s) { return NSNumber(value: v) }
-            return nil
-        }
-        
-        if idNumbers.isEmpty {
-            result(FlutterError(code: "INVALID_ARGS", message: "notification_ids 解析失败", details: nil))
-            return
-        }
-        
-        print("🔔 标记通知已读: ids=\(idNumbers), readTime=\(readTime)")
-        
-        let code = IMSDKMessageManager.shared().markNotificationsRead(idNumbers, readTime: readTime) { errorCode, reqId, data in
-            print("🔔 标记通知已读回调: errorCode=\(errorCode), reqId=\(reqId)")
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "标记成功" : "标记失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "MARK_NOTIFICATION_READ_ERROR",
-                                message: "标记通知已读请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
     // MARK: - 消息管理
     
     /// 发送文本消息
@@ -1999,129 +1519,6 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEND_MESSAGE_ERROR",
                               message: "发送消息请求失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 发送图片消息
-    private func imSendImageMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let imageUrl = args["image_url"] as? String,
-              let conversationId = args["conversation_id"] as? String,
-              let receiverId = args["receiver_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        let thumbnailUrl = args["thumbnail_url"] as? String
-        let width = args["width"] as? Int ?? 0
-        let height = args["height"] as? Int ?? 0
-        
-        print("📤 发送图片消息: imageUrl=\(imageUrl), thumbnailUrl=\(thumbnailUrl ?? ""), width=\(width), height=\(height), conversationId=\(conversationId), receiverId=\(receiverId)")
-        
-        let code = IMSDKMessageManager.shared().sendImageMessage(
-            imageUrl,
-            thumbnailUrl: thumbnailUrl,
-            width: Int32(width),
-            height: Int32(height),
-            conversationId: conversationId,
-            receiverId: receiverId
-        ) { errorCode, reqId, data in
-            print("✅ 发送图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "发送成功" : "发送失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "SEND_MESSAGE_ERROR",
-                              message: "发送图片消息请求失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 发送语音消息
-    private func imSendVoiceMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let audioUrl = args["audio_url"] as? String,
-              let conversationId = args["conversation_id"] as? String,
-              let receiverId = args["receiver_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        let duration = args["duration"] as? Int ?? 0
-        
-        print("📤 发送语音消息: audioUrl=\(audioUrl), duration=\(duration), conversationId=\(conversationId), receiverId=\(receiverId)")
-        
-        let code = IMSDKMessageManager.shared().sendVoiceMessage(
-            audioUrl,
-            duration: Int32(duration),
-            conversationId: conversationId,
-            receiverId: receiverId
-        ) { errorCode, reqId, data in
-            print("✅ 发送语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "发送成功" : "发送失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "SEND_MESSAGE_ERROR",
-                              message: "发送语音消息请求失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 发送视频消息
-    private func imSendVideoMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let videoUrl = args["video_url"] as? String,
-              let conversationId = args["conversation_id"] as? String,
-              let receiverId = args["receiver_id"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        let coverUrl = args["cover_url"] as? String
-        let duration = args["duration"] as? Int ?? 0
-        let width = args["width"] as? Int ?? 0
-        let height = args["height"] as? Int ?? 0
-        let size = args["size"] as? Int64 ?? 0
-        
-        print("📤 发送视频消息: videoUrl=\(videoUrl), coverUrl=\(coverUrl ?? ""), duration=\(duration), size=\(size), conversationId=\(conversationId), receiverId=\(receiverId)")
-        
-        let code = IMSDKMessageManager.shared().sendVideoMessage(
-            videoUrl,
-            coverURL: coverUrl,
-            duration: Int32(duration),
-            width: Int32(width),
-            height: Int32(height),
-            size: size,
-            conversationId: conversationId,
-            receiverId: receiverId
-        ) { errorCode, reqId, data in
-            print("✅ 发送视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "发送成功" : "发送失败",
-                "data": data ?? ""
-            ])
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "SEND_MESSAGE_ERROR",
-                              message: "发送视频消息请求失败: \(code)",
                               details: nil))
         }
     }
@@ -2165,7 +1562,7 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 注册消息回调（单聊、群聊、社区、系统、命令）
+    /// 注册消息回调（单聊、群聊、社区）
     private func imRegisterMessageCallbacks(result: @escaping FlutterResult) {
         print("📝 注册消息回调...")
         
@@ -2191,43 +1588,6 @@ class NativeBridgeHandler: NSObject {
             self.sendMessageToFlutter(eventData)
         }
         
-        // 设置系统消息回调
-        messageManager.onSystemMessage = { [weak self] messageData in
-            guard let self = self else { return }
-            
-            var eventData: [String: Any] = [
-                "message_type": "system",
-            ]
-            
-            for (key, value) in messageData {
-                if let stringKey = key as? String {
-                    eventData[stringKey] = value
-                }
-            }
-            
-            print("📨 转发系统消息到 Flutter: \(eventData)")
-            self.sendSystemMessageToFlutter(eventData)
-        }
-        
-        // 设置命令消息回调
-        messageManager.onCommandMessage = { [weak self] eventType, messageData in
-            guard let self = self else { return }
-            
-            var eventData: [String: Any] = [
-                "message_type": "command",
-                "event_type": eventType,
-            ]
-            
-            for (key, value) in messageData {
-                if let stringKey = key as? String {
-                    eventData[stringKey] = value
-                }
-            }
-            
-            print("📨 转发命令消息到 Flutter: \(eventData)")
-            self.sendCommandMessageToFlutter(eventData)
-        }
-        
         // 注册底层回调
         messageManager.registerMessageCallbacks()
         
@@ -2243,8 +1603,6 @@ class NativeBridgeHandler: NSObject {
         
         let messageManager = IMSDKMessageManager.shared()
         messageManager.onMessageReceived = nil
-        messageManager.onSystemMessage = nil
-        messageManager.onCommandMessage = nil
         messageManager.unregisterMessageCallbacks()
         
         result([
@@ -2267,38 +1625,6 @@ class NativeBridgeHandler: NSObject {
         
         channel.invokeMethod("onMessageReceived", arguments: data)
         print("📤 消息已推送到 Flutter: \(data)")
-    }
-    
-    /// 发送系统消息到 Flutter
-    private func sendSystemMessageToFlutter(_ data: [String: Any]) {
-        guard let messenger = binaryMessenger else {
-            print("⚠️ binaryMessenger 未初始化")
-            return
-        }
-        
-        let channel = FlutterMethodChannel(
-            name: "com.bell_bird_talk/native_bridge",
-            binaryMessenger: messenger
-        )
-        
-        channel.invokeMethod("onSystemMessage", arguments: data)
-        print("📤 系统消息已推送到 Flutter: \(data)")
-    }
-    
-    /// 发送命令消息到 Flutter
-    private func sendCommandMessageToFlutter(_ data: [String: Any]) {
-        guard let messenger = binaryMessenger else {
-            print("⚠️ binaryMessenger 未初始化")
-            return
-        }
-        
-        let channel = FlutterMethodChannel(
-            name: "com.bell_bird_talk/native_bridge",
-            binaryMessenger: messenger
-        )
-        
-        channel.invokeMethod("onCommandMessage", arguments: data)
-        print("📤 命令消息已推送到 Flutter: \(data)")
     }
     
     // MARK: - 用户管理
@@ -2372,119 +1698,43 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 退出登录
-    private func imLogout(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("🚪 Flutter调用退出登录")
-        let args = call.arguments as? [String: Any] ?? [:]
-        let userId = args["user_id"] as? String
-        let clientIp = args["client_ip"] as? String
-        let reason = args["reason"] as? NSNumber
+    /// 注销用户
+    /// 参数:
+    ///   - reason: 注销原因（可选）
+    private func imDeactivateAccount(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
         
-        let reqId = IMSDKUserManager.shared().logout(withUserId: userId, clientIp: clientIp, reason: reason) { errorCode, message, data, reqId in
-            print("✅ 退出登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+        let reason = args["reason"] as? String
+        
+        print("🗑️ 注销用户: reason=\(reason ?? "无")")
+        
+        let reqId = IMSDKUserManager.shared().deactivateAccount(withReason: reason, completion: { errorCode, message, data, reqId in
+            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
-            let response: [String: Any] = [
+            // 构建返回数据
+            var response: [String: Any] = [
                 "errorCode": errorCode,
                 "reqId": reqId,
                 "message": message ?? ""
             ]
             
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                }
+            }
+            
             result(response)
-        }
+        })
         
         if reqId == 0 {
-            result(FlutterError(code: "LOGOUT_ERROR",
-                              message: "退出登录请求失败",
-                              details: nil))
-        }
-    }
-    
-    /// 注销用户
-    private func imDeleteUser(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("🗑 Flutter调用注销用户")
-        
-        let code = IMSDKAuthManager.shared().deleteCurrentUser(completion:  { errorCode, reqId, data in
-            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "注销成功" : "注销失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if code != 0 {
-            result(FlutterError(code: "DELETE_USER_ERROR",
-                              message: "注销用户请求失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 修改密码
-    private func imChangePassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let userId = args["user_id"] as? String,
-              let oldPassword = args["old_password"] as? String,
-              let newPassword = args["new_password"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        print("🔐 修改密码: userId=\(userId)")
-        
-        let code = IMSDKAuthManager.shared().changePassword(withUserId: userId, oldPassword: oldPassword, newPassword: newPassword, completion: { errorCode, reqId, data in
-            print("✅ 修改密码回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "修改成功" : "修改失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if code != 0 {
-            result(FlutterError(code: "CHANGE_PASSWORD_ERROR",
-                              message: "修改密码请求失败: \(code)",
-                              details: nil))
-        }
-    }
-    
-    /// 重置密码
-    private func imResetPassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any],
-              let captchaId = args["captcha_id"] as? String,
-              let code = args["code"] as? String,
-              let newPassword = args["new_password"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        let phone = args["phone"] as? String
-        let email = args["email"] as? String
-        
-        if phone == nil && email == nil {
-            result(FlutterError(code: "INVALID_ARGS", message: "必须提供手机号或邮箱", details: nil))
-            return
-        }
-        
-        print("🔐 重置密码: phone=\(phone ?? ""), email=\(email ?? ""), captchaId=\(captchaId)")
-        
-        let resultCode = IMSDKAuthManager.shared().resetPassword(withPhone: phone, email: email, captchaId: captchaId, captchaCode: code, newPassword: newPassword, completion:{ errorCode, reqId, data in
-            print("✅ 重置密码回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "重置成功" : "重置失败",
-                "data": data ?? ""
-            ])
-        })
-        
-        if resultCode != 0 {
-            result(FlutterError(code: "RESET_PASSWORD_ERROR",
-                              message: "重置密码请求失败: \(resultCode)",
+            result(FlutterError(code: "DEACTIVATE_ACCOUNT_ERROR",
+                              message: "注销用户请求失败",
                               details: nil))
         }
     }
@@ -2549,116 +1799,22 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 使用腾讯云 STS 临时凭证上传文件
-    /// 参数:
-    ///   - local_file_path: 本地文件路径（必填）
-    ///   - object_key: 对象键/远程路径（必填）
-    ///   - bucket_name: 存储桶名称（必填）
-    ///   - region: 区域（必填）
-    ///   - secret_id: 临时 AccessKeyId（必填）
-    ///   - secret_key: 临时 SecretKey（必填）
-    ///   - token: 临时 Token（必填）
-    private func imUploadWithTencentSTS(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any] else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        guard let localFilePath = args["local_file_path"] as? String, !localFilePath.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "本地文件路径不能为空", details: nil))
-            return
-        }
-        
-        guard let objectKey = args["object_key"] as? String, !objectKey.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "对象键不能为空", details: nil))
-            return
-        }
-        
-        guard let bucketName = args["bucket_name"] as? String, !bucketName.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "存储桶名称不能为空", details: nil))
-            return
-        }
-        
-        guard let region = args["region"] as? String, !region.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "区域不能为空", details: nil))
-            return
-        }
-        
-        guard let secretId = args["secret_id"] as? String, !secretId.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "SecretId 不能为空", details: nil))
-            return
-        }
-        
-        guard let secretKey = args["secret_key"] as? String, !secretKey.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "SecretKey 不能为空", details: nil))
-            return
-        }
-        
-        guard let token = args["token"] as? String, !token.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "Token 不能为空", details: nil))
-            return
-        }
-        
-        print("📤 腾讯云 STS 上传: localPath=\(localFilePath), objectKey=\(objectKey), bucket=\(bucketName)")
-        
-        // 创建上传器并上传
-        let uploader = TencentCOSUploader(
-            region: region,
-            secretId: secretId,
-            secretKey: secretKey,
-            bucketName: bucketName,
-            token: token
-        )
-        
-        uploader.upload(filePath: localFilePath, objectKey: objectKey, progress: { progress in
-            print("📊 上传进度: \(Int(progress * 100))%")
-        }) { uploadResult in
-            if uploadResult.success {
-                print("✅ 腾讯云上传成功: \(uploadResult.url ?? "")")
-                result([
-                    "success": true,
-                    "url": uploadResult.url ?? "",
-                    "error": NSNull()
-                ])
-            } else {
-                print("❌ 腾讯云上传失败: \(uploadResult.error ?? "未知错误")")
-                result([
-                    "success": false,
-                    "url": NSNull(),
-                    "error": uploadResult.error ?? "上传失败"
-                ])
-            }
-        }
-    }
-    
     // MARK: - 群组管理
     
     /// 创建群聊
     private func imCreateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
-              let groupName = args["group_name"] as? String, !groupName.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "群名称不能为空", details: nil))
+              let groupName = args["group_name"] as? String, !groupName.isEmpty,
+              let memberIds = args["member_ids"] as? [String], !memberIds.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "群名称和成员列表不能为空", details: nil))
             return
         }
         
         let avatarUrl = args["avatar_url"] as? String
-        let memberIds = args["member_ids"] as? [String] ?? []
         
-        // 群组类型：0=普通群, 1=超级群（默认使用普通群）
-        let groupType = args["group_type"] as? Int ?? 0
-        // 最大成员数（默认500）
-        let maxMemberCount = args["max_member_count"] as? Int32 ?? 500
+        print("📋 创建群聊: groupName=\(groupName), memberIds=\(memberIds)")
         
-        print("📋 创建群聊: groupName=\(groupName), memberIds=\(memberIds), avatarUrl=\(avatarUrl ?? "nil")")
-        
-        let code = IMSDKGroupManager.shared().createGroup(
-            withName: groupName,
-            groupAvatar: avatarUrl,
-            groupDescription: nil,
-            groupType: Int32(groupType),
-            maxMemberCount: maxMemberCount,
-            initialMembers: memberIds.isEmpty ? nil : memberIds as [String],
-            completion: { errorCode, reqId, data in
+        let code = IMSDKConversationManager.shared().createGroup(withName: groupName, memberIds: memberIds, avatarUrl: avatarUrl) { errorCode, reqId, data in
             print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -2668,7 +1824,6 @@ class NativeBridgeHandler: NSObject {
                 "data": data ?? ""
             ])
         }
-        )
         
         if code != 0 {
             result(FlutterError(code: "CREATE_GROUP_ERROR",

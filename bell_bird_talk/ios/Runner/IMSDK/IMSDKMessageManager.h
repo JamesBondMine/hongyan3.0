@@ -27,26 +27,11 @@ typedef void (^IMSDKMessageCompletion)(int errorCode, uint64_t reqId, NSString *
 /// @param messageData 消息数据（解析后的字典）
 typedef void (^IMSDKMessageReceivedCallback)(IMMessageConvType convType, NSDictionary *messageData);
 
-/// 系统消息回调
-/// @param messageData 消息数据（解析后的字典）
-typedef void (^IMSDKSystemMessageCallback)(NSDictionary *messageData);
-
-/// 命令消息回调
-/// @param eventType 命令类型
-/// @param messageData 消息数据（解析后的字典）
-typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *messageData);
-
 /// IM SDK 消息管理类
 @interface IMSDKMessageManager : NSObject
 
 /// 收到消息的回调（统一回调，包含会话类型）
 @property (nonatomic, copy, nullable) IMSDKMessageReceivedCallback onMessageReceived;
-
-/// 系统消息回调
-@property (nonatomic, copy, nullable) IMSDKSystemMessageCallback onSystemMessage;
-
-/// 命令消息回调
-@property (nonatomic, copy, nullable) IMSDKCommandMessageCallback onCommandMessage;
 
 /// 单例实例
 + (instancetype)sharedManager;
@@ -86,57 +71,6 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
             receiverId:(NSString *)receiverId
             completion:(IMSDKMessageCompletion)completion;
 
-/// 发送图片消息
-/// @param imageUrl 图片URL
-/// @param thumbnailUrl 缩略图URL（可选）
-/// @param width 图片宽度（可选）
-/// @param height 图片高度（可选）
-/// @param conversationId 会话ID
-/// @param receiverId 接收者ID
-/// @param completion 结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)sendImageMessage:(NSString *)imageUrl
-            thumbnailUrl:(NSString * _Nullable)thumbnailUrl
-                  width:(int32_t)width
-                 height:(int32_t)height
-         conversationId:(NSString *)conversationId
-             receiverId:(NSString *)receiverId
-             completion:(IMSDKMessageCompletion)completion;
-
-/// 发送语音消息
-/// @param audioUrl 语音文件URL
-/// @param duration 语音时长（秒）
-/// @param conversationId 会话ID
-/// @param receiverId 接收者ID
-/// @param completion 结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)sendVoiceMessage:(NSString *)audioUrl
-                duration:(int32_t)duration
-          conversationId:(NSString *)conversationId
-              receiverId:(NSString *)receiverId
-              completion:(IMSDKMessageCompletion)completion;
-
-/// 发送视频消息
-/// @param videoUrl 视频文件URL
-/// @param coverURL 封面图URL（可选）
-/// @param duration 视频时长（秒，可选）
-/// @param width 视频宽度（可选）
-/// @param height 视频高度（可选）
-/// @param size 视频文件大小（字节，可选）
-/// @param conversationId 会话ID
-/// @param receiverId 接收者ID
-/// @param completion 结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)sendVideoMessage:(NSString *)videoUrl
-               coverURL:(NSString * _Nullable)coverURL
-               duration:(int32_t)duration
-                  width:(int32_t)width
-                 height:(int32_t)height
-                   size:(int64_t)size
-         conversationId:(NSString *)conversationId
-             receiverId:(NSString *)receiverId
-             completion:(IMSDKMessageCompletion)completion;
-
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息
@@ -152,32 +86,6 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                              targetId:(NSString *)targetId
                               lastSeq:(int64_t)lastSeq
                                 limit:(int)limit
-                           completion:(IMSDKMessageCompletion)completion;
-
-// ==================== 通知 ====================
-
-/// 获取通知未读数量
-/// @param notificationTypes 通知类型过滤（可选）
-/// @param completion 结果回调
-- (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
-                                completion:(IMSDKMessageCompletion)completion;
-
-/// 拉取通知列表
-/// @param notificationTypes 通知类型过滤（可选）
-/// @param page 页码（从1开始）
-/// @param pageSize 每页数量
-/// @param completion 结果回调
-- (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
-                             page:(int32_t)page
-                         pageSize:(int32_t)pageSize
-                        completion:(IMSDKMessageCompletion)completion;
-
-/// 标记通知已读
-/// @param notificationIds 通知ID列表
-/// @param readTime 读取时间（毫秒，可选，默认当前时间）
-/// @param completion 结果回调
-- (int)markNotificationsRead:(NSArray<NSNumber *> *)notificationIds
-                    readTime:(int64_t)readTime
                            completion:(IMSDKMessageCompletion)completion;
 
 // ==================== 回调管理（内部使用） ====================

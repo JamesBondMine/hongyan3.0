@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
-import 'package:bell_bird_talk/pages/models/friend_model.dart';
 
 /// 搜索结果用户模型
 class SearchUserModel {
@@ -59,46 +58,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
   bool _hasSearched = false;
   String _searchType = 'id';  // id, phone, email
   
-  // 好友分组
-  final List<FriendGroup> _groups = [];
-  String? _selectedGroupId;  // 选中的分组ID（null表示不选择分组）
-  
   @override
   void initState() {
     super.initState();
-    // 加载分组列表
-    _loadContactGroups();
     // 自动聚焦搜索框
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
-  }
-  
-  /// 加载联系人分组列表
-  Future<void> _loadContactGroups() async {
-    try {
-      final result = await _nativeService.imGetContactGroups(
-        page: 1,
-        pageSize: 100,
-      );
-      
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          final data = json.decode(dataStr);
-          final groupsJson = data['groups'] as List? ?? [];
-          
-          setState(() {
-            _groups.clear();
-            _groups.addAll(
-              groupsJson.map((json) => FriendGroup.fromJson(json)).toList(),
-            );
-          });
-        }
-      }
-    } catch (e) {
-      print('❌ 获取联系人分组失败: $e');
-    }
   }
   
   @override
@@ -206,7 +172,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
   
   /// 发送好友申请
-  Future<void> _sendFriendRequest(SearchUserModel user, String message, {int? groupId}) async {
+  Future<void> _sendFriendRequest(SearchUserModel user, String message) async {
     EasyLoading.show(status: '发送中...');
     
     try {
@@ -229,7 +195,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
         targetValue: targetValue,
         targetPhone: user.phone,
         targetEmail: user.email,
-        groupId: groupId,
       );
       
       print('📊 添加好友结果: $result');
@@ -249,7 +214,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
   /// 显示添加好友对话框
   void _showAddFriendDialog(SearchUserModel user) {
     final messageController = TextEditingController(text: '你好，我想加你为好友');
-    String? selectedGroupId = _selectedGroupId;
     
     showModalBottomSheet(
       context: context,
@@ -257,8 +221,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => Padding(
+      builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -334,54 +297,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
                   ),
                 ],
               ),
-                
-                const SizedBox(height: 20),
-                
-                // 选择分组
-                const Text(
-                  '选择分组',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey[50],
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String?>(
-                      value: selectedGroupId,
-                      isExpanded: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      hint: const Text('不选择分组（默认）'),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('不选择分组（默认）'),
-                        ),
-                        ..._groups.map((group) {
-                          final groupIdInt = int.tryParse(group.id);
-                          if (groupIdInt != null && groupIdInt > 0) {
-                            return DropdownMenuItem<String?>(
-                              value: group.id,
-                              child: Text(group.name),
-                            );
-                          }
-                          return null;
-                        }).where((item) => item != null).cast<DropdownMenuItem<String?>>(),
-                      ],
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedGroupId = value;
-                        });
-                      },
-                    ),
-                  ),
-                ),
               
               const SizedBox(height: 20),
               
@@ -417,15 +332,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                      int? groupIdInt;
-                      if (selectedGroupId != null && selectedGroupId!.isNotEmpty) {
-                        groupIdInt = int.tryParse(selectedGroupId!);
-                      }
-                      _sendFriendRequest(
-                        user, 
-                        messageController.text.trim(),
-                        groupId: groupIdInt,
-                      );
+                    _sendFriendRequest(user, messageController.text.trim());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -447,7 +354,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
               
               const SizedBox(height: 16),
             ],
-            ),
           ),
         ),
       ),

@@ -25,7 +25,7 @@ class MessageDatabase {
 
     return await openDatabase(
       path,
-      version: 3,  // 升级版本号：添加好友表
+      version: 2,  // 升级版本号
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -74,40 +74,6 @@ class MessageDatabase {
     
     // ==================== 会话表 ====================
     await _createConversationsTable(db);
-    
-    // ==================== 好友表 ====================
-    await _createContactsTable(db);
-  }
-  
-  /// 创建好友表
-  Future<void> _createContactsTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS contacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT NOT NULL,
-        contact_user_id TEXT NOT NULL,
-        nickname TEXT,
-        avatar TEXT,
-        remark TEXT,
-        phone TEXT,
-        email TEXT,
-        account_id TEXT,
-        relationship INTEGER DEFAULT 0,
-        online_status INTEGER DEFAULT 0,
-        add_channel INTEGER DEFAULT 0,
-        group_id INTEGER,
-        group_name TEXT,
-        create_time INTEGER,
-        last_chat_time INTEGER,
-        updated_at INTEGER,
-        UNIQUE(user_id, contact_user_id)
-      )
-    ''');
-    
-    // 好友表索引
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts (user_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_contacts_contact_user_id ON contacts (contact_user_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_contacts_remark ON contacts (remark)');
   }
   
   /// 创建会话表
@@ -156,10 +122,6 @@ class MessageDatabase {
     // 从版本1升级到版本2：添加会话表
     if (oldVersion < 2) {
       await _createConversationsTable(db);
-    }
-    // 从版本2升级到版本3：添加好友表
-    if (oldVersion < 3) {
-      await _createContactsTable(db);
     }
   }
   
@@ -545,7 +507,7 @@ class MessageDatabase {
   /// 插入消息
   Future<void> insertMessage(ChatMessage message) async {
     final db = await database;
-    print('插入消息数据库--单条: ${message.toDbMap()}');
+    print('插入消息数据库: ${message.toDbMap()}');
     await db.insert(
       'messages',
       message.toDbMap(),
@@ -558,7 +520,6 @@ class MessageDatabase {
     final db = await database;
     final batch = db.batch();
     for (final message in messages) {
-      print('插入消息数据库--批量: ${message.displayContent}');
       batch.insert(
         'messages',
         message.toDbMap(),
@@ -727,148 +688,6 @@ class MessageDatabase {
       {'is_read': 1},
       where: 'conv_id = ? AND is_read = 0',
       whereArgs: [convId],
-    );
-  }
-  
-  // ==================== 好友相关方法 ====================
-  
-  /// 批量保存好友列表
-  Future<void> saveContacts(String userId, List<Map<String, dynamic>> contacts) async {
-    final db = await database;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    
-    final batch = db.batch();
-    for (final contact in contacts) {
-      final data = {
-        'user_id': userId,
-        'contact_user_id': contact['contact_user_id'] ?? contact['contactUserId'] ?? '',
-        'nickname': contact['nickname'] ?? '',
-        'avatar': contact['avatar'] ?? '',
-        'remark': contact['remark'] ?? '',
-        'phone': contact['phone'] ?? contact['targetPhone'] ?? '',
-        'email': contact['email'] ?? contact['targetEmail'] ?? '',
-        'account_id': contact['account_id'] ?? contact['accountId'] ?? '',
-        'relationship': contact['relationship'] ?? 0,
-        'online_status': contact['online_status'] ?? contact['onlineStatus'] ?? 0,
-        'add_channel': contact['add_channel'] ?? contact['addChannel'] ?? 0,
-        'group_id': contact['group_id'] ?? contact['groupId'],
-        'group_name': contact['group_name'] ?? contact['groupName'] ?? '',
-        'create_time': contact['create_time'] ?? contact['createTime'],
-        'last_chat_time': contact['last_chat_time'] ?? contact['lastChatTime'],
-        'updated_at': now,
-      };
-      
-      batch.insert(
-        'contacts',
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    
-    await batch.commit(noResult: true);
-    print('💾 保存好友到数据库: ${contacts.length} 条');
-  }
-  
-  /// 获取好友信息（根据好友ID）
-  Future<Map<String, dynamic>?> getContact(String userId, String contactUserId) async {
-    final db = await database;
-    final result = await db.query(
-      'contacts',
-      where: 'user_id = ? AND contact_user_id = ?',
-      whereArgs: [userId, contactUserId],
-      limit: 1,
-    );
-    
-    if (result.isNotEmpty) {
-      return result.first;
-    }
-    return null;
-  }
-  
-  /// 批量获取好友信息
-  Future<Map<String, Map<String, dynamic>>> getContactsMap(String userId, List<String> contactUserIds) async {
-    if (contactUserIds.isEmpty) return {};
-    
-    final db = await database;
-    final placeholders = List.filled(contactUserIds.length, '?').join(',');
-    final result = await db.rawQuery(
-      'SELECT * FROM contacts WHERE user_id = ? AND contact_user_id IN ($placeholders)',
-      [userId, ...contactUserIds],
-    );
-    
-    final Map<String, Map<String, dynamic>> contactsMap = {};
-    for (final row in result) {
-      final contactUserId = row['contact_user_id'] as String?;
-      if (contactUserId != null) {
-        contactsMap[contactUserId] = row;
-      }
-    }
-    
-    return contactsMap;
-  }
-  
-  /// 获取好友的显示名称（备注 > 昵称）
-  Future<String?> getContactDisplayName(String userId, String contactUserId) async {
-    final contact = await getContact(userId, contactUserId);
-    if (contact == null) return null;
-    
-    final remark = contact['remark'] as String?;
-    final nickname = contact['nickname'] as String?;
-    
-    // 备注优先
-    if (remark != null && remark.isNotEmpty) {
-      return remark;
-    }
-    return nickname;
-  }
-  
-  /// 获取好友的头像
-  Future<String?> getContactAvatar(String userId, String contactUserId) async {
-    final contact = await getContact(userId, contactUserId);
-    if (contact == null) return null;
-    
-    return contact['avatar'] as String?;
-  }
-  
-  /// 获取所有好友列表
-  Future<List<Map<String, dynamic>>> getAllContacts(String userId) async {
-    final db = await database;
-    return await db.query(
-      'contacts',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-      orderBy: 'remark ASC, nickname ASC',
-    );
-  }
-  
-  /// 更新好友备注
-  Future<void> updateContactRemark(String userId, String contactUserId, String remark) async {
-    final db = await database;
-    await db.update(
-      'contacts',
-      {'remark': remark, 'updated_at': DateTime.now().millisecondsSinceEpoch},
-      where: 'user_id = ? AND contact_user_id = ?',
-      whereArgs: [userId, contactUserId],
-    );
-  }
-  
-  /// 删除好友
-  Future<void> deleteContact(String userId, String contactUserId) async {
-    final db = await database;
-    await db.delete(
-      'contacts',
-      where: 'user_id = ? AND contact_user_id = ?',
-      whereArgs: [userId, contactUserId],
-    );
-  }
-  
-  /// 清空用户的所有好友缓存
-  Future<void> clearContacts(String userId) async {
-    final db = await database;
-    await db.delete(
-      'contacts',
-      where: 'user_id = ?',
-      whereArgs: [userId],
     );
   }
 

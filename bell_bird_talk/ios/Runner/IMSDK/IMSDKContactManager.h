@@ -76,13 +76,11 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 /// @param page 页码（从1开始）
 /// @param pageSize 每页数量
 /// @param relationship 关系类型：0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部
-/// @param groupId 分组ID（可选，0表示不按分组过滤）
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)getContactListWithPage:(int)page
                      pageSize:(int)pageSize
                  relationship:(int)relationship
-                       groupId:(int64_t)groupId
                    completion:(IMSDKContactCompletion)completion;
 
 /// 搜索联系人
@@ -131,43 +129,6 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 - (int)getContactGroupsWithPage:(int)page
                        pageSize:(int)pageSize
                      completion:(IMSDKContactCompletion)completion;
-
-/// 创建联系人分组
-/// @param groupName 分组名称（必填）
-/// @param groupColor 分组颜色（可选）
-/// @param groupOrder 排序权重（可选）
-/// @param groupIcon 分组图标（可选）
-/// @param groupDescription 分组描述（可选）
-/// @param completion 结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)createContactGroupWithName:(NSString *)groupName
-                        groupColor:(NSString * _Nullable)groupColor
-                        groupOrder:(int32_t)groupOrder
-                         groupIcon:(NSString * _Nullable)groupIcon
-                   groupDescription:(NSString * _Nullable)groupDescription
-                      completion:(IMSDKContactCompletion)completion;
-
-/// 更新联系人分组
-/// @param groupId 分组ID（必填）
-/// @param groupName 分组名称（可选）
-/// @param groupColor 分组颜色（可选）
-/// @param groupOrder 排序权重（可选）
-/// @param groupIcon 分组图标（可选）
-/// @param groupDescription 分组描述（可选）
-/// @param completion 结果回调
-- (int)updateContactGroupWithId:(int64_t)groupId
-                      groupName:(NSString * _Nullable)groupName
-                      groupColor:(NSString * _Nullable)groupColor
-                      groupOrder:(int32_t)groupOrder
-                       groupIcon:(NSString * _Nullable)groupIcon
-                 groupDescription:(NSString * _Nullable)groupDescription
-                      completion:(IMSDKContactCompletion)completion;
-
-/// 删除联系人分组
-/// @param groupId 分组ID（必填）
-/// @param completion 结果回调
-- (int)deleteContactGroupWithId:(int64_t)groupId
-                      completion:(IMSDKContactCompletion)completion;
 
 // ==================== 联系人备注 ====================
 

@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
 import '../settings/language_page.dart';
-import '../settings/reset_password_page.dart';
 
 /// 登录页面
 class LoginPage extends StatelessWidget {
@@ -379,12 +378,10 @@ class LoginPage extends StatelessWidget {
         
         const SizedBox(height: 8),
         
-        // 模式切换和忘记密码
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 左侧：模式切换
-            TextButton(
+        // 模式切换文字
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
             onPressed: controller.toggleSmsLoginMode,
             child: Text(
               controller.smsUsePassword.value ? '验证码登录' : '密码登录',
@@ -394,21 +391,6 @@ class LoginPage extends StatelessWidget {
               ),
             ),
           ),
-            // 右侧：忘记密码（仅在密码登录模式下显示）
-            if (controller.smsUsePassword.value)
-              TextButton(
-                onPressed: () {
-                  Get.to(() => const ResetPasswordPage());
-                },
-                child: Text(
-                  '忘记密码',
-                  style: TextStyle(
-                    color: Colors.blue[600],
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-          ],
         ),
         
         const SizedBox(height: 8),
@@ -473,12 +455,10 @@ class LoginPage extends StatelessWidget {
         
         const SizedBox(height: 8),
         
-        // 模式切换和忘记密码
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 左侧：模式切换
-            TextButton(
+        // 模式切换文字
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
             onPressed: controller.toggleEmailLoginMode,
             child: Text(
               controller.emailUsePassword.value ? '验证码登录' : '密码登录',
@@ -488,21 +468,6 @@ class LoginPage extends StatelessWidget {
               ),
             ),
           ),
-            // 右侧：忘记密码（仅在密码登录模式下显示）
-            if (controller.emailUsePassword.value)
-              TextButton(
-                onPressed: () {
-                  Get.to(() => const ResetPasswordPage());
-                },
-                child: Text(
-                  '忘记密码',
-                  style: TextStyle(
-                    color: Colors.blue[600],
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-          ],
         ),
         
         const SizedBox(height: 8),

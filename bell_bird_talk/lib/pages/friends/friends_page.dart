@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
-import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
-import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
+import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
-import '../../services/message_database.dart';
 import 'friend_detail_page.dart';
-import 'friend_requests_page.dart';
+import 'friend_requests_page.dart' hide FriendRequestModel;
 import 'friend_search_page.dart';
 
 /// 好友列表页面
@@ -23,13 +20,9 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   
   final List<FriendModel> _friends = [];
   List<FriendModel> _filteredFriends = [];
-  
-  // 分组头部的位置映射（letter -> GlobalKey）
-  final Map<String, GlobalKey> _groupHeaderKeys = {};
   
   // 好友申请
   final List<FriendRequestModel> _friendRequests = [];
@@ -39,17 +32,18 @@ class _FriendsPageState extends State<FriendsPage> {
   // 好友分组
   final List<FriendGroup> _groups = [
     FriendGroup(id: 'all', name: '全部', isDefault: true),
+    FriendGroup(id: 'special', name: '特别关心', isDefault: true),
   ];
   String _selectedGroupId = 'all';  // 当前选中的分组
   
   bool _isLoading = false;
+  bool _isRefreshing = false;
   int _totalCount = 0;
   int _currentPage = 1;
   final int _pageSize = 20;
   bool _hasMore = true;
 
-  Worker? _refreshFriendListWorker;
-  Worker? _refreshFriendRequestsWorker;
+  Worker? _refreshWorker;
   
   @override
   void initState() {
@@ -58,51 +52,17 @@ class _FriendsPageState extends State<FriendsPage> {
     _loadContactGroups();   // 加载联系人分组
     _loadFriends();
     
-    final globalCtrl = Get.find<GlobalController>();
-    
-    // 监听好友列表刷新信号
-    _refreshFriendListWorker = ever(
-      globalCtrl.refreshFriendList,
-      (_) {
-        print('📨 收到好友列表刷新信号');
-        _loadFriends(refresh: true);
-      },
-    );
-    
-    // 监听好友申请列表刷新信号
-    _refreshFriendRequestsWorker = ever(
-      globalCtrl.refreshFriendRequests,
-      (_) {
-        print('📨 收到好友申请列表刷新信号');
-        _loadFriendRequests();
-      },
+    // 监听全局刷新信号
+    _refreshWorker = ever(
+      Get.find<GlobalController>().refreshFriendList,
+      (_) => _refreshFriends(),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
-      body: _isLoading && _friends.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : _buildMainContent(),
-      // 浮动添加按钮
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/add-friend'),
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.person_add, color: Colors.white),
-      ),
-    );
-  }
-  
 
   @override
   void dispose() {
-    _refreshFriendListWorker?.dispose();
-    _refreshFriendRequestsWorker?.dispose();
+    _refreshWorker?.dispose();
     _searchController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -200,6 +160,7 @@ class _FriendsPageState extends State<FriendsPage> {
     
     if (refresh) {
       setState(() {
+        _isRefreshing = true;
         _currentPage = 1;
         _hasMore = true;
       });
@@ -208,28 +169,9 @@ class _FriendsPageState extends State<FriendsPage> {
     }
     
     try {
-      // 根据选中的分组获取 groupId
-      int? groupId;
-      if (_selectedGroupId != 'all' && _selectedGroupId != 'special') {
-        // 查找对应的分组对象
-        final selectedGroup = _groups.firstWhere(
-          (g) => g.id == _selectedGroupId,
-          orElse: () => _groups.first,
-        );
-        // 将字符串形式的 groupId 转换为 int（FriendGroup.id 是 group_id 的字符串形式）
-        if (selectedGroup.id.isNotEmpty) {
-          final parsedId = int.tryParse(selectedGroup.id);
-          if (parsedId != null && parsedId > 0) {
-            groupId = parsedId;
-          }
-        }
-      }
-      
       final result = await _nativeService.imGetContactList(
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
-        groupId: groupId,
-        relationship: -1,
       );
       
       print('📋 好友列表结果: $result');
@@ -250,27 +192,16 @@ class _FriendsPageState extends State<FriendsPage> {
             if (refresh) {
               _friends.clear();
             }
-            
-            // 去重：根据好友ID去重，避免重复数据
-            final existingIds = _friends.map((f) => f.id).toSet();
-            final uniqueNewFriends = newFriends.where((f) => !existingIds.contains(f.id)).toList();
-            
-            _friends.addAll(uniqueNewFriends);
-            _filteredFriends = _sortAndGroupFriends(List.from(_friends));
+            _friends.addAll(newFriends);
+            _filteredFriends = List.from(_friends);
             _hasMore = newFriends.length >= _pageSize;
             if (!refresh) {
               _currentPage++;
             }
           });
           
-          // 保存好友到数据库缓存
-          _cacheContactsToDatabase(contactsJson);
-          
           // 应用搜索过滤
           _filterFriends(_searchController.text);
-
-          // 联系人更新后，触发会话列表刷新
-          Get.find<GlobalController>().triggerChatListRefresh();
         } else {
           setState(() {
             if (refresh) {
@@ -290,6 +221,7 @@ class _FriendsPageState extends State<FriendsPage> {
     } finally {
       setState(() {
         _isLoading = false;
+        _isRefreshing = false;
       });
     }
   }
@@ -308,37 +240,6 @@ class _FriendsPageState extends State<FriendsPage> {
       await _loadFriends();
     }
   }
-  
-  /// 缓存好友到数据库
-  Future<void> _cacheContactsToDatabase(List<dynamic> contactsJson) async {
-    try {
-      final userId = Get.find<GlobalController>().currentUser.value?.id;
-      if (userId == null || userId.isEmpty) return;
-      
-      final contacts = contactsJson.map((json) {
-        return {
-          'contact_user_id': json['contact_user_id'] ?? '',
-          'nickname': json['nickname'] ?? '',
-          'avatar': json['avatar'] ?? '',
-          'remark': json['remark'] ?? '',
-          'phone': json['target_phone'] ?? '',
-          'email': json['target_email'] ?? '',
-          'account_id': json['account_id'] ?? '',
-          'relationship': json['relationship'] ?? 0,
-          'online_status': json['online_status'] ?? 0,
-          'add_channel': json['add_channel'] ?? 0,
-          'group_id': json['group_id'],
-          'group_name': json['group_name'] ?? '',
-          'create_time': json['create_time'],
-          'last_chat_time': json['last_chat_time'],
-        };
-      }).toList();
-      
-      await MessageDatabase().saveContacts(userId, contacts);
-    } catch (e) {
-      print('❌ 缓存好友到数据库失败: $e');
-    }
-  }
 
   void _filterFriends(String query) {
     setState(() {
@@ -351,142 +252,35 @@ class _FriendsPageState extends State<FriendsPage> {
                 (friend.accountId?.toLowerCase().contains(query.toLowerCase()) ?? false))
             .toList();
       }
-      // 重新排序和分组
-      _filteredFriends = _sortAndGroupFriends(_filteredFriends);
-      
-      // 清理不再使用的分组头部 keys
-      final currentLetters = _getGroupedFriends().keys.toSet();
-      _groupHeaderKeys.removeWhere((letter, _) => !currentLetters.contains(letter));
     });
-  }
-
-  /// 获取首字母（支持中文拼音首字母）
-  String _getFirstLetter(String name) {
-    if (name.isEmpty) return '#';
-    
-    final firstChar = name[0];
-    
-    // 如果是英文字母
-    if (firstChar.contains(RegExp(r'[A-Za-z]'))) {
-      return firstChar.toUpperCase();
-    }
-    
-    // 如果是中文字符，转换为拼音首字母
-    if (firstChar.contains(RegExp(r'[\u4e00-\u9fa5]'))) {
-      return _getPinyinFirstLetter(firstChar);
-    }
-    
-    // 其他字符归为 #
-    return '#';
-  }
-
-  /// 获取中文字符的拼音首字母
-  String _getPinyinFirstLetter(String char) {
-    final code = char.codeUnitAt(0);
-    
-    // 中文字符Unicode范围：0x4E00-0x9FFF
-    if (code >= 0x4E00 && code <= 0x9FFF) {
-      // 根据Unicode范围估算拼音首字母
-      // 这是一个简化实现，基于Unicode编码的近似分布
-      final offset = code - 0x4E00;
-      
-      // 根据Unicode范围映射到拼音首字母
-      // 这个映射是基于常用汉字的Unicode分布
-      if (offset < 200) return 'A';      // 阿、爱等
-      if (offset < 500) return 'B';      // 八、白等
-      if (offset < 800) return 'C';      // 擦、才等
-      if (offset < 1200) return 'D';     // 大、的等
-      if (offset < 1500) return 'E';    // 额、而等
-      if (offset < 1800) return 'F';     // 发、方等
-      if (offset < 2200) return 'G';    // 噶、该等
-      if (offset < 2600) return 'H';     // 哈、好等
-      if (offset < 3000) return 'J';    // 家、见等
-      if (offset < 3400) return 'K';    // 卡、开等
-      if (offset < 3800) return 'L';    // 拉、来等
-      if (offset < 4200) return 'M';     // 马、吗等
-      if (offset < 4600) return 'N';     // 那、你等
-      if (offset < 5000) return 'O';     // 哦、欧等
-      if (offset < 5400) return 'P';     // 趴、怕等
-      if (offset < 5800) return 'Q';     // 七、其等
-      if (offset < 6200) return 'R';     // 日、人等
-      if (offset < 6600) return 'S';     // 撒、三等
-      if (offset < 7000) return 'T';      // 他、太等
-      if (offset < 7500) return 'W';     // 无、我等
-      if (offset < 8000) return 'X';     // 西、下等
-      if (offset < 8500) return 'Y';     // 压、一、有等
-      if (offset < 9000) return 'Z';     // 杂、在等
-      
-      // 超出范围，使用更粗略的估算
-      final index = offset ~/ 200;
-      final letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'W', 'X', 'Y', 'Z'];
-      if (index < letters.length) {
-        return letters[index];
-      }
-    }
-    
-    return '#';
-  }
-
-  /// 按首字母排序和分组
-  List<FriendModel> _sortAndGroupFriends(List<FriendModel> friends) {
-    // 先按显示名称排序
-    final sorted = List<FriendModel>.from(friends);
-    sorted.sort((a, b) {
-      final letterA = _getFirstLetterFromPinyin(a);
-      final letterB = _getFirstLetterFromPinyin(b);
-      // 先按首字母排序
-      if (letterA != letterB) {
-        // # 放在最后
-        if (letterA == '#') return 1;
-        if (letterB == '#') return -1;
-        return letterA.compareTo(letterB);
-      }
-      
-      // 首字母相同，按拼音整体排序（再按显示名兜底）
-      final cmpPinyin = a.pinyin.compareTo(b.pinyin);
-      if (cmpPinyin != 0) return cmpPinyin;
-      return a.displayName.compareTo(b.displayName);
-    });
-    
-    return sorted;
-  }
-
-  /// 从拼音获取首字母，若无则回退 displayName
-  String _getFirstLetterFromPinyin(FriendModel friend) {
-    final pinyin = friend.pinyin.trim();
-    if (pinyin.isNotEmpty) {
-      final c = pinyin[0].toUpperCase();
-      if (RegExp(r'[A-Z]').hasMatch(c)) {
-        return c;
-      }
-    }
-    return _getFirstLetter(friend.displayName);
-  }
-
-  /// 获取分组后的好友列表（按首字母分组）
-  Map<String, List<FriendModel>> _getGroupedFriends() {
-    final grouped = <String, List<FriendModel>>{};
-    
-    for (final friend in _filteredFriends) {
-      final letter = _getFirstLetterFromPinyin(friend);
-      grouped.putIfAbsent(letter, () => []).add(friend);
-    }
-    
-    return grouped;
   }
 
   // 是否显示搜索模式
   bool _isSearchMode = false;
   
-  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
+      body: _isLoading && _friends.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _refreshFriends,
+              child: _buildMainContent(),
+            ),
+      // 浮动添加按钮
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.toNamed('/add-friend'),
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.person_add, color: Colors.white),
+      ),
+    );
+  }
 
   /// 主内容区域
   Widget _buildMainContent() {
-    return Stack(
-      children: [
-        RefreshIndicator(
-          onRefresh: _refreshFriends,
-          child: NotificationListener<ScrollNotification>(
+    return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollEndNotification &&
             notification.metrics.extentAfter < 100 &&
@@ -497,8 +291,6 @@ class _FriendsPageState extends State<FriendsPage> {
         return false;
       },
       child: CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(), // 确保可以下拉刷新
         slivers: [
           // 新消息入口（好友申请、群组申请）
           SliverToBoxAdapter(child: _buildRequestsEntry()),
@@ -506,81 +298,29 @@ class _FriendsPageState extends State<FriendsPage> {
           // 好友分组
           SliverToBoxAdapter(child: _buildGroupTabs()),
           
-                // 好友列表（按首字母分组）
+          // 好友列表
           if (_filteredFriends.isEmpty)
             SliverFillRemaining(child: _buildEmptyView())
           else
-                  _buildGroupedFriendList(),
-              ],
-            ),
-          ),
-        ),
-        // 右侧字母索引条
-        if (_filteredFriends.isNotEmpty)
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: _buildAlphabetIndex(),
-          ),
-      ],
-    );
-  }
-  
-  /// 构建字母索引条
-  Widget _buildAlphabetIndex() {
-    final grouped = _getGroupedFriends();
-    final letters = grouped.keys.toList()..sort((a, b) {
-      // # 放在最后
-      if (a == '#') return 1;
-      if (b == '#') return -1;
-      return a.compareTo(b);
-    });
-    
-    if (letters.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    
-    return Container(
-      width: 24,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: letters.map((letter) {
-          return GestureDetector(
-            onTap: () => _scrollToLetter(letter),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 20,
-              padding: const EdgeInsets.symmetric(vertical: 1),
-              alignment: Alignment.center,
-              child: Text(
-                letter,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.blue[600],
-                ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index == _filteredFriends.length) {
+                    return _hasMore
+                        ? const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        : const SizedBox.shrink();
+                  }
+                  return _buildFriendItem(_filteredFriends[index]);
+                },
+                childCount: _filteredFriends.length + (_hasMore ? 1 : 0),
               ),
             ),
-          );
-        }).toList(),
+        ],
       ),
     );
-  }
-  
-  /// 滚动到指定字母的分组
-  void _scrollToLetter(String letter) {
-    final key = _groupHeaderKeys[letter];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-        alignment: 0.0, // 滚动到顶部对齐
-      );
-    }
   }
   
   /// 新消息入口（好友申请、群组申请）
@@ -621,17 +361,19 @@ class _FriendsPageState extends State<FriendsPage> {
           
           Divider(height: 1, indent: 56, color: Colors.grey[100]),
           
-          // 群组入口
+          // 群组申请入口
           _buildRequestEntryItem(
             icon: Icons.group_add,
             iconColor: Colors.blue,
             iconBgColor: Colors.blue[50]!,
-            title: '群组',
+            title: '群组申请',
             count: _groupRequestCount,
             onTap: () async {
-              await Get.to(() => const GroupListPage());
-              // 返回后可选择刷新，确保显示最新好友/群关联
-              // _loadFriends(refresh: true);
+              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.group));
+              if (result == true) {
+                // 有群组申请被处理，刷新好友列表（可能加入了新群）
+                _loadFriends(refresh: true);
+              }
             },
           ),
         ],
@@ -887,10 +629,30 @@ class _FriendsPageState extends State<FriendsPage> {
       _selectedGroupId = groupId;
     });
     
-    // 切换分组时，重新从服务器加载该分组的好友列表
-    _loadFriends(refresh: true);
-    }
+    // 根据分组筛选好友
+    _filterFriendsByGroup(groupId);
+  }
   
+  /// 根据分组筛选好友
+  void _filterFriendsByGroup(String groupId) {
+    setState(() {
+      if (groupId == 'all') {
+        // 全部好友
+        _filteredFriends = List.from(_friends);
+      } else if (groupId == 'special') {
+        // 特别关心：TODO 根据实际标签筛选
+        _filteredFriends = [];
+      } else {
+        // 自定义分组：TODO 根据分组ID筛选
+        _filteredFriends = [];
+      }
+    });
+    
+    // 如果有搜索关键词，继续过滤
+    if (_searchController.text.isNotEmpty) {
+      _filterFriends(_searchController.text);
+    }
+  }
   
   /// 显示分组设置
   void _showGroupSettings() {
@@ -904,13 +666,12 @@ class _FriendsPageState extends State<FriendsPage> {
         groups: _groups,
         onAddGroup: _addGroup,
         onDeleteGroup: _deleteGroup,
-        onUpdateGroup: _updateGroup,
       ),
     );
   }
   
   /// 添加分组
-  Future<void> _addGroup(String name) async {
+  void _addGroup(String name) {
     if (name.isEmpty) {
       EasyLoading.showError('分组名称不能为空');
       return;
@@ -922,26 +683,14 @@ class _FriendsPageState extends State<FriendsPage> {
       return;
     }
     
-    EasyLoading.show(status: '正在创建分组...');
+    setState(() {
+      _groups.add(FriendGroup(
+        id: 'group_${DateTime.now().millisecondsSinceEpoch}',
+        name: name,
+      ));
+    });
     
-    try {
-      final result = await _nativeService.imCreateContactGroup(
-        groupName: name,
-      );
-      
-      print('📁 创建联系人分组结果: $result');
-      
-      if (result['errorCode'] == 0) {
     EasyLoading.showSuccess('分组创建成功');
-        // 刷新分组列表
-        await _loadContactGroups();
-      } else {
-        EasyLoading.showError(result['message'] ?? '创建失败');
-      }
-    } catch (e) {
-      print('创建分组错误: $e');
-      EasyLoading.showError('创建失败，请稍后重试');
-    }
   }
   
   /// 删除分组
@@ -963,76 +712,21 @@ class _FriendsPageState extends State<FriendsPage> {
           TextButton(
             onPressed: () {
               Get.back();
-              _confirmDeleteGroup(group);
+              setState(() {
+                _groups.removeWhere((g) => g.id == group.id);
+                // 如果删除的是当前选中的分组，切回全部
+                if (_selectedGroupId == group.id) {
+                  _selectedGroupId = 'all';
+                  _filterFriendsByGroup('all');
+                }
+              });
+              EasyLoading.showSuccess('分组已删除');
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _confirmDeleteGroup(FriendGroup group) async {
-    EasyLoading.show(status: '删除分组中...');
-    try {
-      final gid = int.tryParse(group.id) ?? 0;
-      final result = await _nativeService.imDeleteContactGroup(groupId: gid);
-      if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组已删除');
-        await _loadContactGroups();
-        if (_selectedGroupId == group.id) {
-          _selectedGroupId = 'all';
-          await _loadFriends(refresh: true);
-        }
-      } else {
-        EasyLoading.showError(result['message'] ?? '删除失败');
-      }
-    } catch (e) {
-      EasyLoading.showError('删除失败，请稍后重试');
-    }
-  }
-
-  Future<void> _updateGroup(FriendGroup group) async {
-    final controller = TextEditingController(text: group.name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('修改分组名称'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: '请输入新的分组名称'),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
-          ],
-        );
-      },
-    );
-    if (newName == null) return;
-    if (newName.isEmpty) {
-      EasyLoading.showError('分组名称不能为空');
-      return;
-    }
-    if (newName == group.name) return;
-
-    EasyLoading.show(status: '更新分组中...');
-    try {
-      final gid = int.tryParse(group.id) ?? 0;
-      final result = await _nativeService.imUpdateContactGroup(
-        groupId: gid,
-        groupName: newName,
-      );
-      if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组已更新');
-        await _loadContactGroups();
-      } else {
-        EasyLoading.showError(result['message'] ?? '更新失败');
-      }
-    } catch (e) {
-      EasyLoading.showError('更新失败，请稍后重试');
-    }
   }
 
   /// 空视图
@@ -1070,84 +764,6 @@ class _FriendsPageState extends State<FriendsPage> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  /// 构建分组的好友列表
-  Widget _buildGroupedFriendList() {
-    final grouped = _getGroupedFriends();
-    final letters = grouped.keys.toList()..sort((a, b) {
-      // # 放在最后
-      if (a == '#') return 1;
-      if (b == '#') return -1;
-      return a.compareTo(b);
-    });
-    
-    // 确保每个字母都有对应的 GlobalKey
-    for (final letter in letters) {
-      _groupHeaderKeys.putIfAbsent(letter, () => GlobalKey());
-    }
-    
-    // 计算总项目数（包括分组头部）
-    int totalCount = 0;
-    for (final letter in letters) {
-      totalCount += 1 + grouped[letter]!.length; // 1个分组头部 + 好友数量
-    }
-    if (_hasMore) totalCount += 1; // 加载更多指示器
-    
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          int currentIndex = 0;
-          
-          // 遍历所有分组
-          for (final letter in letters) {
-            final friends = grouped[letter]!;
-            
-            // 分组头部
-            if (index == currentIndex) {
-              return _buildGroupHeader(letter, _groupHeaderKeys[letter]!);
-            }
-            currentIndex++;
-            
-            // 分组内的好友
-            for (int i = 0; i < friends.length; i++) {
-              if (index == currentIndex) {
-                return _buildFriendItem(friends[i]);
-              }
-              currentIndex++;
-            }
-          }
-          
-          // 加载更多指示器
-          if (index == currentIndex && _hasMore) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          
-          return const SizedBox.shrink();
-        },
-        childCount: totalCount,
-      ),
-    );
-  }
-
-  /// 构建分组头部
-  Widget _buildGroupHeader(String letter, GlobalKey key) {
-    return Container(
-      key: key,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.grey[100],
-      child: Text(
-        letter,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey[700],
-        ),
       ),
     );
   }
@@ -1197,7 +813,7 @@ class _FriendsPageState extends State<FriendsPage> {
           ],
         ),
         title: Text(
-          '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
+          friend.displayName,
           style: const TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 16,
@@ -1205,7 +821,7 @@ class _FriendsPageState extends State<FriendsPage> {
         ),
         subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
             ? Text(
-                'ID: ${friend.accountId}  ${friend.displayName}',
+                'ID: ${friend.accountId}',
                 style: TextStyle(
                   color: Colors.grey[500],
                   fontSize: 13,
@@ -1214,6 +830,21 @@ class _FriendsPageState extends State<FriendsPage> {
                 overflow: TextOverflow.ellipsis,
               )
             : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.chat_bubble_outline, color: Colors.blue[400]),
+              onPressed: () {
+                EasyLoading.showInfo('发起聊天: ${friend.displayName}');
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+              onPressed: () => _showFriendOptions(friend),
+            ),
+          ],
+        ),
         onTap: () => _showFriendDetail(friend),
       ),
     );
@@ -1222,7 +853,7 @@ class _FriendsPageState extends State<FriendsPage> {
   /// 显示好友详情
   void _showFriendDetail(FriendModel friend) async {
     final result = await Get.to(
-      () => FriendDetailPage(friend: friend, onDelete: _refreshFriends),
+      () => FriendDetailPage(friend: friend),
       transition: Transition.rightToLeft,
     );
     
@@ -1231,20 +862,182 @@ class _FriendsPageState extends State<FriendsPage> {
       _refreshFriends();
     }
   }
+
+  /// 显示好友操作菜单
+  void _showFriendOptions(FriendModel friend) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.star_outline, color: Colors.amber),
+                title: const Text('设为星标好友'),
+                onTap: () {
+                  Get.back();
+                  EasyLoading.showSuccess('已设为星标好友');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.edit_outlined, color: Colors.blue),
+                title: const Text('设置备注'),
+                onTap: () {
+                  Get.back();
+                  _showSetRemarkDialog(friend);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.orange),
+                title: const Text('加入黑名单'),
+                onTap: () {
+                  Get.back();
+                  _confirmBlockFriend(friend);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('删除好友'),
+                onTap: () {
+                  Get.back();
+                  _confirmDeleteFriend(friend);
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                title: const Text('取消', textAlign: TextAlign.center),
+                onTap: () => Get.back(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 设置备注对话框
+  void _showSetRemarkDialog(FriendModel friend) {
+    final controller = TextEditingController(text: friend.remark);
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('设置备注'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: '请输入备注名',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // TODO: 调用设置备注接口
+              EasyLoading.showSuccess('备注设置成功');
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 确认拉黑好友
+  void _confirmBlockFriend(FriendModel friend) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('加入黑名单'),
+        content: Text('确定要将「${friend.displayName}」加入黑名单吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              EasyLoading.show(status: '处理中...');
+              
+              try {
+                final result = await _nativeService.imBlockContact(userId: friend.id);
+                
+                if (result['errorCode'] == 0) {
+                  EasyLoading.showSuccess('已加入黑名单');
+                  _refreshFriends();
+                } else {
+                  EasyLoading.showError(result['message'] ?? '操作失败');
+                }
+              } catch (e) {
+                EasyLoading.showError('操作失败');
+              }
+            },
+            child: const Text('确定', style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 确认删除好友
+  void _confirmDeleteFriend(FriendModel friend) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('删除好友'),
+        content: Text('确定要删除好友「${friend.displayName}」吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              EasyLoading.show(status: '删除中...');
+              
+              try {
+                final result = await _nativeService.imDeleteContact(userId: friend.id);
+                
+                if (result['errorCode'] == 0) {
+                  setState(() {
+                    _friends.removeWhere((f) => f.id == friend.id);
+                    _filterFriends(_searchController.text);
+                    _totalCount = _friends.length;
+                  });
+                  EasyLoading.showSuccess('已删除好友');
+                } else {
+                  EasyLoading.showError(result['message'] ?? '删除失败');
+                }
+              } catch (e) {
+                EasyLoading.showError('删除失败');
+              }
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// 分组设置底部弹窗
 class _GroupSettingsSheet extends StatefulWidget {
   final List<FriendGroup> groups;
-  final Future<void> Function(String) onAddGroup;
+  final Function(String) onAddGroup;
   final Function(FriendGroup) onDeleteGroup;
-  final Future<void> Function(FriendGroup) onUpdateGroup;
   
   const _GroupSettingsSheet({
     required this.groups,
     required this.onAddGroup,
     required this.onDeleteGroup,
-    required this.onUpdateGroup,
   });
 
   @override
@@ -1267,8 +1060,6 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1339,16 +1130,14 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: () async {
+                    onPressed: () {
                       final name = _nameController.text.trim();
                       if (name.isNotEmpty) {
-                        await widget.onAddGroup(name);
-                        if (mounted) {
+                        widget.onAddGroup(name);
                         setState(() {
                           _isAdding = false;
                           _nameController.clear();
                         });
-                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -1386,7 +1175,6 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
           // 底部安全区域
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
-        ),
       ),
     );
   }
@@ -1435,24 +1223,12 @@ class _GroupSettingsSheetState extends State<_GroupSettingsSheet> {
                 ),
               ),
             )
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await widget.onUpdateGroup(group);
-                  },
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onDeleteGroup(group);
-                  },
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                ),
-              ],
+          : IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onDeleteGroup(group);
+              },
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
             ),
     );
   }

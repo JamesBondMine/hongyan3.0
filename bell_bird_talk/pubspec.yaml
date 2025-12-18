@@ -88,9 +88,6 @@ dependencies:
   
   # 音频播放
   audioplayers: ^6.1.0
-  lpinyin: ^2.0.3
-  video_player: ^2.9.1
-  video_thumbnail: ^0.5.3
 
 dev_dependencies:
   flutter_test:

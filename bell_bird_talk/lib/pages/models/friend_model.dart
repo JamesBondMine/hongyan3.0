@@ -1,6 +1,4 @@
 
-import 'package:lpinyin/lpinyin.dart';
-
 /// 好友模型
 class FriendModel {
   final String id;
@@ -10,7 +8,6 @@ class FriendModel {
   final String? remark;
   final int relationship;  // 0=好友, 1=黑名单等
   final int onlineStatus;  // 0=离线, 1=在线
-  final String pinyin;     // 昵称拼音（用于排序）
   
   FriendModel({
     required this.id,
@@ -20,21 +17,18 @@ class FriendModel {
     this.remark,
     this.relationship = 0,
     this.onlineStatus = 0,
-    this.pinyin = '',
   });
   
   /// 从 JSON 构造
   factory FriendModel.fromJson(Map<String, dynamic> json) {
-    final nickname = json['nickname'] ?? json['remark'] ?? '未知用户';
     return FriendModel(
       id: json['contact_user_id'] ?? json['user_id'] ?? '',
       accountId: json['account_id'],
-      nickname: nickname,
+      nickname: json['nickname'] ?? json['remark'] ?? '未知用户',
       avatar: json['avatar'],
       remark: json['remark'],
       relationship: json['relationship'] ?? 0,
       onlineStatus: json['online_status'] ?? 0,
-      pinyin: _toPinyin(nickname),
     );
   }
   
@@ -56,85 +50,16 @@ class FriendModel {
     String? remark,
     int? relationship,
     int? onlineStatus,
-    String? pinyin,
   }) {
-    final newNickname = nickname ?? this.nickname;
     return FriendModel(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
-      nickname: newNickname,
+      nickname: nickname ?? this.nickname,
       avatar: avatar ?? this.avatar,
       remark: remark ?? this.remark,
       relationship: relationship ?? this.relationship,
       onlineStatus: onlineStatus ?? this.onlineStatus,
-      pinyin: pinyin ?? _toPinyin(newNickname),
     );
-  }
-
-  /// 拼音转换：优先使用 lpinyin，无结果时回退到简易估算
-  static String _toPinyin(String text) {
-    try {
-      final py = PinyinHelper.getPinyinE(
-        text,
-        separator: '',
-        format: PinyinFormat.WITHOUT_TONE,
-      );
-      if (py.trim().isNotEmpty) {
-        return py.toLowerCase();
-      }
-    } catch (_) {
-      // ignore and fallback
-    }
-    return _toPinyinFallback(text);
-  }
-
-  /// 简易拼音转换（仅首字母估算），非中文直接转小写
-  static String _toPinyinFallback(String text) {
-    final buffer = StringBuffer();
-    for (final rune in text.runes) {
-      final char = String.fromCharCode(rune);
-      if (RegExp(r'[A-Za-z0-9]').hasMatch(char)) {
-        buffer.write(char.toLowerCase());
-      } else if (RegExp(r'[\u4e00-\u9fa5]').hasMatch(char)) {
-        buffer.write(_getPinyinFirstLetter(char));
-      } else {
-        buffer.write(char);
-      }
-    }
-    return buffer.toString();
-  }
-
-  /// 参考 friends_page 的首字母估算，简化版
-  static String _getPinyinFirstLetter(String char) {
-    final code = char.codeUnitAt(0);
-    // 中文字符Unicode范围：0x4E00-0x9FFF
-    if (code >= 0x4E00 && code <= 0x9FFF) {
-      final offset = code - 0x4E00;
-      if (offset < 200) return 'a';
-      if (offset < 500) return 'b';
-      if (offset < 800) return 'c';
-      if (offset < 1200) return 'd';
-      if (offset < 1500) return 'e';
-      if (offset < 1800) return 'f';
-      if (offset < 2200) return 'g';
-      if (offset < 2600) return 'h';
-      if (offset < 3000) return 'j';
-      if (offset < 3400) return 'k';
-      if (offset < 3800) return 'l';
-      if (offset < 4200) return 'm';
-      if (offset < 4600) return 'n';
-      if (offset < 5000) return 'o';
-      if (offset < 5400) return 'p';
-      if (offset < 5800) return 'q';
-      if (offset < 6200) return 'r';
-      if (offset < 6600) return 's';
-      if (offset < 7000) return 't';
-      if (offset < 7500) return 'w';
-      if (offset < 8000) return 'x';
-      if (offset < 8500) return 'y';
-      if (offset < 9000) return 'z';
-    }
-    return '#';
   }
 }
 

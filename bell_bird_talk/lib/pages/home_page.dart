@@ -8,7 +8,6 @@ import 'framework_test_page.dart';
 import 'friends/friends_page.dart';
 import 'chat/chat_list_page.dart';
 import 'profile/profile_page.dart';
-import 'profile/profile_tab_page.dart';
 
 /// 首页（带底部 TabBar）
 class HomePage extends StatefulWidget {
@@ -24,6 +23,8 @@ class _HomePageState extends State<HomePage> {
   final IOSNativeService _nativeService = IOSNativeService();
   
   // 上传凭证信息
+  Map<String, dynamic>? _uploadToken;
+
   @override
   void initState() {
     super.initState();
@@ -38,21 +39,15 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
   
-  /// 注册消息回调（单聊、群聊、社区、系统、命令）
+  /// 注册消息回调（单聊、群聊、社区）
   Future<void> _registerMessageCallbacks() async {
     // 设置消息接收回调
     _nativeService.onMessageReceived = _handleReceivedMessage;
     
-    // 设置系统消息回调
-    _nativeService.onSystemMessage = _handleSystemMessage;
-    
-    // 设置命令消息回调
-    _nativeService.onCommandMessage = _handleCommandMessage;
-    
     // 注册底层回调
     final result = await _nativeService.imRegisterMessageCallbacks();
     if (result['errorCode'] == 0) {
-      print('✅ 消息回调注册成功（单聊、群聊、社区、系统、命令）');
+      print('✅ 消息回调注册成功');
     } else {
       print('❌ 消息回调注册失败: ${result['message']}');
     }
@@ -79,25 +74,6 @@ class _HomePageState extends State<HomePage> {
     _globalCtrl.onNewMessageReceived(message);
   }
   
-  /// 处理系统消息  被加好友  是系统消息
-  void _handleSystemMessage(Map<String, dynamic> message) {
-    print('📨 首页收到系统消息: $message');
-    
-    // 收到系统消息，刷新联系人列表和好友申请列表
-    // 系统消息可能包括：好友申请、好友通过、好友删除等
-    _globalCtrl.triggerContactRefresh();
-    
-    print('✅ 已触发联系人和好友申请列表刷新');
-  }
-  
-  /// 处理命令消息
-  void _handleCommandMessage(int eventType, Map<String, dynamic> message) {
-    print('📨 首页收到命令消息: eventType=$eventType, data=$message');
-    
-    // TODO: 根据命令类型进行处理
-    // 例如：强制更新、配置变更等
-  }
-  
   
 
   @override
@@ -112,8 +88,10 @@ class _HomePageState extends State<HomePage> {
           const FriendsPage(),
           // Tab 2: 消息页面
           _buildMessagePage(),
-          // Tab 3: 我的页面
-          const ProfileTabPage(),
+          // Tab 3: 发现页面
+          _buildDiscoverPage(),
+          // Tab 4: 我的页面
+          _buildProfilePage(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
@@ -200,13 +178,163 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// 发现页面
+  Widget _buildDiscoverPage() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('发现'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.explore_outlined, size: 80, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              '发现功能开发中...',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 我的页面
+  Widget _buildProfilePage() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('我的'),
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => _showSettingsDialog(context),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 用户信息卡片
+            _buildUserCard(),
+            
+            const SizedBox(height: 16),
+            
+            // 设置选项列表
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildSettingItem(Icons.person_outline, '个人资料', () {
+                    Get.to(() => const ProfilePage());
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.security, '账号安全', () {
+                    EasyLoading.showInfo('账号安全开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.notifications_outlined, '消息通知', () {
+                    EasyLoading.showInfo('消息通知开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.privacy_tip_outlined, '隐私设置', () {
+                    EasyLoading.showInfo('隐私设置开发中');
+                  }),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 其他选项
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildSettingItem(Icons.help_outline, '帮助与反馈', () {
+                    EasyLoading.showInfo('帮助与反馈开发中');
+                  }),
+                  const Divider(height: 1, indent: 56),
+                  _buildSettingItem(Icons.info_outline, '关于我们', () {
+                    EasyLoading.showInfo('关于我们开发中');
+                  }),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // 退出登录按钮
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _showLogoutDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '退出登录',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 设置项
+  Widget _buildSettingItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.grey[700]),
+      title: Text(title),
+      trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+      onTap: onTap,
+    );
+  }
+
   /// 构建用户信息卡片
   Widget _buildUserCard() {
     return Obx(() {
       final user = _globalCtrl.currentUser.value;
-      final avatar = user?.avatar ?? '';
-      final email = user?.email ?? '';
-      final phone = user?.phone ?? '';
       
       return GestureDetector(
         onTap: () => Get.to(() => const ProfilePage()),
@@ -234,8 +362,10 @@ class _HomePageState extends State<HomePage> {
             CircleAvatar(
               radius: 35,
               backgroundColor: Colors.white,
-              backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-              child: avatar.isEmpty
+                backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
+                  ? NetworkImage(user!.avatar!)
+                  : null,
+                child: (user?.avatar == null || user!.avatar!.isEmpty)
                   ? const Icon(Icons.person, size: 40, color: Colors.blue)
                   : null,
             ),
@@ -257,13 +387,13 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                     // 显示邮箱或手机号
-                    if (email.isNotEmpty)
+                    if (user?.email != null && user!.email!.isNotEmpty)
                       Row(
                         children: [
                           Icon(Icons.email_outlined, size: 14, color: Colors.white.withOpacity(0.9)),
                           const SizedBox(width: 4),
                           Text(
-                            email,
+                            user!.email!,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.9),
                               fontSize: 12,
@@ -271,13 +401,13 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       )
-                    else if (phone.isNotEmpty)
+                    else if (user?.phone != null && user!.phone!.isNotEmpty)
                       Row(
                         children: [
                           Icon(Icons.phone_outlined, size: 14, color: Colors.white.withOpacity(0.9)),
                           const SizedBox(width: 4),
                           Text(
-                            phone,
+                            user!.phone!,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.9),
                               fontSize: 12,
@@ -639,6 +769,11 @@ class _HomePageState extends State<HomePage> {
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home),
           label: '消息',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.explore_outlined),
+          activeIcon: Icon(Icons.explore),
+          label: '发现',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),

@@ -67,23 +67,6 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
-      body: Column(
-        children: [
-          // 筛选栏
-          _buildFilterBar(),
-          // 会话列表
-          Expanded(
-            child: _buildConversationList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
   void dispose() {
     _refreshWorker?.dispose();
     _newMessageWorker?.dispose();
@@ -299,15 +282,6 @@ class _ChatListPageState extends State<ChatListPage> {
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
                   .toList();
               
-              // 调用原生更新会话接口，确保会话信息同步到 SDK
-              for (final conv in networkConversations) {
-                _nativeService.imUpdateConversation(
-                  convId: conv.convId,
-                  displayName: conv.displayName,
-                  avatarUrl: conv.avatar,
-                );
-              }
-              
               // 合并本地和网络数据
               final mergedConversations = await _mergeConversations(
                 userId,
@@ -347,19 +321,11 @@ class _ChatListPageState extends State<ChatListPage> {
   /// 合并本地和网络会话数据
   /// 网络数据为主，本地数据补充缺失信息
   /// 最后一条消息：优先网络 → 会话表 → 消息表
-  /// 单聊时：从好友表获取备注/昵称/头像（备注优先）
   Future<List<ConversationModel>> _mergeConversations(
     String userId,
     List<ConversationModel> networkConversations,
   ) async {
     final List<ConversationModel> merged = [];
-    
-    // 批量获取所有单聊会话的好友信息
-    final singleChatTargetIds = networkConversations
-        .where((c) => c.convType == 0 && c.targetId != null && c.targetId!.isNotEmpty) // 单聊且有目标ID
-        .map((c) => c.targetId!)
-        .toList();
-    final contactsMap = await _messageDatabase.getContactsMap(userId, singleChatTargetIds);
     
     for (final netConv in networkConversations) {
       // 1. 查询本地会话表
@@ -397,41 +363,13 @@ class _ChatListPageState extends State<ChatListPage> {
         }
       }
       
-      // 4. 从好友表获取显示名称和头像（仅单聊）
-      String displayName = netConv.displayName;
-      String avatar = netConv.avatar ?? '';
-      
-      if (netConv.convType == 0) { // 单聊
-        final contact = contactsMap[netConv.targetId];
-        if (contact != null) {
-          // 备注优先 > 昵称 > 网络返回的名称
-          final remark = contact['remark'] as String?;
-          final nickname = contact['nickname'] as String?;
-          final contactAvatar = contact['avatar'] as String?;
-          
-          if (remark != null && remark.isNotEmpty) {
-            displayName = remark;
-          } else if (nickname != null && nickname.isNotEmpty) {
-            displayName = nickname;
-          }
-          
-          // 头像：好友表优先
-          if (contactAvatar != null && contactAvatar.isNotEmpty) {
-            avatar = contactAvatar;
-          }
-        }
-      }
-      
-      // 5. 合并数据
+      // 4. 合并数据
       final mergedConv = netConv.copyWith(
-        // 显示名称和头像
-        displayName: displayName,
-        avatar: avatar,
         // 未读数：网络优先，本地补充
         unreadCount: netConv.unreadCount > 0 ? netConv.unreadCount : (localConv?.unreadCount ?? 0),
         // 最后消息
         lastMessage: finalLastMessage,
-        lastMessageType: finalLastMessageType,
+        lastMessageType: finalLastMessageType ?? 0,
         lastMessageTime: finalLastMessageTime,
         lastSenderId: finalLastSenderId,
         lastSenderName: finalLastSenderName,
@@ -501,89 +439,6 @@ class _ChatListPageState extends State<ChatListPage> {
       setState(() {
         _isLoading = false;
       });
-    }
-  }
-
-  /// 加载未读会话列表
-  Future<void> _loadUnreadConversations() async {
-    final userId = _currentUserId;
-    if (userId.isEmpty) {
-      EasyLoading.showError('用户未登录');
-      return;
-    }
-    
-    EasyLoading.show(status: '加载未读会话...');
-    
-    try {
-      print('📋 加载未读会话列表...');
-      final result = await _nativeService.imGetUnreadConversations(
-        page: 1,
-        pageSize: 50,
-        convType: -1,
-      );
-      
-      print('📋 未读会话列表结果: $result');
-      
-      if (result['errorCode'] == 0) {
-        final data = result['data'];
-        if (data != null && data is String && data.isNotEmpty) {
-          try {
-            final dataMap = json.decode(data) as Map<String, dynamic>;
-            final conversations = dataMap['conversations'] as List<dynamic>?;
-            if (conversations != null) {
-              final unreadConversations = conversations
-                  .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              
-              // 合并本地和网络数据
-              final mergedConversations = await _mergeConversations(
-                userId,
-                unreadConversations,
-              );
-              
-              // 更新本地数据库
-              await _messageDatabase.upsertConversations(userId, mergedConversations);
-              print('💾 已更新 ${mergedConversations.length} 个未读会话到本地数据库');
-              
-              // 更新会话列表（只显示未读会话）
-              setState(() {
-                _conversations = mergedConversations;
-                _filterConversations(); // 这会根据 _filterType 过滤未读会话
-              });
-              
-              // 更新全局未读数
-              final totalUnread = mergedConversations.fold<int>(
-                0, (sum, conv) => sum + conv.unreadCount);
-              _globalCtrl.unreadCount.value = totalUnread;
-              
-              EasyLoading.showSuccess('加载成功');
-            } else {
-              // 没有未读会话
-              setState(() {
-                _conversations = [];
-                _filterConversations();
-              });
-              EasyLoading.showSuccess('暂无未读会话');
-            }
-          } catch (e) {
-            print('❌ 解析未读会话列表失败: $e');
-            EasyLoading.showError('解析数据失败');
-          }
-        } else {
-          // 没有未读会话
-          setState(() {
-            _conversations = [];
-            _filterConversations();
-          });
-          EasyLoading.showSuccess('暂无未读会话');
-        }
-      } else {
-        print('⚠️ 获取未读会话列表失败: ${result['message']}');
-        EasyLoading.showError(result['message'] ?? '获取失败');
-      }
-    } catch (e) {
-      print('❌ 加载未读会话列表错误: $e');
-      EasyLoading.showError('加载失败，请稍后重试');
     }
   }
 
@@ -699,6 +554,22 @@ class _ChatListPageState extends State<ChatListPage> {
     setState(() {});
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
+      body: Column(
+        children: [
+          // 筛选栏
+          _buildFilterBar(),
+          // 会话列表
+          Expanded(
+            child: _buildConversationList(),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// 构建筛选栏
   Widget _buildFilterBar() {
@@ -721,22 +592,11 @@ class _ChatListPageState extends State<ChatListPage> {
     final isSelected = _filterType == type;
     return Expanded(
       child: GestureDetector(
-        onTap: () async {
+        onTap: () {
           setState(() {
             _filterType = type;
           });
-          
-          // 根据筛选类型执行不同的操作
-          if (type == 1) {
-            // 点击"未读"：调用未读会话接口
-            await _loadUnreadConversations();
-          } else if (type == 0) {
-            // 点击"全部"：刷新会话列表（调用更新会话列表）
-            await _refreshConversations();
-          } else {
-            // 其他筛选类型：仅本地过滤
           _filterConversations();
-          }
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -789,6 +649,10 @@ class _ChatListPageState extends State<ChatListPage> {
     return _conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
   }
 
+  /// 获取未读会话数
+  int _getUnreadConversationCount() {
+    return _conversations.where((conv) => conv.unreadCount > 0).length;
+  }
 
   /// 获取群聊未读消息数
   int _getGroupUnreadCount() {
@@ -1006,10 +870,10 @@ class _ChatListPageState extends State<ChatListPage> {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: _getAvatarColor(conversation.convType),
-                  backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
+                  backgroundImage: conversation.avatar != null
                       ? NetworkImage(conversation.avatar!)
                       : null,
-                  child: (conversation.avatar == null || conversation.avatar!.isEmpty)
+                  child: conversation.avatar == null
                       ? Text(
                           _getAvatarText(conversation),
                           style: const TextStyle(
@@ -1109,9 +973,7 @@ class _ChatListPageState extends State<ChatListPage> {
                   const SizedBox(height: 4),
                   // 最后一条消息
                   Text(
-                    conversation.lastMessageDisplay.isNotEmpty 
-                        ? conversation.lastMessageDisplay 
-                        : '暂无消息',
+                    conversation.lastMessage ?? '暂无消息',
                     style: TextStyle(
                       fontSize: 14,
                       color: conversation.unreadCount > 0 

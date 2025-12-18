@@ -1,8 +1,4 @@
-import 'dart:convert';
-import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
-import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
-import 'package:bell_bird_talk/pages/notification/notification_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -10,45 +6,8 @@ import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 
 /// 侧边栏菜单内容
-class SideMenuContent extends StatefulWidget {
+class SideMenuContent extends StatelessWidget {
   const SideMenuContent({super.key});
-
-  @override
-  State<SideMenuContent> createState() => _SideMenuContentState();
-}
-
-class _SideMenuContentState extends State<SideMenuContent> {
-  final IOSNativeService _nativeService = IOSNativeService();
-  int _notificationUnread = 0;
-  bool _fetchingUnread = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadNotificationUnread();
-  }
-
-  Future<void> _loadNotificationUnread() async {
-    if (_fetchingUnread) return;
-    setState(() => _fetchingUnread = true);
-    final result = await _nativeService.imGetNotificationUnreadCount(types: ['1']);
-    if (!mounted) return;
-    if (result['errorCode'] == 0) {
-      final dataStr = result['data'] as String? ?? '';
-      try {
-        if (dataStr.isNotEmpty) {
-          final map = Map<String, dynamic>.from(jsonDecode(dataStr));
-          final unread = (map['total_unread'] as num?)?.toInt() ?? 0;
-          setState(() => _notificationUnread = unread);
-        } else {
-          setState(() => _notificationUnread = 0);
-        }
-      } catch (_) {
-        // ignore parse errors
-      }
-    }
-    if (mounted) setState(() => _fetchingUnread = false);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,20 +29,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
                 _buildMenuItem(
                   icon: Icons.notifications_outlined,
                   title: '通知',
-                  subtitle: _notificationUnread > 0 ? '未读 $_notificationUnread' : '消息提醒',
-                  trailing: _notificationUnread > 0
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '$_notificationUnread',
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        )
-                      : null,
+                  subtitle: '消息提醒设置',
                   onTap: () => _openNotificationSettings(context),
                 ),
                 _buildMenuItem(
@@ -107,8 +53,8 @@ class _SideMenuContentState extends State<SideMenuContent> {
                 _buildMenuItem(
                   icon: Icons.delete_forever_outlined,
                   title: '注销账号',
-                  subtitle: '注销后账号将无法恢复',
-                  onTap: () => _showDeleteAccountConfirm(context, globalController),
+                  subtitle: '永久删除账号',
+                  onTap: () => _showDeactivateConfirm(context, globalController),
                 ),
               ],
             ),
@@ -237,7 +183,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
             
             // 查看资料按钮
             OutlinedButton(
-              onPressed: () => Get.to(() => const ProfilePage()),
+              onPressed: () => Get.toNamed('/profile'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white),
@@ -329,16 +275,17 @@ class _SideMenuContentState extends State<SideMenuContent> {
   }
 
   /// 打开通知设置
-  void _openNotificationSettings(BuildContext context) async {
+  void _openNotificationSettings(BuildContext context) {
     Navigator.pop(context);
-    await Get.to(() => const NotificationPage());
-    _loadNotificationUnread();
+    EasyLoading.showInfo('通知设置（开发中）');
+    // TODO: Get.toNamed('/settings/notification');
   }
 
   /// 打开安全设置
   void _openSecuritySettings(BuildContext context) {
     Navigator.pop(context);
-    Get.to(() => const SecuritySettingsPage());
+    EasyLoading.showInfo('安全设置（开发中）');
+    // TODO: Get.toNamed('/settings/security');
   }
 
   /// 打开语言设置
@@ -441,12 +388,44 @@ class _SideMenuContentState extends State<SideMenuContent> {
   }
 
   /// 显示注销账号确认
-  void _showDeleteAccountConfirm(BuildContext context, GlobalController controller) {
+  void _showDeactivateConfirm(BuildContext context, GlobalController controller) {
+    Navigator.pop(context); // 先关闭侧边栏
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('注销账号'),
-        content: const Text('注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？'),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text('注销账号'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '注销账号后，您的所有数据将被永久删除，且无法恢复。',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '此操作包括：',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            SizedBox(height: 8),
+            Text('• 所有聊天记录将被删除'),
+            Text('• 所有联系人关系将被删除'),
+            Text('• 所有群组信息将被删除'),
+            Text('• 账号将无法再次使用'),
+            SizedBox(height: 12),
+            Text(
+              '确定要继续吗？',
+              style: TextStyle(fontSize: 14, color: Colors.red),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -455,28 +434,49 @@ class _SideMenuContentState extends State<SideMenuContent> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // 关闭对话框
-              Navigator.pop(context); // 关闭侧边栏
-              
-              EasyLoading.show(status: '正在注销账号...');
-              final result = await controller.deleteAccount();
-              EasyLoading.dismiss();
-
-              if (result['errorCode'] == 0) {
-                EasyLoading.showSuccess('账号已注销');
-                Get.offAllNamed('/login');
-              } else {
-                final msg = result['message']?.toString() ?? '注销失败';
-                EasyLoading.showError(msg);
-              }
+              await _deactivateAccount(context, controller);
             },
             child: const Text(
-              '确定注销',
-              style: TextStyle(color: Colors.red),
+              '确认注销',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// 执行注销账号
+  Future<void> _deactivateAccount(BuildContext context, GlobalController controller) async {
+    EasyLoading.show(status: '正在注销账号...');
+    
+    try {
+      final nativeService = IOSNativeService();
+      final result = await nativeService.imDeactivateAccount(reason: '用户主动注销');
+      
+      EasyLoading.dismiss();
+      
+      final errorCode = result['errorCode'] as int? ?? -1;
+      final message = result['message'] as String? ?? '未知错误';
+      
+      if (errorCode == 0) {
+        // 注销成功
+        EasyLoading.showSuccess('账号注销成功');
+        
+        // 等待一下再退出登录
+        await Future.delayed(const Duration(seconds: 1));
+        
+        // 清除本地数据并跳转到登录页
+        await controller.logout();
+        Get.offAllNamed('/login');
+      } else {
+        // 注销失败
+        EasyLoading.showError(message);
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('注销失败: $e');
+    }
   }
 
   /// 隐藏邮箱中间部分

@@ -13,6 +13,46 @@
 // 存储回调的字典
 static NSMutableDictionary<NSNumber *, IMSDKUserCompletion> *g_userCallbacks = nil;
 
+// 注销用户回调
+void DeleteUserCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 注销用户回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    // 立即拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
+        if (!completion) {
+            NSLog(@"⚠️ 未找到回调: reqId=%llu", reqId);
+            return;
+        }
+        
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        
+        if (errorCode != 0) {
+            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"注销失败";
+            completion(errorCode, errorMsg, nil, reqId);
+            return;
+        }
+        
+        // 解析返回的数据
+        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            NSString *responseStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (responseStr) {
+                result[@"message"] = responseStr;
+            }
+        }
+        
+        NSLog(@"✅ 注销用户成功");
+        completion(0, @"注销成功", result, reqId);
+    });
+}
+
 // 更新用户信息回调
 void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📨 更新用户回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -169,86 +209,50 @@ void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t r
     return [self updateUserWithInfo:@{@"avatar": avatarUrl} completion:completion];
 }
 
-#pragma mark - 退出登录
-
-// 退出登录回调
-static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📨 退出登录回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+- (uint64_t)deactivateAccountWithReason:(NSString *)reason
+                             completion:(IMSDKUserCompletion)completion {
+    NSLog(@"📤 注销用户: reason=%@", reason ?: @"无");
     
-    NSData *responseData = nil;
-    if (data && dataLen > 0) {
-        responseData = [NSData dataWithBytes:data length:dataLen];
+    // 创建 DeactivateAccount 对象
+    DeactivateAccount *deactivateAccount = [[DeactivateAccount alloc] init];
+    
+    // 设置注销原因（可选）
+    if (reason && reason.length > 0) {
+        deactivateAccount.reason = reason;
     }
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
-        if (!completion) {
-            NSLog(@"⚠️ 未找到退出登录回调: reqId=%llu", reqId);
-            return;
-        }
-        
-        [g_userCallbacks removeObjectForKey:@(reqId)];
-        
-        if (errorCode != 0) {
-            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"退出登录失败";
-            completion(errorCode, errorMsg, nil, reqId);
-            return;
-        }
-        
-        NSLog(@"✅ 退出登录成功");
-        completion(0, @"退出登录成功", @{}, reqId);
-    });
-}
-
-- (uint64_t)logoutWithUserId:(NSString * _Nullable)userId
-                    clientIp:(NSString * _Nullable)clientIp
-                      reason:(NSNumber * _Nullable)reason
-                  completion:(IMSDKUserCompletion)completion {
-    NSLog(@"🚪 开始退出登录...");
-    
-    Logout *lo = [[Logout alloc] init];
-    if (userId && userId.length > 0) {
-        lo.userId = userId;
-    }
-    if (clientIp && clientIp.length > 0) {
-        lo.clientIp = clientIp;
-    }
-    if (reason != nil) {
-        lo.reason = (LogoutReason)[reason intValue];
-    }
-    
-    NSData *protoBody = [lo data];
-    if (!protoBody || protoBody.length == 0) {
-        NSLog(@"❌ 退出登录 Protobuf 序列化失败");
+    // 序列化
+    NSData *serializedData = [deactivateAccount data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ 序列化注销数据失败");
         if (completion) {
-            completion(-1, @"序列化失败", nil, 0);
+            completion(-2, @"序列化失败", nil, 0);
         }
         return 0;
     }
     
-    const char *data = (const char *)protoBody.bytes;
-    int dataLen = (int)protoBody.length;
+    NSLog(@"📦 序列化成功: %lu 字节", (unsigned long)serializedData.length);
     
+    // 保存回调
     uint64_t reqId = 0;
-    int result = logout(LogoutCallback, data, dataLen, reqId);
+    int result = delete_user(DeleteUserCallback,
+                             (const char *)serializedData.bytes,
+                             (int)serializedData.length,
+                             reqId);
     
     if (result == 0 && reqId > 0) {
         if (completion) {
             g_userCallbacks[@(reqId)] = [completion copy];
         }
-        NSLog(@"✅ 退出登录请求已发送: reqId=%llu", reqId);
+        NSLog(@"✅ 注销用户请求已发送: reqId=%llu", reqId);
     } else {
-        NSLog(@"❌ 退出登录请求失败: result=%d", result);
+        NSLog(@"❌ 注销用户请求失败: result=%d", result);
         if (completion) {
-            completion(result, @"发送退出请求失败", nil, 0);
+            completion(result, @"发送请求失败", nil, 0);
         }
     }
     
     return reqId;
-}
-
-- (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion {
-    return [self logoutWithUserId:nil clientIp:nil reason:nil completion:completion];
 }
 
 @end

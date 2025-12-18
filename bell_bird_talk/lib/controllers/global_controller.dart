@@ -35,7 +35,6 @@ class GlobalController extends GetxController {
   
   // 刷新触发器（用于通知页面刷新）
   final RxInt refreshFriendList = 0.obs;
-  final RxInt refreshFriendRequests = 0.obs;
   final RxInt refreshChatList = 0.obs;
   
   // 新消息通知（用于实时更新聊天列表）
@@ -44,23 +43,13 @@ class GlobalController extends GetxController {
   /// 触发好友列表刷新
   void triggerFriendListRefresh() => refreshFriendList.value++;
   
-  /// 触发好友申请列表刷新
-  void triggerFriendRequestsRefresh() => refreshFriendRequests.value++;
-  
   /// 触发聊天列表刷新
   void triggerChatListRefresh() => refreshChatList.value++;
   
   /// 触发所有列表刷新
   void triggerAllListRefresh() {
     refreshFriendList.value++;
-    refreshFriendRequests.value++;
     refreshChatList.value++;
-  }
-  
-  /// 触发联系人相关刷新（好友列表 + 好友申请）
-  void triggerContactRefresh() {
-    refreshFriendList.value++;
-    refreshFriendRequests.value++;
   }
   
   /// 收到新消息，通知聊天列表更新
@@ -136,51 +125,21 @@ class GlobalController extends GetxController {
   
   /// 退出登录
   Future<void> logout() async {
-    // 1. 调用 SDK 退出登录（断开 MQTT 连接）
-    try {
-      final nativeService = IOSNativeService();
-      final result = await nativeService.imLogout(userId: currentUser.value?.id);
-      print('🚪 SDK 退出登录结果: $result');
-    } catch (e) {
-      print('⚠️ SDK 退出登录异常: $e');
-    }
-    
-    // 2. 清空状态
+    // 清空状态
     token.value = '';
     currentUser.value = null;
     isLoggedIn.value = false;
     unreadCount.value = 0;
     
-    // 3. 清空本地存储
+    // 清空本地存储
     await StorageUtil().remove(AppConstants.keyToken);
     await StorageUtil().remove(AppConstants.keyUserInfo);
     await StorageUtil().remove(AppConstants.keyUserId);
     
-    // 4. 清除 HTTP 客户端的 Token
+    // 清除 HTTP 客户端的 Token
     HttpClient().clearToken();
     
-    // 5. 清空消息回调
-    newMessage.value = null;
-    
     print('✅ 用户已退出登录');
-  }
-  
-  /// 注销当前用户（删除账号）
-  Future<Map<String, dynamic>> deleteAccount() async {
-    Map<String, dynamic> result = {'errorCode': -1, 'message': '未知错误'};
-    try {
-      final nativeService = IOSNativeService();
-      result = await nativeService.imDeleteUser();
-      print('🗑 SDK 注销用户结果: $result');
-      if (result['errorCode'] == 0) {
-        // 本地也做一次彻底登出清理
-        await logout();
-      }
-    } catch (e) {
-      print('⚠️ SDK 注销用户异常: $e');
-      result = {'errorCode': -999, 'message': e.toString()};
-    }
-    return result;
   }
   
   /// 更新用户信息
