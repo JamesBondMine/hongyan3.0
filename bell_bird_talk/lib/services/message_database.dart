@@ -117,7 +117,7 @@ class MessageDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
         conv_id TEXT NOT NULL,
-        conv_type INTEGER NOT NULL DEFAULT 0,
+        conv_type INTEGER NOT NULL DEFAULT 1,
         target_id TEXT,
         display_name TEXT NOT NULL,
         avatar TEXT,

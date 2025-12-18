@@ -83,6 +83,15 @@ typedef void (^IMSDKGroupCompletion)(int errorCode, uint64_t reqId, NSString * _
                     reason:(NSString * _Nullable)reason
                 completion:(IMSDKGroupCompletion)completion;
 
+/// 退出群组
+/// @param groupId 群组ID（必填）
+/// @param reason 退出原因（可选）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)leaveGroupWithId:(NSString *)groupId
+                 reason:(NSString * _Nullable)reason
+             completion:(IMSDKGroupCompletion)completion;
+
 // ==================== 群组成员管理 ====================
 
 /// 添加群组成员

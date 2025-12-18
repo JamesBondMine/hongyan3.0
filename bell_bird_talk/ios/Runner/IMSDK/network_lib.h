@@ -703,7 +703,7 @@ NET_API int send_group_message(CB_I_S_I_U cCallback, const char* message, int le
  * @return 0表示成功，其它表示错误码 
  * @note 需要用户已登录，userId 自动从 MqttSession 中获取
  */
-NET_API int list_groups(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
+NET_API int list_groups(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 /**
  * 更新群组信息 targetId 群ID
@@ -798,6 +798,18 @@ NET_API int get_group_mute_status(CB_I_S_I_U cCallback, const char* data, int le
  * @return 0表示成功，其它表示错误码 
  */
 NET_API int pull_messages(CB_I_S_I_U cCallback, const char* data, int len, uint64_t& reqId);
+
+/**
+ * 拉取群消息（用于群消息同步和漏消息补偿）
+ * Topic: /im/group/{targetId}/pull
+ * @param cCallback 回调函数（用于接收拉取到的群消息列表，参数：errorCode, data, dataLen, reqId）
+ * @param data 拉取参数（序列化后的数据）
+ * @param len 数据长度
+ * @param targetId 目标ID（群组ID）
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int pull_group_messages(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t& reqId);
 
 /**
  * 拉取通知消息

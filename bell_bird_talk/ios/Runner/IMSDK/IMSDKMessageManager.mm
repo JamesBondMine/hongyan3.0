@@ -801,6 +801,169 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
+// ==================== 群聊消息发送 ====================
+
+/// 发送群聊消息回调
+static void SendGroupMessageCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 发送群聊消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
+}
+
+- (int)sendGroupTextMessage:(NSString *)content
+            conversationId:(NSString *)conversationId
+                   groupId:(NSString *)groupId
+                completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送群聊文本消息: content=%@, conversationId=%@, groupId=%@", content, conversationId, groupId);
+    
+    // 创建 TextMessage
+    TextMessage *textMsg = [[TextMessage alloc] init];
+    textMsg.content = content;
+    
+    // 序列化 TextMessage
+    NSData *protoData = [textMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ TextMessage 序列化失败");
+        return -1;
+    }
+    
+    // 调用 SDK 发送群聊消息
+    uint64_t reqId = 0;
+    int result = send_contact_message(
+        SendGroupMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Text,  // msgType = 0 (TEXT)
+        groupId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_contact_message (群聊文本): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendGroupImageMessage:(NSString *)imageUrl
+                thumbnailUrl:(NSString *)thumbnailUrl
+                      width:(int32_t)width
+                     height:(int32_t)height
+             conversationId:(NSString *)conversationId
+                    groupId:(NSString *)groupId
+                 completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送群聊图片消息: imageUrl=%@, thumbnailUrl=%@, width=%d, height=%d, conversationId=%@, groupId=%@",
+          imageUrl, thumbnailUrl, width, height, conversationId, groupId);
+    
+    // 创建 ImageMessage
+    ImageMessage *imageMsg = [[ImageMessage alloc] init];
+    imageMsg.originalURL = imageUrl;
+    if (thumbnailUrl && thumbnailUrl.length > 0) {
+        imageMsg.thumbnailURL = thumbnailUrl;
+    }
+    if (width > 0) {
+        imageMsg.width = width;
+    }
+    if (height > 0) {
+        imageMsg.height = height;
+    }
+    
+    // 序列化 ImageMessage
+    NSData *protoData = [imageMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ ImageMessage 序列化失败");
+        return -1;
+    }
+    
+    // 调用 SDK 发送群聊消息
+    uint64_t reqId = 0;
+    int result = send_contact_message(
+        SendGroupMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Image,  // msgType = 1 (IMAGE)
+        groupId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_contact_message (群聊图片): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendGroupVoiceMessage:(NSString *)audioUrl
+                    duration:(int32_t)duration
+              conversationId:(NSString *)conversationId
+                     groupId:(NSString *)groupId
+                  completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送群聊语音消息: audioUrl=%@, duration=%d, conversationId=%@, groupId=%@",
+          audioUrl, duration, conversationId, groupId);
+    
+    // 创建 VoiceMessage
+    VoiceMessage *voiceMsg = [[VoiceMessage alloc] init];
+    voiceMsg.audioURL = audioUrl;
+    voiceMsg.name = @"voice";
+    voiceMsg.size = 300;
+    voiceMsg.ext = audioUrl;
+    if (duration > 0) {
+        voiceMsg.duration = duration;
+    }
+    
+    // 序列化 VoiceMessage
+    NSData *protoData = [voiceMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ VoiceMessage 序列化失败");
+        return -1;
+    }
+    
+    // 调用 SDK 发送群聊消息
+    uint64_t reqId = 0;
+    int result = send_contact_message(
+        SendGroupMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        conversationId.UTF8String,
+        (int)ImMessage_MessageType_Voice,  // msgType = 3 (VOICE)
+        groupId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_contact_message (群聊语音): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
 // ==================== 拉取历史消息 ====================
 
 - (int)pullMessagesWithConversationId:(NSString *)conversationId
@@ -860,6 +1023,171 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     );
     
     NSLog(@"📥 调用 pull_messages: result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+/// 拉取群聊消息回调
+static void PullGroupMessagesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📥 拉取群聊消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0 && responseData && responseData.length > 0) {
+                // 尝试解析为 PullList
+                NSError *parseError = nil;
+                PullList *pullList = [PullList parseFromData:responseData error:&parseError];
+                
+                if (pullList && !parseError) {
+                    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+                    result[@"server_time"] = @(pullList.serverTime);
+                    result[@"total_count"] = @(pullList.totalCount);
+                    // hasMore 是一个字典类型，需要检查 count
+                    result[@"has_more"] = @(pullList.hasMore_Count > 0);
+                    
+                    NSMutableArray *messagesArray = [NSMutableArray array];
+                    for (ImMessage *msg in pullList.messagesArray) {
+                        NSMutableDictionary *msgDict = [NSMutableDictionary dictionary];
+                        
+                        // 消息元数据
+                        if (msg.hasMetadata) {
+                            msgDict[@"msg_id"] = msg.metadata.msgId ?: @"";
+                            msgDict[@"server_msg_id"] = msg.metadata.serverMsgId ?: @"";
+                            msgDict[@"from"] = msg.metadata.from ?: @"";
+                            msgDict[@"to"] = msg.metadata.to ?: @"";
+                            msgDict[@"nick"] = msg.metadata.nick ?: @"";
+                            msgDict[@"send_time"] = @(msg.metadata.sendTime);
+                            msgDict[@"receive_time"] = @(msg.metadata.receiveTime);
+                        }
+                        
+                        msgDict[@"conversation_id"] = msg.conversationId ?: @"";
+                        msgDict[@"conversation_seq"] = @(msg.conversationSeq);
+                        msgDict[@"server_seq"] = @(msg.serverSeq);
+                        msgDict[@"m_type"] = @(msg.mType);
+                        msgDict[@"conversation_type"] = @(msg.conversationType);
+                        msgDict[@"store_time"] = @(msg.storeTime);
+                        
+                        // 根据消息类型解析内容
+                        if (msg.mType == ImMessage_MessageType_Text && msg.textMessage) {
+                            msgDict[@"content"] = msg.textMessage.content ?: @"";
+                            msgDict[@"ext"] = msg.textMessage.ext ?: @"";
+                        } else if (msg.mType == ImMessage_MessageType_Image && msg.imageMessage) {
+                            msgDict[@"content"] = @"[图片]";
+                            msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";
+                            if (msg.imageMessage.thumbnailURL.length > 0) {
+                                msgDict[@"thumbnail_url"] = msg.imageMessage.thumbnailURL;
+                            }
+                            msgDict[@"width"] = @(msg.imageMessage.width);
+                            msgDict[@"height"] = @(msg.imageMessage.height);
+                        } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
+                            msgDict[@"content"] = @"[语音]";
+                            msgDict[@"audio_url"] = msg.voiceMessage.audioURL ?: @"";
+                            msgDict[@"duration"] = @(msg.voiceMessage.duration);
+                            msgDict[@"voice_duration"] = @(msg.voiceMessage.duration);
+                        } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
+                            msgDict[@"content"] = @"[视频]";
+                            msgDict[@"duration"] = @(msg.videoMessage.duration);
+                            msgDict[@"video_duration"] = @(msg.videoMessage.duration);
+                            msgDict[@"image_url"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"cover_url"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"video_url"] = msg.videoMessage.videoURL ?: @"";
+                            msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
+                            msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
+                        } else {
+                            msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
+                        }
+                        
+                        [messagesArray addObject:msgDict];
+                    }
+                    result[@"messages"] = messagesArray;
+                    
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                    NSLog(@"✅ 拉取群聊消息成功: %lu 条消息", (unsigned long)messagesArray.count);
+                } else {
+                    NSLog(@"⚠️ PullList 解析失败: %@", parseError);
+                    // 尝试直接作为字符串
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    if (!dataStr) {
+                        dataStr = @"{\"messages\":[]}";
+                    }
+                }
+            } else if (errorCode == 0) {
+                dataStr = @"{\"messages\":[],\"total_count\":0}";
+                NSLog(@"✅ 拉取群聊消息成功（无消息）");
+            } else {
+                // 错误情况
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                NSLog(@"❌ 拉取群聊消息失败: %@", dataStr);
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
+}
+
+- (int)pullGroupMessagesWithConversationId:(NSString *)conversationId
+                                   groupId:(NSString *)groupId
+                                  lastSeq:(int64_t)lastSeq
+                                    limit:(int)limit
+                               completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📥 拉取群聊历史消息: conversationId=%@, groupId=%@, lastSeq=%lld, limit=%d",
+          conversationId, groupId, lastSeq, limit);
+    
+    // 构建 Pull 请求
+    Pull *pullRequest = [[Pull alloc] init];
+    pullRequest.limit = limit > 0 ? limit : 50;
+    
+    if (conversationId && conversationId.length > 0) {
+        pullRequest.conversationId = conversationId;
+    }
+    
+    // 构建群聊拉取条件
+    ConvPull *convPull = [[ConvPull alloc] init];
+    convPull.convType = ConversationType_Group;  // 群聊类型
+    convPull.targetId = groupId ?: @"";
+    convPull.lastConvSeq = lastSeq;
+    if (conversationId && conversationId.length > 0) {
+        convPull.conversationId = conversationId;
+    }
+    
+    [pullRequest.convPullsArray addObject:convPull];
+    
+    // 序列化
+    NSData *protoData = [pullRequest data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ Pull 序列化失败");
+        return -1;
+    }
+    
+    // 调用 SDK 拉取群聊消息
+    uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
+    int result = pull_group_messages(
+        PullGroupMessagesCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        targetId,
+        reqId
+    );
+    
+    NSLog(@"📥 调用 pull_group_messages: result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];

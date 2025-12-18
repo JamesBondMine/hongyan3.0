@@ -418,6 +418,56 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     });
 }
 
+/// 解散群组回调
+static void DissolveGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📬 解散群组回调: errorCode=%d, reqId=%llu", errorCode, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 退出群组回调
+static void LeaveGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📬 退出群组回调: errorCode=%d, reqId=%llu", errorCode, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现类 ====================
 
 @implementation IMSDKGroupManager
@@ -690,12 +740,108 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
         return -1;
     }
     
-    // TODO: network_lib.h 中没有 dissolve_group 接口，暂时返回错误
-    NSLog(@"⚠️ 解散群组接口暂未实现");
-    if (completion) {
-        completion(-1, 0, @"解散群组接口暂未实现");
+    // 创建 DissolveGroup Protobuf 对象
+    DissolveGroup *dissolveGroup = [[DissolveGroup alloc] init];
+    dissolveGroup.groupId = groupId;
+    
+    if (reason && reason.length > 0) {
+        dissolveGroup.reason = reason;
     }
-    return -1;
+    
+    // 序列化为 Protobuf 二进制数据
+    NSData *serializedData = [dissolveGroup data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
+    uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
+    
+    if (completion) {
+        static uint64_t tempId = 20000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int result = dissolve_group(DissolveGroupCallback, data, dataLen, targetId, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 解散群组请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 解散群组请求失败: %d", result);
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return dissolve_group(DissolveGroupCallback, data, dataLen, targetId, reqId);
+}
+
+- (int)leaveGroupWithId:(NSString *)groupId
+                 reason:(NSString * _Nullable)reason
+             completion:(IMSDKGroupCompletion)completion {
+    NSLog(@"📁 退出群组: groupId=%@", groupId);
+    
+    if (!groupId || groupId.length == 0) {
+        NSLog(@"❌ 群组ID不能为空");
+        return -1;
+    }
+    
+    // 退出群组可能需要一个简单的 Protobuf 消息，或者传递空数据
+    // 根据其他接口的模式，创建一个包含 groupId 的简单消息
+    // 如果没有专门的 LeaveGroup Protobuf，可以使用 RemoveMember，但只包含当前用户
+    // 或者创建一个简单的 JSON 数据
+    // 先尝试传递一个包含 groupId 的简单 Protobuf 结构
+    // 如果服务端需要特定格式，可能需要调整
+    
+    // 创建一个简单的字典并转换为 JSON，然后作为数据传递
+    NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
+    requestDict[@"group_id"] = groupId;
+    if (reason && reason.length > 0) {
+        requestDict[@"reason"] = reason;
+    }
+    
+    NSError *jsonError = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&jsonError];
+    if (!jsonData || jsonError) {
+        NSLog(@"❌ JSON 序列化失败: %@", jsonError);
+        return -1;
+    }
+    
+    const char *data = (const char *)jsonData.bytes;
+    int dataLen = (int)jsonData.length;
+    uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
+    
+    if (completion) {
+        static uint64_t tempId = 20000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int result = leave_group(LeaveGroupCallback, data, dataLen, targetId, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 退出群组请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 退出群组请求失败: %d", result);
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return leave_group(LeaveGroupCallback, data, dataLen, targetId, reqId);
 }
 
 #pragma mark - 群组成员管理
@@ -936,16 +1082,14 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     GroupListSearchResult *req = [GroupListSearchResult message]; // 仅使用 page 作为查询容器
     req.page = pg;
     // 目前 group_pb 未提供专用查询对象，服务端按 userId 查询，额外过滤暂未支持；keyword/type/status 如有需要可扩展字段
-    
-    const char *targetId = [@"1" UTF8String];
-    
+
     NSData *protoData = [req data];
     uint64_t reqId = 0;
     int code = list_groups(
         ListGroupsCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
-                           targetId,
+                        
         reqId
     );
     

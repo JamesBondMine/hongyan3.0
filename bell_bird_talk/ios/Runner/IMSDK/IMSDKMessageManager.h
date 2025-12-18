@@ -137,6 +137,49 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
              receiverId:(NSString *)receiverId
              completion:(IMSDKMessageCompletion)completion;
 
+// ==================== 群聊消息发送 ====================
+
+/// 发送群聊文本消息
+/// @param content 文本内容
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendGroupTextMessage:(NSString *)content
+            conversationId:(NSString *)conversationId
+                   groupId:(NSString *)groupId
+                completion:(IMSDKMessageCompletion)completion;
+
+/// 发送群聊图片消息
+/// @param imageUrl 图片URL
+/// @param thumbnailUrl 缩略图URL（可选）
+/// @param width 图片宽度（可选）
+/// @param height 图片高度（可选）
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendGroupImageMessage:(NSString *)imageUrl
+                thumbnailUrl:(NSString * _Nullable)thumbnailUrl
+                      width:(int32_t)width
+                     height:(int32_t)height
+             conversationId:(NSString *)conversationId
+                    groupId:(NSString *)groupId
+                 completion:(IMSDKMessageCompletion)completion;
+
+/// 发送群聊语音消息
+/// @param audioUrl 语音文件URL
+/// @param duration 语音时长（秒）
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendGroupVoiceMessage:(NSString *)audioUrl
+                    duration:(int32_t)duration
+              conversationId:(NSString *)conversationId
+                     groupId:(NSString *)groupId
+                  completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息
@@ -153,6 +196,19 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                               lastSeq:(int64_t)lastSeq
                                 limit:(int)limit
                            completion:(IMSDKMessageCompletion)completion;
+
+/// 拉取群聊历史消息
+/// @param conversationId 会话ID
+/// @param groupId 群组ID
+/// @param lastSeq 最后消息序号（0表示从最新开始拉取）
+/// @param limit 拉取数量限制
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)pullGroupMessagesWithConversationId:(NSString *)conversationId
+                                   groupId:(NSString *)groupId
+                                  lastSeq:(int64_t)lastSeq
+                                    limit:(int)limit
+                               completion:(IMSDKMessageCompletion)completion;
 
 // ==================== 通知 ====================
 

@@ -222,6 +222,10 @@ class NativeBridgeHandler: NSObject {
             imSetGroupAlias(call: call, result: result)
         case "imGetGroupInfo":
             imGetGroupInfo(call: call, result: result)
+        case "imDissolveGroup":
+            imDissolveGroup(call: call, result: result)
+        case "imLeaveGroup":
+            imLeaveGroup(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         case "imMoveContactToGroup":
@@ -261,8 +265,16 @@ class NativeBridgeHandler: NSObject {
             imSendVideoMessage(call: call, result: result)
         case "imSendVoiceMessage":
             imSendVoiceMessage(call: call, result: result)
+        case "imSendGroupTextMessage":
+            imSendGroupTextMessage(call: call, result: result)
+        case "imSendGroupImageMessage":
+            imSendGroupImageMessage(call: call, result: result)
+        case "imSendGroupVoiceMessage":
+            imSendGroupVoiceMessage(call: call, result: result)
         case "imPullMessages":
             imPullMessages(call: call, result: result)
+        case "imPullGroupMessages":
+            imPullGroupMessages(call: call, result: result)
         case "imRegisterMessageCallbacks":
             imRegisterMessageCallbacks(result: result)
         case "imUnregisterMessageCallbacks":
@@ -1598,6 +1610,64 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 解散群组
+    private func imDissolveGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("📁 解散群组: groupId=\(groupId), reason=\(reason ?? "")")
+        
+        let code = IMSDKGroupManager.shared().dissolveGroup(withId: groupId, reason: reason) { errorCode, reqId, data in
+            print("📁 解散群组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "解散成功" : "解散失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "DISSOLVE_GROUP_ERROR",
+                                message: "解散群组请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 退出群组
+    private func imLeaveGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("📁 退出群组: groupId=\(groupId), reason=\(reason ?? "")")
+        
+        let code = IMSDKGroupManager.shared().leaveGroup(withId: groupId, reason: reason) { errorCode, reqId, data in
+            print("📁 退出群组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "退出成功" : "退出失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "LEAVE_GROUP_ERROR",
+                                message: "退出群组请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
     /// 设置联系人备注
     private func imSetContactRemark(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -2192,6 +2262,155 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "PULL_MESSAGES_ERROR",
                               message: "拉取消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送群聊文本消息
+    private func imSendGroupTextMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let content = args["content"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        print("📤 发送群聊文本消息: content=\(content), conversationId=\(conversationId), groupId=\(groupId)")
+        
+        let code = IMSDKMessageManager.shared().sendGroupTextMessage(
+            content,
+            conversationId: conversationId,
+            groupId: groupId
+        ) { errorCode, reqId, data in
+            print("✅ 发送群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_GROUP_MESSAGE_ERROR",
+                              message: "发送群聊消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送群聊图片消息
+    private func imSendGroupImageMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let imageUrl = args["image_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let thumbnailUrl = args["thumbnail_url"] as? String
+        let width = args["width"] as? Int ?? 0
+        let height = args["height"] as? Int ?? 0
+        
+        print("📤 发送群聊图片消息: imageUrl=\(imageUrl), thumbnailUrl=\(thumbnailUrl ?? ""), width=\(width), height=\(height), conversationId=\(conversationId), groupId=\(groupId)")
+        
+        let code = IMSDKMessageManager.shared().sendGroupImageMessage(
+            imageUrl,
+            thumbnailUrl: thumbnailUrl,
+            width: Int32(width),
+            height: Int32(height),
+            conversationId: conversationId,
+            groupId: groupId
+        ) { errorCode, reqId, data in
+            print("✅ 发送群聊图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_GROUP_MESSAGE_ERROR",
+                              message: "发送群聊图片消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送群聊语音消息
+    private func imSendGroupVoiceMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let audioUrl = args["audio_url"] as? String,
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let duration = args["duration"] as? Int ?? 0
+        
+        print("📤 发送群聊语音消息: audioUrl=\(audioUrl), duration=\(duration), conversationId=\(conversationId), groupId=\(groupId)")
+        
+        let code = IMSDKMessageManager.shared().sendGroupVoiceMessage(
+            audioUrl,
+            duration: Int32(duration),
+            conversationId: conversationId,
+            groupId: groupId
+        ) { errorCode, reqId, data in
+            print("✅ 发送群聊语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_GROUP_MESSAGE_ERROR",
+                              message: "发送群聊语音消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 拉取群聊历史消息
+    private func imPullGroupMessages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let conversationId = args["conversation_id"] as? String,
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let lastSeq = args["last_seq"] as? Int64 ?? 0
+        let limit = args["limit"] as? Int ?? 50
+        
+        print("📥 拉取群聊历史消息: conversationId=\(conversationId), groupId=\(groupId), lastSeq=\(lastSeq), limit=\(limit)")
+        
+        let code = IMSDKMessageManager.shared().pullGroupMessages(
+            withConversationId: conversationId,
+            groupId: groupId,
+            lastSeq: lastSeq,
+            limit: Int32(limit)
+        ) { errorCode, reqId, data in
+            print("✅ 拉取群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "拉取成功" : "拉取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "PULL_GROUP_MESSAGES_ERROR",
+                              message: "拉取群聊消息请求失败: \(code)",
                               details: nil))
         }
     }

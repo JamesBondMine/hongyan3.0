@@ -1043,6 +1043,52 @@ class IOSNativeService {
     }
   }
   
+  /// 解散群组
+  /// @param groupId 群组ID（必填）
+  /// @param reason 解散原因（可选）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imDissolveGroup({
+    required String groupId,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+      };
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      final result = await _bridge.invokeMethod<Map>('imDissolveGroup', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('解散群组错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 退出群组
+  /// @param groupId 群组ID（必填）
+  /// @param reason 退出原因（可选）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imLeaveGroup({
+    required String groupId,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+      };
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      final result = await _bridge.invokeMethod<Map>('imLeaveGroup', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('退出群组错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 设置联系人备注
   /// @param userId 联系人用户ID
   /// @param remark 备注名称
@@ -1074,6 +1120,111 @@ class IOSNativeService {
       final result = await _bridge.invokeMethod<Map>('imMoveContactToGroup', {
         'contact_user_id': contactUserId,
         'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送群聊文本消息
+  /// @param content 文本内容
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendGroupTextMessage({
+    required String content,
+    required String conversationId,
+    required String groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSendGroupTextMessage', {
+        'content': content,
+        'conversation_id': conversationId,
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送群聊图片消息
+  /// @param imageUrl 图片URL
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @param thumbnailUrl 缩略图URL（可选）
+  /// @param width 图片宽度（可选）
+  /// @param height 图片高度（可选）
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendGroupImageMessage({
+    required String imageUrl,
+    required String conversationId,
+    required String groupId,
+    String? thumbnailUrl,
+    int? width,
+    int? height,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'image_url': imageUrl,
+        'conversation_id': conversationId,
+        'group_id': groupId,
+      };
+      if (thumbnailUrl != null) params['thumbnail_url'] = thumbnailUrl;
+      if (width != null) params['width'] = width;
+      if (height != null) params['height'] = height;
+      
+      final result = await _bridge.invokeMethod<Map>('imSendGroupImageMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 发送群聊语音消息
+  /// @param audioUrl 语音文件URL
+  /// @param duration 语音时长（秒）
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendGroupVoiceMessage({
+    required String audioUrl,
+    required int duration,
+    required String conversationId,
+    required String groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSendGroupVoiceMessage', {
+        'audio_url': audioUrl,
+        'duration': duration,
+        'conversation_id': conversationId,
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 拉取群聊历史消息
+  /// @param conversationId 会话ID
+  /// @param groupId 群组ID
+  /// @param lastSeq 最后消息序号（0表示从最新开始拉取）
+  /// @param limit 拉取数量限制
+  /// @return 拉取结果
+  Future<Map<String, dynamic>> imPullGroupMessages({
+    required String conversationId,
+    required String groupId,
+    int lastSeq = 0,
+    int limit = 50,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imPullGroupMessages', {
+        'conversation_id': conversationId,
+        'group_id': groupId,
+        'last_seq': lastSeq,
+        'limit': limit,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

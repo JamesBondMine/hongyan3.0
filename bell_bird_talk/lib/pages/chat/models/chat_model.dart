@@ -30,7 +30,7 @@ class ConversationModel {
     this.lastSenderId,
     this.lastSenderName,
     this.unreadCount = 0,
-    this.convType = 0,
+    this.convType = 1,
     this.targetId,
     this.isOnline = false,
     this.isPinned = false,

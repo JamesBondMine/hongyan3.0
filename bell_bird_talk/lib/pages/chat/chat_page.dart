@@ -284,14 +284,21 @@ class _ChatPageState extends State<ChatPage> {
     setState(() => _isLoading = true);
     
     try {
-      // 使用 pull_messages 接口拉取历史消息
-      final result = await _nativeService.imPullMessages(
-        conversationId: widget.convId,
-        convType: widget.convType,
-        targetId: widget.targetUserId,
-        lastSeq: 0,   // 0 表示从最新开始
-        limit: 50,
-      );
+      // 根据会话类型选择不同的拉取方法
+      final result = widget.convType == 2  // 群聊
+          ? await _nativeService.imPullGroupMessages(
+              conversationId: widget.convId,
+              groupId: widget.targetUserId,
+              lastSeq: 0,   // 0 表示从最新开始
+              limit: 50,
+            )
+          : await _nativeService.imPullMessages(
+              conversationId: widget.convId,
+              convType: widget.convType,
+              targetId: widget.targetUserId,
+              lastSeq: 0,   // 0 表示从最新开始
+              limit: 50,
+            );
       
       print('📥 拉取网络🛜历史消息结果: $result');
       

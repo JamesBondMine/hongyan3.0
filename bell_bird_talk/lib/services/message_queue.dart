@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
 import 'dart:convert';
+import 'package:get/get.dart';
 import '../models/chat_message.dart';
+import '../controllers/global_controller.dart';
 import 'message_database.dart';
 import 'native_bridge.dart';
 import 'file_path_helper.dart';
@@ -60,6 +62,20 @@ class MessageQueueManager {
     for (final callback in _statusCallbacks) {
       callback(message);
     }
+  }
+  
+  /// 获取当前用户ID
+  Future<String> _getCurrentUserId() async {
+    try {
+      final controller = Get.find<GlobalController>();
+      final userId = controller.currentUser.value?.id;
+      if (userId != null && userId.isNotEmpty) {
+        return userId;
+      }
+    } catch (e) {
+      print('获取当前用户ID失败: $e');
+    }
+    return '';
   }
 
   /// 发送消息（加入队列）
@@ -140,17 +156,29 @@ class MessageQueueManager {
       await _database.updateMessageStatus(message.localId, MessageStatus.sending);
       _notifyStatusChange(message);
       
+      // 查询会话类型（判断是单聊还是群聊）
+      final userId = await _getCurrentUserId();
+      final conversation = await _database.getConversation(userId, message.convId);
+      final convType = conversation?.convType ?? 0;
+      final isGroupChat = convType == 2;
+      
       bool success = false;
       
       switch (message.type) {
         case MessageType.text:
-          success = await _sendTextMessage(message);
+          success = isGroupChat 
+              ? await _sendGroupTextMessage(message)
+              : await _sendTextMessage(message);
           break;
         case MessageType.image:
-          success = await _sendImageMessage(message);
+          success = isGroupChat
+              ? await _sendGroupImageMessage(message)
+              : await _sendImageMessage(message);
           break;
         case MessageType.voice:
-          success = await _sendVoiceMessage(message);
+          success = isGroupChat
+              ? await _sendGroupVoiceMessage(message)
+              : await _sendVoiceMessage(message);
           break;
         case MessageType.video:
           success = await _sendVideoMessage(message);
@@ -221,6 +249,50 @@ class MessageQueueManager {
       message.errorMessage = result['message'] ?? '发送失败';
       return false;
     }
+  }
+  
+  /// 发送群聊文本消息
+  Future<bool> _sendGroupTextMessage(ChatMessage message) async {
+    final result = await _nativeService.imSendGroupTextMessage(
+      content: message.textContent ?? '',
+      conversationId: message.convId,
+      groupId: message.receiverId,
+    );
+    
+    if (result['errorCode'] == 0) {
+      // 更新服务器消息ID
+      if (result['data'] != null) {
+        try {
+          final data = result['data'] is String 
+              ? json.decode(result['data']) 
+              : result['data'];
+          if (data is Map && data['msg_id'] != null) {
+            message.serverId = data['msg_id'].toString();
+            await _database.updateMessageServerId(message.localId, message.serverId!);
+          }
+        } catch (e) {
+          print('解析群聊消息ID失败: $e');
+        }
+      }
+      return true;
+    } else {
+      message.errorMessage = result['message'] ?? '发送失败';
+      return false;
+    }
+  }
+  
+  /// 发送群聊图片消息
+  Future<bool> _sendGroupImageMessage(ChatMessage message) async {
+    // 群聊图片消息的上传逻辑与单聊相同，只是发送接口不同
+    // 这里复用单聊的上传逻辑，然后在发送时调用群聊接口
+    return await _sendImageMessage(message);
+  }
+  
+  /// 发送群聊语音消息
+  Future<bool> _sendGroupVoiceMessage(ChatMessage message) async {
+    // 群聊语音消息的上传逻辑与单聊相同，只是发送接口不同
+    // 这里复用单聊的上传逻辑，然后在发送时调用群聊接口
+    return await _sendVoiceMessage(message);
   }
 
   /// 发送图片消息
@@ -401,16 +473,30 @@ class MessageQueueManager {
       
       print('✅ 图片上传成功: $fileUrl');
       
-      // 5. 发送图片消息到服务器
+      // 5. 发送图片消息到服务器（根据会话类型选择方法）
       print('📤 开始发送图片消息到服务器...');
-      final sendResult = await _nativeService.imSendImageMessage(
-        imageUrl: fileUrl,
-        conversationId: message.convId,
-        receiverId: message.receiverId,
-        thumbnailUrl: message.imageThumbnailUrl,
-        width: message.imageWidth,
-        height: message.imageHeight,
-      );
+      final userId = await _getCurrentUserId();
+      final conversation = await _database.getConversation(userId, message.convId);
+      final convType = conversation?.convType ?? 0;
+      final isGroupChat = convType == 2;
+      
+      final sendResult = isGroupChat
+          ? await _nativeService.imSendGroupImageMessage(
+              imageUrl: fileUrl,
+              conversationId: message.convId,
+              groupId: message.receiverId,
+              thumbnailUrl: message.imageThumbnailUrl,
+              width: message.imageWidth,
+              height: message.imageHeight,
+            )
+          : await _nativeService.imSendImageMessage(
+              imageUrl: fileUrl,
+              conversationId: message.convId,
+              receiverId: message.receiverId,
+              thumbnailUrl: message.imageThumbnailUrl,
+              width: message.imageWidth,
+              height: message.imageHeight,
+            );
       
       if (sendResult['errorCode'] == 0) {
         // 更新服务器消息ID
@@ -550,14 +636,26 @@ class MessageQueueManager {
       
       print('✅ 语音上传成功: $fileUrl');
       
-      // 5. 发送语音消息到服务器
+      // 5. 发送语音消息到服务器（根据会话类型选择方法）
       print('📤 开始发送语音消息到服务器...');
-      final sendResult = await _nativeService.imSendVoiceMessage(
-        audioUrl: fileUrl,
-        duration: message.voiceDuration ?? 0,
-        conversationId: message.convId,
-        receiverId: message.receiverId,
-      );
+      final userId = await _getCurrentUserId();
+      final conversation = await _database.getConversation(userId, message.convId);
+      final convType = conversation?.convType ?? 0;
+      final isGroupChat = convType == 2;
+      
+      final sendResult = isGroupChat
+          ? await _nativeService.imSendGroupVoiceMessage(
+              audioUrl: fileUrl,
+              duration: message.voiceDuration ?? 0,
+              conversationId: message.convId,
+              groupId: message.receiverId,
+            )
+          : await _nativeService.imSendVoiceMessage(
+              audioUrl: fileUrl,
+              duration: message.voiceDuration ?? 0,
+              conversationId: message.convId,
+              receiverId: message.receiverId,
+            );
       
       if (sendResult['errorCode'] == 0) {
         // 更新服务器消息ID

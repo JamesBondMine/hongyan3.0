@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart';
 import '../../services/native_bridge.dart';
+import '../../controllers/global_controller.dart';
+import '../friends/group_list_page.dart';
 
 class GroupDetailPage extends StatefulWidget {
   final String groupId;
@@ -24,11 +27,13 @@ class GroupDetailPage extends StatefulWidget {
 
 class _GroupDetailPageState extends State<GroupDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
   bool _loading = false;
   List<Map<String, dynamic>> _members = [];
   late String _groupName;
   String? _groupAvatar;
   String? _groupDescription;
+  String? _creatorUserId; // 群主ID
 
   @override
   void initState() {
@@ -52,6 +57,11 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         try {
           final map = json.decode(dataStr) as Map<String, dynamic>;
           final list = (map['members'] as List?) ?? [];
+          list.forEach( (e){
+            if (e is Map && e["is_admin"] != null && e['is_admin'] == true) {
+              _creatorUserId = e['user_id'];
+            }
+          });
           setState(() {
             _members = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
           });
@@ -78,10 +88,12 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           final groupName = (map['group_name'] as String?) ?? _groupName;
           final groupAvatar = (map['group_avatar'] as String?) ?? _groupAvatar;
           final groupDescription = map['group_description'] as String?;
+          final creatorUserId = map['creator_user_id'] as String?;
           setState(() {
             _groupName = groupName;
             _groupAvatar = groupAvatar;
             _groupDescription = groupDescription;
+            _creatorUserId = creatorUserId;
           });
         } catch (_) {}
       }
@@ -288,6 +300,11 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   }
 
   Widget _buildDangerZone() {
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    final isOwner = currentUserId.isNotEmpty && 
+                    _creatorUserId != null && 
+                    currentUserId == _creatorUserId;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -300,18 +317,95 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.red),
               ),
-              onPressed: () {
-                EasyLoading.showInfo('退出 / 解散群功能待实现');
-              },
-              child: const Text(
-                '退出/解散群聊',
-                style: TextStyle(color: Colors.red),
+              onPressed: () => _handleLeaveOrDissolveGroup(isOwner),
+              child: Text(
+                isOwner ? '解散群聊' : '退出群聊',
+                style: const TextStyle(color: Colors.red),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+  
+  Future<void> _handleLeaveOrDissolveGroup(bool isOwner) async {
+    // 确认对话框
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isOwner ? '解散群聊' : '退出群聊'),
+        content: Text(isOwner 
+          ? '确定要解散此群聊吗？解散后所有成员将被移除，且无法恢复。'
+          : '确定要退出此群聊吗？退出后将无法接收群聊消息。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return;
+    
+    EasyLoading.show(status: isOwner ? '解散群聊中...' : '退出群聊中...');
+    
+    try {
+      final result = isOwner
+          ? await _nativeService.imDissolveGroup(groupId: widget.groupId)
+          : await _nativeService.imLeaveGroup(groupId: widget.groupId);
+      
+      if (!mounted) return;
+      
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess(isOwner ? '群聊已解散' : '已退出群聊');
+        
+        // 返回到 group_list_page 并刷新列表
+        // 先关闭当前页面（group_detail_page）
+        Navigator.pop(context);
+        
+        // 等待页面关闭动画完成
+        await Future.delayed(const Duration(milliseconds: 200));
+        
+        if (!mounted) return;
+        
+        // 关闭群聊页面（group_chat_page）
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        
+        // 等待页面关闭动画完成
+        await Future.delayed(const Duration(milliseconds: 200));
+        
+        if (!mounted) return;
+        
+        // 返回到首页，然后导航到 group_list_page（会重新创建页面，自动刷新）
+        Navigator.popUntil(context, (route) => route.isFirst);
+        
+        // 延迟一下，确保页面已经返回
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        if (!mounted) return;
+        
+        // 导航到 group_list_page（会重新创建页面，initState 会自动调用 _loadGroups 刷新）
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const GroupListPage(),
+          ),
+        );
+      } else {
+        EasyLoading.showError(result['message']?.toString() ?? '操作失败');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      EasyLoading.showError('操作失败: $e');
+    }
   }
 
   Future<void> _editGroupName() async {
