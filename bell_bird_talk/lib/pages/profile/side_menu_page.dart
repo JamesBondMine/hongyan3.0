@@ -449,25 +449,15 @@ class _SideMenuContentState extends State<SideMenuContent> {
         content: const Text('注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: (){
+              Navigator.pop(context);
+            },
             child: const Text('取消'),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // 关闭对话框
-              Navigator.pop(context); // 关闭侧边栏
-              
-              EasyLoading.show(status: '正在注销账号...');
-              final result = await controller.deleteAccount();
-              EasyLoading.dismiss();
-
-              if (result['errorCode'] == 0) {
-                EasyLoading.showSuccess('账号已注销');
-                Get.offAllNamed('/login');
-              } else {
-                final msg = result['message']?.toString() ?? '注销失败';
-                EasyLoading.showError(msg);
-              }
+              await _deactivateAccount(context, controller);
             },
             child: const Text(
               '确定注销',
@@ -477,6 +467,43 @@ class _SideMenuContentState extends State<SideMenuContent> {
         ],
       ),
     );
+  }
+
+  /// 执行注销账号
+  Future<void> _deactivateAccount(BuildContext context, GlobalController controller) async {
+    EasyLoading.show(status: '正在注销账号...');
+    
+    try {
+      final userId = controller.currentUser.value?.id;
+      if (userId == null || userId.isEmpty) {
+        EasyLoading.dismiss();
+        EasyLoading.showError('无法获取用户ID');
+        return;
+      }
+      
+      final nativeService = IOSNativeService();
+      final result = await nativeService.imDeactivateAccount(
+        userId: userId,
+        reason: '用户主动注销',
+      );
+      
+      EasyLoading.dismiss();
+      
+      final errorCode = result['errorCode'] as int? ?? -1;
+      final message = result['message'] as String? ?? '未知错误';
+      
+      if (errorCode == 0) {
+        // 注销成功
+        EasyLoading.showSuccess('账号注销申请成功');
+        
+      } else {
+        // 注销失败
+        EasyLoading.showError(message);
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('注销失败: $e');
+    }
   }
 
   /// 隐藏邮箱中间部分

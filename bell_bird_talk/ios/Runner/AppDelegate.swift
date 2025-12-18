@@ -272,9 +272,10 @@ class NativeBridgeHandler: NSObject {
         
         case "imLogout":
             imLogout(call: call, result: result)
-        case "imDeleteUser":
-            imDeleteUser(call: call, result: result)
-        
+        case "imDeactivateAccount":
+            imDeactivateAccount(call: call, result: result)
+            
+
         case "imChangePassword":
             imChangePassword(call: call, result: result)
         
@@ -2400,23 +2401,70 @@ class NativeBridgeHandler: NSObject {
     }
     
     /// 注销用户
-    private func imDeleteUser(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("🗑 Flutter调用注销用户")
+//    private func imDeleteUser(call: FlutterMethodCall, result: @escaping FlutterResult) {
+//        print("🗑 Flutter调用注销用户")
+//        
+//        let code = IMSDKAuthManager.shared().deleteCurrentUser(completion:  { errorCode, reqId, data in
+//            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+//            
+//            result([
+//                "errorCode": errorCode,
+//                "reqId": reqId,
+//                "message": errorCode == 0 ? "注销成功" : "注销失败",
+//                "data": data ?? ""
+//            ])
+//        })
+//        
+//        if code != 0 {
+//            result(FlutterError(code: "DELETE_USER_ERROR",
+//                              message: "注销用户请求失败: \(code)",
+//                              details: nil))
+//        }
+//    }
+    
+    
+    /// 注销用户
+    /// 参数:
+    ///   - reason: 注销原因（可选）
+    private func imDeactivateAccount(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
         
-        let code = IMSDKAuthManager.shared().deleteCurrentUser(completion:  { errorCode, reqId, data in
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "user_id 不能为空", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("🗑️ 注销用户: userId=\(userId), reason=\(reason ?? "无")")
+        
+        let reqId = IMSDKUserManager.shared().deactivateAccount(withUserId: userId, reason: reason, completion: { errorCode, message, data, reqId in
             print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
-            result([
+            // 构建返回数据
+            var response: [String: Any] = [
                 "errorCode": errorCode,
                 "reqId": reqId,
-                "message": errorCode == 0 ? "注销成功" : "注销失败",
-                "data": data ?? ""
-            ])
+                "message": message ?? ""
+            ]
+            
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                }
+            }
+            
+            result(response)
         })
         
-        if code != 0 {
-            result(FlutterError(code: "DELETE_USER_ERROR",
-                              message: "注销用户请求失败: \(code)",
+        if reqId == 0 {
+            result(FlutterError(code: "DEACTIVATE_ACCOUNT_ERROR",
+                              message: "注销用户请求失败",
                               details: nil))
         }
     }

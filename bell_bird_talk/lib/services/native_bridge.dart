@@ -1624,5 +1624,34 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+
+
+  /// 注销用户
+  /// @param userId 用户ID（必填）
+  /// @param reason 注销原因（可选）
+  /// @return 注销结果
+  Future<Map<String, dynamic>> imDeactivateAccount({
+    required String userId,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'user_id': userId,
+      };
+      
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      
+      print('🗑️ 注销用户: reason=${reason ?? "无"}');
+      
+      final result = await _bridge.invokeMethod<Map>('imDeactivateAccount', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('注销用户错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
 }
 

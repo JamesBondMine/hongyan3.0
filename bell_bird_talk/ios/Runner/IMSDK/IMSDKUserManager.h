@@ -74,6 +74,15 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 /// 退出登录（兼容旧签名）
 - (uint64_t)logoutWithCompletion:(IMSDKUserCompletion)completion;
 
+/// 注销用户
+/// @param userId 用户ID（必填）
+/// @param reason 注销原因（可选）
+/// @param completion 完成回调
+/// @return 请求ID
+- (uint64_t)deactivateAccountWithUserId:(NSString *)userId
+                                  reason:(NSString * _Nullable)reason
+                              completion:(IMSDKUserCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END
