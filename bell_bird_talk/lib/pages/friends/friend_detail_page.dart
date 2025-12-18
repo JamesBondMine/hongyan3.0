@@ -528,7 +528,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       // 调用 SDK 创建会话
       // convType: 0 = 单聊
       final result = await _nativeService.imCreateConversation(
-        convType: 0,  // 单聊
+        convType: 1,  // 单聊
         targetId: _friend.id,
         displayName: _friend.displayName,
         avatarUrl: _friend.avatar,

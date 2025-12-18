@@ -832,8 +832,10 @@ static void RemoveGroupMemberCallback(int errorCode, const char* data, int dataL
     pg.page = page > 0 ? page : 1;
     pg.size = pageSize > 0 ? pageSize : 50;
     
-    members *req = [members message];
+    membersQuery *req = [membersQuery message];
     req.page = pg;
+    req.groupId = groupId;
+    
     // groupId/status 目前由服务端从会话上下文和路由中解析，如需扩展可在 proto 中增加查询对象
     
     NSData *protoData = [req data];

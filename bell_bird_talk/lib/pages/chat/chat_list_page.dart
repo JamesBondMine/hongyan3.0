@@ -52,7 +52,7 @@ class _ChatListPageState extends State<ChatListPage> {
     // 监听全局刷新信号
     _refreshWorker = ever(
       _globalCtrl.refreshChatList,
-      (_) => _refreshConversations(),
+      (_) => _refreshConversations(0),
     );
     
     // 监听新消息
@@ -284,6 +284,7 @@ class _ChatListPageState extends State<ChatListPage> {
       final result = await _nativeService.imGetConversationList(
         page: 1,
         pageSize: 20,
+        convType: 0,
       );
 
       print('📋 网络会话列表结果: $result');
@@ -470,6 +471,7 @@ class _ChatListPageState extends State<ChatListPage> {
       final result = await _nativeService.imGetConversationList(
         page: _currentPage + 1,
         pageSize: 20,
+        convType: 0,
       );
 
       if (result['errorCode'] == 0) {
@@ -589,7 +591,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 刷新会话列表（带超时控制）
   /// 刷新会话列表（带超时控制）
-  Future<void> _refreshConversations() async {
+  Future<void> _refreshConversations(int convType) async {
     // 重置分页
     _currentPage = 1;
     _hasMore = true;
@@ -605,6 +607,7 @@ class _ChatListPageState extends State<ChatListPage> {
       final result = await _nativeService.imGetConversationList(
         page: 1,
         pageSize: 20,
+        convType: convType,
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
@@ -732,7 +735,10 @@ class _ChatListPageState extends State<ChatListPage> {
             await _loadUnreadConversations();
           } else if (type == 0) {
             // 点击"全部"：刷新会话列表（调用更新会话列表）
-            await _refreshConversations();
+            await _refreshConversations(0);
+          } else if (type == 2) {
+            // 点击"全部"：刷新会话列表（调用更新会话列表）
+            await _refreshConversations(2);
           } else {
             // 其他筛选类型：仅本地过滤
           _filterConversations();
@@ -905,7 +911,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
     // 使用 RefreshIndicator 包裹整个内容，支持空状态下拉刷新
     return RefreshIndicator(
-      onRefresh: _refreshConversations,
+      onRefresh: () => _refreshConversations(0),
       color: Colors.blue,
       backgroundColor: Colors.white,
       displacement: 40,
@@ -1344,7 +1350,7 @@ class _ChatListPageState extends State<ChatListPage> {
                 );
                 // 如果创建成功，刷新会话列表
                 if (result == true) {
-                  _refreshConversations();
+                  _refreshConversations(0);
                 }
               },
             ),
@@ -1363,7 +1369,7 @@ class _ChatListPageState extends State<ChatListPage> {
       );
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('已标记为已读');
-        _refreshConversations();
+        _refreshConversations(0);
       } else {
         EasyLoading.showError('操作失败');
       }
@@ -1399,7 +1405,7 @@ class _ChatListPageState extends State<ChatListPage> {
         );
         if (result['errorCode'] == 0) {
           EasyLoading.showSuccess('已删除');
-          _refreshConversations();
+          _refreshConversations(0);
         } else {
           EasyLoading.showError('删除失败');
         }
