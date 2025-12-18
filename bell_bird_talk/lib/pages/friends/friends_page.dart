@@ -172,6 +172,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final result = await _nativeService.imGetContactList(
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
+        relationship: 0,
       );
       
       print('📋 好友列表结果: $result');
