@@ -1,3 +1,5 @@
+import 'package:bell_bird_talk/pages/notification/notification_page.dart';
+import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -68,20 +70,13 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
           }),
           const Divider(height: 1, indent: 56),
           _buildSettingItem(Icons.security, '账号安全', () {
-            EasyLoading.showInfo('账号安全开发中');
+            Get.to(() => const SecuritySettingsPage());
           }),
           const Divider(height: 1, indent: 56),
           _buildSettingItem(Icons.notifications_outlined, '消息通知', () {
-            EasyLoading.showInfo('消息通知开发中');
+            Get.to(() => const NotificationPage());
           }),
-          const Divider(height: 1, indent: 56),
-          _buildSettingItem(Icons.privacy_tip_outlined, '隐私设置', () {
-            EasyLoading.showInfo('隐私设置开发中');
-          }),
-          const Divider(height: 1, indent: 56),
-          _buildSettingItem(Icons.block, '黑名单', () {
-            Get.to(() => const BlacklistPage());
-          }),
+
         ],
       ),
     );

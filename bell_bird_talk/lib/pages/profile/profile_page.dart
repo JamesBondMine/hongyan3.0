@@ -211,20 +211,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           
           _buildInfoItem(
-            icon: Icons.wc,
-            label: '性别',
-            value: _getGenderText(user?.gender),
-            onTap: () => _showGenderPicker(user?.gender),
-          ),
-          
-          _buildInfoItem(
-            icon: Icons.edit_note,
-            label: '个性签名',
-            value: user?.signature ?? '未设置',
-            onTap: () => _showEditSignatureDialog(user?.signature),
-          ),
-          
-          _buildInfoItem(
             icon: Icons.cake,
             label: '注册时间',
             value: user?.createdAt?.toString().substring(0, 10) ?? '未知',
@@ -293,27 +279,7 @@ class _ProfilePageState extends State<ProfilePage> {
             value: '',
             onTap: () => EasyLoading.showInfo('消息通知设置'),
           ),
-          
-          _buildInfoItem(
-            icon: Icons.block,
-            label: '黑名单',
-            value: '',
-            onTap: () => Get.to(() => const BlacklistPage()),
-          ),
-          
-          _buildInfoItem(
-            icon: Icons.privacy_tip,
-            label: '隐私设置',
-            value: '',
-            onTap: () => EasyLoading.showInfo('隐私设置'),
-          ),
-          
-          _buildInfoItem(
-            icon: Icons.storage,
-            label: '存储空间',
-            value: '',
-            onTap: () => EasyLoading.showInfo('存储空间管理'),
-          ),
+   
           
           _buildInfoItem(
             icon: Icons.info_outline,
