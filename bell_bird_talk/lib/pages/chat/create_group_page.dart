@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_database.dart';
+import '../../controllers/global_controller.dart';
+import '../chat/models/chat_model.dart';
 
 /// 创建群聊页面
 /// 支持多选联系人来创建群聊
@@ -14,6 +18,8 @@ class CreateGroupPage extends StatefulWidget {
 
 class _CreateGroupPageState extends State<CreateGroupPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final MessageDatabase _database = MessageDatabase();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _groupNameController = TextEditingController();
   
@@ -21,6 +27,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   List<Map<String, dynamic>> _filteredContacts = [];
   Set<String> _selectedUserIds = {};
   bool _isLoading = true;
+  
+  /// 获取当前用户ID
+  String get _currentUserId => _globalCtrl.currentUser.value?.id ?? '';
   
   @override
   void initState() {
@@ -136,15 +145,80 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         memberIds: _selectedUserIds.toList(),
       );
       
-      EasyLoading.dismiss();
-      
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('群聊创建成功');
-        // 返回并刷新会话列表
-        if (mounted) {
-          Navigator.pop(context, true);
+        // 解析返回的群组信息
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final groupData = json.decode(dataStr) as Map<String, dynamic>;
+            final groupId = groupData['group_id'] as String? ?? '';
+            final finalGroupName = (groupData['group_name'] as String?)?.trim() ?? groupName;
+            final groupAvatar = groupData['group_avatar'] as String? ?? '';
+            
+            if (groupId.isNotEmpty) {
+              // 创建群会话
+              EasyLoading.show(status: '创建会话中...');
+              final convResult = await _nativeService.imCreateConversation(
+                convType: 2,  // 群聊
+                targetId: groupId,
+                displayName: finalGroupName,
+                avatarUrl: groupAvatar.isNotEmpty ? groupAvatar : null,
+              );
+              
+              if (convResult['errorCode'] == 0) {
+                final convDataStr = convResult['data'] as String? ?? '';
+                if (convDataStr.isNotEmpty) {
+                  try {
+                    final convData = json.decode(convDataStr) as Map<String, dynamic>;
+                    final convId = (convData['conv_id'] as String?) ?? (convData['convId'] as String?);
+                    
+                    // 保存会话到数据库
+                    if (convId != null && convId.isNotEmpty) {
+                      final conversation = ConversationModel(
+                        convId: convId,
+                        displayName: finalGroupName,
+                        avatar: groupAvatar.isNotEmpty ? groupAvatar : null,
+                        convType: 2,
+                        targetId: groupId,
+                        unreadCount: 0,
+                      );
+                      
+                      await _database.upsertConversation(_currentUserId, conversation);
+                      print('✅ 会话已保存到数据库: convId=$convId');
+                    }
+                  } catch (e) {
+                    print('❌ 解析会话数据失败: $e');
+                  }
+                }
+                
+                // 刷新会话列表
+                _globalCtrl.triggerChatListRefresh();
+                
+                EasyLoading.dismiss();
+                EasyLoading.showSuccess('群聊创建成功');
+                
+                // 返回
+                if (mounted) {
+                  Navigator.pop(context, true);
+                }
+              } else {
+                EasyLoading.dismiss();
+                EasyLoading.showError('创建会话失败: ${convResult['message']}');
+              }
+            } else {
+              EasyLoading.dismiss();
+              EasyLoading.showError('未获取到群组ID');
+            }
+          } catch (e) {
+            EasyLoading.dismiss();
+            EasyLoading.showError('解析群组数据失败: $e');
+          }
+        } else {
+          EasyLoading.dismiss();
+          EasyLoading.showError('群组数据为空');
         }
       } else {
+        EasyLoading.dismiss();
         EasyLoading.showError('创建失败: ${result['message']}');
       }
     } catch (e) {
