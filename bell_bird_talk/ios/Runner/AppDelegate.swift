@@ -232,6 +232,8 @@ class NativeBridgeHandler: NSObject {
             imSetContactRemark(call: call, result: result)
         case "imMoveContactToGroup":
             imMoveContactToGroup(call: call, result: result)
+        case "imGetUsersInfo":
+            imGetUsersInfo(call: call, result: result)
         
         // ---------- 会话管理 ----------
         case "imGetConversationList":
@@ -1730,6 +1732,59 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SET_REMARK_ERROR",
                               message: "设置备注请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取用户信息
+    private func imGetUsersInfo(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let userIds = args["user_ids"] as? [String] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 user_ids", details: nil))
+            return
+        }
+        
+        print("👤 获取用户信息: userIds=\(userIds)")
+        
+        let reqId = IMSDKUserManager.shared().getUsersInfo(withUserIds: userIds) { errorCode, message, data, reqId in
+            print("👤 获取用户信息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            // 将返回的数据转换为 JSON 字符串
+            var dataStr = ""
+            if let data = data {
+                if let users = data["users"] as? [[String: Any]] {
+                    // 如果有 users 数组，转换为 JSON
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: users, options: [])
+                        dataStr = String(data: jsonData, encoding: .utf8) ?? ""
+                    } catch {
+                        print("⚠️ 序列化用户信息失败: \(error)")
+                    }
+                } else if let rawData = data["raw_data"] as? String {
+                    // 如果有原始数据，直接使用
+                    dataStr = rawData
+                } else {
+                    // 尝试将整个 data 字典转换为 JSON
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: data, options: [])
+                        dataStr = String(data: jsonData, encoding: .utf8) ?? ""
+                    } catch {
+                        print("⚠️ 序列化数据失败: \(error)")
+                    }
+                }
+            }
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? (errorCode == 0 ? "获取成功" : "获取失败"),
+                "data": dataStr
+            ])
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "GET_USERS_INFO_ERROR",
+                              message: "获取用户信息请求发送失败",
                               details: nil))
         }
     }

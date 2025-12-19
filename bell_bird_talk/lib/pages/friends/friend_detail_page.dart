@@ -34,6 +34,53 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   void initState() {
     super.initState();
     _friend = widget.friend;
+    _loadUserInfo();
+  }
+  
+  /// 加载用户信息
+  Future<void> _loadUserInfo() async {
+    try {
+      final result = await _nativeService.imGetUsersInfo(userIds: [widget.friend.id]);
+      if (!mounted) return;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final users = json.decode(dataStr) as List;
+            if (users.isNotEmpty) {
+              final userInfo = users[0] as Map<String, dynamic>;
+              
+              // 更新好友信息
+              setState(() {
+                String? newAvatar = _friend.avatar;
+                String newNickname = _friend.nickname;
+                
+                // 更新头像
+                if (userInfo['avatar'] != null && (userInfo['avatar'] as String).isNotEmpty) {
+                  newAvatar = userInfo['avatar'] as String;
+                }
+                // 更新昵称
+                if (userInfo['nickname'] != null && (userInfo['nickname'] as String).isNotEmpty) {
+                  newNickname = userInfo['nickname'] as String;
+                }
+                
+                // 使用 copyWith 更新
+                _friend = _friend.copyWith(
+                  avatar: newAvatar,
+                  nickname: newNickname,
+                );
+                _hasChanges = true;
+              });
+            }
+          } catch (e) {
+            print('解析用户信息失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取用户信息失败: $e');
+    }
   }
 
   @override

@@ -126,6 +126,7 @@ class _FriendsPageState extends State<FriendsPage> {
           final requestsJson = data['requests'] as List? ?? [];
           
           setState(() {
+            _groupRequestCount = data['total_count'] ?? 0;
             _friendRequests.clear();
             _friendRequests.addAll(
               requestsJson.map((json) => FriendRequestModel.fromJson(json)).toList(),
@@ -581,8 +582,6 @@ class _FriendsPageState extends State<FriendsPage> {
   
   /// 新消息入口（好友申请、群组申请）
   Widget _buildRequestsEntry() {
-    final friendCount = _friendRequests.where((r) => r.status == 0).length;
-    
     return Container(
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -604,7 +603,7 @@ class _FriendsPageState extends State<FriendsPage> {
             iconColor: Colors.orange,
             iconBgColor: Colors.orange[50]!,
             title: '好友申请',
-            count: friendCount,
+            count: _groupRequestCount,
             onTap: () async {
               final result = await Get.to(() => const FriendRequestsPage(type: RequestType.friend));
               if (result == true) {
@@ -623,7 +622,7 @@ class _FriendsPageState extends State<FriendsPage> {
             iconColor: Colors.blue,
             iconBgColor: Colors.blue[50]!,
             title: '群组',
-            count: _groupRequestCount,
+            count: 0,
             onTap: () async {
               await Get.to(() => const GroupListPage());
               // 返回后可选择刷新，确保显示最新好友/群关联

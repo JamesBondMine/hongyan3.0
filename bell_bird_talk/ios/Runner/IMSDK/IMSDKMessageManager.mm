@@ -1406,6 +1406,7 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
 - (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
                                 completion:(IMSDKMessageCompletion)completion {
     NotificationUnreadCount *req = [NotificationUnreadCount message];
+    
     if (notificationTypes.count > 0) {
         [req.notificationTypesArray addObjectsFromArray:notificationTypes];
     }

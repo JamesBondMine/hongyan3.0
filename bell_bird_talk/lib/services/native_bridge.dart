@@ -1049,6 +1049,23 @@ class IOSNativeService {
     }
   }
   
+  /// 获取用户信息
+  /// @param userIds 用户ID数组
+  /// @return 返回结果，data 字段包含用户信息数组（JSON 字符串）
+  Future<Map<String, dynamic>> imGetUsersInfo({
+    required List<String> userIds,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetUsersInfo', {
+        'user_ids': userIds,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取用户信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 解散群组
   /// @param groupId 群组ID（必填）
   /// @param reason 解散原因（可选）

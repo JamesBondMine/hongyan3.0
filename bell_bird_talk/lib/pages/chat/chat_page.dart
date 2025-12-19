@@ -36,6 +36,7 @@ class ChatPage extends StatefulWidget {
   final int convType; // 0=单聊,2=群聊
   final PreferredSizeWidget? customAppBar;
   final List<Map<String, dynamic>>? groupMembers; // 群成员列表（群聊时使用）
+  final bool? isMuted; // 是否禁言（群聊时使用）
   
   const ChatPage({
     super.key,
@@ -46,6 +47,7 @@ class ChatPage extends StatefulWidget {
     this.convType = 0,
     this.customAppBar,
     this.groupMembers,
+    this.isMuted,
   });
 
   @override
@@ -536,6 +538,12 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 发送消息
   Future<void> _sendMessage() async {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     final text = _messageController.text.trim();
     if (text.isEmpty || _isSending) return;
     
@@ -1416,6 +1424,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildInputBar() {
+    // 检查是否禁言（群聊时）
+    final bool isMuted = widget.convType == 2 && (widget.isMuted == true);
+    
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -1433,76 +1444,96 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // 语音按钮
-          IconButton(
-            icon: Icon(
-              Icons.mic,
-              color: _showVoicePanel ? Colors.blue : Colors.grey[600],
-            ),
-            onPressed: _toggleVoicePanel,
-          ),
-          
-          // 输入框
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextField(
-                    controller: _messageController,
-                    focusNode: _focusNode,
-                    decoration: const InputDecoration(
-                      hintText: '输入消息...',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+      child: isMuted
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.block, color: Colors.grey[400], size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    '该群已禁言',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
                     ),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ],
+              ),
+            )
+          : Row(
+              children: [
+                // 语音按钮
+                IconButton(
+                  icon: Icon(
+                    Icons.mic,
+                    color: _showVoicePanel ? Colors.blue : Colors.grey[600],
+                  ),
+                  onPressed: _toggleVoicePanel,
+                ),
+                
+                // 输入框
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextField(
+                          controller: _messageController,
+                          focusNode: _focusNode,
+                          enabled: !isMuted,
+                          decoration: const InputDecoration(
+                            hintText: '输入消息...',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      // @成员选择器
+                      if (_showAtMemberPicker && widget.groupMembers != null)
+                        _buildAtMemberPicker(),
+                    ],
                   ),
                 ),
-                // @成员选择器
-                if (_showAtMemberPicker && widget.groupMembers != null)
-                  _buildAtMemberPicker(),
+                
+                // 表情按钮
+                IconButton(
+                  icon: Icon(
+                    _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                    color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
+                  ),
+                  onPressed: isMuted ? null : _toggleEmojiPicker,
+                ),
+                
+                // 更多/发送按钮
+                IconButton(
+                  icon: Icon(
+                    _messageController.text.trim().isEmpty 
+                        ? (_showMorePanel ? Icons.close : Icons.add_circle_outline)
+                        : Icons.send,
+                    color: _messageController.text.trim().isEmpty 
+                        ? (_showMorePanel ? Colors.blue : Colors.grey[600])
+                        : Colors.blue,
+                  ),
+                  onPressed: isMuted
+                      ? null
+                      : () {
+                          if (_messageController.text.trim().isNotEmpty) {
+                            _sendMessage();
+                          } else {
+                            _toggleMorePanel();
+                          }
+                        },
+                ),
               ],
             ),
-          ),
-          
-          // 表情按钮
-          IconButton(
-            icon: Icon(
-              _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions_outlined,
-              color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
-            ),
-            onPressed: _toggleEmojiPicker,
-          ),
-          
-          // 更多/发送按钮
-          IconButton(
-            icon: Icon(
-              _messageController.text.trim().isEmpty 
-                  ? (_showMorePanel ? Icons.close : Icons.add_circle_outline)
-                  : Icons.send,
-              color: _messageController.text.trim().isEmpty 
-                  ? (_showMorePanel ? Colors.blue : Colors.grey[600])
-                  : Colors.blue,
-            ),
-            onPressed: () {
-              if (_messageController.text.trim().isNotEmpty) {
-                _sendMessage();
-              } else {
-                _toggleMorePanel();
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -1709,6 +1740,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _toggleVoicePanel() {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     // 关闭键盘
     _focusNode.unfocus();
     
@@ -1733,6 +1770,12 @@ class _ChatPageState extends State<ChatPage> {
   
   /// 发送语音消息
   Future<void> _sendVoiceMessage(String voicePath, int duration) async {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     try {
       // 将语音复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
@@ -1768,6 +1811,12 @@ class _ChatPageState extends State<ChatPage> {
       setState(() => _showEmojiPicker = false);
       _focusNode.requestFocus();
     } else {
+      // 检查是否禁言（群聊时）
+      if (widget.convType == 2 && (widget.isMuted == true)) {
+        EasyLoading.showInfo('该群已禁言，无法发送消息');
+        return;
+      }
+      
       // 关闭键盘，打开表情面板
       _focusNode.unfocus();
       setState(() {
@@ -1930,6 +1979,12 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 切换更多面板
   void _toggleMorePanel() {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     if (_showMorePanel) {
       setState(() => _showMorePanel = false);
       _focusNode.requestFocus();
@@ -2048,6 +2103,7 @@ class _ChatPageState extends State<ChatPage> {
         maxHeight: 1920,
         imageQuality: 85,
         limit: 9,
+        requestFullMetadata: false
       );
       if (images != null) {
         for (var media in images) {
@@ -2088,6 +2144,12 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 发送图片消息
   Future<void> _sendImageMessage(String imagePath) async {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     // 收起面板
     setState(() => _showMorePanel = false);
     
@@ -2168,6 +2230,12 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 发送视频消息
   Future<void> _sendVideoMessage(String videoPath) async {
+    // 检查是否禁言（群聊时）
+    if (widget.convType == 2 && (widget.isMuted == true)) {
+      EasyLoading.showInfo('该群已禁言，无法发送消息');
+      return;
+    }
+    
     // 收起面板
     setState(() => _showMorePanel = false);
     

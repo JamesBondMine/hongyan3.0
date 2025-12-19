@@ -83,6 +83,13 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
                                   reason:(NSString * _Nullable)reason
                               completion:(IMSDKUserCompletion)completion;
 
+/// 获取用户信息
+/// @param userIds 用户ID数组（支持多个用户ID）
+/// @param completion 完成回调，data 字段包含用户信息数组（JSON 字符串）
+/// @return 请求ID，失败返回0
+- (uint64_t)getUsersInfoWithUserIds:(NSArray<NSString *> *)userIds
+                          completion:(IMSDKUserCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

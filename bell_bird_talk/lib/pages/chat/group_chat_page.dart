@@ -27,11 +27,13 @@ class GroupChatPage extends StatefulWidget {
 class _GroupChatPageState extends State<GroupChatPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   List<Map<String, dynamic>> _groupMembers = [];
+  bool? _isMuted; // 是否禁言
 
   @override
   void initState() {
     super.initState();
     _loadGroupMembers();
+    _loadGroupInfo();
   }
 
   Future<void> _loadGroupMembers() async {
@@ -61,6 +63,29 @@ class _GroupChatPageState extends State<GroupChatPage> {
     }
   }
 
+  Future<void> _loadGroupInfo() async {
+    try {
+      final result = await _nativeService.imGetGroupInfo(groupId: widget.groupId);
+      if (!mounted) return;
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final map = json.decode(dataStr) as Map<String, dynamic>;
+            final isMuted = map['is_muted'] as bool? ?? false;
+            setState(() {
+              _isMuted = isMuted;
+            });
+          } catch (e) {
+            print('解析群信息失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取群信息失败: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 直接使用 ChatPage，传入自定义导航栏以避免双 AppBar
@@ -71,6 +96,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       targetUserId: widget.groupId,
       convType: 2, // 群聊
       groupMembers: _groupMembers, // 传递群成员列表
+      isMuted: _isMuted, // 传递禁言状态
       customAppBar: AppBar(
         title: Text(widget.groupName),
         actions: [
