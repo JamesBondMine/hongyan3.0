@@ -323,9 +323,9 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              EasyLoading.show(status: '退出中...');
-              await _globalCtrl.logout();
-              EasyLoading.dismiss();
+              _globalCtrl.logout();
+              EasyLoading.showSuccess('已退出登录');
+              await Future.delayed(const Duration(seconds: 1));
               Get.offAllNamed('/login');
             },
             child: const Text('退出', style: TextStyle(color: Colors.red)),

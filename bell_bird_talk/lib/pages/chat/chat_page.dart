@@ -22,6 +22,7 @@ import 'chat_detail_page.dart';
 import 'image_preview_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:video_compress/video_compress.dart';
 import 'user_info_page.dart';
 import '../friends/friend_detail_page.dart';
 import '../models/friend_model.dart';
@@ -437,7 +438,7 @@ class _ChatPageState extends State<ChatPage> {
         if (mType == 16) {
           // 通知消息
           msgType = 'notification';
-        } else if (mType == 1 || imageUrl != null) {
+        } else if (mType == 1 || imageUrl != null && videoUrl == null) {
           msgType = 'image';
         } else if (mType == 2 || videoUrl != null) {
           msgType = 'video';
@@ -1118,7 +1119,7 @@ class _ChatPageState extends State<ChatPage> {
               top: 4,
             ),
             child: Text(
-              '$formattedTime  $senderId',
+              '$formattedTime  $senderId  $type',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[400],
@@ -2132,28 +2133,71 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  /// 压缩视频，返回压缩后的路径（失败则返回 null）
+  Future<String?> _compressVideo(String sourcePath) async {
+    try {
+      print('🎬 开始压缩视频: $sourcePath');
+      EasyLoading.show(status: '正在压缩视频...');
+      
+      // 压缩视频
+      final mediaInfo = await VideoCompress.compressVideo(
+        sourcePath,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false,
+        includeAudio: true,
+      );
+      
+      if (mediaInfo != null && mediaInfo.path != null && File(mediaInfo.path!).existsSync()) {
+        final originalSize = await File(sourcePath).length();
+        final compressedSize = mediaInfo.filesize ?? await File(mediaInfo.path!).length();
+        final ratio = (compressedSize / originalSize * 100).toStringAsFixed(1);
+        print('✅ 视频压缩成功: ${originalSize / 1024 / 1024}MB -> ${compressedSize / 1024 / 1024}MB (${ratio}%)');
+        EasyLoading.dismiss();
+        return mediaInfo.path;
+      } else {
+        print('⚠️ 视频压缩失败: 返回路径为空或文件不存在');
+        EasyLoading.dismiss();
+        return null;
+      }
+    } catch (e) {
+      print('⚠️ 视频压缩失败: $e');
+      EasyLoading.dismiss();
+      return null;
+    }
+  }
+
   /// 发送视频消息
   Future<void> _sendVideoMessage(String videoPath) async {
     // 收起面板
     setState(() => _showMorePanel = false);
     
     try {
+      // 尝试压缩视频
+      String finalVideoPath = videoPath;
+      final compressedPath = await _compressVideo(videoPath);
+      if (compressedPath != null) {
+        finalVideoPath = compressedPath;
+        print('✅ 使用压缩后的视频: $finalVideoPath');
+      } else {
+        print('⚠️ 压缩失败，使用原视频: $videoPath');
+      }
+      
       // 获取视频时长
       int? durationSeconds;
       try {
-        final controller = VideoPlayerController.file(File(videoPath));
+        final controller = VideoPlayerController.file(File(finalVideoPath));
         await controller.initialize();
         durationSeconds = controller.value.duration.inSeconds;
         await controller.dispose();
       } catch (_) {}
 
-      // 生成缩略图
+      // 生成缩略图（使用最终视频路径）
       String? thumbTemp;
       int? thumbWidth;
       int? thumbHeight;
       try {
         thumbTemp = await VideoThumbnail.thumbnailFile(
-          video: videoPath,
+          video: finalVideoPath,
           imageFormat: ImageFormat.PNG,
           maxWidth: 512,
           quality: 75,
@@ -2170,7 +2214,7 @@ class _ChatPageState extends State<ChatPage> {
 
       // 将视频复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
-      final relativePath = await pathHelper.copyToPermanentStorage(videoPath, 'videos');
+      final relativePath = await pathHelper.copyToPermanentStorage(finalVideoPath, 'videos');
       String? thumbRelativePath;
       if (thumbTemp != null) {
         thumbRelativePath = await pathHelper.copyToPermanentStorage(thumbTemp, 'images');

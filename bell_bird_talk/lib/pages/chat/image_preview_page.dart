@@ -43,9 +43,27 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
   void dispose() {
     _pageController.dispose();
     for (final ctrl in _videoControllers.values) {
+      ctrl.removeListener(_videoListener);
       ctrl.dispose();
     }
     super.dispose();
+  }
+  
+  /// 视频播放状态监听
+  void _videoListener() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+  
+  /// 检查当前消息是否是视频
+  bool _isCurrentVideo() {
+    if (_currentIndex < 0 || _currentIndex >= widget.imageMessages.length) {
+      return false;
+    }
+    final message = widget.imageMessages[_currentIndex];
+    final type = (message['type'] as String?) ?? 'image';
+    return type == 'video';
   }
   
   /// 切换控制栏显示/隐藏
@@ -53,6 +71,24 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
     setState(() {
       _showControls = !_showControls;
     });
+  }
+  
+  /// 视频播放/暂停切换
+  void _toggleVideoPlayPause() {
+    if (!_isCurrentVideo()) {
+      _toggleControls();
+      return;
+    }
+    
+    final controller = _videoControllers[_currentIndex];
+    if (controller != null) {
+      if (controller.value.isPlaying) {
+        controller.pause();
+      } else {
+        controller.play();
+      }
+      setState(() {});
+    }
   }
   
   /// 下载当前图片
@@ -188,8 +224,13 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
         controller = VideoPlayerController.networkUrl(Uri.parse(''));
       }
       _videoControllers[index] = controller;
-      _videoInitFutures[index] = controller.initialize();
+      _videoInitFutures[index] = controller.initialize().then((_) {
+        if (mounted && index == _currentIndex) {
+          controller.play();
+        }
+      });
       controller.setLooping(true);
+      controller.addListener(_videoListener);
       return controller;
     }
 
@@ -207,8 +248,10 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
         if (snapshot.hasError) {
           return _buildErrorWidget();
         }
-        if (!controller.value.isPlaying) {
-          controller.play();
+        if (!controller.value.isInitialized) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
         }
         final aspect = controller.value.aspectRatio == 0
             ? 16 / 9
@@ -220,23 +263,14 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
               alignment: Alignment.center,
               children: [
                 VideoPlayer(controller),
-                GestureDetector(
-                  onTap: () {
-                    if (controller.value.isPlaying) {
-                      controller.pause();
-                    } else {
-                      controller.play();
-                    }
-                    setState(() {});
-                  },
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: controller.value.isPlaying ? 0.0 : 1.0,
-                    child: const Icon(
-                      Icons.play_circle_fill,
-                      size: 64,
-                      color: Colors.white,
-                    ),
+                // 播放/暂停图标
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: controller.value.isPlaying ? 0.0 : 1.0,
+                  child: const Icon(
+                    Icons.play_circle_fill,
+                    size: 64,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -244,6 +278,98 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
           ),
         );
       },
+    );
+  }
+  
+  /// 构建视频进度条
+  Widget _buildVideoProgressBar() {
+    if (!_isCurrentVideo()) {
+      return const SizedBox.shrink();
+    }
+    
+    final controller = _videoControllers[_currentIndex];
+    if (controller == null || !controller.value.isInitialized) {
+      return const SizedBox.shrink();
+    }
+    
+    final duration = controller.value.duration;
+    final position = controller.value.position;
+    final progress = duration.inMilliseconds > 0
+        ? position.inMilliseconds / duration.inMilliseconds
+        : 0.0;
+    
+    String formatDuration(Duration duration) {
+      String twoDigits(int n) => n.toString().padLeft(2, '0');
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes.remainder(60);
+      final seconds = duration.inSeconds.remainder(60);
+      
+      if (hours > 0) {
+        return '${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}';
+      }
+      return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Colors.black.withOpacity(0.7),
+          ],
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 进度条
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.white.withOpacity(0.3),
+              thumbColor: Colors.white,
+              overlayColor: Colors.white.withOpacity(0.2),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              trackHeight: 2,
+            ),
+            child: Slider(
+              value: progress.clamp(0.0, 1.0),
+              onChanged: (value) {
+                final newPosition = Duration(
+                  milliseconds: (value * duration.inMilliseconds).round(),
+                );
+                controller.seekTo(newPosition);
+              },
+            ),
+          ),
+          // 时间显示
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  formatDuration(position),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  formatDuration(duration),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
   
@@ -269,16 +395,19 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
   
   @override
   Widget build(BuildContext context) {
+    final isVideo = _isCurrentVideo();
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
-        onTap: _toggleControls,
+        onTap: isVideo ? _toggleVideoPlayPause : _toggleControls,
         child: Stack(
           children: [
             // 图片预览区域
             PageView.builder(
               controller: _pageController,
               itemCount: widget.imageMessages.length,
+              physics: isVideo ? const NeverScrollableScrollPhysics() : null,
               onPageChanged: (index) {
                 final prev = _currentIndex;
                 if (_videoControllers.containsKey(prev)) {
@@ -287,6 +416,15 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                 setState(() {
                   _currentIndex = index;
                 });
+                // 如果切换到视频页面，自动播放
+                final message = widget.imageMessages[index];
+                final type = (message['type'] as String?) ?? 'image';
+                if (type == 'video' && _videoControllers.containsKey(index)) {
+                  final controller = _videoControllers[index];
+                  if (controller != null && controller.value.isInitialized) {
+                    controller.play();
+                  }
+                }
               },
               itemBuilder: (context, index) {
                 final message = widget.imageMessages[index];
@@ -327,16 +465,17 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const Spacer(),
-                      // 图片计数
-                      Text(
-                        '${_currentIndex + 1} / ${widget.imageMessages.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                      // 图片计数（视频时不显示）
+                      if (!isVideo)
+                        Text(
+                          '${_currentIndex + 1} / ${widget.imageMessages.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
+                      if (!isVideo) const SizedBox(width: 16),
                       // 下载按钮
                       IconButton(
                         icon: const Icon(Icons.download, color: Colors.white),
@@ -345,6 +484,17 @@ class _ImagePreviewPageState extends State<ImagePreviewPage> {
                       ),
                     ],
                   ),
+                ),
+              ),
+            
+            // 底部视频进度条
+            if (_showControls && isVideo)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: _buildVideoProgressBar(),
                 ),
               ),
           ],
