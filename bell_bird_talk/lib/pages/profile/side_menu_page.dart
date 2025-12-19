@@ -427,7 +427,9 @@ class _SideMenuContentState extends State<SideMenuContent> {
             onPressed: () async {
               Navigator.pop(context); // 关闭对话框
               Navigator.pop(context); // 关闭侧边栏
-              await controller.logout();
+              controller.logout();
+              EasyLoading.showSuccess('已退出登录');
+              await Future.delayed(const Duration(seconds: 1));
               Get.offAllNamed('/login');
             },
             child: const Text(

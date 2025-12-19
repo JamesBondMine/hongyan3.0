@@ -434,7 +434,10 @@ class _ChatPageState extends State<ChatPage> {
         
         // 解析消息类型
         String msgType = 'text';
-        if (mType == 1 || imageUrl != null) {
+        if (mType == 16) {
+          // 通知消息
+          msgType = 'notification';
+        } else if (mType == 1 || imageUrl != null) {
           msgType = 'image';
         } else if (mType == 2 || videoUrl != null) {
           msgType = 'video';
@@ -950,6 +953,19 @@ class _ChatPageState extends State<ChatPage> {
     final isMine = messageSenderId.isNotEmpty
         ? messageSenderId == _currentUserId
         : (message['isMine'] as bool? ?? false);
+    
+    // 判断是否是通知消息
+    final isNotification = type == 'notification';
+    
+    // 通知消息使用特殊布局（居中，不显示头像）
+    if (isNotification) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Center(
+          child: _buildMessageContent(message, false),
+        ),
+      );
+    }
     
     // 对方发的消息如果是发送失败状态，则不显示（不合逻辑的数据）
     if (!isMine && status == 'failed') {
@@ -2266,6 +2282,10 @@ class _ChatPageState extends State<ChatPage> {
       return _buildVideoMessage(message, isMine, status);
     }
     
+    if (type == 'notification') {
+      return _buildNotificationMessage(message);
+    }
+    
     // 默认文本消息
     return Text(
       content,
@@ -2634,6 +2654,30 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
       ],
+      ),
+    );
+  }
+
+  /// 构建通知消息
+  Widget _buildNotificationMessage(Map<String, dynamic> message) {
+    final content = message['content'] as String? ?? '';
+    
+    // 如果内容为空，显示默认提示
+    final displayContent = content.isEmpty ? '系统通知' : content;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        displayContent,
+        style: TextStyle(
+          fontSize: 13,
+          color: Colors.grey[700],
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

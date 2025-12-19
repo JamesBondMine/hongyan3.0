@@ -1079,9 +1079,10 @@ class _ProfilePageState extends State<ProfilePage> {
           TextButton(
             onPressed: () async {
               Get.back();
-              EasyLoading.show(status: '退出中...');
-              await _globalCtrl.logout();
+              _globalCtrl.logout();
               EasyLoading.dismiss();
+              EasyLoading.showSuccess('已退出登录');
+              await Future.delayed(const Duration(seconds: 1));
               Get.offAllNamed('/login');
             },
             child: const Text('退出', style: TextStyle(color: Colors.red)),

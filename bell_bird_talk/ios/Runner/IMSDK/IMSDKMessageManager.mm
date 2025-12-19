@@ -349,6 +349,10 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
                             msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
+                        } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
+                            msgDict[@"content"] = msg.atMessage.content;
+                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
+                            msgDict[@"content"] = msg.notificationMessage.content;
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }
@@ -1226,6 +1230,8 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                             msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
                         } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
                             msgDict[@"content"] = msg.atMessage.content;
+                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
+                            msgDict[@"content"] = msg.notificationMessage.content;
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }

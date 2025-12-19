@@ -487,13 +487,16 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
                      pageSize:(int)pageSize
                  relationship:(int)relationship
                        groupId:(int64_t)groupId
+                       keyword:(NSString * _Nullable)keyword
                    completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d, groupId=%lld", page, pageSize, relationship, groupId);
+    NSLog(@"📋 获取联系人列表: page=%d, pageSize=%d, relationship=%d, groupId=%lld, keyword=%@", page, pageSize, relationship, groupId, keyword ?: @"(nil)");
     
     // 创建 ContactQuery 对象
     ContactQuery *query = [[ContactQuery alloc] init];
     query.page = page;
     query.pageSize = pageSize;
+    
+    
     
     // 设置分组ID（如果大于0）
     if (groupId > 0) {
@@ -503,6 +506,13 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     // relationship: 0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部（不设置）
     if (relationship >= 0) {
         query.relationship = (Relationship)relationship;
+    }
+    
+    // 设置搜索关键词（如果提供）
+    if (keyword && keyword.length > 0) {
+        query.keyword = keyword;
+    } else {
+        query.keyword = @"";
     }
     // 如果 relationship < 0，则不设置，表示获取全部
     

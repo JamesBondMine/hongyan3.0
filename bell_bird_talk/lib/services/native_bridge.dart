@@ -743,11 +743,14 @@ class IOSNativeService {
   /// @param page 页码（从1开始）
   /// @param pageSize 每页数量
   /// @param relationship 关系类型：0=好友, 1=关注, 2=黑名单, 3=待确认, -1=全部
+  /// @param groupId 分组ID（可选，null表示不按分组过滤）
+  /// @param keyword 搜索关键词（可选，null或空字符串表示不搜索）
   Future<Map<String, dynamic>> imGetContactList({
     int page = 1,
     int pageSize = 20,
     int relationship = -1,  // 默认获取全部
     int? groupId,  // 分组ID（可选，null表示不按分组过滤）
+    String? keyword,  // 搜索关键词（可选）
   }) async {
     try {
       final Map<String, dynamic> params = {
@@ -757,6 +760,9 @@ class IOSNativeService {
       };
       if (groupId != null && groupId > 0) {
         params['group_id'] = groupId;
+      }
+      if (keyword != null && keyword.isNotEmpty) {
+        params['keyword'] = keyword;
       }
       
       final result = await _bridge.invokeMethod<Map>('imGetContactList', params);

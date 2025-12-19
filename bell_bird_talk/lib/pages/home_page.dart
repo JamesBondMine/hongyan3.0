@@ -715,13 +715,10 @@ class _HomePageState extends State<HomePage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              EasyLoading.show(status: '退出中...');
-              
-              await _globalCtrl.logout();
-              
+              _globalCtrl.logout();
+              EasyLoading.dismiss();
               EasyLoading.showSuccess('已退出登录');
-              
-              // 跳转到登录页
+              await Future.delayed(const Duration(seconds: 1));
               Get.offAllNamed('/login');
             },
             child: const Text(

@@ -31,8 +31,6 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
   @override
   void initState() {
     super.initState();
-    _filteredFriends = widget.friends;
-    
     // 自动聚焦搜索框
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -78,7 +76,14 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
     });
 
     try {
-      final result = await _nativeService.imSearchContact(keyword: keyword);
+      // 使用 imGetContactList 方法进行搜索
+      final result = await _nativeService.imGetContactList(
+        page: 1,
+        pageSize: 200,  // 搜索时获取更多结果
+        relationship: -1,  // 获取全部关系类型
+        keyword: keyword,  // 传入搜索关键词
+      );
+      
       final errorCode = result['errorCode'] as int? ?? -1;
       if (errorCode != 0) {
         EasyLoading.showError(result['message']?.toString() ?? '搜索失败');

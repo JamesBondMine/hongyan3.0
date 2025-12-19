@@ -257,7 +257,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           ),
           if (isAdmin)
             Text(
-              '管理员',
+              '群主',
               style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
             ),
         ],
