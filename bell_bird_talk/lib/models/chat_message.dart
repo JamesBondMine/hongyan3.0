@@ -145,6 +145,12 @@ class ChatMessage {
   /// 重试次数
   int retryCount;
 
+  /// @信息列表
+  List<Map<String, dynamic>>? atInfoList;
+
+  /// 是否@所有人
+  bool? isAll;
+
   ChatMessage({
     required this.localId,
     this.serverId,
@@ -173,9 +179,11 @@ class ChatMessage {
     this.voiceDuration,
     this.videoDuration,
     this.videoCoverUrl,
+    this.atInfoList,
+    this.isAll,
     this.ext,
     this.errorMessage,
-    this.retryCount = 0,
+    this.retryCount = 0, 
   });
 
   /// 创建文本消息
@@ -244,6 +252,30 @@ class ChatMessage {
       createdAt: DateTime.now().millisecondsSinceEpoch,
       fileLocalPath: localPath,
       voiceDuration: duration,
+    );
+  }
+
+  factory ChatMessage.at({
+    required String convId,
+    String msgId =  "",
+    required String senderId,
+    required String receiverId,
+    required String content,
+    required List<Map<String, dynamic>> atInfoList,
+    required bool isAll,
+  }) {
+    return ChatMessage(
+      localId: _generateLocalId(),
+      convId: convId,
+      msgId:msgId ,
+      senderId: senderId,
+      receiverId: receiverId,
+      type: MessageType.at,
+      isMine: true,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      textContent: content,
+      atInfoList: atInfoList,
+      isAll: isAll,
     );
   }
 

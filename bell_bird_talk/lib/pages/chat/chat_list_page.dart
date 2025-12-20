@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -1195,7 +1196,15 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 打开聊天
   void _openChat(ConversationModel conversation) async {
-    // 跳转到聊天详情页
+    if (conversation.convType==2) {
+       await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GroupChatPage(convId: conversation.convId, groupId: conversation.targetId ?? '', groupName: conversation.displayName),
+
+      ),
+    );
+    } else { // 跳转到聊天详情页
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -1206,7 +1215,8 @@ class _ChatListPageState extends State<ChatListPage> {
           targetUserId: conversation.targetId ?? '',
         ),
       ),
-    );
+    );}
+   
     
     // 返回后清除该会话的未读数
     _clearConversationUnread(conversation.convId);

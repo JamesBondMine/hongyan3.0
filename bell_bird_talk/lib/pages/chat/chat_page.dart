@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/pages/chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -372,6 +373,8 @@ class _ChatPageState extends State<ChatPage> {
       'imageUrl': message.imageUrl,
       'errorMessage': message.errorMessage,
       'voiceDuration': message.voiceDuration,
+      'atInfoList': message.atInfoList,
+      'isAll': message.isAll,
     };
     // 检查是否已存在
     final existIndex = _messages.indexWhere((m) => m['localId'] == message.localId);
@@ -674,32 +677,30 @@ class _ChatPageState extends State<ChatPage> {
       }
       
       // 调用原生方法发送@消息
-      final result = await _nativeService.imSendGroupAtMessage(
-        content: text,
-        conversationId: widget.convId,
-        groupId: widget.targetUserId,
-        atInfoList: isAll ? [] : filteredAtInfoList,
-        isAll: isAll,
-      );
+      // final result = await _nativeService.imSendGroupAtMessage(
+      //   content: text,
+      //   conversationId: widget.convId,
+      //   groupId: widget.targetUserId,
+      //   atInfoList: isAll ? [] : filteredAtInfoList,
+      //   isAll: isAll,
+      // );
       
-      if (result['errorCode'] == 0) {
-        // 创建消息对象（用于本地显示）
-        final message = ChatMessage.text(
+      // 创建消息对象（用于本地显示）
+        final message = ChatMessage.at(
           convId: widget.convId,
           senderId: _currentUserId,
           receiverId: widget.targetUserId,
           content: text,
+          atInfoList: isAll ? [] : filteredAtInfoList,
+          isAll: isAll,
         );
-        
         setState(() {
           _addChatMessageToList(message);
         });
         _scrollToBottom();
         _messageController.clear();
         _atMembers.clear(); // 清空@成员列表
-      } else {
-        EasyLoading.showError(result['message']?.toString() ?? '发送失败');
-      }
+        await _messageQueue.sendMessage(message);
     } catch (e) {
       print('发送@消息异常: $e');
       EasyLoading.showError('发送失败: $e');
@@ -841,7 +842,19 @@ class _ChatPageState extends State<ChatPage> {
         IconButton(
           icon: const Icon(Icons.more_horiz),
           onPressed: () {
-            Navigator.push(
+            if (widget.convType == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupDetailPage(
+                    groupId: widget.targetUserId,
+                    groupName: widget.displayName,
+                    groupAvatar: widget.avatar,
+                  ),
+                ),
+              );
+            }  else {
+              Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ChatDetailPage(
@@ -853,6 +866,8 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
             );
+            }
+            
           },
         ),
       ],
@@ -2425,6 +2440,9 @@ class _ChatPageState extends State<ChatPage> {
     if (type == 'notification') {
       return _buildNotificationMessage(message);
     }
+    if (type == 'at') {
+      return _buildAtMessage(message, isMine, status);
+    }
     
     // 默认文本消息
     return Text(
@@ -2433,6 +2451,15 @@ class _ChatPageState extends State<ChatPage> {
         fontSize: 15,
         color: isMine ? Colors.white : Colors.black87,
       ),
+    );
+  }
+
+  /// 构建@消息
+  Widget _buildAtMessage(Map<String, dynamic> message, bool isMine, String status) {
+    final atInfoList = message['atInfoList'] as List<Map<String, dynamic>>? ?? [];
+    final isAll = message['isAll'] as bool? ?? false;
+    return Text(
+      '${atInfoList.map((e) => e['nickname']).join(', ')} ${isAll ? '@所有人' : ''}',
     );
   }
   
