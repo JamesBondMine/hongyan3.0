@@ -70,6 +70,13 @@ typedef void (^IMSDKContactCompletion)(int errorCode, uint64_t reqId, NSString *
 - (int)unblockContactWithUserId:(NSString *)userId
                      completion:(IMSDKContactCompletion)completion;
 
+/// 获取黑名单状态
+/// @param userId 用户ID
+/// @param completion 结果回调，data 字段包含黑名单状态（JSON 格式，包含 blockDirection 字段）
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getBlackStatusWithUserId:(NSString *)userId
+                      completion:(IMSDKContactCompletion)completion;
+
 // ==================== 好友查询 ====================
 
 /// 获取联系人列表

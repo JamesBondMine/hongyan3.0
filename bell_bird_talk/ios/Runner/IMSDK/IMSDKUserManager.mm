@@ -335,7 +335,7 @@ static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_
     
     // 保存回调
     uint64_t reqId = 0;
-    int result = delete_user(DeleteUserCallback,
+    int result = deactivate_user(DeleteUserCallback,
                              (const char *)serializedData.bytes,
                              (int)serializedData.length,
                              reqId);

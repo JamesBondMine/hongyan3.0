@@ -192,7 +192,31 @@ NET_API int update_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uin
  * @return 0表示成功，其他表示错误码
  * @note 需要用户已登录，userId 自动从 MqttSession 中获取
  */
-NET_API int delete_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+NET_API int deactivate_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 撤回注销申请
+ * Topic: /im/USER/{appId}/cancelDeactivateAccount
+ * @param cCallback 回调函数（用于接收撤回注销申请的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的撤回注销申请请求数据
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note appId 自动从 MqttSession 中获取
+ */
+NET_API int cancel_deactivate_account(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
+ * 查询注销状态
+ * Topic: /im/USER/{appId}/getDeactivateStatus
+ * @param cCallback 回调函数（用于接收查询注销状态的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的查询注销状态请求数据
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note appId 自动从 MqttSession 中获取
+ */
+NET_API int get_deactivate_status(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
  * 修改密码

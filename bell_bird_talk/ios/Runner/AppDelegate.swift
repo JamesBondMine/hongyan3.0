@@ -192,6 +192,8 @@ class NativeBridgeHandler: NSObject {
             imBlockContact(call: call, result: result)
         case "imUnblockContact":
             imUnblockContact(call: call, result: result)
+        case "imGetBlackStatus":
+            imGetBlackStatus(call: call, result: result)
         case "imGetContactList":
             imGetContactList(call: call, result: result)
         case "imSearchContact":
@@ -1197,6 +1199,38 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "UNBLOCK_CONTACT_ERROR",
                               message: "取消拉黑请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取黑名单状态
+    private func imGetBlackStatus(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
+            return
+        }
+        
+        print("🔍 获取黑名单状态: \(userId)")
+        
+        let code = IMSDKContactManager.shared().getBlackStatus(withUserId: userId) { errorCode, reqId, data in
+            print("🔍 获取黑名单状态回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_BLACK_STATUS_ERROR",
+                              message: "获取黑名单状态请求发送失败: \(code)",
                               details: nil))
         }
     }

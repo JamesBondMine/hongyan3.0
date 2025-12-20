@@ -735,6 +735,22 @@ class IOSNativeService {
     }
   }
   
+  /// 获取黑名单状态
+  /// @param userId 用户ID
+  /// @return 返回结果，data 字段包含黑名单状态（JSON 格式，包含 block_direction, is_blocked 等字段）
+  Future<Map<String, dynamic>> imGetBlackStatus({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetBlackStatus', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 获取联系人列表
   /// @param page 页码（从1开始）
   /// @param pageSize 每页数量

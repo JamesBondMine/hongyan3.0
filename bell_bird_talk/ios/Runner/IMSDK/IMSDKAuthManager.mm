@@ -1167,7 +1167,7 @@ static void DeleteUserCallback(int errorCode, const char* data, int dataLen, uin
         NSNumber *tempKey = @(tempId++);
         self.authCallbacks[tempKey] = completion;
         
-        int result = delete_user(DeleteUserCallback, data, dataLen, reqId);
+        int result = deactivate_user(DeleteUserCallback, data, dataLen, reqId);
         
         if (result == 0) {
             NSLog(@"✅ 注销用户请求发送成功: reqId=%llu", reqId);
@@ -1183,7 +1183,7 @@ static void DeleteUserCallback(int errorCode, const char* data, int dataLen, uin
         return result;
     }
     
-    return delete_user(DeleteUserCallback, data, dataLen, reqId);
+    return deactivate_user(DeleteUserCallback, data, dataLen, reqId);
 }
 
 // varint32 编码

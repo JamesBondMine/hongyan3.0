@@ -29,12 +29,14 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   late FriendModel _friend;
   bool _isStarred = false;
   bool _hasChanges = false;  // 标记是否有修改（用于刷新列表）
+  bool? _isBlocked;  // 黑名单状态（null=未查询，true=已拉黑，false=未拉黑）
   
   @override
   void initState() {
     super.initState();
     _friend = widget.friend;
     _loadUserInfo();
+    _loadBlackStatus();
   }
   
   /// 加载用户信息
@@ -80,6 +82,31 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       }
     } catch (e) {
       print('获取用户信息失败: $e');
+    }
+  }
+  
+  /// 加载黑名单状态
+  Future<void> _loadBlackStatus() async {
+    try {
+      final result = await _nativeService.imGetBlackStatus(userId: widget.friend.id);
+      if (!mounted) return;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr) as Map<String, dynamic>;
+            final isBlocked = data['is_blocked'] as bool? ?? false;
+            setState(() {
+              _isBlocked = isBlocked;
+            });
+          } catch (e) {
+            print('解析黑名单状态失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取黑名单状态失败: $e');
     }
   }
 
@@ -496,7 +523,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           _buildMenuItem(
             icon: Icons.block_outlined,
             iconColor: Colors.orange,
-            label: _friend.relationship==3 ? '取消黑名单' : '加入黑名单',
+            label: (_isBlocked ?? (_friend.relationship == 3)) ? '取消黑名单' : '加入黑名单',
             onTap: () => _confirmBlockFriend(),
           ),
           
@@ -731,7 +758,8 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   
   /// 确认拉黑/取消拉黑好友
   void _confirmBlockFriend() {
-    final bool isBlocked = _friend.relationship == 3; // 3 = 已在黑名单
+    // 优先使用查询到的黑名单状态，如果没有查询到则使用 relationship
+    final bool isBlocked = _isBlocked ?? (_friend.relationship == 3);
     final String title = isBlocked ? '取消黑名单' : '加入黑名单';
     final String content = isBlocked
         ? '确定要将「${_friend.displayName}」移出黑名单吗？\n\n移出后，对方可以再次向你发送消息。'
@@ -759,6 +787,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                 if (result['errorCode'] == 0) {
                   EasyLoading.showSuccess(isBlocked ? '已取消黑名单' : '已加入黑名单');
                   setState(() {
+                    _isBlocked = !isBlocked;  // 更新黑名单状态
                     _friend = _friend.copyWith(relationship: isBlocked ? 1 : 3);
                     _hasChanges = true;
                   });

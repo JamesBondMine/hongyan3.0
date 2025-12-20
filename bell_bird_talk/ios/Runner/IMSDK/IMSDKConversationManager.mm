@@ -181,6 +181,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     // 构建查询请求
     ConvListQuery *query = [[ConvListQuery alloc] init];
     
+    
     // 设置会话类型（如果需要过滤）
     if (convType >= 0) {
         query.convType = (ConversationType)convType;

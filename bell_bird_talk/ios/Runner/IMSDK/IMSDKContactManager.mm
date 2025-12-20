@@ -481,6 +481,93 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
     return unblock_contact(BlockContactCallback, data, dataLen, targetId, reqId);
 }
 
+// 获取黑名单状态回调
+static void BlackStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔍 获取黑名单状态回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSString *jsonString = nil;
+    if (data && dataLen > 0) {
+        NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+        
+        // 尝试解析为 BlockCheckResult
+        NSError *error = nil;
+        BlockCheckResult *result = [BlockCheckResult parseFromData:responseData error:&error];
+        if (!error && result) {
+            NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
+            // BlockDirection: NONE=0, SELF=1, OTHER=2, BOTH=3
+            // SELF 表示我拉黑了对方，OTHER 表示对方拉黑了我，BOTH 表示互相拉黑
+            resultDict[@"block_direction"] = @(result.blockDirection);
+            resultDict[@"is_blocked"] = @(result.blockDirection == BlockDirection_Self || result.blockDirection == BlockDirection_Both);
+            resultDict[@"is_blocked_by_other"] = @(result.blockDirection == BlockDirection_Other || result.blockDirection == BlockDirection_Both);
+            
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:resultDict options:0 error:nil];
+            if (jsonData) {
+                jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            }
+            NSLog(@"✅ 解析黑名单状态成功: blockDirection=%d", result.blockDirection);
+        } else {
+            // 尝试直接作为字符串
+            jsonString = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (!jsonString) {
+                jsonString = @"{}";
+            }
+            NSLog(@"⚠️ Protobuf解析失败，使用原始数据");
+        }
+    }
+    
+    IMSDKContactManager *manager = [IMSDKContactManager sharedManager];
+    IMSDKContactCompletion completion = manager.contactCallbacks[@(reqId)];
+    if (completion) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(errorCode, reqId, jsonString);
+        });
+        [manager.contactCallbacks removeObjectForKey:@(reqId)];
+    }
+}
+
+- (int)getBlackStatusWithUserId:(NSString *)userId
+                      completion:(IMSDKContactCompletion)completion {
+    NSLog(@"🔍 获取黑名单状态: userId=%@", userId);
+    
+    if (!userId || userId.length == 0) {
+        NSLog(@"❌ 用户ID不能为空");
+        return -1;
+    }
+    
+    // 创建 BlockCheck 对象
+    BlockCheck *blockCheck = [[BlockCheck alloc] init];
+    blockCheck.targetUserId = userId;
+    
+    NSData *protoBody = [blockCheck data];
+    if (!protoBody || protoBody.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    const char *data = (const char *)protoBody.bytes;
+    int dataLen = (int)protoBody.length;
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 10000;
+        NSNumber *tempKey = @(tempId++);
+        self.contactCallbacks[tempKey] = completion;
+        
+        int result = get_black_status(BlackStatusCallback, data, dataLen, reqId);
+        
+        if (result == 0 && reqId != 0) {
+            self.contactCallbacks[@(reqId)] = completion;
+            [self.contactCallbacks removeObjectForKey:tempKey];
+        } else if (result != 0) {
+            [self.contactCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return get_black_status(BlackStatusCallback, data, dataLen, reqId);
+}
+
 #pragma mark - 好友查询
 
 - (int)getContactListWithPage:(int)page
