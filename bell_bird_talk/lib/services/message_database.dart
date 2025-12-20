@@ -39,6 +39,7 @@ class MessageDatabase {
         local_id TEXT PRIMARY KEY,
         server_id TEXT,
         conv_id TEXT NOT NULL,
+        msg_id TEXT NOT NULL,
         sender_id TEXT NOT NULL,
         receiver_id TEXT NOT NULL,
         type INTEGER NOT NULL,
@@ -354,6 +355,25 @@ class MessageDatabase {
     return _conversationFromDbMap(maps.first);
   }
   
+  /// 根据 target_id 和 conv_type 获取会话（用于单聊/群聊）
+  Future<ConversationModel?> getConversationByTargetId(
+    String userId,
+    String targetId,
+    int convType,
+  ) async {
+    final db = await database;
+    
+    final List<Map<String, dynamic>> maps = await db.query(
+      'conversations',
+      where: 'user_id = ? AND target_id = ? AND conv_type = ?',
+      whereArgs: [userId, targetId, convType],
+      limit: 1,
+    );
+    
+    if (maps.isEmpty) return null;
+    return _conversationFromDbMap(maps.first);
+  }
+  
   /// 更新会话未读数
   Future<void> updateConversationUnreadCount(
     String userId,
@@ -543,14 +563,36 @@ class MessageDatabase {
   }
 
   /// 插入消息
-  Future<void> insertMessage(ChatMessage message) async {
+  Future<ChatMessage> insertMessage(ChatMessage message) async {
     final db = await database;
+
+    print("message.ext: ${message.ext}");
+    // 查询本地消息 ---  因为要删除
+    final existingMessage = await db.query(
+      'messages',
+      where: 'local_id = ?',
+      whereArgs: [message.ext],
+      limit: 1,
+    );
+    print("existingMessage: $existingMessage");
+    if (existingMessage.isNotEmpty) {
+      // 删除本地消息
+      int count = await db.delete(
+        'messages',
+        where: 'local_id = ?',
+        whereArgs: [message.ext],
+      );
+      print("删除本地消息: $count");
+    }
+    
+
     print('插入消息数据库--单条: ${message.toDbMap()}');
     await db.insert(
       'messages',
       message.toDbMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    return message;
   }
 
   /// 批量插入消息

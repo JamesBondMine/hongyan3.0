@@ -80,12 +80,14 @@ class MessageQueueManager {
 
   /// 发送消息（加入队列）
   Future<bool> sendMessage(ChatMessage message) async {
+
+    // 保存到数据库
+    ChatMessage msg = await _database.insertMessage(message);
+    print("发送后插入消息到数据库: $msg ${msg.localId}");
+    message.ext = msg.localId;
     final completer = Completer<bool>();
     final task = MessageTask(message: message, completer: completer);
     print("sendMessage: ${message.toDbMap()}");
-    // 保存到数据库
-    await _database.insertMessage(message);
-    
     // 加入队列
     _queues.putIfAbsent(message.convId, () => []);
     _queues[message.convId]!.add(task);
@@ -227,6 +229,7 @@ class MessageQueueManager {
       content: message.textContent ?? '',
       conversationId: message.convId,
       receiverId: message.receiverId,
+      ext: message.ext,
     );
     
     if (result['errorCode'] == 0) {

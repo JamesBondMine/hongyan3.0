@@ -553,7 +553,7 @@ static void BlackStatusCallback(int errorCode, const char* data, int dataLen, ui
         NSNumber *tempKey = @(tempId++);
         self.contactCallbacks[tempKey] = completion;
         
-        int result = get_black_status(BlackStatusCallback, data, dataLen, reqId);
+        int result = get_block_status(BlackStatusCallback, data, dataLen, reqId);
         
         if (result == 0 && reqId != 0) {
             self.contactCallbacks[@(reqId)] = completion;
@@ -565,7 +565,7 @@ static void BlackStatusCallback(int errorCode, const char* data, int dataLen, ui
         return result;
     }
     
-    return get_black_status(BlackStatusCallback, data, dataLen, reqId);
+    return get_block_status(BlackStatusCallback, data, dataLen, reqId);
 }
 
 #pragma mark - 好友查询

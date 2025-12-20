@@ -510,6 +510,130 @@ static void GetUsersInfoCallback(const char* operationID, int errorCode, const c
     return reqId;
 }
 
+#pragma mark - 获取注销状态
+
+// 获取注销状态回调
+static void GetDeactivateStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 获取注销状态回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    // 立即拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
+        if (!completion) {
+            NSLog(@"⚠️ 未找到回调: reqId=%llu", reqId);
+            return;
+        }
+        
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        
+        if (errorCode != 0) {
+            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"获取注销状态失败";
+            completion(errorCode, errorMsg, nil, reqId);
+            return;
+        }
+        
+        // 解析返回的注销状态信息
+        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            NSError *error = nil;
+            DeactivateStatusInfo *statusInfo = [DeactivateStatusInfo parseFromData:responseData error:&error];
+            
+            if (statusInfo && !error) {
+                result[@"user_id"] = statusInfo.userId ?: @"";
+                result[@"status"] = @(statusInfo.status);
+                result[@"request_time"] = @(statusInfo.requestTime);
+                result[@"review_time"] = @(statusInfo.reviewTime);
+                result[@"reviewer_id"] = statusInfo.reviewerId ?: @"";
+                result[@"review_result"] = @(statusInfo.reviewResult);
+                
+                // 状态枚举值：Normal=0, Cooling=1, PendingReview=2, Deactivated=3
+                NSString *statusText = @"正常";
+                switch (statusInfo.status) {
+                    case DeactivateStatus_Normal:
+                        statusText = @"正常";
+                        break;
+                    case DeactivateStatus_Cooling:
+                        statusText = @"冷却期";
+                        break;
+                    case DeactivateStatus_PendingReview:
+                        statusText = @"待审核";
+                        break;
+                    case DeactivateStatus_Deactivated:
+                        statusText = @"已注销";
+                        break;
+                    default:
+                        statusText = @"未知";
+                        break;
+                }
+                result[@"status_text"] = statusText;
+                
+                NSLog(@"✅ 获取注销状态成功: status=%d (%@)", statusInfo.status, statusText);
+            } else {
+                NSLog(@"⚠️ 解析注销状态信息失败: %@", error);
+            }
+        }
+        
+        completion(0, @"获取成功", result, reqId);
+    });
+}
+
+- (uint64_t)getDeactivateStatusWithUserId:(NSString *)userId
+                               completion:(IMSDKUserCompletion)completion {
+    NSLog(@"📤 获取注销状态: userId=%@", userId);
+    
+    // 验证参数
+    if (!userId || userId.length == 0) {
+        NSLog(@"❌ userId 不能为空");
+        if (completion) {
+            completion(-1, @"userId 不能为空", nil, 0);
+        }
+        return 0;
+    }
+    
+    // 创建 GetDeactivateStatus 对象
+    GetDeactivateStatus *getStatus = [[GetDeactivateStatus alloc] init];
+    getStatus.userId = userId;
+    
+    // 序列化
+    NSData *serializedData = [getStatus data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ 序列化注销状态查询数据失败");
+        if (completion) {
+            completion(-2, @"序列化失败", nil, 0);
+        }
+        return 0;
+    }
+    
+    NSLog(@"📦 序列化成功: %lu 字节", (unsigned long)serializedData.length);
+    
+    // 保存回调
+    uint64_t reqId = 0;
+    int result = get_deactivate_status(GetDeactivateStatusCallback,
+                                      (const char *)serializedData.bytes,
+                                      (int)serializedData.length,
+                                      reqId);
+    
+    if (result == 0 && reqId > 0) {
+        if (completion) {
+            g_userCallbacks[@(reqId)] = [completion copy];
+        }
+        NSLog(@"✅ 获取注销状态请求已发送: reqId=%llu", reqId);
+    } else {
+        NSLog(@"❌ 获取注销状态请求失败: result=%d", result);
+        if (completion) {
+            completion(result, @"发送请求失败", nil, 0);
+        }
+    }
+    
+    return reqId;
+}
+
 
 @end
 

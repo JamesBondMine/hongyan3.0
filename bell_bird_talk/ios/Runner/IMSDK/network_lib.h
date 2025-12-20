@@ -474,7 +474,7 @@ NET_API int reject_friend_request(CB_I_S_I_U cCallback, const char* data, int le
  * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码 
  */
-NET_API int get_black_status(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+NET_API int get_block_status(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 // ============================================
 // 联系人分组管理接口
@@ -800,14 +800,14 @@ NET_API int set_group_policy(CB_I_S_I_U cCallback, const char* data, int len, co
 NET_API int get_group_policy(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
 
 /**
- * 群组静音 targetId 群ID
+ * 群组免打扰 targetId 群ID
  */
-NET_API int mute_group(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
+NET_API int disturb_group(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
 
 /**
- * 查询群组禁言状态 targetId 群ID
+ * 查询群组免打扰状态 targetId 群ID
  */
-NET_API int get_group_mute_status(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
+NET_API int get_group_disturb_status(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
 
 // ============================================
 // 消息拉取接口

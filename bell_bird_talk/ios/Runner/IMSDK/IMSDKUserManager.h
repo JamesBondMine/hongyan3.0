@@ -90,6 +90,13 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 - (uint64_t)getUsersInfoWithUserIds:(NSArray<NSString *> *)userIds
                           completion:(IMSDKUserCompletion)completion;
 
+/// 获取注销状态
+/// @param userId 用户ID（必填）
+/// @param completion 完成回调，data 字段包含注销状态信息（JSON 字符串）
+/// @return 请求ID，失败返回0
+- (uint64_t)getDeactivateStatusWithUserId:(NSString *)userId
+                               completion:(IMSDKUserCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

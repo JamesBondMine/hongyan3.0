@@ -256,6 +256,24 @@ typedef void (^IMSDKGroupCompletion)(int errorCode, uint64_t reqId, NSString * _
                                reason:(NSString * _Nullable)reason
                            completion:(IMSDKGroupCompletion)completion;
 
+// ==================== 群组免打扰 ====================
+
+/// 设置群组免打扰
+/// @param groupId 群组ID（必填）
+/// @param disturb 是否免打扰（必填）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)setGroupDisturbWithGroupId:(NSString *)groupId
+                            disturb:(BOOL)disturb
+                        completion:(IMSDKGroupCompletion)completion;
+
+/// 查询群组免打扰状态
+/// @param groupId 群组ID（必填）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
+                             completion:(IMSDKGroupCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

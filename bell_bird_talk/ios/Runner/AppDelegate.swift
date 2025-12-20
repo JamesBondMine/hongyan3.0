@@ -228,8 +228,14 @@ class NativeBridgeHandler: NSObject {
             imDissolveGroup(call: call, result: result)
         case "imLeaveGroup":
             imLeaveGroup(call: call, result: result)
+        case "imSetGroupDisturb":
+            imSetGroupDisturb(call: call, result: result)
+        case "imGetGroupDisturbStatus":
+            imGetGroupDisturbStatus(call: call, result: result)
         case "imAddGroupMembers":
             imAddGroupMembers(call: call, result: result)
+        case "imRemoveGroupMembers":
+            imRemoveGroupMembers(call: call, result: result)
         case "imSetContactRemark":
             imSetContactRemark(call: call, result: result)
         case "imMoveContactToGroup":
@@ -298,6 +304,8 @@ class NativeBridgeHandler: NSObject {
             imLogout(call: call, result: result)
         case "imDeactivateAccount":
             imDeactivateAccount(call: call, result: result)
+        case "imGetDeactivateStatus":
+            imGetDeactivateStatus(call: call, result: result)
             
 
         case "imChangePassword":
@@ -1566,6 +1574,8 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    // 移除群成员
+    
     /// 更新群信息（名称/头像/公告/描述）
     private func imUpdateGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1711,6 +1721,61 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 设置群组免打扰
+    private func imSetGroupDisturb(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String,
+              let disturb = args["disturb"] as? Bool else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id 或 disturb", details: nil))
+            return
+        }
+        
+        print("📁 设置群组免打扰: groupId=\(groupId), disturb=\(disturb)")
+        
+        let code = IMSDKGroupManager.shared().setGroupDisturbWithGroupId(groupId, disturb: disturb, completion: { errorCode, reqId, data in
+            print("📁 设置群组免打扰回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "设置成功" : "设置失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "SET_GROUP_DISTURB_ERROR",
+                                message: "设置群组免打扰请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 查询群组免打扰状态
+    private func imGetGroupDisturbStatus(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        print("📁 查询群组免打扰状态: groupId=\(groupId)")
+        
+        let code = IMSDKGroupManager.shared().getGroupDisturbStatus(withGroupId: groupId) { errorCode, reqId, data in
+            print("📁 查询群组免打扰状态回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "查询成功" : "查询失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_GROUP_DISTURB_STATUS_ERROR",
+                                message: "查询群组免打扰状态请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
     /// 添加群组成员
     private func imAddGroupMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
@@ -1733,6 +1798,36 @@ class NativeBridgeHandler: NSObject {
                 "data": data ?? ""
             ])
         }
+        
+        if code != 0 {
+            result(FlutterError(code: "ADD_GROUP_MEMBERS_ERROR",
+                                message: "添加群组成员请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 移除群组成员
+    private func imRemoveGroupMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String,
+              let userIds = args["user_ids"] as? [String] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id 或 user_ids", details: nil))
+            return
+        }
+        
+        let reason = args["reason"] as? String
+        
+        print("📁 添加群组成员: groupId=\(groupId), userIds=\(userIds), reason=\(reason ?? "")")
+        
+        let code = IMSDKGroupManager.shared().removeGroupMembers(withGroupId: groupId, userIds: userIds, reason: reason, completion: { errorCode, reqId, data in
+            print("📁 添加群组成员回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "添加成功" : "添加失败",
+                "data": data ?? ""
+            ])
+        })
         
         if code != 0 {
             result(FlutterError(code: "ADD_GROUP_MEMBERS_ERROR",
@@ -2930,6 +3025,52 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "DEACTIVATE_ACCOUNT_ERROR",
                               message: "注销用户请求失败",
+                              details: nil))
+        }
+    }
+    
+    /// 获取注销状态
+    private func imGetDeactivateStatus(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "user_id 不能为空", details: nil))
+            return
+        }
+        
+        print("🔍 获取注销状态: userId=\(userId)")
+        
+        let reqId = IMSDKUserManager.shared().getDeactivateStatus(withUserId: userId) { errorCode, message, data, reqId in
+            print("🔍 获取注销状态回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            // 构建返回数据
+            var response: [String: Any] = [
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? (errorCode == 0 ? "获取成功" : "获取失败")
+            ]
+            
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                } else {
+                    response["data"] = ""
+                }
+            } else {
+                response["data"] = ""
+            }
+            
+            result(response)
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "GET_DEACTIVATE_STATUS_ERROR",
+                              message: "获取注销状态请求发送失败",
                               details: nil))
         }
     }

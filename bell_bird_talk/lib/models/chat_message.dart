@@ -64,6 +64,9 @@ class ChatMessage {
   
   /// 会话ID
   final String convId;
+
+  /// 消息ID
+  final String msgId;
   
   /// 发送者ID
   final String senderId;
@@ -146,6 +149,8 @@ class ChatMessage {
     required this.localId,
     this.serverId,
     required this.convId,
+    required this.msgId,
+    
     required this.senderId,
     required this.receiverId,
     required this.type,
@@ -177,10 +182,12 @@ class ChatMessage {
   factory ChatMessage.text({
     required String convId,
     required String senderId,
+    String msgId =  "",
     required String receiverId,
     required String content,
   }) {
     return ChatMessage(
+      msgId:msgId ,
       localId: _generateLocalId(),
       convId: convId,
       senderId: senderId,
@@ -195,6 +202,7 @@ class ChatMessage {
   /// 创建图片消息
   factory ChatMessage.image({
     required String convId,
+    String msgId =  "",
     required String senderId,
     required String receiverId,
     required String localPath,
@@ -204,6 +212,7 @@ class ChatMessage {
     return ChatMessage(
       localId: _generateLocalId(),
       convId: convId,
+      msgId:msgId ,
       senderId: senderId,
       receiverId: receiverId,
       type: MessageType.image,
@@ -218,6 +227,7 @@ class ChatMessage {
   /// 创建语音消息
   factory ChatMessage.voice({
     required String convId,
+    String msgId =  "",
     required String senderId,
     required String receiverId,
     required String localPath,
@@ -226,6 +236,7 @@ class ChatMessage {
     return ChatMessage(
       localId: _generateLocalId(),
       convId: convId,
+      msgId:msgId ,
       senderId: senderId,
       receiverId: receiverId,
       type: MessageType.voice,
@@ -239,6 +250,7 @@ class ChatMessage {
   /// 创建视频消息
   factory ChatMessage.video({
     required String convId,
+    String msgId =  "",
     required String senderId,
     required String receiverId,
     required String localPath,
@@ -250,6 +262,7 @@ class ChatMessage {
     return ChatMessage(
       localId: _generateLocalId(),
       convId: convId,
+      msgId:msgId ,
       senderId: senderId,
       receiverId: receiverId,
       type: MessageType.video,
@@ -300,6 +313,7 @@ class ChatMessage {
       'local_id': localId,
       'server_id': serverId,
       'conv_id': convId,
+      'msg_id': msgId,
       'sender_id': senderId,
       'receiver_id': receiverId,
       'type': type.value,
@@ -334,6 +348,7 @@ class ChatMessage {
       localId: map['local_id'] as String,
       serverId: map['server_id'] as String?,
       convId: map['conv_id'] as String,
+      msgId: map['msg_id'] ?? "",
       senderId: map['sender_id'] as String,
       receiverId: map['receiver_id'] as String,
       type: MessageType.fromValue(map['type'] as int),
@@ -378,6 +393,7 @@ class ChatMessage {
       localId: localId,
       serverId: serverId ?? this.serverId,
       convId: convId,
+      msgId: msgId,
       senderId: senderId,
       receiverId: receiverId,
       type: type,

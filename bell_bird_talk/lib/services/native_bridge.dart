@@ -1128,6 +1128,70 @@ class IOSNativeService {
     }
   }
   
+  /// 设置群组免打扰
+  /// @param groupId 群组ID（必填）
+  /// @param disturb 是否免打扰（必填）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imSetGroupDisturb({
+    required String groupId,
+    required bool disturb,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imSetGroupDisturb', {
+        'group_id': groupId,
+        'disturb': disturb,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('设置群组免打扰错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 查询群组免打扰状态
+  /// @param groupId 群组ID（必填）
+  /// @return 操作结果，data 中包含免打扰状态
+  Future<Map<String, dynamic>> imGetGroupDisturbStatus({
+    required String groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetGroupDisturbStatus', {
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('查询群组免打扰状态错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+
+  /// 添加群组成员
+  /// @param groupId 群组ID（必填）
+  /// @param userIds 用户ID列表（必填）
+  /// @param reason 邀请理由（可选）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imRemoveGroupMembers({
+    required String groupId,
+    required List<String> userIds,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'group_id': groupId,
+        'user_ids': userIds,
+      };
+      if (reason != null && reason.isNotEmpty) {
+        params['reason'] = reason;
+      }
+      final result = await _bridge.invokeMethod<Map>('imRemoveGroupMembers', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('添加群成员错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 添加群组成员
   /// @param groupId 群组ID（必填）
   /// @param userIds 用户ID列表（必填）
@@ -1951,6 +2015,23 @@ class IOSNativeService {
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       print('注销用户错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  /// 获取注销状态
+  /// @param userId 用户ID
+  /// @return 返回结果，data 字段包含注销状态信息（JSON 格式）
+  Future<Map<String, dynamic>> imGetDeactivateStatus({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetDeactivateStatus', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取注销状态错误: $e');
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

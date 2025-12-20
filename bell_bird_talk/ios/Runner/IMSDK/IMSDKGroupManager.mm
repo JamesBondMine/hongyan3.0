@@ -468,6 +468,56 @@ static void LeaveGroupCallback(int errorCode, const char* data, int dataLen, uin
     });
 }
 
+/// 设置群组免打扰回调
+static void DisturbGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📬 设置群组免打扰回调: errorCode=%d, reqId=%llu", errorCode, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 查询群组免打扰状态回调
+static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📬 查询群组免打扰状态回调: errorCode=%d, reqId=%llu", errorCode, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKGroupManager *manager = [IMSDKGroupManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKGroupCompletion completion = manager.groupCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            if (responseData && responseData.length > 0) {
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            }
+            completion(errorCode, reqId, dataStr);
+            [manager.groupCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现类 ====================
 
 @implementation IMSDKGroupManager
@@ -685,7 +735,7 @@ static void LeaveGroupCallback(int errorCode, const char* data, int dataLen, uin
     if (groupAvatar && groupAvatar.length > 0) req.groupAvatar = groupAvatar;
     if (groupAnnouncement && groupAnnouncement.length > 0) req.groupAnnouncement = groupAnnouncement;
     if (groupDescription && groupDescription.length > 0) req.groupDescription = groupDescription;
-    if (version > 0) req.version = version;
+    req.version = 1;
     
     
     NSLog(@"\n🍎 更新群组信息: 群ID=%@、群名称=%@、群头像=%@、群描述=%@、", req.groupId, req.groupName, req.groupAvatar, req.groupDescription);
@@ -1272,6 +1322,105 @@ static void LeaveGroupCallback(int errorCode, const char* data, int dataLen, uin
         completion(-1, 0, @"转让群主接口暂未实现");
     }
     return -1;
+}
+
+#pragma mark - 群组免打扰
+
+- (int)setGroupDisturbWithGroupId:(NSString *)groupId
+                            disturb:(BOOL)disturb
+                        completion:(IMSDKGroupCompletion)completion {
+    NSLog(@"📁 设置群组免打扰: groupId=%@, disturb=%@", groupId, disturb ? @"YES" : @"NO");
+    
+    if (!groupId || groupId.length == 0) {
+        NSLog(@"❌ 群组ID不能为空");
+        return -1;
+    }
+    
+    // 创建一个简单的请求数据，包含是否免打扰的状态
+    NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
+    requestDict[@"disturb"] = @(disturb);
+    
+    NSError *jsonError = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&jsonError];
+    if (!jsonData || jsonError) {
+        NSLog(@"❌ JSON 序列化失败: %@", jsonError);
+        return -1;
+    }
+    
+    const char *data = (const char *)jsonData.bytes;
+    int dataLen = (int)jsonData.length;
+    uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
+    
+    if (completion) {
+        static uint64_t tempId = 20000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int result = disturb_group(DisturbGroupCallback, data, dataLen, targetId, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 设置群组免打扰请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 设置群组免打扰请求失败: %d", result);
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return disturb_group(DisturbGroupCallback, data, dataLen, targetId, reqId);
+}
+
+- (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
+                             completion:(IMSDKGroupCompletion)completion {
+    NSLog(@"📁 查询群组免打扰状态: groupId=%@", groupId);
+    
+    if (!groupId || groupId.length == 0) {
+        NSLog(@"❌ 群组ID不能为空");
+        return -1;
+    }
+    
+    // 查询接口可以传递空数据或简单的查询参数
+    NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
+    NSError *jsonError = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&jsonError];
+    if (!jsonData || jsonError) {
+        NSLog(@"❌ JSON 序列化失败: %@", jsonError);
+        return -1;
+    }
+    
+    const char *data = (const char *)jsonData.bytes;
+    int dataLen = (int)jsonData.length;
+    uint64_t reqId = 0;
+    const char *targetId = [groupId UTF8String];
+    
+    if (completion) {
+        static uint64_t tempId = 20000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int result = get_group_disturb_status(GetGroupDisturbStatusCallback, data, dataLen, targetId, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 查询群组免打扰状态请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 查询群组免打扰状态请求失败: %d", result);
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return get_group_disturb_status(GetGroupDisturbStatusCallback, data, dataLen, targetId, reqId);
 }
 
 @end

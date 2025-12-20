@@ -34,6 +34,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   String? _groupAvatar;
   String? _groupDescription;
   String? _creatorUserId; // 群主ID
+  bool _isDisturb = false; // 免打扰状态
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     _groupName = widget.groupName;
     _groupAvatar = widget.groupAvatar;
     _loadMembers();
+    _loadDisturbStatus();
   }
 
   Future<void> _loadMembers() async {
@@ -100,6 +102,50 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
+  /// 加载群组免打扰状态
+  Future<void> _loadDisturbStatus() async {
+    final result = await _nativeService.imGetGroupDisturbStatus(groupId: widget.groupId);
+    if (!mounted) return;
+    if (result['errorCode'] == 0) {
+      final dataStr = result['data'] as String? ?? '';
+      if (dataStr.isNotEmpty) {
+        try {
+          final map = json.decode(dataStr) as Map<String, dynamic>;
+          // 根据返回的数据解析免打扰状态
+          // 假设返回格式为 {"disturb": true} 或 {"is_disturb": true}
+          final disturb = map['disturb'] as bool? ?? 
+                         map['is_disturb'] as bool? ?? 
+                         false;
+          if (mounted) {
+            setState(() {
+              _isDisturb = disturb;
+            });
+          }
+        } catch (e) {
+          print('解析免打扰状态失败: $e');
+        }
+      }
+    }
+  }
+
+  /// 设置群组免打扰
+  Future<void> _setGroupDisturb(bool disturb) async {
+    EasyLoading.show(status: disturb ? '开启免打扰...' : '关闭免打扰...');
+    final result = await _nativeService.imSetGroupDisturb(
+      groupId: widget.groupId,
+      disturb: disturb,
+    );
+    if (!mounted) return;
+    if (result['errorCode'] == 0) {
+      EasyLoading.showSuccess(disturb ? '已开启免打扰' : '已关闭免打扰');
+      setState(() {
+        _isDisturb = disturb;
+      });
+    } else {
+      EasyLoading.showError(result['message']?.toString() ?? '设置失败');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final memberCount = _members.length;
@@ -127,6 +173,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   }
 
   Widget _buildGroupHeader(int memberCount) {
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    final isOwner = currentUserId.isNotEmpty && 
+                    _creatorUserId != null && 
+                    currentUserId == _creatorUserId;
     return ListTile(
       leading: Stack(
         clipBehavior: Clip.none,
@@ -144,7 +194,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
                   )
                 : null,
           ),
-          Positioned(
+          if (isOwner) Positioned(
             right: -4,
             bottom: -4,
             child: GestureDetector(
@@ -176,10 +226,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         '群ID: ${widget.groupId}  ·  成员 $memberCount 人',
         style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
       ),
-      trailing: IconButton(
+      trailing: isOwner ? IconButton(
         icon: const Icon(Icons.edit),
         onPressed: _editGroupName,
-      ),
+      ) : null,
     );
   }
 
@@ -236,7 +286,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final isAdmin = (m['is_admin'] as bool?) ?? false;
     final name = alias.isNotEmpty ? alias : userId;
     final initial = name.isNotEmpty ? name.characters.first : '#';
-    return SizedBox(
+    return GestureDetector(onTap: () {
+      _showRemoveMemberDialog(userId);
+    },
+    child: SizedBox(
       width: 64,
       child: Column(
         children: [
@@ -262,7 +315,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
             ),
         ],
       ),
-    );
+    ),);
   }
   
   Widget _buildAddMemberButton() {
@@ -375,6 +428,47 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
+
+  // 移除群成员
+  Future<void> _showRemoveMemberDialog(String userId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('移除群成员'),
+        content: Text('确定要移除群成员吗？'),
+        actions: [
+          TextButton(onPressed: () {
+            Navigator.pop(context, false);
+
+          }, child: const Text('取消')),
+          TextButton(onPressed: () {
+            Navigator.pop(context, true);
+
+          }, child: const Text('确定')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+      try {
+        // 调用添加群成员接口
+      EasyLoading.show(status: '移除群成员...');
+      final addResult = await _nativeService.imRemoveGroupMembers(
+        groupId: widget.groupId,
+        userIds: [userId],
+      );
+      if (addResult['errorCode'] == 0) {
+        EasyLoading.showSuccess('移除成功');
+        // 刷新成员列表
+        await _loadMembers();
+      } else {
+        EasyLoading.showError(addResult['message']?.toString() ?? '移除失败');
+      }
+      } catch (e) {
+        if (!mounted) return;
+        EasyLoading.showError('操作失败: $e');
+      }
+  }
+
   Widget _buildSettingSection() {
     return Column(
       children: [
@@ -404,9 +498,9 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         ),
         const Divider(height: 1),
         SwitchListTile(
-          value: false,
+          value: _isDisturb,
           onChanged: (v) {
-            EasyLoading.showInfo('群免打扰功能待实现');
+            _setGroupDisturb(v);
           },
           title: const Text('消息免打扰'),
         ),

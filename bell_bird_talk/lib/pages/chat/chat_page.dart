@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -174,6 +175,50 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: widget.customAppBar ?? _buildAppBar(),
+      body: Column(
+        children: [
+          // 消息列表
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                // 点击消息列表区域时收起面板和键盘
+                if (_showEmojiPicker || _showMorePanel) {
+                  setState(() {
+                    _showEmojiPicker = false;
+                    _showMorePanel = false;
+                  });
+                }
+                _focusNode.unfocus();
+              },
+              child: _buildMessageList(),
+            ),
+          ),
+          // 输入区域：语音面板 或 文字输入栏
+          if (_showVoicePanel)
+            VoiceRecordPanel(
+              onSend: _handleVoiceSend,
+              onClose: () => setState(() => _showVoicePanel = false),
+              autoStart: true,
+            )
+          else ...[
+            _buildInputBar(),
+            // 表情选择器
+            if (_showEmojiPicker) _buildEmojiPicker(),
+            // 更多面板
+            if (_showMorePanel) _buildMorePanel(),
+          ],
+        ],
+      ),
+    );
+  }
+
+
   /// 加载消息（对方消息只从网络获取；自己发送的消息合并本地+网络）
   Future<void> _loadMessages() async {
     // 1. 先加载本地仅自己发送的消息（用于发送中/失败的展示与重发）
@@ -274,6 +319,7 @@ class _ChatPageState extends State<ChatPage> {
     final chatMessage = ChatMessage(
       localId: msgId,
       serverId: msgId,
+      msgId: msgId,
       convId: widget.convId,
       senderId: senderId,
       receiverId: _currentUserId,
@@ -303,8 +349,8 @@ class _ChatPageState extends State<ChatPage> {
     _scrollToBottom();
     
     // 保存到本地数据库
-    _messageDatabase.insertMessage(chatMessage).then((_) {
-      print('💾 新消息已保存到本地数据库: $msgId');
+    _messageDatabase.insertMessage(chatMessage).then((msg) {
+      print('💾 新消息已保存到本地数据库: $msgId.  ${msg.localId}');
     }).catchError((e) {
       print('❌ 保存消息到数据库失败: $e');
     });
@@ -415,6 +461,7 @@ class _ChatPageState extends State<ChatPage> {
         final mType = msg['m_type'] as int? ?? 0;
         final imageUrl = msg['image_url'] as String?;
         final fileUrl = msg['file_url'] as String?;
+        final ext = msg['ext'] as String?;
         final audioUrl = msg['audio_url'] as String?;
         final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
         final videoUrl = msg['video_url'] as String?;
@@ -465,6 +512,7 @@ class _ChatPageState extends State<ChatPage> {
           'videoUrl': videoUrl,
           'thumbnailUrl': thumbnailUrl,
           'videoDuration': videoDuration,
+          'ext': ext,
         };
         
         print("组装消息2: $msgMap");
@@ -487,6 +535,8 @@ class _ChatPageState extends State<ChatPage> {
                     : MessageType.text;
         final chatMessage = ChatMessage(
           localId: msgId.toString(),
+          msgId: msgId.toString(),
+          ext: ext.toString(),
           serverId: msgId.toString(),
           convId: widget.convId,
           senderId: senderId.toString(),
@@ -513,7 +563,9 @@ class _ChatPageState extends State<ChatPage> {
         );
         if (convHasLocal) {
           // 会话已有消息，逐条插入（replace）
-          await _messageDatabase.insertMessage(chatMessage);
+          ChatMessage res = await _messageDatabase.insertMessage(chatMessage);
+          print("插入消息: $res");
+
         } else {
           toInsertBatch.add(chatMessage);
         }
@@ -749,48 +801,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: widget.customAppBar ?? _buildAppBar(),
-      body: Column(
-        children: [
-          // 消息列表
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                // 点击消息列表区域时收起面板和键盘
-                if (_showEmojiPicker || _showMorePanel) {
-                  setState(() {
-                    _showEmojiPicker = false;
-                    _showMorePanel = false;
-                  });
-                }
-                _focusNode.unfocus();
-              },
-              child: _buildMessageList(),
-            ),
-          ),
-          // 输入区域：语音面板 或 文字输入栏
-          if (_showVoicePanel)
-            VoiceRecordPanel(
-              onSend: _handleVoiceSend,
-              onClose: () => setState(() => _showVoicePanel = false),
-              autoStart: true,
-            )
-          else ...[
-            _buildInputBar(),
-            // 表情选择器
-            if (_showEmojiPicker) _buildEmojiPicker(),
-            // 更多面板
-            if (_showMorePanel) _buildMorePanel(),
-          ],
-        ],
-      ),
-    );
-  }
-
+  
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: Column(
@@ -810,6 +821,23 @@ class _ChatPageState extends State<ChatPage> {
       foregroundColor: Colors.white,
       elevation: 0,
       actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchMessageHistory(
+                  convId: widget.convId,
+                  targetId: widget.targetUserId,
+                  displayName: widget.displayName,
+                  avatarUrl: widget.avatar ?? '',
+                  convType: widget.convType,
+                ),
+              ),
+            );
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.more_horiz),
           onPressed: () {
@@ -1127,7 +1155,7 @@ class _ChatPageState extends State<ChatPage> {
               top: 4,
             ),
             child: Text(
-              '$formattedTime  $senderId  $type',
+              '$formattedTime  ${message['msg_id']}',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[400],

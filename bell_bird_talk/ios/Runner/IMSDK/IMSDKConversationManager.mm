@@ -26,7 +26,7 @@
 
 // 会话操作回调
 static void ConversationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📨 会话回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    NSLog(@"🍎会话回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
     // ⚠️ 立即打印原始数据 HEX（在任何异步操作之前）
     if (data && dataLen > 0) {
@@ -45,19 +45,28 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         
         // 尝试解析为 ConvList（会话列表响应）
         NSError *error = nil;
-        ConvList *convList = [ConvList parseFromData:responseData error:&error];
+        ListWithUnread *convList = [ListWithUnread parseFromData:responseData error:&error];
         if (!error && convList) {
             NSMutableDictionary *result = [NSMutableDictionary dictionary];
-            result[@"total_count"] = @(convList.totalCount);
+            result[@"total_count"] = @(convList.totalUnread);
             result[@"page"] = @(convList.page);
             result[@"size"] = @(convList.size);
             
             NSMutableArray *convArray = [NSMutableArray array];
-            for (Conv *conv in convList.convsArray) {
+            for (ConvWithUnread *convWithUnread in convList.convsArray) {
+                // ConvWithUnread 包含嵌套的 conv 对象
+                Conv *conv = convWithUnread.conv;
+                if (!conv) {
+                    NSLog(@"⚠️ ConvWithUnread 中的 conv 为空，跳过");
+                    continue;
+                }
+                
+                NSLog(@"conv.convId: %@", conv.convId);
                 NSMutableDictionary *convDict = [NSMutableDictionary dictionary];
                 convDict[@"conv_id"] = conv.convId ?: @"";
                 convDict[@"parent_id"] = conv.parentId ?: @"";
                 convDict[@"conv_type"] = @(conv.convType);
+                
                 convDict[@"level"] = @(conv.level);
                 convDict[@"display_name"] = conv.displayName ?: @"";
                 convDict[@"description"] = conv.description_p ?: @"";
@@ -69,6 +78,12 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"created_at"] = @(conv.createdAt);
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
+                
+                // 添加未读数信息（来自 ConvWithUnread）
+                convDict[@"unread_count"] = @(convWithUnread.unreadCount);
+                convDict[@"last_read_seq"] = @(convWithUnread.lastReadSeq);
+                convDict[@"conv_max_seq"] = @(convWithUnread.convMaxSeq);
+                
                 [convArray addObject:convDict];
             }
             result[@"conversations"] = convArray;

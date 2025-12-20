@@ -6,7 +6,9 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
+import '../../services/message_database.dart';
 import '../chat/chat_page.dart';
+import '../chat/models/chat_model.dart';
 
 /// 好友详情页面
 class FriendDetailPage extends StatefulWidget {
@@ -25,6 +27,8 @@ class FriendDetailPage extends StatefulWidget {
 
 class _FriendDetailPageState extends State<FriendDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final MessageDatabase _messageDatabase = MessageDatabase();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
   
   late FriendModel _friend;
   bool _isStarred = false;
@@ -596,11 +600,36 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   
   /// 发起聊天
   Future<void> _startChat() async {
-    // EasyLoading.show(status: '创建会话中...');
-    
     try {
-      // 调用 SDK 创建会话
-      // convType: 0 = 单聊
+      // 获取当前用户ID
+      final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+      if (currentUserId.isEmpty) {
+        EasyLoading.showError('用户未登录');
+        return;
+      }
+      
+      // 1. 先查询本地数据库，看是否已有该好友的单聊会话
+      final existingConv = await _messageDatabase.getConversationByTargetId(
+        currentUserId,
+        _friend.id,
+        1, // convType: 1 = 单聊
+      );
+      
+      if (existingConv != null) {
+        // 如果本地已有会话，直接跳转
+        print('📱 使用本地会话: ${existingConv.convId}');
+        Get.to(() => ChatPage(
+          convId: existingConv.convId,
+          displayName: existingConv.displayName,
+          avatar: existingConv.avatar,
+          targetUserId: _friend.id,
+        ));
+        return;
+      }
+      
+      // 2. 本地没有会话，调用 SDK 创建会话
+      EasyLoading.show(status: '创建会话中...');
+      
       final result = await _nativeService.imCreateConversation(
         convType: 1,  // 单聊
         targetId: _friend.id,
@@ -608,19 +637,20 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         avatarUrl: _friend.avatar,
       );
       
-      // EasyLoading.dismiss();
+      EasyLoading.dismiss();
       
       print('📱 创建会话结果: $result');
       
       if (result['errorCode'] == 0) {
         // 解析返回的会话数据
         String convId = '';
+        Map<String, dynamic>? convData;
         
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           try {
-            final data = json.decode(dataStr);
-            convId = data['conv_id']?.toString() ?? '';
+            convData = json.decode(dataStr) as Map<String, dynamic>;
+            convId = convData['conv_id']?.toString() ?? '';
           } catch (e) {
             print('⚠️ 解析会话数据失败: $e');
           }
@@ -631,7 +661,34 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           convId = 'single_${_friend.id}';
         }
         
-        // 跳转到聊天页面
+        // 3. 保存会话到本地数据库
+        if (convData != null) {
+          try {
+            final conversation = ConversationModel.fromJson(convData);
+            await _messageDatabase.upsertConversation(currentUserId, conversation);
+            print('✅ 会话已保存到本地数据库: $convId');
+          } catch (e) {
+            print('⚠️ 保存会话到数据库失败: $e');
+            // 即使保存失败，也继续跳转
+          }
+        } else {
+          // 如果没有返回完整数据，创建一个基本的会话对象保存
+          try {
+            final conversation = ConversationModel(
+              convId: convId,
+              convType: 1,
+              targetId: _friend.id,
+              displayName: _friend.displayName,
+              avatar: _friend.avatar,
+            );
+            await _messageDatabase.upsertConversation(currentUserId, conversation);
+            print('✅ 会话已保存到本地数据库: $convId');
+          } catch (e) {
+            print('⚠️ 保存会话到数据库失败: $e');
+          }
+        }
+        
+        // 4. 跳转到聊天页面
         Get.to(() => ChatPage(
           convId: convId,
           displayName: _friend.displayName,

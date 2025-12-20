@@ -21,11 +21,13 @@ class _SideMenuContentState extends State<SideMenuContent> {
   final IOSNativeService _nativeService = IOSNativeService();
   int _notificationUnread = 0;
   bool _fetchingUnread = false;
+  Map<String, dynamic>? _deactivateStatus;  // 注销状态信息
 
   @override
   void initState() {
     super.initState();
     _loadNotificationUnread();
+    _loadDeactivateStatus();
   }
 
   Future<void> _loadNotificationUnread() async {
@@ -48,6 +50,36 @@ class _SideMenuContentState extends State<SideMenuContent> {
       }
     }
     if (mounted) setState(() => _fetchingUnread = false);
+  }
+  
+  /// 加载注销状态
+  Future<void> _loadDeactivateStatus() async {
+    try {
+      final globalController = Get.find<GlobalController>();
+      final userId = globalController.currentUser.value?.id;
+      if (userId == null || userId.isEmpty) {
+        return;
+      }
+      
+      final result = await _nativeService.imGetDeactivateStatus(userId: userId);
+      if (!mounted) return;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr) as Map<String, dynamic>;
+            setState(() {
+              _deactivateStatus = data;
+            });
+          } catch (e) {
+            print('解析注销状态失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取注销状态失败: $e');
+    }
   }
 
   @override
@@ -106,8 +138,8 @@ class _SideMenuContentState extends State<SideMenuContent> {
                 ),
                 _buildMenuItem(
                   icon: Icons.delete_forever_outlined,
-                  title: '注销账号',
-                  subtitle: '注销后账号将无法恢复',
+                  title: _getDeactivateStatusTitle(),
+                  subtitle: _getDeactivateStatusSubtitle(),
                   onTap: () => _showDeleteAccountConfirm(context, globalController),
                 ),
               ],
@@ -442,8 +474,140 @@ class _SideMenuContentState extends State<SideMenuContent> {
     );
   }
 
+  /// 获取注销状态标题
+  String _getDeactivateStatusTitle() {
+    if (_deactivateStatus == null) {
+      return '注销账号';
+    }
+    
+    final status = _deactivateStatus!['status'] as int?;
+    
+    // 状态枚举值：Normal=0, Cooling=1, PendingReview=2, Deactivated=3
+    switch (status) {
+      case 0: // Normal
+        return '注销账号';
+      case 1: // Cooling
+        return '注销账号（冷却期）';
+      case 2: // PendingReview
+        return '注销账号（审核中）';
+      case 3: // Deactivated
+        return '账号已注销';
+      default:
+        return '注销账号';
+    }
+  }
+  
+  /// 获取注销状态副标题
+  String _getDeactivateStatusSubtitle() {
+    if (_deactivateStatus == null) {
+      return '注销后账号将无法恢复';
+    }
+    
+    final status = _deactivateStatus!['status'] as int?;
+    final requestTime = _deactivateStatus!['request_time'] as int?;
+    final reviewTime = _deactivateStatus!['review_time'] as int?;
+    
+    // 状态枚举值：Normal=0, Cooling=1, PendingReview=2, Deactivated=3
+    switch (status) {
+      case 0: // Normal
+        return '注销后账号将无法恢复';
+      case 1: // Cooling
+        if (requestTime != null && requestTime > 0) {
+          final dateTime = DateTime.fromMillisecondsSinceEpoch(requestTime);
+          return '冷却期，申请时间：${_formatDateTime(dateTime)}';
+        }
+        return '账号处于冷却期';
+      case 2: // PendingReview
+        if (requestTime != null && requestTime > 0) {
+          final dateTime = DateTime.fromMillisecondsSinceEpoch(requestTime);
+          return '审核中，申请时间：${_formatDateTime(dateTime)}';
+        }
+        return '注销申请审核中';
+      case 3: // Deactivated
+        if (reviewTime != null && reviewTime > 0) {
+          final dateTime = DateTime.fromMillisecondsSinceEpoch(reviewTime);
+          return '已注销，注销时间：${_formatDateTime(dateTime)}';
+        }
+        return '账号已注销';
+      default:
+        return '注销后账号将无法恢复';
+    }
+  }
+  
+  /// 格式化日期时间
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 0) {
+      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}小时前';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}分钟前';
+    } else {
+      return '刚刚';
+    }
+  }
+  
   /// 显示注销账号确认
   void _showDeleteAccountConfirm(BuildContext context, GlobalController controller) {
+    // 检查当前注销状态
+    final status = _deactivateStatus?['status'] as int?;
+    
+    // 如果已经注销或正在审核中，显示状态信息
+    if (status == 3) { // Deactivated - 已注销
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('账号已注销'),
+          content: Text(_getDeactivateStatusSubtitle()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    
+    if (status == 2) { // PendingReview - 审核中
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('注销申请审核中'),
+          content: Text(_getDeactivateStatusSubtitle()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    
+    if (status == 1) { // Cooling - 冷却期
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('账号处于冷却期'),
+          content: Text(_getDeactivateStatusSubtitle()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    
+    // Normal 状态，显示注销确认对话框
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -495,7 +659,8 @@ class _SideMenuContentState extends State<SideMenuContent> {
       final message = result['message'] as String? ?? '未知错误';
       
       if (errorCode == 0) {
-        // 注销成功
+        // 注销成功，刷新注销状态
+        await _loadDeactivateStatus();
         EasyLoading.showSuccess('账号注销申请成功');
         
       } else {
