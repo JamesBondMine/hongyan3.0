@@ -229,30 +229,28 @@ static void SendMessageCallback(int errorCode, const char* data, int dataLen, ui
             if (errorCode == 0 && responseData && responseData.length > 0) {
                 // 尝试解析返回数据
                 NSError *parseError = nil;
-                ImMessage *result = [ImMessage parseFromData:responseData error:&parseError];
+                SendAck *result = [SendAck parseFromData:responseData error:&parseError];
                 
                 if (result && !parseError) {
                     // 转换为 JSON
                     NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
-                    
-                    // 消息元数据
-                    if (result.hasMetadata) {
-                        jsonDict[@"msg_id"] = result.metadata.msgId ?: @"";
-                        jsonDict[@"server_msg_id"] = result.metadata.serverMsgId ?: @"";
-                        jsonDict[@"send_time"] = @(result.metadata.sendTime);
-                        jsonDict[@"receive_time"] = @(result.metadata.receiveTime);
-                    }
-                    
-                    jsonDict[@"conversation_id"] = result.conversationId ?: @"";
+             
+                    // SendAck 字段
+                    jsonDict[@"server_msg_id"] = result.serverMsgId ?: @"";
+                    jsonDict[@"client_msg_id"] = result.clientMsgId ?: @"";
                     jsonDict[@"conversation_seq"] = @(result.conversationSeq);
                     jsonDict[@"server_seq"] = @(result.serverSeq);
-                    jsonDict[@"store_time"] = @(result.storeTime);
+                    jsonDict[@"ingress_time"] = @(result.ingressTime);
+                    jsonDict[@"trace_id"] = result.traceId ?: @"";
+                    jsonDict[@"persist_time"] = @(result.persistTime);
+                    jsonDict[@"conv_id"] = result.convId ?: @"";
                     
                     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:nil];
                     if (jsonData) {
                         dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     }
-                    NSLog(@"✅ 发送消息成功: %@", dataStr);
+                    NSLog(@"✅ 发送消息成功: serverMsgId=%@, clientMsgId=%@, convId=%@", 
+                          result.serverMsgId, result.clientMsgId, result.convId);
                 } else {
                     // 尝试直接作为 JSON
                     dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -625,7 +623,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     // 调用 SDK 发送
     // 参数说明：message 是 TextMessage 的 Protobuf 数据，msgType=0 表示文本消息
     uint64_t reqId = 0;
-    int result = send_single_message(
+    int result = send_contact_message(
         SendMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
@@ -635,7 +633,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_single_message: result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_contact_message: result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -679,7 +677,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     
     // 调用 SDK 发送
     uint64_t reqId = 0;
-    int result = send_single_message(
+    int result = send_contact_message(
         SendMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
@@ -689,7 +687,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_single_message (图片): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_contact_message (图片): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -742,7 +740,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     
     // 调用 SDK 发送
     uint64_t reqId = 0;
-    int result = send_single_message(
+    int result = send_contact_message(
         SendMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
@@ -752,7 +750,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_single_message (视频): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_contact_message (视频): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -791,7 +789,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     
     // 调用 SDK 发送
     uint64_t reqId = 0;
-    int result = send_single_message(
+    int result = send_contact_message(
         SendMessageCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
@@ -801,7 +799,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_single_message (语音): result=%d, reqId=%llu", result, reqId);
+    NSLog(@"📤 调用 send_contact_message (语音): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -826,9 +824,42 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
         IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
         if (completion) {
             NSString *dataStr = nil;
-            if (errorCode == 0 && responseData.length > 0) {
-                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (errorCode == 0 && responseData && responseData.length > 0) {
+                // 尝试解析返回数据
+                NSError *parseError = nil;
+                SendAck *result = [SendAck parseFromData:responseData error:&parseError];
+                
+                if (result && !parseError) {
+                    // 转换为 JSON
+                    NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+             
+                    // SendAck 字段
+                    jsonDict[@"server_msg_id"] = result.serverMsgId ?: @"";
+                    jsonDict[@"client_msg_id"] = result.clientMsgId ?: @"";
+                    jsonDict[@"conversation_seq"] = @(result.conversationSeq);
+                    jsonDict[@"server_seq"] = @(result.serverSeq);
+                    jsonDict[@"ingress_time"] = @(result.ingressTime);
+                    jsonDict[@"trace_id"] = result.traceId ?: @"";
+                    jsonDict[@"persist_time"] = @(result.persistTime);
+                    jsonDict[@"conv_id"] = result.convId ?: @"";
+                    
+                    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:nil];
+                    if (jsonData) {
+                        dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    }
+                    NSLog(@"✅ 发送消息成功: serverMsgId=%@, clientMsgId=%@, convId=%@",
+                          result.serverMsgId, result.clientMsgId, result.convId);
+                } else {
+                    // 尝试直接作为 JSON
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"⚠️ Protobuf 解析失败，尝试 JSON: %@", dataStr);
+                }
+            } else if (errorCode == 0) {
+                // 成功但无数据
+                dataStr = @"{\"success\":true}";
+                NSLog(@"✅ 发送消息成功（无返回数据）");
             }
+            
             completion(errorCode, reqId, dataStr);
             [manager removeCallbackForReqId:reqId];
         }

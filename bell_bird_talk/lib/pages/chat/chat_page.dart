@@ -255,7 +255,7 @@ class _ChatPageState extends State<ChatPage> {
 
     print('📦 加载本地我发送的消息: ${myMessages.length} 条');
     for (final msg in myMessages) {
-        _addChatMessageToList(msg);
+        _addChatLocalMessageToList(msg);
       }
       _sortMessagesByTime();
       setState(() {});
@@ -345,7 +345,7 @@ class _ChatPageState extends State<ChatPage> {
     
     // 添加到消息列表
     setState(() {
-      _addChatMessageToList(chatMessage);
+      _addChatLocalMessageToList(chatMessage);
       _sortMessagesByTime();
     });
     _scrollToBottom();
@@ -359,7 +359,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 将 ChatMessage 添加到消息列表
-  void _addChatMessageToList(ChatMessage message) {
+  void _addChatLocalMessageToList(ChatMessage message) {
     
     final msgMap = {
       'id': message.serverId ?? message.localId,
@@ -480,20 +480,11 @@ class _ChatPageState extends State<ChatPage> {
         List<Map<String, dynamic>> atInfoList = [];
 
         if (type == 'at') {
-          print(  '解析@消息内容');
-          print('解析@消息内容1: $content');
-          print('解析@消息内容2: $isAll');
-          print('解析@消息内容3: $atInfoList');
           final rawAtInfoList = msg['atInfoList'] as List<dynamic>?;
           if (rawAtInfoList != null && rawAtInfoList.isNotEmpty) {
             for (final info in rawAtInfoList) {
               if (info is Map<String, dynamic>) {
                 atInfoList.add(info);
-                // final atInfo = AtInfo(
-                //   userId: info['user_id'] ?? info['userId'] ?? '',
-                //   nickName: info['nick_name'] ?? info['nickName'] ?? '',
-                //   faceUrl: info['face_url'] ?? info[]
-                // )
               }
             }
           }
@@ -555,12 +546,14 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         
-        print("组装消息2: $msgMap");
+        
         // 检查是否已存在（通过 id 去重）
-        final existIndex = _messages.indexWhere((m) => m['id'] == msgId.toString());
+        final existIndex = _messages.indexWhere((m) => m['ext'] == msgId.toString());
         if (existIndex == -1) {
+          print("组装消息aa. 是否已经添加过?   未添加: $msgMap");
           _messages.add(msgMap);
         } else {
+          print("组装消息bb. 是否已经添加过?   已经添加: $msgMap");
           // 更新已有消息
           _messages[existIndex] = msgMap;
         }
@@ -684,7 +677,7 @@ class _ChatPageState extends State<ChatPage> {
     );
     
     setState(() {
-      _addChatMessageToList(message);
+      _addChatLocalMessageToList(message);
     });
     _scrollToBottom();
     _messageController.clear();
@@ -732,7 +725,7 @@ class _ChatPageState extends State<ChatPage> {
           isAll: isAll,
         );
         setState(() {
-          _addChatMessageToList(message);
+          _addChatLocalMessageToList(message);
         });
         _scrollToBottom();
         _messageController.clear();
@@ -1022,7 +1015,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageItem(Map<String, dynamic> message) {
-    print('\n\n----------------------------------\n\n 消息体构建: \n$message \n\n----------------------------------');
+    // print('\n\n----------------------------------\n\n 消息体构建: \n$message \n\n----------------------------------');
     final status = message['status'] as String? ?? 'sent';
     final type = message['type'] as String? ?? 'text';
     final localId = message['localId'] as String?;
@@ -1875,7 +1868,7 @@ class _ChatPageState extends State<ChatPage> {
       
       // 添加到消息列表
       setState(() {
-        _addChatMessageToList(message);
+        _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
       
@@ -2265,7 +2258,7 @@ class _ChatPageState extends State<ChatPage> {
       
       // 添加到消息列表
       setState(() {
-        _addChatMessageToList(message);
+        _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
       
@@ -2385,7 +2378,7 @@ class _ChatPageState extends State<ChatPage> {
       
       // 添加到消息列表
       setState(() {
-        _addChatMessageToList(message);
+        _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
       
