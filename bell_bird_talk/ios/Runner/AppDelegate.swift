@@ -180,6 +180,9 @@ class NativeBridgeHandler: NSObject {
         case "imLogin":
             imLogin(call: call, result: result)
             
+        case "imRefreshToken":
+            imRefreshToken(call: call, result: result)
+            
         case "imSearchUser":
             imSearchUser(call: call, result: result)
         
@@ -1068,6 +1071,47 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEARCH_ERROR",
                               message: "搜索请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 刷新认证Token
+    private func imRefreshToken(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let refreshToken = args["refreshToken"] as? String, !refreshToken.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "refreshToken不能为空", details: nil))
+            return
+        }
+        
+        print("🔄 刷新认证Token: \(refreshToken)")
+        
+        let code = IMSDKAuthManager.shared().refreshAuthToken(withToken: refreshToken) { errorCode, reqId, data in
+            print("✅ 刷新Token回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            if errorCode == 0 {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "刷新成功",
+                    "data": data ?? ""
+                ])
+            } else {
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": "刷新失败",
+                    "data": data ?? ""
+                ])
+            }
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "REFRESH_ERROR",
+                              message: "刷新Token请求发送失败: \(code)",
                               details: nil))
         }
     }

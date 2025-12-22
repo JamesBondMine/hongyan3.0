@@ -141,6 +141,13 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 /// @return 0 表示请求发送成功，其他为错误码
 - (int)deleteCurrentUserWithCompletion:(IMSDKAuthCompletion)completion;
 
+/// 刷新认证Token
+/// @param refreshToken 刷新Token
+/// @param completion 刷新结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
+                      completion:(IMSDKAuthCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

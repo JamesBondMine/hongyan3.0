@@ -25,7 +25,7 @@ class MessageDatabase {
 
     return await openDatabase(
       path,
-      version: 3,  // 升级版本号：添加好友表
+      version: 4,  // 升级版本号：添加@消息字段
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -62,6 +62,8 @@ class MessageDatabase {
         voice_duration INTEGER,
         video_duration INTEGER,
         video_cover_url TEXT,
+        is_all INTEGER DEFAULT 0,
+        at_info_list TEXT,
         ext TEXT,
         error_message TEXT,
         retry_count INTEGER DEFAULT 0
@@ -161,6 +163,11 @@ class MessageDatabase {
     // 从版本2升级到版本3：添加好友表
     if (oldVersion < 3) {
       await _createContactsTable(db);
+    }
+    // 从版本3升级到版本4：添加@消息字段
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE messages ADD COLUMN is_all INTEGER DEFAULT 0');
+      await db.execute('ALTER TABLE messages ADD COLUMN at_info_list TEXT');
     }
   }
   

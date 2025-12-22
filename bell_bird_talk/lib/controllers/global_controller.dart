@@ -393,13 +393,7 @@ class GlobalController extends GetxController {
         isLoggedIn.value = true;
         return true;
       } else {
-        // 登录失败
-        print('❌ Token 自动登录失败: ${result['message']}');
-        autoLoginStatus.value = '登录失败';
-        
-        // Token 无效，清除本地登录信息
-        await logout();
-        return false;
+        return refreshToken(nativeService,result);
       }
     } catch (e) {
       print('❌ Token 自动登录异常: $e');
@@ -408,6 +402,74 @@ class GlobalController extends GetxController {
     } finally {
       isAutoLogging.value = false;
     }
+  }
+  // 刷新Token
+  Future<bool> refreshToken(IOSNativeService nativeService, Map<String, dynamic> result) async {
+    // 登录失败，尝试刷新Token
+        print('❌ Token 自动登录失败: ${result['message']}，尝试刷新Token');
+        autoLoginStatus.value = 'Token失效，尝试刷新...';
+        
+        try {
+          // 假设有保存的refreshToken（这里需要根据实际情况获取）
+          final savedRefreshToken = StorageUtil().getString('refreshToken'); // 假设存储在本地
+          if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
+            final refreshResult = await nativeService.imRefreshToken(refreshToken: savedRefreshToken)
+                .timeout(const Duration(seconds: 10), onTimeout: () {
+              print('⚠️ 刷新Token超时');
+              return {'errorCode': -408, 'message': '刷新超时'};
+            });
+            
+            print('📊 刷新Token结果: $refreshResult');
+            
+            final refreshErrorCode = refreshResult['errorCode'] as int? ?? -1;
+            
+            if (refreshErrorCode == 0) {
+              // 刷新成功，解析新Token
+              final refreshDataStr = refreshResult['data'] as String?;
+              if (refreshDataStr != null && refreshDataStr.isNotEmpty) {
+                try {
+                  final refreshDataMap = json.decode(refreshDataStr) as Map<String, dynamic>;
+                  
+                  final newToken = refreshDataMap['token'] as String?;
+                  final newRefreshToken = refreshDataMap['refreshToken'] as String?;
+                  
+                  if (newToken != null && newToken.isNotEmpty) {
+                    print('✅ Token刷新成功，使用新Token重新登录');
+                    autoLoginStatus.value = '刷新成功，重新登录...';
+                    
+                    // 保存新Token
+                    token.value = newToken;
+                    await StorageUtil().setString(AppConstants.keyToken, newToken);
+                    if (newRefreshToken != null) {
+                      await StorageUtil().setString('refreshToken', newRefreshToken);
+                    }
+                    
+                    // 递归调用自己重新尝试登录（这里简化处理，实际可能需要限制重试次数）
+                    return await autoLoginWithToken();
+                  }
+                } catch (e) {
+                  print('⚠️ 解析刷新Token数据失败: $e');
+                }
+              }
+              
+              print('❌ 刷新Token成功但未获取到新Token');
+              autoLoginStatus.value = '刷新失败';
+              return false;
+            } else {
+              print('❌ 刷新Token失败: ${refreshResult['message']}');
+              autoLoginStatus.value = '刷新失败';
+              return false;
+            }
+          } else {
+            print('⚠️ 没有保存的refreshToken');
+            autoLoginStatus.value = '无刷新Token';
+            return false;
+          }
+        } catch (e) {
+          print('❌ 刷新Token异常: $e');
+          autoLoginStatus.value = '刷新异常';
+          return false;
+        }
   }
   
   /// 检查是否需要自动登录

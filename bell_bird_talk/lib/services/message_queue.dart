@@ -185,6 +185,9 @@ class MessageQueueManager {
         case MessageType.video:
           success = await _sendVideoMessage(message);
           break;
+           case MessageType.at:
+          success = await _sendAtMessage(message);
+          break;
         // 其他类型暂时不支持
         default:
           success = false;
@@ -254,6 +257,31 @@ class MessageQueueManager {
     }
   }
   
+  /// 发送群聊AT消息
+  Future<bool> _sendAtMessage(ChatMessage message) async {
+    final result = await _nativeService.imSendGroupAtMessage(content: message.textContent ?? '', conversationId: message.convId, groupId: message.receiverId, atInfoList: message.atInfoList ?? []);
+    if (result['errorCode'] == 0) {
+      // 更新服务器消息ID
+      if (result['data'] != null) {
+        try {
+          final data = result['data'] is String 
+              ? json.decode(result['data']) 
+              : result['data'];
+          if (data is Map && data['msg_id'] != null) {
+            message.serverId = data['msg_id'].toString();
+            await _database.updateMessageServerId(message.localId, message.serverId!);
+          }
+        } catch (e) {
+          print('解析群聊消息ID失败: $e');
+        }
+      }
+      return true;
+    } else {
+      message.errorMessage = result['message'] ?? '发送失败';
+      return false;
+    }
+  }
+
   /// 发送群聊文本消息
   Future<bool> _sendGroupTextMessage(ChatMessage message) async {
     final result = await _nativeService.imSendGroupTextMessage(

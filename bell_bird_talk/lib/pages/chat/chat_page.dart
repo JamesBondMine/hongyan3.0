@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/gestures.dart';
 import 'package:bell_bird_talk/pages/chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
@@ -359,10 +360,11 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 将 ChatMessage 添加到消息列表
   void _addChatMessageToList(ChatMessage message) {
+    
     final msgMap = {
       'id': message.serverId ?? message.localId,
       'localId': message.localId,
-      'content': message.displayContent,
+      'content': message.type == MessageType.at ? message.textContent : message.displayContent,
       'type': message.type.name,
       'isMine': message.isMine,
       'timestamp': message.createdAt,
@@ -462,6 +464,7 @@ class _ChatPageState extends State<ChatPage> {
         final senderId = msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
         final timestamp = msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
         final mType = msg['m_type'] as int? ?? 0;
+        final type = msg['type'] as String? ?? 'text';
         final imageUrl = msg['image_url'] as String?;
         final fileUrl = msg['file_url'] as String?;
         final ext = msg['ext'] as String?;
@@ -471,6 +474,30 @@ class _ChatPageState extends State<ChatPage> {
         final thumbnailUrl = msg['thumbnail_url'] as String?;
         final videoDuration = msg['duration'] as int? ?? 0;
         final timestampInt = timestamp is int ? timestamp : 0;
+
+        
+        final isAll = false;
+        List<Map<String, dynamic>> atInfoList = [];
+
+        if (type == 'at') {
+          print(  '解析@消息内容');
+          print('解析@消息内容1: $content');
+          print('解析@消息内容2: $isAll');
+          print('解析@消息内容3: $atInfoList');
+          final rawAtInfoList = msg['atInfoList'] as List<dynamic>?;
+          if (rawAtInfoList != null && rawAtInfoList.isNotEmpty) {
+            for (final info in rawAtInfoList) {
+              if (info is Map<String, dynamic>) {
+                atInfoList.add(info);
+                // final atInfo = AtInfo(
+                //   userId: info['user_id'] ?? info['userId'] ?? '',
+                //   nickName: info['nick_name'] ?? info['nickName'] ?? '',
+                //   faceUrl: info['face_url'] ?? info[]
+                // )
+              }
+            }
+          }
+        }
 
         // 发送者昵称和头像（如果有，主要用于群聊展示）
         final dynamic rawSenderName = msg['sender_name'] ??
@@ -490,6 +517,9 @@ class _ChatPageState extends State<ChatPage> {
         if (mType == 16) {
           // 通知消息
           msgType = 'notification';
+        } else if (mType == 10) {
+          // 通知消息
+          msgType = 'at';
         } else if (mType == 1 || imageUrl != null && videoUrl == null) {
           msgType = 'image';
         } else if (mType == 2 || videoUrl != null) {
@@ -517,6 +547,13 @@ class _ChatPageState extends State<ChatPage> {
           'videoDuration': videoDuration,
           'ext': ext,
         };
+
+        if (type == 'at') {
+          // 处理@消息
+          msgMap['atInfoList'] = atInfoList;
+          msgMap['isAll'] = isAll;
+        }
+
         
         print("组装消息2: $msgMap");
         // 检查是否已存在（通过 id 去重）
@@ -985,6 +1022,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageItem(Map<String, dynamic> message) {
+    print('\n\n----------------------------------\n\n 消息体构建: \n$message \n\n----------------------------------');
     final status = message['status'] as String? ?? 'sent';
     final type = message['type'] as String? ?? 'text';
     final localId = message['localId'] as String?;
@@ -1135,7 +1173,7 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ],
                     ),
-                    child: _buildMessageContent(message, isMine),
+                    child: type == "at" ? _buildAtMessage(message, isMine, status) : _buildMessageContent(message, isMine),
                   ),
                 ),
               ),
@@ -1170,7 +1208,7 @@ class _ChatPageState extends State<ChatPage> {
               top: 4,
             ),
             child: Text(
-              '$formattedTime  ${message['msg_id']}',
+              '$formattedTime  ${message['type']}',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[400],
@@ -2456,11 +2494,132 @@ class _ChatPageState extends State<ChatPage> {
 
   /// 构建@消息
   Widget _buildAtMessage(Map<String, dynamic> message, bool isMine, String status) {
-    final atInfoList = message['atInfoList'] as List<Map<String, dynamic>>? ?? [];
+    List<Map<String, dynamic>> atInfoList = [];
+    if (message['atInfoList'] != null && message['atInfoList'] is List<Map<String, dynamic>>) {
+      atInfoList = message['atInfoList'];
+    }
     final isAll = message['isAll'] as bool? ?? false;
-    return Text(
-      '${atInfoList.map((e) => e['nickname']).join(', ')} ${isAll ? '@所有人' : ''}',
+    final content = message['content'] as String? ?? '';
+
+    // 解析@消息内容，构建RichText
+    return _buildAtMessageContent(content, atInfoList, isAll, isMine);
+  }
+
+  /// 构建@消息内容（支持高亮和点击）
+  Widget _buildAtMessageContent(String content, List<Map<String, dynamic>> atInfoList, bool isAll, bool isMine) {
+    if (atInfoList.isEmpty && !isAll) {
+      // 普通文本消息
+      return Text(
+        content,
+        style: TextStyle(
+          fontSize: 15,
+          color: isMine ? Colors.white : Colors.black87,
+        ),
+      );
+    }
+
+    // 使用更精确的解析方式
+    List<TextSpan> spans = [];
+    int currentIndex = 0;
+
+    // 创建@用户映射，用于快速查找
+    Map<String, Map<String, dynamic>> atUserMap = {};
+    for (final atInfo in atInfoList) {
+      final nickname = atInfo['nickname'] as String?;
+      if (nickname != null) {
+        atUserMap['@$nickname'] = atInfo;
+      }
+    }
+
+    // 按顺序处理所有@提及
+    while (currentIndex < content.length) {
+      int earliestIndex = content.length;
+      String? foundAtText;
+      Map<String, dynamic>? foundAtInfo;
+
+      // 查找最早出现的@文本
+      for (final atText in atUserMap.keys) {
+        final index = content.indexOf(atText, currentIndex);
+        if (index != -1 && index < earliestIndex) {
+          earliestIndex = index;
+          foundAtText = atText;
+          foundAtInfo = atUserMap[atText];
+        }
+      }
+
+      // 检查@所有人
+      if (isAll) {
+        final atAllText = '@所有人';
+        final index = content.indexOf(atAllText, currentIndex);
+        if (index != -1 && index < earliestIndex) {
+          earliestIndex = index;
+          foundAtText = atAllText;
+          foundAtInfo = null; // @所有人特殊处理
+        }
+      }
+
+      if (foundAtText != null && earliestIndex < content.length) {
+        // 添加@之前的普通文本
+        if (earliestIndex > currentIndex) {
+          spans.add(TextSpan(text: content.substring(currentIndex, earliestIndex)));
+        }
+
+        // 添加高亮的@部分
+        if (foundAtText == '@所有人') {
+          spans.add(TextSpan(
+            text: foundAtText,
+            style: TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                print('点击了@所有人');
+                // TODO: 可以滚动到消息位置或执行其他操作
+              },
+          ));
+        } else if (foundAtInfo != null) {
+          final userId = foundAtInfo['user_id'] as String;
+          final nickname = foundAtInfo['nickname'] as String;
+
+          spans.add(TextSpan(
+            text: foundAtText,
+            style: TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                _onAtUserTapped(userId, nickname);
+              },
+          ));
+        }
+
+        currentIndex = earliestIndex + foundAtText.length;
+      } else {
+        // 没有更多@，添加剩余文本
+        spans.add(TextSpan(text: content.substring(currentIndex)));
+        break;
+      }
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 15,
+          color: isMine ? Colors.white : Colors.black87,
+        ),
+        children: spans,
+      ),
     );
+  }
+
+  /// @用户点击处理
+  void _onAtUserTapped(String userId, String nickname) {
+    print('点击了@$nickname (ID: $userId)');
+    // TODO: 可以跳转到用户详情页或在聊天框中@该用户
+    // 例如：跳转到用户资料页
+    // Get.to(() => UserProfilePage(userId: userId));
   }
   
   /// 构建语音消息

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// 消息类型枚举
 enum MessageType {
   text(0),        // 文本消息
@@ -368,6 +370,8 @@ class ChatMessage {
       'voice_duration': voiceDuration,
       'video_duration': videoDuration,
       'video_cover_url': videoCoverUrl,
+      'is_all': isAll != null && isAll! ? 1 : 0,
+      'at_info_list': atInfoList != null ? json.encode(atInfoList) : null,
       'ext': ext,
       'error_message': errorMessage,
       'retry_count': retryCount,
@@ -376,6 +380,16 @@ class ChatMessage {
 
   /// 从数据库 Map 创建
   factory ChatMessage.fromDbMap(Map<String, dynamic> map) {
+    List<Map<String, dynamic>>? atInfoList;
+    try {
+      final atInfoListStr = map['at_info_list'] as String?;
+      if (atInfoListStr != null && atInfoListStr.isNotEmpty) {
+        atInfoList = List<Map<String, dynamic>>.from(json.decode(atInfoListStr));
+      }
+    } catch (e) {
+      print('⚠️ 解析atInfoList失败: $e');
+    }
+
     return ChatMessage(
       localId: map['local_id'] as String,
       serverId: map['server_id'] as String?,
@@ -403,6 +417,8 @@ class ChatMessage {
       voiceDuration: map['voice_duration'] as int?,
       videoDuration: map['video_duration'] as int?,
       videoCoverUrl: map['video_cover_url'] as String?,
+      isAll: (map['is_all'] as int?) == 1,
+      atInfoList: atInfoList,
       ext: map['ext'] as String?,
       errorMessage: map['error_message'] as String?,
       retryCount: map['retry_count'] as int? ?? 0,
@@ -420,6 +436,8 @@ class ChatMessage {
     String? fileUrl,
     String? errorMessage,
     int? retryCount,
+    bool? isAll,
+    List<Map<String, dynamic>>? atInfoList,
   }) {
     return ChatMessage(
       localId: localId,
@@ -448,6 +466,8 @@ class ChatMessage {
       voiceDuration: voiceDuration,
       videoDuration: videoDuration,
       videoCoverUrl: videoCoverUrl,
+      isAll: isAll ?? this.isAll,
+      atInfoList: atInfoList ?? this.atInfoList,
       ext: ext,
       errorMessage: errorMessage ?? this.errorMessage,
       retryCount: retryCount ?? this.retryCount,

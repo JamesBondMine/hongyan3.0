@@ -452,6 +452,25 @@ class IOSNativeService {
     );
   }
   
+  /// 刷新认证Token
+  /// @param refreshToken 刷新Token
+  /// @return 刷新结果
+  Future<Map<String, dynamic>> imRefreshToken({
+    required String refreshToken,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'refreshToken': refreshToken,
+      };
+      
+      final result = await _bridge.invokeMethod<Map>('imRefreshToken', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '调用失败'};
+    } catch (e) {
+      print('❌ imRefreshToken 异常: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 修改密码
   /// @param userId 用户ID
   /// @param oldPassword 旧密码

@@ -1154,6 +1154,39 @@ static void DeleteUserCallback(int errorCode, const char* data, int dataLen, uin
     }
 }
 
+/// 刷新Token回调函数
+static void RefreshTokenCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔔 刷新Token回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    IMSDKAuthManager *manager = [IMSDKAuthManager sharedManager];
+    NSNumber *reqIdKey = @(reqId);
+    
+    IMSDKAuthCompletion completion = manager.authCallbacks[reqIdKey];
+    if (completion) {
+        NSString *dataStr = nil;
+        
+        if (data && dataLen > 0) {
+            NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+            NSError *parseError = nil;
+            id jsonObj = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&parseError];
+            if (jsonObj && !parseError) {
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonObj options:0 error:nil];
+                if (jsonData) {
+                    dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                }
+            } else {
+                dataStr = [[NSString alloc] initWithBytes:data length:dataLen encoding:NSUTF8StringEncoding];
+            }
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(errorCode, reqId, dataStr);
+        });
+        
+        [manager.authCallbacks removeObjectForKey:reqIdKey];
+    }
+}
+
 /// 注销当前登录用户
 - (int)deleteCurrentUserWithCompletion:(IMSDKAuthCompletion)completion {
     NSLog(@"🗑 注销当前用户");
@@ -1184,6 +1217,56 @@ static void DeleteUserCallback(int errorCode, const char* data, int dataLen, uin
     }
     
     return deactivate_user(DeleteUserCallback, data, dataLen, reqId);
+}
+
+/// 刷新认证Token
+- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
+                      completion:(IMSDKAuthCompletion)completion {
+    NSLog(@"🔄 刷新认证Token: %@", refreshToken);
+    
+    if (!refreshToken || refreshToken.length == 0) {
+        NSLog(@"❌ 刷新Token为空");
+        return -1;
+    }
+    
+    // 创建刷新Token请求数据（假设使用简单的JSON格式）
+    NSDictionary *requestDict = @{
+        @"refreshToken": refreshToken
+    };
+    
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&error];
+    if (error) {
+        NSLog(@"❌ 序列化刷新Token请求失败: %@", error);
+        return -2;
+    }
+    
+    const char *data = (const char *)[jsonData bytes];
+    int dataLen = (int)[jsonData length];
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 9000;
+        NSNumber *tempKey = @(tempId++);
+        self.authCallbacks[tempKey] = completion;
+        
+        int result = refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 刷新Token请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.authCallbacks[@(reqId)] = completion;
+                [self.authCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 刷新Token请求失败: %d", result);
+            [self.authCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
 }
 
 // varint32 编码

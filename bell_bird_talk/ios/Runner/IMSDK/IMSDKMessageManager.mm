@@ -524,23 +524,28 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
             msgDict[@"content"] = @"[图片]";
             msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";
             msgDict[@"thumbnail_url"] = msg.imageMessage.thumbnailURL ?: @"";
+            msgDict[@"ext"] = msg.imageMessage.ext ?: @"";
         } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
             msgDict[@"content"] = @"[语音]";
             msgDict[@"voice_url"] = msg.voiceMessage.audioURL ?: @"";
             msgDict[@"duration"] = @(msg.voiceMessage.duration);
+            msgDict[@"ext"] = msg.voiceMessage.ext ?: @"";
         } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
             msgDict[@"content"] = @"[视频]";
             msgDict[@"video_url"] = msg.videoMessage.videoURL ?: @"";
             msgDict[@"thumbnail_url"] = msg.videoMessage.coverURL ?: @"";
+            msgDict[@"ext"] = msg.videoMessage.ext ?: @"";
         } else if (msg.mType == ImMessage_MessageType_File && msg.fileMessage) {
             msgDict[@"content"] = @"[文件]";
             msgDict[@"file_url"] = msg.fileMessage.fileURL ?: @"";
             msgDict[@"file_name"] = msg.fileMessage.name ?: @"";
+            msgDict[@"ext"] = msg.fileMessage.ext ?: @"";
         } else if (msg.mType == ImMessage_MessageType_Location && msg.locationMessage) {
             msgDict[@"content"] = @"[位置]";
             msgDict[@"latitude"] = @(msg.locationMessage.latitude);
             msgDict[@"longitude"] = @(msg.locationMessage.longitude);
             msgDict[@"address"] = msg.locationMessage.name ?: @"";
+            msgDict[@"ext"] = msg.locationMessage.ext ?: @"";
         } else {
             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
         }
@@ -1213,11 +1218,13 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                             }
                             msgDict[@"width"] = @(msg.imageMessage.width);
                             msgDict[@"height"] = @(msg.imageMessage.height);
+                            msgDict[@"ext"] = msg.imageMessage.ext ?: @"";
                         } else if (msg.mType == ImMessage_MessageType_Voice && msg.voiceMessage) {
                             msgDict[@"content"] = @"[语音]";
                             msgDict[@"audio_url"] = msg.voiceMessage.audioURL ?: @"";
                             msgDict[@"duration"] = @(msg.voiceMessage.duration);
                             msgDict[@"voice_duration"] = @(msg.voiceMessage.duration);
+                            msgDict[@"ext"] = msg.voiceMessage.ext ?: @"";
                         } else if (msg.mType == ImMessage_MessageType_Video && msg.videoMessage) {
                             msgDict[@"content"] = @"[视频]";
                             msgDict[@"duration"] = @(msg.videoMessage.duration);
@@ -1228,12 +1235,31 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                             msgDict[@"imageUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"coverUrl"] = msg.videoMessage.coverURL ?: @"";
                             msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
+                            msgDict[@"ext"] = msg.videoMessage.ext ?: @"";
                         } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
                             msgDict[@"content"] = msg.atMessage.content;
-                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
+                            msgDict[@"type"] = @"at";
+                            msgDict[@"ext"] = msg.atMessage.ext ?: @"";
+//
+                            msgDict[@"isAll"] = msg.atMessage.isAll ? @"1" :@"0";
+                            
+                            NSMutableArray<AtInfo*> * infos = msg.atMessage.atInfoArray;
+                            
+                            NSMutableArray<NSDictionary *> * atInfoList = [[NSMutableArray alloc] init];
+                            if (!msg.atMessage.isAll && infos && infos.count > 0) {
+                                for (AtInfo *atInfo in infos) {
+                                    NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
+                                    [info setValue:atInfo.userId ?: @"" forKey:@"user_id"];
+                                    [info setValue:atInfo.nickName ?: @"" forKey:@"nickname"];
+                                    [atInfoList addObject:info];
+                                }
+                                msgDict[@"atInfoList"] = atInfoList;
+                            }                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
                             msgDict[@"content"] = msg.notificationMessage.content;
+                            msgDict[@"ext"] = msg.notificationMessage.ext ?: @"";
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
+                            msgDict[@"ext"] = msg.textMessage.ext ?: @"";
                         }
                         
                         [messagesArray addObject:msgDict];
