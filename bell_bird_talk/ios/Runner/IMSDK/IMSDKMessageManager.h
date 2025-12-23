@@ -216,6 +216,17 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                    isAll:(BOOL)isAll
               completion:(IMSDKMessageCompletion)completion;
 
+// ==================== 删除消息 ====================
+
+/// 删除消息
+/// @param conversationId 会话ID
+/// @param clientMsgId 客户端消息ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)deleteMessage:(NSString *)conversationId
+          clientMsgId:(NSString *)clientMsgId
+           completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 拉取历史消息 ====================
 
 /// 拉取历史消息

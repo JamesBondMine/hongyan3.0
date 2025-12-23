@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:flutter/gestures.dart';
 import 'package:bell_bird_talk/pages/chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
@@ -1291,13 +1292,13 @@ class _ChatPageState extends State<ChatPage> {
               ),
               
               // 删除（自己的消息）
-              if (isMine && localId != null)
+              if ( message['id'] != null)
                 ListTile(
                   leading: Icon(Icons.delete_outline, color: Colors.red[400]),
                   title: const Text('删除'),
                   onTap: () {
                     Navigator.pop(context);
-                    _showDeleteMessageDialog(localId);
+                    _showDeleteMessageDialog(localId ?? '',message['id']);
                   },
                 ),
               
@@ -1374,7 +1375,7 @@ class _ChatPageState extends State<ChatPage> {
   }
   
   /// 显示删除消息确认对话框
-  void _showDeleteMessageDialog(String localId) {
+  void _showDeleteMessageDialog(String localId, String msgId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1388,7 +1389,7 @@ class _ChatPageState extends State<ChatPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _deleteMessage(localId);
+              await _deleteMessage(localId, msgId);
             },
             child: Text('删除', style: TextStyle(color: Colors.red[400])),
           ),
@@ -1398,10 +1399,17 @@ class _ChatPageState extends State<ChatPage> {
   }
   
   /// 删除消息
-  Future<void> _deleteMessage(String localId) async {
+  Future<void> _deleteMessage(String localId, String msgId) async {
     try {
+
+      bool res = await ChatController.to.deleteMessage(localId, widget.convId);
+      if (res) {
+        EasyLoading.showSuccess('已删除');
+      }
       // 从数据库删除
-      await _messageDatabase.deleteMessage(localId);
+      if (localId !=null && localId.isNotEmpty) {
+        await _messageDatabase.deleteMessage(localId);
+      }
       
       // 从列表中移除
       setState(() {

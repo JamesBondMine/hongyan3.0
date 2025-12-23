@@ -3,6 +3,9 @@ PODS:
   - audioplayers_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - awesome_notifications (0.10.0):
+    - Flutter
+    - IosAwnCore (~> 0.10.0)
   - AWSCore (2.41.0)
   - AWSS3 (2.41.0):
     - AWSCore (= 2.41.0)
@@ -16,6 +19,7 @@ PODS:
     - Flutter
   - image_picker_ios (0.0.1):
     - Flutter
+  - IosAwnCore (0.10.0)
   - libwebp (1.5.0):
     - libwebp/demux (= 1.5.0)
     - libwebp/mux (= 1.5.0)
@@ -78,6 +82,7 @@ PODS:
 DEPENDENCIES:
   - AliyunOSSiOS
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
+  - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
   - AWSS3
   - Flutter (from `Flutter`)
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
@@ -102,6 +107,7 @@ SPEC REPOS:
     - AliyunOSSiOS
     - AWSCore
     - AWSS3
+    - IosAwnCore
     - libwebp
     - Mantle
     - Protobuf
@@ -114,6 +120,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   audioplayers_darwin:
     :path: ".symlinks/plugins/audioplayers_darwin/darwin"
+  awesome_notifications:
+    :path: ".symlinks/plugins/awesome_notifications/ios"
   Flutter:
     :path: Flutter
   flutter_image_compress_common:
@@ -148,12 +156,14 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AliyunOSSiOS: 6d6b668b82ac0c0ea2313412bcb5530b42ec97ab
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
+  awesome_notifications: 0f432b28098d193920b11a44cfa9d2d9313a3888
   AWSCore: ee7594bda3132cde8666328bf9a09d8770c1c100
   AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
   image_gallery_saver: 14711d79da40581063e8842a11acf1969d781ed7
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  IosAwnCore: 653786a911089012092ce831f2945cd339855a89
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   objective_c: 89e720c30d716b036faf9c9684022048eee1eee2

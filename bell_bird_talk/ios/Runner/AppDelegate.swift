@@ -272,6 +272,8 @@ class NativeBridgeHandler: NSObject {
             imClearConversationMessages(call: call, result: result)
         
         // ---------- 消息管理 ----------
+        case "imDeleteMessage":
+            imDeleteMessage(call: call, result: result)
         case "imSendTextMessage":
             imSendTextMessage(call: call, result: result)
         case "imSendImageMessage":
@@ -2331,6 +2333,34 @@ class NativeBridgeHandler: NSObject {
     }
     
     // MARK: - 消息管理
+    
+    /// 删除消息
+    private func imDeleteMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+            guard let args = call.arguments as? [String: Any],
+                  let clientMsgId = args["msg_id"] as? String,
+                  let conversationId = args["conversation_id"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+                return
+            }
+    
+        let code = IMSDKMessageManager.shared().deleteMessage(conversationId, clientMsgId: clientMsgId, completion: { errorCode, reqId, data in
+                print("✅ 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+                
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "删除成功" : "删除失败",
+                    "data": data ?? ""
+                ])
+            })
+            
+            if code != 0 {
+                result(FlutterError(code: "SEND_MESSAGE_ERROR",
+                                  message: "删除消息请求失败: \(code)",
+                                  details: nil))
+            }
+        }
+    
     
     /// 发送文本消息
     private func imSendTextMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {

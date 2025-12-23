@@ -33,6 +33,7 @@ class MessageQueueManager {
   MessageQueueManager._internal();
 
   final IOSNativeService _nativeService = IOSNativeService();
+  
   final MessageDatabase _database = MessageDatabase();
   
   /// 发送队列（按会话ID分组）

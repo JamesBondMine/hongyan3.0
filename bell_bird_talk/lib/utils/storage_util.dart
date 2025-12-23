@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:awesome_notifications/awesome_notifications.dart';
 /// 本地存储工具类（基于 SharedPreferences）
 class StorageUtil {
   static StorageUtil? _instance;
@@ -18,6 +19,24 @@ class StorageUtil {
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     print('✅ Storage 初始化成功');
+
+
+    // 初始化通知插件
+    await AwesomeNotifications().initialize(
+      null, // 使用默认图标
+      [
+        NotificationChannel(
+          channelKey: 'basic_channel',
+          channelName: '基本通知',
+          channelDescription: '用于基本通知的频道',
+          defaultColor:  Color( 0xFF2196F3 ),
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        ),
+      ],
+    );    
+    print('✅ 通知插件初始化成功');
+    
   }
   
   /// 获取 SharedPreferences 实例

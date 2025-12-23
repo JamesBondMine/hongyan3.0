@@ -1660,6 +1660,27 @@ class IOSNativeService {
   }
   
   // ==================== 消息管理 ====================
+  /// 删除消息
+  /// @param messageId 消息ID
+  /// @param conversationId 会话ID
+  /// @return 删除结果
+  Future<Map<String, dynamic>> imDeleteMessage({
+    required String messageId,
+    required String conversationId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imDeleteMessage', {
+            'message_id': messageId,
+            'conversation_id': conversationId,
+          });
+          print('删除消息结果: $result');
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    } 
+  }
+
+
   
   /// 发送文本消息
   /// @param content 文本内容

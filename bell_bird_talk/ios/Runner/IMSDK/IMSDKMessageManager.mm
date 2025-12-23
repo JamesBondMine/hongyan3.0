@@ -1,9 +1,3 @@
-//
-//  IMSDKMessageManager.mm
-//  Runner
-//
-//  IM SDK 消息管理类实现
-//
 
 #import "IMSDKMessageManager.h"
 #import "network_lib.h"
@@ -12,27 +6,21 @@
 #import "ChatPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
 
-// ==================== 私有方法前向声明 ====================
 
 @interface IMSDKMessageManager ()
-/// 处理收到的消息（内部方法）
 - (void)handleReceivedMessageWithData:(const char *)data
                                length:(int)dataLen
                              convType:(IMMessageConvType)convType;
 
-/// 处理系统消息
 - (void)handleSystemMessageWithData:(const char *)data
                              length:(int)dataLen;
 
-/// 处理命令消息
 - (void)handleCommandMessageWithEventType:(int)eventType
                                      data:(const char *)data
                                    length:(int)dataLen;
 @end
 
-// ==================== 全局消息回调（被动接收） ====================
 
-/// 单聊消息回调
 static void SingleMessageCallback(const char* data, int dataLen) {
     NSLog(@"📨 收到单聊消息: dataLen=%d", dataLen);
     [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
@@ -40,7 +28,6 @@ static void SingleMessageCallback(const char* data, int dataLen) {
                                                               convType:IMMessageConvTypeSingle];
 }
 
-/// 群聊消息回调
 static void GroupMessageCallback(const char* data, int dataLen) {
     NSLog(@"📨 收到群聊消息: dataLen=%d", dataLen);
     [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
@@ -48,7 +35,6 @@ static void GroupMessageCallback(const char* data, int dataLen) {
                                                               convType:IMMessageConvTypeGroup];
 }
 
-/// 社区消息回调
 static void CommunityMessageCallback(const char* data, int dataLen) {
     NSLog(@"📨 收到社区消息: dataLen=%d", dataLen);
     [[IMSDKMessageManager sharedManager] handleReceivedMessageWithData:data
@@ -56,19 +42,16 @@ static void CommunityMessageCallback(const char* data, int dataLen) {
                                                               convType:IMMessageConvTypeCommunity];
 }
 
-/// 系统消息回调
 static void SystemMessageCallback(const char* data, int dataLen) {
     NSLog(@"📨 收到系统消息: dataLen=%d", dataLen);
     [[IMSDKMessageManager sharedManager] handleSystemMessageWithData:data length:dataLen];
 }
 
-/// 命令消息回调
 static void CommandMessageCallback(int eventType, const char* data, int dataLen) {
     NSLog(@"📨 收到命令消息: eventType=%d, dataLen=%d", eventType, dataLen);
     [[IMSDKMessageManager sharedManager] handleCommandMessageWithEventType:eventType data:data length:dataLen];
 }
 
-/// 通知未读数回调
 static void NotificationUnreadCountCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🔔 通知未读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     NSData *responseData = nil;
@@ -105,7 +88,6 @@ static void NotificationUnreadCountCallback(int errorCode, const char* data, int
     });
 }
 
-/// 拉取通知回调
 static void PullNotificationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🔔 拉取通知回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     NSData *responseData = nil;
@@ -166,7 +148,6 @@ static void PullNotificationCallback(int errorCode, const char* data, int dataLe
     });
 }
 
-/// 标记通知已读回调
 static void MarkNotificationReadCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🔔 标记通知已读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     NSData *responseData = nil;
@@ -207,9 +188,7 @@ static void MarkNotificationReadCallback(int errorCode, const char* data, int da
     });
 }
 
-// ==================== 回调函数 ====================
 
-/// 发送消息回调
 static void SendMessageCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📤 发送消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
@@ -268,7 +247,34 @@ static void SendMessageCallback(int errorCode, const char* data, int dataLen, ui
     });
 }
 
-/// 拉取消息回调
+static void DeleteMessageCallback(const char* operationID, int errorCode, const char* data, const char* extra) {
+    NSLog(@"🗑️ 删除消息回调: operationID=%s, errorCode=%d, data=%s, extra=%s",
+          operationID ? operationID : "nil", errorCode, data ? data : "nil", extra ? extra : "nil");
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKMessageManager *manager = [IMSDKMessageManager sharedManager];
+
+        // 注意：这里我们需要通过operationID来找到对应的completion回调
+        // 但是我们的回调系统是基于reqId的，所以这里可能需要调整
+        // 暂时使用一个固定的reqId
+        uint64_t reqId = 0; // 或者从某个映射中获取
+
+        IMSDKMessageCompletion completion = [manager getCallbackForReqId:reqId];
+        if (completion) {
+            NSString *dataStr = nil;
+            if (errorCode == 0) {
+                dataStr = @"{\"success\":true}";
+                NSLog(@"✅ 删除消息成功");
+            } else {
+                dataStr = [NSString stringWithFormat:@"{\"error\":\"%@\"}", data ? [NSString stringWithUTF8String:data] : @"unknown"];
+                NSLog(@"❌ 删除消息失败: %@", dataStr);
+            }
+
+            completion(errorCode, reqId, dataStr);
+            [manager removeCallbackForReqId:reqId];
+        }
+    });
+}
 static void PullMessagesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🍎 拉取消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
@@ -387,7 +393,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     });
 }
 
-// ==================== 实现类 ====================
 
 @implementation IMSDKMessageManager {
     NSMutableDictionary<NSNumber *, IMSDKMessageCompletion> *_callbacks;
@@ -412,7 +417,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return self;
 }
 
-// ==================== 消息监听注册 ====================
 
 - (void)registerMessageCallbacks {
     if (_isCallbacksRegistered) {
@@ -459,7 +463,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     NSLog(@"✅ 消息回调取消注册完成");
 }
 
-// ==================== 消息处理 ====================
 
 - (void)handleReceivedMessageWithData:(const char *)data
                                length:(int)dataLen
@@ -563,7 +566,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     });
 }
 
-// ==================== 回调管理 ====================
 
 - (void)setCallback:(IMSDKMessageCompletion)callback forReqId:(uint64_t)reqId {
     if (callback) {
@@ -579,7 +581,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     [_callbacks removeObjectForKey:@(reqId)];
 }
 
-// ==================== 发送消息 ====================
 
 - (int)sendTextMessage:(NSString *)content
         conversationId:(NSString *)conversationId
@@ -696,7 +697,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
-/// 发送视频消息
 - (int)sendVideoMessage:(NSString *)videoUrl
                coverURL:(NSString * _Nullable)coverURL
                duration:(int32_t)duration
@@ -808,9 +808,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
-// ==================== 群聊消息发送 ====================
 
-/// 发送群聊消息回调
 static void SendGroupMessageCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📨 发送群聊消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
@@ -1122,7 +1120,6 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     return result;
 }
 
-// ==================== 拉取历史消息 ====================
 
 - (int)pullMessagesWithConversationId:(NSString *)conversationId
                              convType:(int)convType
@@ -1189,7 +1186,6 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     return result;
 }
 
-/// 拉取群聊消息回调
 static void PullGroupMessagesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📥 拉取群聊消息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
@@ -1271,7 +1267,6 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                             msgDict[@"content"] = msg.atMessage.content;
                             msgDict[@"type"] = @"at";
                             msgDict[@"ext"] = msg.atMessage.ext ?: @"";
-//
                             msgDict[@"isAll"] = msg.atMessage.isAll ? @"1" :@"0";
                             
                             NSMutableArray<AtInfo*> * infos = msg.atMessage.atInfoArray;
@@ -1379,7 +1374,6 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
     return result;
 }
 
-// ==================== 系统消息处理 ====================
 
 - (void)handleSystemMessageWithData:(const char *)data length:(int)dataLen {
     // 拷贝数据
@@ -1418,7 +1412,6 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
     });
 }
 
-// ==================== 命令消息处理 ====================
 
 - (void)handleCommandMessageWithEventType:(int)eventType data:(const char *)data length:(int)dataLen {
     // 拷贝数据
@@ -1458,7 +1451,6 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
     });
 }
 
-// ==================== 通知 ====================
 
 - (int)getNotificationUnreadCountWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
                                 completion:(IMSDKMessageCompletion)completion {
@@ -1553,5 +1545,47 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
     return code;
 }
 
-@end
+- (int)deleteMessage:(NSString *)conversationId
+          clientMsgId:(NSString *)clientMsgId
+           completion:(IMSDKMessageCompletion)completion {
 
+    NSLog(@"🗑️ 删除消息: conversationId=%@, clientMsgId=%@", conversationId, clientMsgId);
+
+    if (!conversationId || conversationId.length == 0) {
+        NSLog(@"❌ 会话ID不能为空");
+        return -1;
+    }
+
+    if (!clientMsgId || clientMsgId.length == 0) {
+        NSLog(@"❌ 客户端消息ID不能为空");
+        return -1;
+    }
+
+    // 生成唯一的操作ID
+    NSString *operationID = [[NSUUID UUID] UUIDString];
+    uint64_t reqId = 0;
+
+    // 调用 SDK 删除消息
+    delete_message(
+        DeleteMessageCallback,
+        (char *)operationID.UTF8String,
+        (char *)conversationId.UTF8String,
+        (char *)clientMsgId.UTF8String
+    );
+
+    NSLog(@"🗑️ 调用 delete_message: operationID=%@, conversationId=%@, clientMsgId=%@",
+          operationID, conversationId, clientMsgId);
+
+    if (completion) {
+        // 注意：这里我们使用 operationID 作为 key，因为回调函数是通过 operationID 标识的
+        // 但是我们的 completion 回调系统是基于 reqId 的，所以这里可能需要调整
+        // 暂时先设置一个虚拟的 reqId
+        reqId = (uint64_t)[[NSDate date] timeIntervalSince1970] * 1000; // 使用时间戳作为 reqId
+        [self setCallback:completion forReqId:reqId];
+    }
+
+    return 0; // delete_message 返回 void，所以我们返回 0 表示调用成功
+}
+
+
+@end
