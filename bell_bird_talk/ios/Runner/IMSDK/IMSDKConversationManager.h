@@ -95,7 +95,7 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
 /// @param convId 会话ID
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
-- (int)markConversationReadWithId:(NSString *)convId
+- (int)markConversationReadWithId:(NSString *)convId msgIds:(NSString *)msgIds
                        completion:(IMSDKConversationCompletion)completion;
 
 /// 更新会话信息

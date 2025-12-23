@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -623,7 +624,11 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           displayName: existingConv.displayName,
           avatar: existingConv.avatar,
           targetUserId: _friend.id,
-        ));
+        ))?.then(  (_) {
+            // 返回后清除该会话的未读数
+            ChatController.to.conversationId = "";
+          });
+
         return;
       }
       
@@ -694,7 +699,10 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           displayName: _friend.displayName,
           avatar: _friend.avatar,
           targetUserId: _friend.id,
-        ));
+        ))?.then(  (_) {
+            // 返回后清除该会话的未读数
+            ChatController.to.conversationId = "";
+          });
       } else {
         final message = result['message'] ?? '创建会话失败';
         EasyLoading.showError(message);

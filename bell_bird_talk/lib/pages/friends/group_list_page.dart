@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -209,7 +210,10 @@ class _GroupListPageState extends State<GroupListPage> {
             groupAvatar: avatar.isNotEmpty ? avatar : null,
           ),
         ),
-      );
+      ).then(  (_) {
+            // 返回后清除该会话的未读数
+            ChatController.to.conversationId = "";
+          });
     } catch (e) {
       print('❌ 进入群聊失败: $e');
       EasyLoading.showError('进入群聊失败: $e');

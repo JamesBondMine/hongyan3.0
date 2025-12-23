@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
@@ -620,6 +621,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
       if (result['errorCode'] == 0) {
         final data = result['data'];
+        print('💬 刷新. convType $convType  isAtMe $isAtMe.  会话列表结果:   $data');
         if (data != null && data is String && data.isNotEmpty) {
           try {
             final dataMap = json.decode(data) as Map<String, dynamic>;
@@ -1202,6 +1204,8 @@ class _ChatListPageState extends State<ChatListPage> {
 
       ),
     );
+    // 清空会话ID
+    ChatController.to.conversationId = "";
     } else { // 跳转到聊天详情页
     await Navigator.push(
       context,
@@ -1214,8 +1218,9 @@ class _ChatListPageState extends State<ChatListPage> {
         ),
       ),
     );}
+    // 清空会话ID
+    ChatController.to.conversationId = "";
    
-    
     // 返回后清除该会话的未读数
     _clearConversationUnread(conversation.convId);
   }
@@ -1247,7 +1252,7 @@ class _ChatListPageState extends State<ChatListPage> {
     });
     
     // 调用后端接口标记已读
-    _nativeService.imMarkConversationRead(convId: convId);
+    _nativeService.imMarkConversationRead(convId: convId, msgIds: '');
   }
 
   /// 显示会话选项
@@ -1291,7 +1296,7 @@ class _ChatListPageState extends State<ChatListPage> {
               title: const Text('标记已读'),
               onTap: () {
                 Navigator.pop(context);
-                _markAsRead(conversation);
+                _markAsRead(conversation, '');
               },
             ),
             ListTile(
@@ -1370,10 +1375,11 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   /// 标记已读
-  Future<void> _markAsRead(ConversationModel conversation) async {
+  Future<void> _markAsRead(ConversationModel conversation, String msgIds) async {
     try {
       final result = await _nativeService.imMarkConversationRead(
         convId: conversation.convId,
+        msgIds: msgIds
       );
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('已标记为已读');

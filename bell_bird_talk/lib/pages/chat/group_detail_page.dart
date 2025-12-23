@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,6 +30,8 @@ class GroupDetailPage extends StatefulWidget {
 
 class _GroupDetailPageState extends State<GroupDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  
+
   final GlobalController _globalCtrl = Get.find<GlobalController>();
   bool _loading = false;
   List<Map<String, dynamic>> _members = [];
@@ -35,6 +40,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   String? _groupDescription;
   String? _creatorUserId; // 群主ID
   bool _isDisturb = false; // 免打扰状态
+
+  // 好友分组
+  final List<FriendGroup> _groups = [];
+  String? _selectedGroupId;  // 选中的分组ID（null表示不选择分组）
 
   @override
   void initState() {
@@ -280,14 +289,71 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     );
   }
 
+  // 添加好友
+  void _addGroupMember(SearchUserModel user){
+    showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('提示'),
+            content: _buildUserCard(user),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+            ]
+          )
+        );
+  }
+
   Widget _buildMemberItem(Map<String, dynamic> m) {
     final userId = (m['user_id'] as String?) ?? '';
     final alias = (m['member_alias'] as String?) ?? '';
     final isAdmin = (m['is_admin'] as bool?) ?? false;
     final name = alias.isNotEmpty ? alias : userId;
     final initial = name.isNotEmpty ? name.characters.first : '#';
-    return GestureDetector(onTap: () {
-      _showRemoveMemberDialog(userId);
+    return GestureDetector(
+      onLongPress: () {
+        // 长按 如果我是群主、则可以删除群成员 并且我不能删除自己
+        final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+        if (currentUserId.isNotEmpty && 
+            _creatorUserId != null && 
+            currentUserId != userId &&
+            currentUserId != _creatorUserId) {
+          // 删除群成员
+          _showRemoveMemberDialog(userId);
+        }
+
+      },
+      onTap: () async{
+      //如果是我自己。跳转个人中心
+      if (userId == _globalCtrl.currentUser.value?.id) {
+        Navigator.of(context).pushNamed('/profile');
+        return;
+      } else {
+        final result = await _nativeService.imSearchUser(
+        userId: userId,
+        accountId: userId,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr);
+            if (data is Map) {
+              // 单个用户
+              if (data['user_id'] != null || data['id'] != null) {
+                SearchUserModel user = SearchUserModel.fromJson(data.cast<String, dynamic>());
+                _addGroupMember(user);
+              }
+            }
+          } catch (e) {
+            
+          }
+        }
+      }
+      }
     },
     child: SizedBox(
       width: 64,
@@ -398,7 +464,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       if (!mounted) return;
       final selectedUserIds = await showDialog<Set<String>>(
         context: context,
-        builder: (context) => _AddMemberDialog(contacts: availableContacts),
+        builder: (context) => AddMemberDialog(contacts: availableContacts),
       );
       
       if (selectedUserIds == null || selectedUserIds.isEmpty) {
@@ -926,154 +992,368 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       return false;
     }
   }
-}
 
-/// 添加群成员对话框
-class _AddMemberDialog extends StatefulWidget {
-  final List<dynamic> contacts;
-  
-  const _AddMemberDialog({required this.contacts});
-  
-  @override
-  State<_AddMemberDialog> createState() => _AddMemberDialogState();
-}
 
-class _AddMemberDialogState extends State<_AddMemberDialog> {
-  final TextEditingController _searchController = TextEditingController();
-  Set<String> _selectedUserIds = {};
-  List<dynamic> _filteredContacts = [];
-  
-  @override
-  void initState() {
-    super.initState();
-    _filteredContacts = List.from(widget.contacts);
-    _searchController.addListener(_filterContacts);
-  }
-  
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-  
-  void _filterContacts() {
-    final keyword = _searchController.text.toLowerCase().trim();
-    setState(() {
-      if (keyword.isEmpty) {
-        _filteredContacts = List.from(widget.contacts);
-      } else {
-        _filteredContacts = widget.contacts.where((contact) {
-          final nickname = (contact['nickname'] ?? '').toString().toLowerCase();
-          final remark = (contact['remark'] ?? '').toString().toLowerCase();
-          final userId = (contact['contact_user_id'] ?? '').toString().toLowerCase();
-          return nickname.contains(keyword) ||
-                 remark.contains(keyword) ||
-                 userId.contains(keyword);
-        }).toList();
-      }
-    });
-  }
-  
-  void _toggleSelection(String userId) {
-    setState(() {
-      if (_selectedUserIds.contains(userId)) {
-        _selectedUserIds.remove(userId);
-      } else {
-        _selectedUserIds.add(userId);
-      }
-    });
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: Column(
-          children: [
-            // 标题栏
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Text(
-                    '选择联系人',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('取消'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _selectedUserIds.isEmpty
-                        ? null
-                        : () => Navigator.pop(context, _selectedUserIds),
-                    child: Text('确定(${_selectedUserIds.length})'),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            // 搜索框
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: '搜索联系人',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+  /// 用户卡片
+  Widget _buildUserCard(SearchUserModel user) {
+    return Container(
+      height: 88,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showAddFriendDialog(user),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 头像
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.blue[100],
+                  backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
+                      ? NetworkImage(user.avatar!)
+                      : null,
+                  child: (user.avatar == null || user.avatar!.isEmpty)
+                      ? Text(
+                          user.nickname.isNotEmpty
+                              ? user.nickname[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                
+                // 用户信息
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              user.nickname,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (user.gender != null) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              user.gender == 1 ? Icons.male : Icons.female,
+                              size: 16,
+                              color: user.gender == 1 ? Colors.blue : Colors.pink,
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      if (user.accountId != null && user.accountId!.isNotEmpty)
+                        Text(
+                          'ID: ${user.accountId}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                      if (user.signature != null && user.signature!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          user.signature!,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ),
-            ),
-            // 联系人列表
-            Expanded(
-              child: _filteredContacts.isEmpty
-                  ? const Center(child: Text('暂无联系人'))
-                  : ListView.builder(
-                      itemCount: _filteredContacts.length,
-                      itemBuilder: (context, index) {
-                        final contact = _filteredContacts[index];
-                        final userId = (contact['contact_user_id'] as String?) ?? '';
-                        final nickname = (contact['nickname'] as String?) ?? '未知';
-                        final remark = (contact['remark'] as String?) ?? '';
-                        final avatar = (contact['avatar'] as String?) ?? '';
-                        final displayName = remark.isNotEmpty ? remark : nickname;
-                        final isSelected = _selectedUserIds.contains(userId);
-                        
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey.shade300,
-                            backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                            child: avatar.isEmpty
-                                ? Text(
-                                    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: Colors.white),
-                                  )
-                                : null,
-                          ),
-                          title: Text(displayName),
-                          subtitle: remark.isNotEmpty ? Text(nickname) : null,
-                          trailing: Checkbox(
-                            value: isSelected,
-                            onChanged: (_) => _toggleSelection(userId),
-                          ),
-                          onTap: () => _toggleSelection(userId),
-                        );
-                      },
+                
+                // 添加按钮
+                ElevatedButton(
+                  onPressed: () => _showAddFriendDialog(user),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: const Text('添加'),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  /// 显示添加好友对话框
+  void _showAddFriendDialog(SearchUserModel user) {
+    final messageController = TextEditingController(text: '你好，我想加你为好友');
+    String? selectedGroupId = _selectedGroupId;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 标题
+              Row(
+                children: [
+                  const Text(
+                    '添加好友',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const Divider(),
+              
+              // 用户信息
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.blue[100],
+                    backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
+                        ? NetworkImage(user.avatar!)
+                        : null,
+                    child: (user.avatar == null || user.avatar!.isEmpty)
+                        ? Text(
+                            user.nickname.isNotEmpty
+                                ? user.nickname[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.nickname,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (user.accountId != null && user.accountId!.isNotEmpty)
+                          Text(
+                            'ID: ${user.accountId}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+                
+                const SizedBox(height: 20),
+                
+                // 选择分组
+                const Text(
+                  '选择分组',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[50],
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: selectedGroupId,
+                      isExpanded: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      hint: const Text('不选择分组（默认）'),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('不选择分组（默认）'),
+                        ),
+                        ..._groups.map((group) {
+                          final groupIdInt = int.tryParse(group.id);
+                          if (groupIdInt != null && groupIdInt > 0) {
+                            return DropdownMenuItem<String?>(
+                              value: group.id,
+                              child: Text(group.name),
+                            );
+                          }
+                          return null;
+                        }).where((item) => item != null).cast<DropdownMenuItem<String?>>(),
+                      ],
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedGroupId = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              
+              const SizedBox(height: 20),
+              
+              // 验证消息
+              const Text(
+                '验证消息',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                maxLength: 100,
+                decoration: InputDecoration(
+                  hintText: '请输入验证消息',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 发送按钮
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                      int? groupIdInt;
+                      if (selectedGroupId != null && selectedGroupId!.isNotEmpty) {
+                        groupIdInt = int.tryParse(selectedGroupId!);
+                      }
+                      _sendFriendRequest(
+                        user, 
+                        messageController.text.trim(),
+                        groupId: groupIdInt,
+                      );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '发送申请',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  /// 发送好友申请
+  Future<void> _sendFriendRequest(SearchUserModel user, String message, {int? groupId}) async {
+    EasyLoading.show(status: '发送中...');
+    
+    try {
+      // 确定添加渠道
+      int channel = 0;  // 默认用户ID
+      String? targetValue = user.id;
+      final result = await _nativeService.imAddContact(
+        targetUserId: user.id,
+        channel: channel,
+        message: message.isNotEmpty ? message : null,
+        targetValue: targetValue,
+        targetPhone: user.phone,
+        targetEmail: user.email,
+        groupId: groupId,
+      );
+      
+      print('📊 添加好友结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('申请已发送');
+        Get.back();
+      } else {
+        EasyLoading.showError(result['message'] ?? '发送失败');
+      }
+    } catch (e) {
+      print('❌ 发送好友申请失败: $e');
+      EasyLoading.showError('发送失败');
+    }
+  }
+
 }
-
-

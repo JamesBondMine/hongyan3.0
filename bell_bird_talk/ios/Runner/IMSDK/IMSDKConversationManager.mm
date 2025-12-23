@@ -9,6 +9,7 @@
 #import "network_lib.h"
 #import "ConvPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
+#import "MessagePb.pbobjc.h"
 
 // ==================== 类扩展（前置声明） ====================
 
@@ -23,6 +24,55 @@
 @end
 
 // ==================== 回调函数 ====================
+
+
+// 会话已读回调
+static void MarkReadCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🍎会话已读回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    // ⚠️ 立即打印原始数据 HEX（在任何异步操作之前）
+    if (data && dataLen > 0) {
+        NSMutableString *hexStr = [NSMutableString string];
+        for (int i = 0; i < MIN(dataLen, 100); i++) {
+            [hexStr appendFormat:@"%02x ", (unsigned char)data[i]];
+        }
+//        NSLog(@"📦 原始数据 (HEX, 立即打印): %@", hexStr);
+    }
+    
+    NSString *jsonString = nil;
+    if (data && dataLen > 0) {
+        // 尝试解析为 Protobuf 数据
+        NSData *responseData = [NSData dataWithBytes:data length:dataLen];
+//        NSLog(@"📦 数据拷贝后长度: %lu", (unsigned long)responseData.length);
+        
+        // 尝试解析为 ConvList（会话列表响应）
+        NSError *error = nil;
+        MarkReadResult * read = [MarkReadResult parseFromData:responseData error:&error];
+        if (!error && read) {
+            NSMutableDictionary *result = [NSMutableDictionary dictionary];
+           
+            
+            NSMutableArray *convArray = [NSMutableArray array];
+            
+            result[@"conversations"] = convArray;
+            
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
+            jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            NSLog(@"📋 解析会话已读成功: %lu 条记录", (unsigned long)convArray.count);
+        }
+    }
+    
+    // 获取回调并执行
+    IMSDKConversationManager *manager = [IMSDKConversationManager sharedManager];
+    IMSDKConversationCompletion completion = [manager getCallbackForReqId:reqId];
+    if (completion) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(errorCode, reqId, jsonString);
+        });
+        [manager removeCallbackForReqId:reqId];
+    }
+}
+
 
 // 会话操作回调
 static void ConversationCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
@@ -517,18 +567,24 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     return result;
 }
 
-- (int)markConversationReadWithId:(NSString *)convId
+- (int)markConversationReadWithId:(NSString *)convId msgIds:(NSString *)msgIds
                        completion:(IMSDKConversationCompletion)completion {
-    NSLog(@"📋 标记会话已读: convId=%@", convId);
     
     if (!convId || convId.length == 0) {
         NSLog(@"❌ convId 不能为空");
         return -1;
     }
+     
     
     // 构建请求（复用 DeleteConv 结构，只需要 convId）
-    DeleteConv *request = [[DeleteConv alloc] init];
-    request.convId = convId;
+    MarkRead *request = [[MarkRead alloc] init];
+    request.conversationId  = convId;
+
+    if (msgIds && msgIds.length != 0) {
+        request.messageIdsArray = [msgIds componentsSeparatedByString:@","];
+    }
+
+    NSLog(@" \n标记会话 %@ \n相关消息: \n %@", request.conversationId,request.messageIdsArray);
     
     // 序列化
     NSData *serializedData = [request data];
@@ -550,7 +606,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         }
     }
     
-    int result = mark_conversation_read(ConversationCallback, data, dataLen, reqId);
+    int result = mark_conversation_read(MarkReadCallback, data, dataLen, reqId);
     
     if (result == 0) {
         NSLog(@"✅ 标记会话已读请求发送成功: reqId=%llu", reqId);

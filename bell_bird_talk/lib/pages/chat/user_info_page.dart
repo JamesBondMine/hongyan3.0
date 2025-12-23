@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -345,7 +346,10 @@ class _UserInfoPageState extends State<UserInfoPage> {
           displayName: displayName,
           avatar: avatar,
           targetUserId: widget.userId,
-        ));
+        ))?.then(  (_) {
+            // 返回后清除该会话的未读数
+            ChatController.to.conversationId = "";
+          });
       } else {
         final message = result['message'] ?? '创建会话失败';
         EasyLoading.showError(message);

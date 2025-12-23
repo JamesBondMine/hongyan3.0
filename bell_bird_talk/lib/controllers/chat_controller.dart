@@ -5,6 +5,10 @@ class ChatController extends GetxController {
   static ChatController get to => Get.put(ChatController());
 
 
+  //  当前会话ID
+  String conversationId = '';
+
+
   final IOSNativeService _nativeService = IOSNativeService();
 
   Future<bool> deleteMessage(String messageId, String conversationId) async {

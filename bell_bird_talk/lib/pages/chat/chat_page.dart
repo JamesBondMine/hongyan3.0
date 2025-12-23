@@ -132,6 +132,23 @@ class _ChatPageState extends State<ChatPage> {
     
     // 监听输入框内容变化，检测@符号
     _messageController.addListener(_onTextChanged);
+
+    // 定位当前会话ID
+    ChatController.to.conversationId = widget.convId;
+
+    // 标记会话已读
+    _markConversationRead();
+  }
+
+  // 标记会话已读
+  void _markConversationRead() async{
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (_messages.isNotEmpty) {
+      List<Map<String, dynamic>> unreadMessages = _messages.where((msg) => msg['isMine'] == false).toList();
+      List<String> unreadMsgIds = unreadMessages.map((msg) => msg['id'].toString()).toList();
+      print('会话页面组装。标记已读消息: ${unreadMsgIds.join(',')}');
+      _nativeService.imMarkConversationRead(convId: widget.convId, msgIds: unreadMsgIds.join(','));
+    }
   }
   
   /// 监听输入框内容变化，检测@符号
@@ -458,7 +475,7 @@ class _ChatPageState extends State<ChatPage> {
     final List<ChatMessage> toInsertBatch = [];
     
     for (final msg in messages) {
-      print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
+      // print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
       if (msg is Map<String, dynamic>) {
         // 尝试解析消息结构
         final msgId = msg['msg_id'] ?? msg['message_id'] ?? msg['id'] ?? '';

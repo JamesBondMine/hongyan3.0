@@ -2186,14 +2186,13 @@ class NativeBridgeHandler: NSObject {
     /// 标记会话已读
     private func imMarkConversationRead(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
+              let msgIds = args["msgIds"] as? String,
               let convId = args["conv_id"] as? String else {
             result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
             return
         }
         
-        print("📋 标记会话已读: convId=\(convId)")
-        
-        let code = IMSDKConversationManager.shared().markConversationRead(withId: convId) { errorCode, reqId, data in
+        let code = IMSDKConversationManager.shared().markConversationRead(withId: convId, msgIds: msgIds, completion:{ errorCode, reqId, data in
             print("✅ 标记已读回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -2202,7 +2201,7 @@ class NativeBridgeHandler: NSObject {
                 "message": errorCode == 0 ? "标记成功" : "标记失败",
                 "data": data ?? ""
             ])
-        }
+        })
         
         if code != 0 {
             result(FlutterError(code: "MARK_READ_ERROR",

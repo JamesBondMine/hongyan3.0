@@ -1634,10 +1634,12 @@ class IOSNativeService {
   /// @return 标记结果
   Future<Map<String, dynamic>> imMarkConversationRead({
     required String convId,
+    required String msgIds,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imMarkConversationRead', {
         'conv_id': convId,
+        'msgIds': msgIds
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

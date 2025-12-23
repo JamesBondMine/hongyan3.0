@@ -1,4 +1,5 @@
 
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'models/chat_model.dart';
@@ -233,7 +234,10 @@ class _SearchMessageHistoryState extends State<SearchMessageHistory> {
             displayName: conversation.displayName,
             avatar: conversation.avatar,
             targetUserId: conversation.targetId ?? '',
-          ));
+          ))?.then(  (_) {
+            // 返回后清除该会话的未读数
+            ChatController.to.conversationId = "";
+          });
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
