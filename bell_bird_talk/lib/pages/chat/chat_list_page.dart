@@ -1419,6 +1419,11 @@ class _ChatListPageState extends State<ChatListPage> {
         );
         if (result['errorCode'] == 0) {
           EasyLoading.showSuccess('已删除');
+          // 删除本地数据库的会话
+          final userId = _currentUserId;
+          if (userId.isNotEmpty) {
+            await _messageDatabase.deleteConversation(userId, conversation.convId);
+          }
           _refreshConversations(0);
         } else {
           EasyLoading.showError('删除失败');
