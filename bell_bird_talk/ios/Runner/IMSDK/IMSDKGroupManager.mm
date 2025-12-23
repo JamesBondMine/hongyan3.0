@@ -1336,6 +1336,10 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
         return -1;
     }
     
+    BParam * bp = [[BParam alloc] init];
+    
+    
+    
     // 创建一个简单的请求数据，包含是否免打扰的状态
     NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
     requestDict[@"disturb"] = @(disturb);

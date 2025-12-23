@@ -577,8 +577,8 @@ class MessageDatabase {
     // 查询本地消息 ---  因为要删除
     final existingMessage = await db.query(
       'messages',
-      where: 'local_id = ?',
-      whereArgs: [message.ext],
+      where: 'server_id = ?',
+      whereArgs: [message.serverId],
       limit: 1,
     );
     print("existingMessage: $existingMessage");
@@ -586,8 +586,8 @@ class MessageDatabase {
       // 删除本地消息
       int count = await db.delete(
         'messages',
-        where: 'local_id = ?',
-        whereArgs: [message.ext],
+        where: 'server_id = ?',
+        whereArgs: [message.serverId],
       );
       print("删除本地消息: $count");
     }

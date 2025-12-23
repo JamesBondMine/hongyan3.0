@@ -243,8 +243,8 @@ class MessageQueueManager {
           final data = result['data'] is String 
               ? json.decode(result['data']) 
               : result['data'];
-          if (data is Map && data['msg_id'] != null) {
-            message.serverId = data['msg_id'].toString();
+          if (data is Map && data['server_msg_id'] != null) {
+            message.serverId = data['server_msg_id'].toString();
             await _database.updateMessageServerId(message.localId, message.serverId!);
           }
         } catch (e) {
@@ -268,8 +268,8 @@ class MessageQueueManager {
           final data = result['data'] is String 
               ? json.decode(result['data']) 
               : result['data'];
-          if (data is Map && data['msg_id'] != null) {
-            message.serverId = data['msg_id'].toString();
+          if (data is Map && data['server_msg_id'] != null) {
+            message.serverId = data['server_msg_id'].toString();
             await _database.updateMessageServerId(message.localId, message.serverId!);
           }
         } catch (e) {
@@ -298,8 +298,8 @@ class MessageQueueManager {
           final data = result['data'] is String 
               ? json.decode(result['data']) 
               : result['data'];
-          if (data is Map && data['msg_id'] != null) {
-            message.serverId = data['msg_id'].toString();
+          if (data is Map && data['server_msg_id'] != null) {
+            message.serverId = data['server_msg_id'].toString();
             await _database.updateMessageServerId(message.localId, message.serverId!);
           }
         } catch (e) {
@@ -537,8 +537,8 @@ class MessageQueueManager {
             final data = sendResult['data'] is String 
                 ? json.decode(sendResult['data']) 
                 : sendResult['data'];
-            if (data is Map && data['msg_id'] != null) {
-              message.serverId = data['msg_id'].toString();
+            if (data is Map && data['server_msg_id'] != null) {
+              message.serverId = data['server_msg_id'].toString();
               await _database.updateMessageServerId(message.localId, message.serverId!);
             }
           } catch (e) {
@@ -696,8 +696,8 @@ class MessageQueueManager {
             final data = sendResult['data'] is String 
                 ? json.decode(sendResult['data']) 
                 : sendResult['data'];
-            if (data is Map && data['msg_id'] != null) {
-              message.serverId = data['msg_id'].toString();
+            if (data is Map && data['server_msg_id'] != null) {
+              message.serverId = data['server_msg_id'].toString();
               await _database.updateMessageServerId(message.localId, message.serverId!);
             }
           } catch (e) {
@@ -939,8 +939,8 @@ class MessageQueueManager {
             final data = sendResult['data'] is String
                 ? json.decode(sendResult['data'])
                 : sendResult['data'];
-            if (data is Map && data['msg_id'] != null) {
-              message.serverId = data['msg_id'].toString();
+            if (data is Map && data['server_msg_id'] != null) {
+              message.serverId = data['server_msg_id'].toString();
               await _database.updateMessageServerId(
                   message.localId, message.serverId!);
             }

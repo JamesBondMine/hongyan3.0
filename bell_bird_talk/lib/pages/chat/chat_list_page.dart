@@ -592,7 +592,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 刷新会话列表（带超时控制）
   /// 刷新会话列表（带超时控制）
-  Future<void> _refreshConversations(int convType) async {
+  Future<void> _refreshConversations(int convType, {bool isAtMe = false}) async {
     // 重置分页
     _currentPage = 1;
     _hasMore = true;
@@ -609,6 +609,7 @@ class _ChatListPageState extends State<ChatListPage> {
         page: 1,
         pageSize: 20,
         convType: convType,
+        isAtMe: isAtMe,
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
@@ -714,7 +715,7 @@ class _ChatListPageState extends State<ChatListPage> {
           _buildFilterButton(0, '全部', _getAllUnreadCount()),
           _buildFilterButton(1, '未读', _getAllUnreadCount()),  // 和全部一样显示总未读数
           _buildFilterButton(2, '群聊', _getGroupUnreadCount()),
-          _buildFilterButton(3, '@我的', _getAtMeCount()),
+          _buildFilterButton(3, '@我的', _getGroupUnreadCount()),
         ],
       ),
     );
@@ -740,9 +741,12 @@ class _ChatListPageState extends State<ChatListPage> {
           } else if (type == 2) {
             // 点击"全部"：刷新会话列表（调用更新会话列表）
             await _refreshConversations(2);
+          } else if (type == 3) {
+            // 点击"全部"：刷新会话列表（调用更新会话列表）
+            await _refreshConversations(0, isAtMe: true);
           } else {
             // 其他筛选类型：仅本地过滤
-          _filterConversations();
+          // _filterConversations();
           }
         },
         child: Container(
@@ -802,12 +806,6 @@ class _ChatListPageState extends State<ChatListPage> {
     return _conversations
         .where((conv) => conv.convType == 2)
         .fold(0, (sum, conv) => sum + conv.unreadCount);
-  }
-
-  /// 获取@我的未读数（需要后端支持，暂时返回0）
-  int _getAtMeCount() {
-    // TODO: 需要后端返回 at_me_count 字段
-    return 0;
   }
 
   /// 构建普通 AppBar

@@ -190,13 +190,15 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
 - (int)getConversationListWithPage:(int)page
                           pageSize:(int)pageSize
                           convType:(IMConversationType)convType
+                              atMe:(BOOL)atme
                         completion:(IMSDKConversationCompletion)completion {
     NSLog(@"📋 获取会话列表: page=%d, pageSize=%d, convType=%ld", page, pageSize, (long)convType);
     
     // 构建查询请求
-    ConvListQuery *query = [[ConvListQuery alloc] init];
-    
-    
+    ListUnreadQuery *query = [[ListUnreadQuery alloc] init];
+    if (atme) {
+        query.mentionOnly = true;
+    }
     // 设置会话类型（如果需要过滤）
     if (convType >= 0) {
         query.convType = (ConversationType)convType;
@@ -208,6 +210,8 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     pageObj.size = pageSize;
     query.page = pageObj;
     
+    NSLog(@"\n***************\n🍎 会话列表查询数据: 会话列表 第%d页,长度%d  会话类型 %d 是否是AT我的 %d \n***************",page,pageSize, query.convType,query.mentionOnly);
+//    print("📋 获取会话列表: page=\(page), pageSize=\(pageSize), convType=\(convType)")
     // 序列化
     NSData *serializedData = [query data];
     if (!serializedData || serializedData.length == 0) {
@@ -221,7 +225,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     for (NSUInteger i = 0; i < serializedData.length; i++) {
         [hexString appendFormat:@"%02x", bytes[i]];
     }
-    NSLog(@"📤 会话列表查询数据(hex): %@", hexString);
+    
     
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
@@ -254,12 +258,6 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     }
     
     return result;
-}
-
-- (int)getConversationListWithPage:(int)page
-                          pageSize:(int)pageSize
-                        completion:(IMSDKConversationCompletion)completion {
-    return [self getConversationListWithPage:page pageSize:pageSize convType:(IMConversationType)-1 completion:completion];
 }
 
 // ==================== 会话操作 ====================

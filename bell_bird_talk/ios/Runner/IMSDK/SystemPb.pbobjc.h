@@ -296,6 +296,22 @@ GPB_FINAL @interface IpLocationRequest : GPBMessage
 
 @end
 
+#pragma mark - BParam
+
+typedef GPB_ENUM(BParam_FieldNumber) {
+  BParam_FieldNumber_Param = 1,
+};
+
+/**
+ * 通用参数请求 - 用于所有只需要一个字符串参数的请求（布尔类型）
+ **/
+GPB_FINAL @interface BParam : GPBMessage
+
+/** 参数值（必填，switch、Exist 等） */
+@property(nonatomic, readwrite) BOOL param;
+
+@end
+
 #pragma mark - IpLocationResponse
 
 typedef GPB_ENUM(IpLocationResponse_FieldNumber) {

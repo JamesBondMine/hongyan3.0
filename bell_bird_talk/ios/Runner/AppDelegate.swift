@@ -2001,10 +2001,9 @@ class NativeBridgeHandler: NSObject {
         let page = args["page"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
         let convType = args["conv_type"] as? Int ?? -1
+        let isAtMe = args["is_at_me"] as? Bool ?? false
         
-        print("📋 获取会话列表: page=\(page), pageSize=\(pageSize), convType=\(convType)")
-        
-        let code = IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
+        let code = IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
             print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
@@ -2013,7 +2012,7 @@ class NativeBridgeHandler: NSObject {
                 "message": errorCode == 0 ? "获取成功" : "获取失败",
                 "data": data ?? ""
             ])
-        }
+        })
         
         if code != 0 {
             result(FlutterError(code: "GET_CONVERSATION_LIST_ERROR",

@@ -320,6 +320,8 @@ class ChatMessage {
     switch (type) {
       case MessageType.text:
         return textContent ?? '';
+      case MessageType.at:
+        return textContent ?? '';
       case MessageType.image:
         return '[图片]';
       case MessageType.video:

@@ -363,7 +363,8 @@ class _ChatPageState extends State<ChatPage> {
   void _addChatLocalMessageToList(ChatMessage message) {
     
     final msgMap = {
-      'id': message.serverId ?? message.localId,
+      'id': message.localId,
+      'serverId': message.serverId,
       'localId': message.localId,
       'content': message.type == MessageType.at ? message.textContent : message.displayContent,
       'type': message.type.name,
@@ -384,7 +385,7 @@ class _ChatPageState extends State<ChatPage> {
     if (existIndex != -1) {
       _messages[existIndex] = msgMap;
     } else {
-      print("添加消息到列表: $msgMap");
+      print("添加数据库消息到列表: $msgMap");
       _messages.add(msgMap);
     }
   }
@@ -461,6 +462,7 @@ class _ChatPageState extends State<ChatPage> {
       if (msg is Map<String, dynamic>) {
         // 尝试解析消息结构
         final msgId = msg['msg_id'] ?? msg['message_id'] ?? msg['id'] ?? '';
+        final serverId = msg['server_msg_id'] ?? '';
         final content = msg['content'] ?? msg['text'] ?? msg['body'] ?? '';
         final senderId = msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
         final timestamp = msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
@@ -522,6 +524,7 @@ class _ChatPageState extends State<ChatPage> {
         
         final msgMap = {
           'id': msgId.toString(),
+          'serverId': serverId.toString(),
           'content': content.toString(),
           'type': msgType,
           'isMine': isMine,
@@ -549,7 +552,7 @@ class _ChatPageState extends State<ChatPage> {
         
         
         // 检查是否已存在（通过 id 去重）
-        final existIndex = _messages.indexWhere((m) => m['ext'] == msgId.toString());
+        final existIndex = _messages.indexWhere((m) => m['serverId'] == serverId.toString());
         if (existIndex == -1) {
           print("组装消息aa. 是否已经添加过?   未添加: $msgMap");
           _messages.add(msgMap);
@@ -571,7 +574,7 @@ class _ChatPageState extends State<ChatPage> {
           localId: msgId.toString(),
           msgId: msgId.toString(),
           ext: ext.toString(),
-          serverId: msgId.toString(),
+          serverId: serverId.toString(),
           convId: widget.convId,
           senderId: senderId.toString(),
           receiverId: isMine ? widget.targetUserId : _currentUserId,

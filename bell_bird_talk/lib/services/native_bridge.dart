@@ -1458,12 +1458,14 @@ class IOSNativeService {
     int page = 1,
     int pageSize = 20,
     int convType = 0,
+    bool isAtMe = false,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetConversationList', {
         'page': page,
         'page_size': pageSize,
         'conv_type': convType,
+        'is_at_me': isAtMe,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

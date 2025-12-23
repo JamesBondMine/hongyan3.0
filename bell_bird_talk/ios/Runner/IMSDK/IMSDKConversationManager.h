@@ -11,7 +11,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 会话类型
 typedef NS_ENUM(NSInteger, IMConversationType) {
-    IMConversationTypeSingle = 0,      // 单聊
+    IMConversationTypeAll = 0,      // 单聊
+    IMConversationTypeSingle = 1,      // 单聊
     IMConversationTypeGroup = 2,       // 群聊
     IMConversationTypeSystem = 3,      // 系统
     IMConversationTypeCommunity = 4,   // 社区
@@ -40,16 +41,9 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
 - (int)getConversationListWithPage:(int)page
                           pageSize:(int)pageSize
                           convType:(IMConversationType)convType
+                              atMe:(BOOL)atme
                         completion:(IMSDKConversationCompletion)completion;
 
-/// 获取会话列表（不过滤类型）
-/// @param page 页码（从1开始）
-/// @param pageSize 每页数量
-/// @param completion 结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)getConversationListWithPage:(int)page
-                          pageSize:(int)pageSize
-                        completion:(IMSDKConversationCompletion)completion;
 
 // ==================== 会话操作 ====================
 
