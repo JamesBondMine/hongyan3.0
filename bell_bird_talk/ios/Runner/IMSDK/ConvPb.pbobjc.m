@@ -15,140 +15,11 @@
  #import "GPBProtocolBuffers_RuntimeSupport.h"
 #endif
 
-// ==================== Protobuf 3.25 兼容层（仅在旧运行库下生效） ====================
-// 说明：
-// - 当前工程仍然使用 Protobuf 3.25（老版本 ObjC runtime）
-// - 新版 protoc 生成的 gencode 需要一些 4.x 里的新类型/方法：
-//     - GPBObjcRuntimeSupport
-//     - GPBFilePackageAndPrefix
-//     - +allocDescriptorForName:runtimeSupport:...
-//     - +allocDescriptorForClass:messageName:runtimeSupport:fileDescription:...
-// - 这里通过 typedef 和 Category 提供“垫片”，把新 API 转到旧 API 上，保证 3.25 也能编译运行。
-
-// 仅当运行库里没有定义该符号时，才启用兼容层
-#if !defined(GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311)
-
-// 4.x 用的运行库描述结构，在 3.25 中不存在，这里提供一个空壳类型占位即可。
-typedef struct {
-  int32_t dummy;
-} GPBObjcRuntimeSupport;
-
-// 新 gencode 里会引用这个全局变量指针，老运行库没有，我们在当前编译单元内提供一个本地占位。
-static GPBObjcRuntimeSupport GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311 = {0};
-
-// 4.x 里的文件描述结构，简化版，只保留 package/prefix；实际调用时再转换成 3.x 的 GPBFileDescription。
-typedef struct {
-  const char *package;
-  const char *prefix;
-} GPBFilePackageAndPrefix;
-
-// Enum 描述兼容：忽略 runtimeSupport，直接调用 3.25 的老方法
-@interface GPBEnumDescriptor (RuntimeCompat_40311)
-+ (instancetype)allocDescriptorForName:(NSString *)name
-                        runtimeSupport:(const GPBObjcRuntimeSupport *)runtimeSupport
-                            valueNames:(const char *)valueNames
-                                values:(const int32_t *)values
-                                 count:(uint32_t)count
-                          enumVerifier:(GPBEnumValidationFunc)isValidValueFunc
-                                 flags:(GPBEnumDescriptorInitializationFlags)flags;
-@end
-
-@implementation GPBEnumDescriptor (RuntimeCompat_40311)
-
-+ (instancetype)allocDescriptorForName:(NSString *)name
-                        runtimeSupport:(const GPBObjcRuntimeSupport *)runtimeSupport
-                            valueNames:(const char *)valueNames
-                                values:(const int32_t *)values
-                                 count:(uint32_t)count
-                          enumVerifier:(GPBEnumValidationFunc)isValidValueFunc
-                                 flags:(GPBEnumDescriptorInitializationFlags)flags {
-  // 3.25 的实现没有 runtimeSupport 参数，直接忽略即可
-  return [self allocDescriptorForName:name
-                           valueNames:valueNames
-                               values:values
-                                count:count
-                         enumVerifier:isValidValueFunc
-                                flags:flags];
-}
-
-@end
-
-// Message 描述兼容：把 GPBFilePackageAndPrefix 转成 3.25 的 GPBFileDescription，再调用老方法
-@interface GPBDescriptor (RuntimeCompat_40311)
-+ (instancetype)allocDescriptorForClass:(Class)messageClass
-                            messageName:(NSString *)name
-                         runtimeSupport:(const GPBObjcRuntimeSupport *)runtimeSupport
-                        fileDescription:(const GPBFilePackageAndPrefix *)file
-                                 fields:(GPBMessageFieldDescription *)fields
-                             fieldCount:(uint32_t)fieldCount
-                            storageSize:(size_t)storageSize
-                                  flags:(GPBDescriptorInitializationFlags)flags;
-@end
-
-@implementation GPBDescriptor (RuntimeCompat_40311)
-
-+ (instancetype)allocDescriptorForClass:(Class)messageClass
-                            messageName:(NSString *)name
-                         runtimeSupport:(const GPBObjcRuntimeSupport *)runtimeSupport
-                        fileDescription:(const GPBFilePackageAndPrefix *)file
-                                 fields:(GPBMessageFieldDescription *)fields
-                             fieldCount:(uint32_t)fieldCount
-                            storageSize:(size_t)storageSize
-                                  flags:(GPBDescriptorInitializationFlags)flags {
-  // 关键：Protobuf 3.25 的 ObjC runtime 需要 UsesClassRefs 等标记来正确解释
-  // 由 GPBObjCClass(...) 填入的 class refs；否则会在运行时触发断言崩溃：
-  // "Internal error: all fields should have class refs"
-  flags = (GPBDescriptorInitializationFlags)(
-      flags |
-      GPBDescriptorInitializationFlag_UsesClassRefs |
-      GPBDescriptorInitializationFlag_Proto3OptionalKnown |
-      GPBDescriptorInitializationFlag_ClosedEnumSupportKnown);
-
-  // 关键：新版 gencode 在 enum 字段的 flags 上可能不再显式带 GPBFieldHasEnumDescriptor，
-  // 但 Protobuf 3.25 runtime 会强制要求该标记，否则会崩溃：
-  // "Field must have GPBFieldHasEnumDescriptor set"
-  for (uint32_t i = 0; i < fieldCount; i++) {
-    if (fields[i].dataType == GPBDataTypeEnum) {
-      fields[i].flags = (GPBFieldFlags)(fields[i].flags | GPBFieldHasEnumDescriptor);
-    }
-    // Protobuf 3.25 runtime 在 isInitialized 中会校验：单个 message 字段必须标明 optional/required。
-    // 新版 gencode（proto3）里这类字段有时是 GPBFieldNone，这会导致崩溃：
-    // "Single message field <name> not required or optional?"
-    if (fields[i].dataType == GPBDataTypeMessage) {
-      const BOOL isRepeated = ((fields[i].flags & GPBFieldRepeated) != 0);
-      const BOOL isMap = ((fields[i].flags & GPBFieldMapKeyMask) != 0);
-      if (!isRepeated && !isMap) {
-        fields[i].flags = (GPBFieldFlags)(fields[i].flags | GPBFieldOptional);
-      }
-    }
-  }
-
-  GPBFileDescription fileDesc = {0};
-  if (file) {
-    fileDesc.package = file->package;
-    fileDesc.prefix  = file->prefix;
-  }
-  // 新 proto 都是 proto3
-  fileDesc.syntax = GPBFileSyntaxProto3;
-
-  return [self allocDescriptorForClass:messageClass
-                           messageName:name
-                       fileDescription:&fileDesc
-                                fields:fields
-                            fieldCount:fieldCount
-                           storageSize:storageSize
-                                 flags:flags];
-}
-
-@end
-
-#endif  // !defined(GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311)
-
-#if GOOGLE_PROTOBUF_OBJC_VERSION < 40311
-#warning "ConvPb.pbobjc.m was generated by a newer version of protoc than your Objective‑C Protobuf runtime. Please consider upgrading the runtime when convenient."
+#if GOOGLE_PROTOBUF_OBJC_VERSION < 30007
+#error This file was generated by a newer version of protoc which is incompatible with your Protocol Buffer library sources.
 #endif
-#if 40311 < GOOGLE_PROTOBUF_OBJC_MIN_SUPPORTED_VERSION
-#warning "ConvPb.pbobjc.m was generated by an older version of protoc than your Objective‑C Protobuf runtime. Please consider regenerating with a newer protoc when convenient."
+#if 30007 < GOOGLE_PROTOBUF_OBJC_MIN_SUPPORTED_VERSION
+#error This file was generated by an older version of protoc which is incompatible with your Protocol Buffer library sources.
 #endif
 
 #import <stdatomic.h>
@@ -173,12 +44,12 @@ GPBObjCClassDeclaration(ConvList);
 GPBObjCClassDeclaration(ConvListQuery);
 GPBObjCClassDeclaration(ConvWithUnread);
 GPBObjCClassDeclaration(DeleteConv);
+GPBObjCClassDeclaration(Disturb);
+GPBObjCClassDeclaration(DisturbState);
 GPBObjCClassDeclaration(GetConv);
 GPBObjCClassDeclaration(IncrementUnread);
 GPBObjCClassDeclaration(ListUnreadQuery);
 GPBObjCClassDeclaration(ListWithUnread);
-GPBObjCClassDeclaration(Muted);
-GPBObjCClassDeclaration(MutedState);
 GPBObjCClassDeclaration(Page);
 GPBObjCClassDeclaration(ReadStatus);
 GPBObjCClassDeclaration(UnreadPreview);
@@ -199,9 +70,10 @@ GPBObjCClassDeclaration(UpdateStats);
 
 @end
 
-static GPBFilePackageAndPrefix ConvPbRoot_FileDescription = {
+static GPBFileDescription ConvPbRoot_FileDescription = {
   .package = "im.conv",
-  .prefix = NULL
+  .prefix = NULL,
+  .syntax = GPBFileSyntaxProto3
 };
 
 #pragma mark - Enum ConversationType
@@ -209,6 +81,7 @@ static GPBFilePackageAndPrefix ConvPbRoot_FileDescription = {
 GPBEnumDescriptor *ConversationType_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static const char *valueNames =
         "All\000Single\000Group\000System\000Community\000";
     static const int32_t values[] = {
@@ -220,7 +93,6 @@ GPBEnumDescriptor *ConversationType_EnumDescriptor(void) {
     };
     GPBEnumDescriptor *worker =
         [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(ConversationType)
-                                   runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
@@ -258,6 +130,7 @@ BOOL ConversationType_IsValidValue(int32_t value__) {
 @dynamic displayName;
 @dynamic description_p;
 @dynamic avatarURL;
+@dynamic avatarBg;
 @dynamic avatarInfo;
 @dynamic targetId;
 @dynamic status;
@@ -267,6 +140,7 @@ BOOL ConversationType_IsValidValue(int32_t value__) {
 @dynamic extraInfo;
 @dynamic sysTagsArray, sysTagsArray_Count;
 @dynamic userTagsArray, userTagsArray_Count;
+@dynamic disturb;
 
 typedef struct Conv__storage_ {
   uint32_t _has_storage_[1];
@@ -281,6 +155,7 @@ typedef struct Conv__storage_ {
   NSString *avatarInfo;
   NSString *targetId;
   NSString *extraInfo;
+  NSString *avatarBg;
   NSMutableArray *sysTagsArray;
   NSMutableArray *userTagsArray;
   int64_t createdAt;
@@ -292,6 +167,7 @@ typedef struct Conv__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -299,7 +175,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(Conv__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -308,7 +184,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_ParentId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(Conv__storage_, parentId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -317,7 +193,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_ConvType,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(Conv__storage_, convType),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
@@ -326,7 +202,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_Level,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(Conv__storage_, level),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -335,7 +211,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_DisplayName,
         .hasIndex = 4,
         .offset = (uint32_t)offsetof(Conv__storage_, displayName),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -344,7 +220,7 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_Description_p,
         .hasIndex = 5,
         .offset = (uint32_t)offsetof(Conv__storage_, description_p),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -353,70 +229,79 @@ typedef struct Conv__storage_ {
         .number = Conv_FieldNumber_AvatarURL,
         .hasIndex = 6,
         .offset = (uint32_t)offsetof(Conv__storage_, avatarURL),
-        .flags = (GPBFieldFlags)(GPBFieldTextFormatNameCustom | GPBFieldClearHasIvarOnZero),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "avatarInfo",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_AvatarInfo,
-        .hasIndex = 7,
+        .hasIndex = 8,
         .offset = (uint32_t)offsetof(Conv__storage_, avatarInfo),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "targetId",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_TargetId,
-        .hasIndex = 8,
+        .hasIndex = 9,
         .offset = (uint32_t)offsetof(Conv__storage_, targetId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "status",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_Status,
-        .hasIndex = 9,
+        .hasIndex = 10,
         .offset = (uint32_t)offsetof(Conv__storage_, status),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
         .name = "isPrivate",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_IsPrivate,
-        .hasIndex = 10,
-        .offset = 11,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .hasIndex = 11,
+        .offset = 12,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
         .name = "createdAt",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_CreatedAt,
-        .hasIndex = 12,
+        .hasIndex = 13,
         .offset = (uint32_t)offsetof(Conv__storage_, createdAt),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
         .name = "updatedAt",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_UpdatedAt,
-        .hasIndex = 13,
+        .hasIndex = 14,
         .offset = (uint32_t)offsetof(Conv__storage_, updatedAt),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
         .name = "extraInfo",
         .dataTypeSpecific.clazz = Nil,
         .number = Conv_FieldNumber_ExtraInfo,
-        .hasIndex = 14,
+        .hasIndex = 15,
         .offset = (uint32_t)offsetof(Conv__storage_, extraInfo),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "avatarBg",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Conv_FieldNumber_AvatarBg,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(Conv__storage_, avatarBg),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -437,16 +322,24 @@ typedef struct Conv__storage_ {
         .flags = GPBFieldRepeated,
         .dataType = GPBDataTypeString,
       },
+      {
+        .name = "disturb",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Conv_FieldNumber_Disturb,
+        .hasIndex = 16,
+        .offset = 17,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeBool,
+      },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(Conv)
                                    messageName:@"Conv"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(Conv__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if !GPBOBJC_SKIP_MESSAGE_TEXTFORMAT_EXTRAS
       static const char *extraTextFormatInfo =
         "\001\007\006\241!!\000";
@@ -490,6 +383,7 @@ typedef struct GetConv__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -497,19 +391,18 @@ typedef struct GetConv__storage_ {
         .number = GetConv_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(GetConv__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(GetConv)
                                    messageName:@"GetConv"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(GetConv__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -536,6 +429,7 @@ typedef struct DeleteConv__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -543,19 +437,18 @@ typedef struct DeleteConv__storage_ {
         .number = DeleteConv_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(DeleteConv__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(DeleteConv)
                                    messageName:@"DeleteConv"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(DeleteConv__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -585,6 +478,7 @@ typedef struct ConvListQuery__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convType",
@@ -592,7 +486,7 @@ typedef struct ConvListQuery__storage_ {
         .number = ConvListQuery_FieldNumber_ConvType,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ConvListQuery__storage_, convType),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
@@ -601,7 +495,7 @@ typedef struct ConvListQuery__storage_ {
         .number = ConvListQuery_FieldNumber_Page,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(ConvListQuery__storage_, page),
-        .flags = GPBFieldNone,
+        .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
@@ -610,19 +504,18 @@ typedef struct ConvListQuery__storage_ {
         .number = ConvListQuery_FieldNumber_WithUnread,
         .hasIndex = 2,
         .offset = 3,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ConvListQuery)
                                    messageName:@"ConvListQuery"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ConvListQuery__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -664,6 +557,7 @@ typedef struct ListUnreadQuery__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convType",
@@ -671,7 +565,7 @@ typedef struct ListUnreadQuery__storage_ {
         .number = ListUnreadQuery_FieldNumber_ConvType,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ListUnreadQuery__storage_, convType),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
@@ -680,7 +574,7 @@ typedef struct ListUnreadQuery__storage_ {
         .number = ListUnreadQuery_FieldNumber_Page,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(ListUnreadQuery__storage_, page),
-        .flags = GPBFieldNone,
+        .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
@@ -689,19 +583,18 @@ typedef struct ListUnreadQuery__storage_ {
         .number = ListUnreadQuery_FieldNumber_MentionOnly,
         .hasIndex = 2,
         .offset = 3,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ListUnreadQuery)
                                    messageName:@"ListUnreadQuery"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ListUnreadQuery__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -746,6 +639,7 @@ typedef struct ConvList__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convsArray",
@@ -762,7 +656,7 @@ typedef struct ConvList__storage_ {
         .number = ConvList_FieldNumber_TotalCount,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ConvList__storage_, totalCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -771,7 +665,7 @@ typedef struct ConvList__storage_ {
         .number = ConvList_FieldNumber_Page,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(ConvList__storage_, page),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -780,19 +674,18 @@ typedef struct ConvList__storage_ {
         .number = ConvList_FieldNumber_Size,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(ConvList__storage_, size),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ConvList)
                                    messageName:@"ConvList"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ConvList__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -821,6 +714,7 @@ typedef struct UnreadQuery__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "userId",
@@ -828,7 +722,7 @@ typedef struct UnreadQuery__storage_ {
         .number = UnreadQuery_FieldNumber_UserId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UnreadQuery__storage_, userId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -837,19 +731,18 @@ typedef struct UnreadQuery__storage_ {
         .number = UnreadQuery_FieldNumber_ConvId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UnreadQuery__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UnreadQuery)
                                    messageName:@"UnreadQuery"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UnreadQuery__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -880,6 +773,7 @@ typedef struct UnreadStats__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "totalUnread",
@@ -887,7 +781,7 @@ typedef struct UnreadStats__storage_ {
         .number = UnreadStats_FieldNumber_TotalUnread,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UnreadStats__storage_, totalUnread),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -905,19 +799,18 @@ typedef struct UnreadStats__storage_ {
         .number = UnreadStats_FieldNumber_Version,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UnreadStats__storage_, version),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UnreadStats)
                                    messageName:@"UnreadStats"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UnreadStats__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -942,15 +835,15 @@ typedef struct UnreadPreview__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UnreadPreview)
                                    messageName:@"UnreadPreview"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:NULL
                                     fieldCount:0
                                    storageSize:sizeof(UnreadPreview__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -985,6 +878,7 @@ typedef struct UnreadPreviewResult__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "totalUnread",
@@ -992,7 +886,7 @@ typedef struct UnreadPreviewResult__storage_ {
         .number = UnreadPreviewResult_FieldNumber_TotalUnread,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UnreadPreviewResult__storage_, totalUnread),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1001,7 +895,7 @@ typedef struct UnreadPreviewResult__storage_ {
         .number = UnreadPreviewResult_FieldNumber_UnreadSingle,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UnreadPreviewResult__storage_, unreadSingle),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1010,7 +904,7 @@ typedef struct UnreadPreviewResult__storage_ {
         .number = UnreadPreviewResult_FieldNumber_UnreadGroup,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(UnreadPreviewResult__storage_, unreadGroup),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1019,7 +913,7 @@ typedef struct UnreadPreviewResult__storage_ {
         .number = UnreadPreviewResult_FieldNumber_UnreadMention,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(UnreadPreviewResult__storage_, unreadMention),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1028,19 +922,18 @@ typedef struct UnreadPreviewResult__storage_ {
         .number = UnreadPreviewResult_FieldNumber_UpdateVersion,
         .hasIndex = 4,
         .offset = (uint32_t)offsetof(UnreadPreviewResult__storage_, updateVersion),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UnreadPreviewResult)
                                    messageName:@"UnreadPreviewResult"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UnreadPreviewResult__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1073,6 +966,7 @@ typedef struct UpdateReadPosition__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1080,7 +974,7 @@ typedef struct UpdateReadPosition__storage_ {
         .number = UpdateReadPosition_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UpdateReadPosition__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1089,7 +983,7 @@ typedef struct UpdateReadPosition__storage_ {
         .number = UpdateReadPosition_FieldNumber_ReadSeq,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UpdateReadPosition__storage_, readSeq),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1098,7 +992,7 @@ typedef struct UpdateReadPosition__storage_ {
         .number = UpdateReadPosition_FieldNumber_DeviceId,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(UpdateReadPosition__storage_, deviceId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1107,19 +1001,18 @@ typedef struct UpdateReadPosition__storage_ {
         .number = UpdateReadPosition_FieldNumber_MessageId,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(UpdateReadPosition__storage_, messageId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UpdateReadPosition)
                                    messageName:@"UpdateReadPosition"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UpdateReadPosition__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1149,6 +1042,7 @@ typedef struct ReadStatus__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "success",
@@ -1156,7 +1050,7 @@ typedef struct ReadStatus__storage_ {
         .number = ReadStatus_FieldNumber_Success,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
@@ -1165,7 +1059,7 @@ typedef struct ReadStatus__storage_ {
         .number = ReadStatus_FieldNumber_NewUnreadCount,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(ReadStatus__storage_, newUnreadCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1174,19 +1068,18 @@ typedef struct ReadStatus__storage_ {
         .number = ReadStatus_FieldNumber_TotalUnread,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(ReadStatus__storage_, totalUnread),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ReadStatus)
                                    messageName:@"ReadStatus"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ReadStatus__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1219,6 +1112,7 @@ typedef struct ConvWithUnread__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "conv",
@@ -1226,7 +1120,7 @@ typedef struct ConvWithUnread__storage_ {
         .number = ConvWithUnread_FieldNumber_Conv,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ConvWithUnread__storage_, conv),
-        .flags = GPBFieldNone,
+        .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
@@ -1235,7 +1129,7 @@ typedef struct ConvWithUnread__storage_ {
         .number = ConvWithUnread_FieldNumber_UnreadCount,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(ConvWithUnread__storage_, unreadCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1244,7 +1138,7 @@ typedef struct ConvWithUnread__storage_ {
         .number = ConvWithUnread_FieldNumber_LastReadSeq,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(ConvWithUnread__storage_, lastReadSeq),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1253,19 +1147,18 @@ typedef struct ConvWithUnread__storage_ {
         .number = ConvWithUnread_FieldNumber_ConvMaxSeq,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(ConvWithUnread__storage_, convMaxSeq),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ConvWithUnread)
                                    messageName:@"ConvWithUnread"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ConvWithUnread__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1301,6 +1194,7 @@ typedef struct ListWithUnread__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convsArray",
@@ -1317,7 +1211,7 @@ typedef struct ListWithUnread__storage_ {
         .number = ListWithUnread_FieldNumber_TotalUnread,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ListWithUnread__storage_, totalUnread),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1326,7 +1220,7 @@ typedef struct ListWithUnread__storage_ {
         .number = ListWithUnread_FieldNumber_HasMore,
         .hasIndex = 1,
         .offset = 2,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
@@ -1335,7 +1229,7 @@ typedef struct ListWithUnread__storage_ {
         .number = ListWithUnread_FieldNumber_Page,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(ListWithUnread__storage_, page),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1344,7 +1238,7 @@ typedef struct ListWithUnread__storage_ {
         .number = ListWithUnread_FieldNumber_Size,
         .hasIndex = 4,
         .offset = (uint32_t)offsetof(ListWithUnread__storage_, size),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1353,19 +1247,18 @@ typedef struct ListWithUnread__storage_ {
         .number = ListWithUnread_FieldNumber_Version,
         .hasIndex = 5,
         .offset = (uint32_t)offsetof(ListWithUnread__storage_, version),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(ListWithUnread)
                                    messageName:@"ListWithUnread"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(ListWithUnread__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1396,6 +1289,7 @@ typedef struct IncrementUnread__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1403,7 +1297,7 @@ typedef struct IncrementUnread__storage_ {
         .number = IncrementUnread_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(IncrementUnread__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1412,7 +1306,7 @@ typedef struct IncrementUnread__storage_ {
         .number = IncrementUnread_FieldNumber_UserId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(IncrementUnread__storage_, userId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1421,19 +1315,18 @@ typedef struct IncrementUnread__storage_ {
         .number = IncrementUnread_FieldNumber_Increment,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(IncrementUnread__storage_, increment),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(IncrementUnread)
                                    messageName:@"IncrementUnread"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(IncrementUnread__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1463,6 +1356,7 @@ typedef struct UnreadResult__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "success",
@@ -1470,7 +1364,7 @@ typedef struct UnreadResult__storage_ {
         .number = UnreadResult_FieldNumber_Success,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
@@ -1479,7 +1373,7 @@ typedef struct UnreadResult__storage_ {
         .number = UnreadResult_FieldNumber_NewUnreadCount,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(UnreadResult__storage_, newUnreadCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1488,19 +1382,18 @@ typedef struct UnreadResult__storage_ {
         .number = UnreadResult_FieldNumber_TotalUnread,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(UnreadResult__storage_, totalUnread),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UnreadResult)
                                    messageName:@"UnreadResult"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UnreadResult__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1535,6 +1428,7 @@ typedef struct UpdateStats__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1542,7 +1436,7 @@ typedef struct UpdateStats__storage_ {
         .number = UpdateStats_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UpdateStats__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1551,7 +1445,7 @@ typedef struct UpdateStats__storage_ {
         .number = UpdateStats_FieldNumber_MessageId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UpdateStats__storage_, messageId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1560,7 +1454,7 @@ typedef struct UpdateStats__storage_ {
         .number = UpdateStats_FieldNumber_MessageTime,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(UpdateStats__storage_, messageTime),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
@@ -1569,7 +1463,7 @@ typedef struct UpdateStats__storage_ {
         .number = UpdateStats_FieldNumber_SenderId,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(UpdateStats__storage_, senderId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1578,19 +1472,18 @@ typedef struct UpdateStats__storage_ {
         .number = UpdateStats_FieldNumber_MessagePreview,
         .hasIndex = 4,
         .offset = (uint32_t)offsetof(UpdateStats__storage_, messagePreview),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UpdateStats)
                                    messageName:@"UpdateStats"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UpdateStats__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1621,6 +1514,7 @@ typedef struct UpdatePullTime__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1628,7 +1522,7 @@ typedef struct UpdatePullTime__storage_ {
         .number = UpdatePullTime_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(UpdatePullTime__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1637,7 +1531,7 @@ typedef struct UpdatePullTime__storage_ {
         .number = UpdatePullTime_FieldNumber_UserId,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(UpdatePullTime__storage_, userId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1646,19 +1540,18 @@ typedef struct UpdatePullTime__storage_ {
         .number = UpdatePullTime_FieldNumber_PullTime,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(UpdatePullTime__storage_, pullTime),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(UpdatePullTime)
                                    messageName:@"UpdatePullTime"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(UpdatePullTime__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1689,6 +1582,7 @@ typedef struct BatchIncrementUnread__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1696,7 +1590,7 @@ typedef struct BatchIncrementUnread__storage_ {
         .number = BatchIncrementUnread_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(BatchIncrementUnread__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1714,19 +1608,18 @@ typedef struct BatchIncrementUnread__storage_ {
         .number = BatchIncrementUnread_FieldNumber_Increment,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(BatchIncrementUnread__storage_, increment),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(BatchIncrementUnread)
                                    messageName:@"BatchIncrementUnread"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(BatchIncrementUnread__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1754,6 +1647,7 @@ typedef struct BatchIncrementUnreadResult__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "success",
@@ -1761,7 +1655,7 @@ typedef struct BatchIncrementUnreadResult__storage_ {
         .number = BatchIncrementUnreadResult_FieldNumber_Success,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
@@ -1770,19 +1664,18 @@ typedef struct BatchIncrementUnreadResult__storage_ {
         .number = BatchIncrementUnreadResult_FieldNumber_UpdatedCount,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(BatchIncrementUnreadResult__storage_, updatedCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(BatchIncrementUnreadResult)
                                    messageName:@"BatchIncrementUnreadResult"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(BatchIncrementUnreadResult__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1815,6 +1708,7 @@ typedef struct BatchCreateUserStates__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
@@ -1822,7 +1716,7 @@ typedef struct BatchCreateUserStates__storage_ {
         .number = BatchCreateUserStates_FieldNumber_ConvId,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(BatchCreateUserStates__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1831,7 +1725,7 @@ typedef struct BatchCreateUserStates__storage_ {
         .number = BatchCreateUserStates_FieldNumber_ConvType,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(BatchCreateUserStates__storage_, convType),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
@@ -1840,7 +1734,7 @@ typedef struct BatchCreateUserStates__storage_ {
         .number = BatchCreateUserStates_FieldNumber_SourceId,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(BatchCreateUserStates__storage_, sourceId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
@@ -1849,19 +1743,18 @@ typedef struct BatchCreateUserStates__storage_ {
         .number = BatchCreateUserStates_FieldNumber_DisplayName,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(BatchCreateUserStates__storage_, displayName),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(BatchCreateUserStates)
                                    messageName:@"BatchCreateUserStates"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(BatchCreateUserStates__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1905,6 +1798,7 @@ typedef struct BatchCreateUserStatesResult__storage_ {
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "success",
@@ -1912,7 +1806,7 @@ typedef struct BatchCreateUserStatesResult__storage_ {
         .number = BatchCreateUserStatesResult_FieldNumber_Success,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
@@ -1921,7 +1815,7 @@ typedef struct BatchCreateUserStatesResult__storage_ {
         .number = BatchCreateUserStatesResult_FieldNumber_CreatedCount,
         .hasIndex = 2,
         .offset = (uint32_t)offsetof(BatchCreateUserStatesResult__storage_, createdCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1930,7 +1824,7 @@ typedef struct BatchCreateUserStatesResult__storage_ {
         .number = BatchCreateUserStatesResult_FieldNumber_SkippedCount,
         .hasIndex = 3,
         .offset = (uint32_t)offsetof(BatchCreateUserStatesResult__storage_, skippedCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
@@ -1939,19 +1833,18 @@ typedef struct BatchCreateUserStatesResult__storage_ {
         .number = BatchCreateUserStatesResult_FieldNumber_FailedCount,
         .hasIndex = 4,
         .offset = (uint32_t)offsetof(BatchCreateUserStatesResult__storage_, failedCount),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:GPBObjCClass(BatchCreateUserStatesResult)
                                    messageName:@"BatchCreateUserStatesResult"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(BatchCreateUserStatesResult__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -1962,52 +1855,52 @@ typedef struct BatchCreateUserStatesResult__storage_ {
 
 @end
 
-#pragma mark - Muted
+#pragma mark - Disturb
 
-@implementation Muted
+@implementation Disturb
 
 @dynamic convId;
-@dynamic muted;
+@dynamic disturb;
 
-typedef struct Muted__storage_ {
+typedef struct Disturb__storage_ {
   uint32_t _has_storage_[1];
   NSString *convId;
-} Muted__storage_;
+} Disturb__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convId",
         .dataTypeSpecific.clazz = Nil,
-        .number = Muted_FieldNumber_ConvId,
+        .number = Disturb_FieldNumber_ConvId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(Muted__storage_, convId),
-        .flags = GPBFieldClearHasIvarOnZero,
+        .offset = (uint32_t)offsetof(Disturb__storage_, convId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "muted",
+        .name = "disturb",
         .dataTypeSpecific.clazz = Nil,
-        .number = Muted_FieldNumber_Muted,
+        .number = Disturb_FieldNumber_Disturb,
         .hasIndex = 1,
         .offset = 2,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:GPBObjCClass(Muted)
-                                   messageName:@"Muted"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
+        [GPBDescriptor allocDescriptorForClass:GPBObjCClass(Disturb)
+                                   messageName:@"Disturb"
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(Muted__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                   storageSize:sizeof(Disturb__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -2018,51 +1911,51 @@ typedef struct Muted__storage_ {
 
 @end
 
-#pragma mark - MutedState
+#pragma mark - DisturbState
 
-@implementation MutedState
+@implementation DisturbState
 
 @dynamic success;
-@dynamic muted;
+@dynamic disturb;
 
-typedef struct MutedState__storage_ {
+typedef struct DisturbState__storage_ {
   uint32_t _has_storage_[1];
-} MutedState__storage_;
+} DisturbState__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
 + (GPBDescriptor *)descriptor {
   static GPBDescriptor *descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "success",
         .dataTypeSpecific.clazz = Nil,
-        .number = MutedState_FieldNumber_Success,
+        .number = DisturbState_FieldNumber_Success,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
       {
-        .name = "muted",
+        .name = "disturb",
         .dataTypeSpecific.clazz = Nil,
-        .number = MutedState_FieldNumber_Muted,
+        .number = DisturbState_FieldNumber_Disturb,
         .hasIndex = 2,
         .offset = 3,  // Stored in _has_storage_ to save space.
-        .flags = GPBFieldClearHasIvarOnZero,
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:GPBObjCClass(MutedState)
-                                   messageName:@"MutedState"
-                                runtimeSupport:&GOOGLE_PROTOBUF_OBJC_EXPECTED_GENCODE_VERSION_40311
+        [GPBDescriptor allocDescriptorForClass:GPBObjCClass(DisturbState)
+                                   messageName:@"DisturbState"
                                fileDescription:&ConvPbRoot_FileDescription
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(MutedState__storage_)
-                                         flags:GPBDescriptorInitializationFlag_None];
+                                   storageSize:sizeof(DisturbState__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown | GPBDescriptorInitializationFlag_ClosedEnumSupportKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG

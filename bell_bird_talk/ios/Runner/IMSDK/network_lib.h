@@ -805,10 +805,15 @@ NET_API int get_group_policy(CB_I_S_I_U cCallback, const char* data, int len, co
 NET_API int disturb_group(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
 
 /**
- * 查询群组免打扰状态 targetId 群ID
+ * 查询群组禁言状态 targetId 群ID
  */
 NET_API int get_group_disturb_status(CB_I_S_I_U cCallback, const char* data, int len, const char* targetId, uint64_t &reqId);
 
+
+/**
+ * 
+ */
+NET_API int perview_group(CB_I_S_I_U cCallback,const char* targetId, uint64_t &reqId);
 // ============================================
 // 消息拉取接口
 // ============================================

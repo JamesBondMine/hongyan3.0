@@ -717,6 +717,57 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     return get_group_info(GetGroupInfoCallback, data, dataLen, targetId, reqId);
 }
 
+
+- (int)getGroupPerviewWithId:(NSString *)groupId
+               completion:(IMSDKGroupCompletion)completion {
+    NSLog(@"📁 获取群组信息: groupId=%@", groupId);
+    
+    if (!groupId || groupId.length == 0) {
+        NSLog(@"❌ 群组ID不能为空");
+        return -1;
+    }
+    
+    // 创建 getGroup Protobuf 对象
+    getGroup *getGroupReq = [[getGroup alloc] init];
+    getGroupReq.groupId = groupId;
+    
+    // 序列化为 Protobuf 二进制数据
+    NSData *serializedData = [getGroupReq data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
+    const char *targetId = [groupId UTF8String];
+    uint64_t reqId = 0;
+    
+    if (completion) {
+        static uint64_t tempId = 20000;
+        NSNumber *tempKey = @(tempId++);
+        self.groupCallbacks[tempKey] = completion;
+        
+        int result = get_group_info(GetGroupInfoCallback, data, dataLen, targetId, reqId);
+        
+        if (result == 0) {
+            NSLog(@"✅ 获取群组信息请求发送成功: reqId=%llu", reqId);
+            if (reqId != 0) {
+                self.groupCallbacks[@(reqId)] = completion;
+                [self.groupCallbacks removeObjectForKey:tempKey];
+            }
+        } else {
+            NSLog(@"❌ 获取群组信息请求失败: %d", result);
+            [self.groupCallbacks removeObjectForKey:tempKey];
+        }
+        
+        return result;
+    }
+    
+    return perview_group(GetGroupInfoCallback, targetId, reqId);
+}
+
+
 - (int)updateGroupWithId:(NSString *)groupId
                groupName:(NSString * _Nullable)groupName
               groupAvatar:(NSString * _Nullable)groupAvatar
@@ -1055,6 +1106,8 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     }
     return code;
 }
+
+
 
 - (int)setGroupMemberAliasWithGroupId:(NSString *)groupId
                           memberAlias:(NSString *)memberAlias

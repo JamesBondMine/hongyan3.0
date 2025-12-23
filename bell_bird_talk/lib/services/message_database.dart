@@ -124,6 +124,7 @@ class MessageDatabase {
         target_id TEXT,
         display_name TEXT NOT NULL,
         avatar TEXT,
+        avatar_bg TEXT,
         unread_count INTEGER NOT NULL DEFAULT 0,
         last_message TEXT,
         last_message_type INTEGER DEFAULT 0,

@@ -121,6 +121,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"display_name"] = conv.displayName ?: @"";
                 convDict[@"description"] = conv.description_p ?: @"";
                 convDict[@"avatar_url"] = conv.avatarURL ?: @"";
+                convDict[@"avatar_bg"] = conv.avatarBg ?: @"";
                 convDict[@"avatar_info"] = conv.avatarInfo ?: @"";
                 convDict[@"target_id"] = conv.targetId ?: @"";
                 convDict[@"status"] = @(conv.status);

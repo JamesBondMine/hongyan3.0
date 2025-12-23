@@ -1083,6 +1083,23 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+
+  /// 获取群信息-预览
+  Future<Map<String, dynamic>> imGetGroupPreview({
+    required String groupId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetGroupPreview', {
+        'group_id': groupId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取群信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  
   
   /// 获取用户信息
   /// @param userIds 用户ID数组

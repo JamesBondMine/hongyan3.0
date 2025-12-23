@@ -145,9 +145,11 @@ class _ChatPageState extends State<ChatPage> {
     await Future.delayed(const Duration(milliseconds: 500));
     if (_messages.isNotEmpty) {
       List<Map<String, dynamic>> unreadMessages = _messages.where((msg) => msg['isMine'] == false).toList();
-      List<String> unreadMsgIds = unreadMessages.map((msg) => msg['id'].toString()).toList();
-      print('会话页面组装。标记已读消息: ${unreadMsgIds.join(',')}');
-      _nativeService.imMarkConversationRead(convId: widget.convId, msgIds: unreadMsgIds.join(','));
+      if (unreadMessages.isNotEmpty) {
+        List<String> unreadMsgIds = unreadMessages.map((msg) => msg['id'].toString()).toList();
+        print('会话页面组装。标记已读消息: ${unreadMsgIds.join(',')}');
+        _nativeService.imMarkConversationRead(convId: widget.convId, msgIds: unreadMsgIds.join(','));
+      }
     }
   }
   

@@ -274,6 +274,9 @@ typedef void (^IMSDKGroupCompletion)(int errorCode, uint64_t reqId, NSString * _
 - (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
                              completion:(IMSDKGroupCompletion)completion;
 
+
+- (int)getGroupPerviewWithId:(NSString *)groupId
+                  completion:(IMSDKGroupCompletion)completion;
 @end
 
 NS_ASSUME_NONNULL_END

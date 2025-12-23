@@ -11,6 +11,7 @@ class ConversationModel {
   final int unreadCount;
   final int convType; // 0=单聊, 2=群聊, 3=系统, 4=社区
   final String? targetId;
+  final String? avatarBg;
   final bool isOnline;
   final bool isPinned;  // 是否置顶
   final bool isMuted;   // 是否静音
@@ -28,10 +29,12 @@ class ConversationModel {
     this.lastMessageType = 0,
     this.lastMessageTime,
     this.lastSenderId,
+
     this.lastSenderName,
     this.unreadCount = 0,
     this.convType = 1,
     this.targetId,
+    this.avatarBg,
     this.isOnline = false,
     this.isPinned = false,
     this.isMuted = false,
@@ -59,6 +62,7 @@ class ConversationModel {
       unreadCount: json['unread_count'] as int? ?? 0,
       convType: json['conv_type'] as int? ?? 0,
       targetId: json['target_id'],
+      avatarBg: json['avatar_bg'],
       isOnline: (json['online_status'] as int? ?? 0) == 1,
       isPinned: (json['is_pinned'] as int? ?? 0) == 1 || json['is_pinned'] == true,
       isMuted: (json['is_muted'] as int? ?? 0) == 1 || json['is_muted'] == true,
@@ -84,6 +88,7 @@ class ConversationModel {
       'unread_count': unreadCount,
       'conv_type': convType,
       'target_id': targetId,
+      'avatar_bg': avatarBg,
       'online_status': isOnline ? 1 : 0,
       'is_pinned': isPinned ? 1 : 0,
       'is_muted': isMuted ? 1 : 0,
@@ -100,6 +105,7 @@ class ConversationModel {
     String? convId,
     String? displayName,
     String? avatar,
+    String? avatarBg,
     String? lastMessage,
     int? lastMessageType,
     DateTime? lastMessageTime,
@@ -121,6 +127,7 @@ class ConversationModel {
       convId: convId ?? this.convId,
       displayName: displayName ?? this.displayName,
       avatar: avatar ?? this.avatar,
+      avatarBg: avatarBg ?? this.avatarBg,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageType: lastMessageType ?? this.lastMessageType,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,

@@ -227,6 +227,9 @@ class NativeBridgeHandler: NSObject {
             imSetGroupAlias(call: call, result: result)
         case "imGetGroupInfo":
             imGetGroupInfo(call: call, result: result)
+        case "imGetGroupPreview":
+            imGetGroupPreview(call: call, result: result)
+            
         case "imDissolveGroup":
             imDissolveGroup(call: call, result: result)
         case "imLeaveGroup":
@@ -345,54 +348,32 @@ class NativeBridgeHandler: NSObject {
     
     /// 打印沙盒路径和文件夹信息
     private func printSandboxInfo() {
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("📂 iOS 沙盒路径信息")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        
         let fileManager = FileManager.default
-        
         // 1. 沙盒根目录（Home Directory）
         let homeDir = NSHomeDirectory()
-        print("\n🏠 沙盒根目录:")
-        print("   \(homeDir)")
-        
         // 2. Documents 目录（用户数据，会被 iCloud 备份）
         if let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-            print("\n📄 Documents 目录:")
-            print("   \(documentsDir.path)")
             listDirectory(at: documentsDir.path, prefix: "   ")
         }
         
         // 3. Library 目录
         if let libraryDir = fileManager.urls(for: .libraryDirectory, in: .userDomainMask).first {
-            print("\n📚 Library 目录:")
-            print("   \(libraryDir.path)")
             listDirectory(at: libraryDir.path, prefix: "   ")
         }
         
         // 4. Caches 目录（缓存，不会被备份）
         if let cachesDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first {
-            print("\n💾 Caches 目录:")
-            print("   \(cachesDir.path)")
             listDirectory(at: cachesDir.path, prefix: "   ")
         }
         
         // 5. tmp 目录（临时文件）
         let tmpDir = NSTemporaryDirectory()
-        print("\n🗑️ tmp 目录:")
-        print("   \(tmpDir)")
         listDirectory(at: tmpDir, prefix: "   ")
         
         // 6. Application Support 目录
         if let appSupportDir = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-            print("\n⚙️ Application Support 目录:")
-            print("   \(appSupportDir.path)")
             listDirectory(at: appSupportDir.path, prefix: "   ")
         }
-        
-        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("✅ 沙盒信息打印完成")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
     }
     
     /// 列出目录内容
@@ -1701,6 +1682,33 @@ class NativeBridgeHandler: NSObject {
                 "data": data ?? ""
             ])
         }
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_GROUP_INFO_ERROR",
+                                message: "获取群信息请求发送失败: \(code)",
+                                details: nil))
+        }
+    }
+    
+    /// 获取群信息
+    private func imGetGroupPreview(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let groupId = args["group_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
+            return
+        }
+        
+        print("📁 获取群信息: groupId=\(groupId)")
+        
+        let code = IMSDKGroupManager.shared().getGroupPerview(withId: groupId, completion: { errorCode, reqId, data in
+            print("📁 获取群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
         
         if code != 0 {
             result(FlutterError(code: "GET_GROUP_INFO_ERROR",

@@ -399,6 +399,8 @@ class _ChatListPageState extends State<ChatListPage> {
           // 发送者名称需要额外查询，暂时留空
         }
       }
+
+      
       
       // 4. 从好友表获取显示名称和头像（仅单聊）
       String displayName = netConv.displayName;
@@ -430,6 +432,7 @@ class _ChatListPageState extends State<ChatListPage> {
         // 显示名称和头像
         displayName: displayName,
         avatar: avatar,
+        avatarBg: netConv.avatarBg,
         // 未读数：网络优先，本地补充
         unreadCount: netConv.unreadCount > 0 ? netConv.unreadCount : (localConv?.unreadCount ?? 0),
         // 最后消息
@@ -1012,7 +1015,7 @@ class _ChatListPageState extends State<ChatListPage> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: _getAvatarColor(conversation.convType),
+                  backgroundColor: _getAvatarColor(conversation.convType, conversation.avatarBg ?? ''),
                   backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
                       ? NetworkImage(conversation.avatar!)
                       : null,
@@ -1152,14 +1155,16 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   /// 获取头像背景色
-  Color _getAvatarColor(int convType) {
+  Color _getAvatarColor(int convType, String bg) {
+    //avatar_bg
+    print('背景色: $bg');
     switch (convType) {
       case 0:
-        return Colors.blue;
+        return bg.isEmpty ? Colors.blue : Color(int.parse(bg.replaceFirst('#', '0xFF')));
       case 2:
-        return Colors.green;
+        return bg.isEmpty ? Colors.green : Color(int.parse(bg.replaceFirst('#', '0xFF')));
       case 3:
-        return Colors.orange;
+        return bg.isEmpty ? Colors.orange : Color(int.parse(bg.replaceFirst('#', '0xFF')));
       case 4:
         return Colors.purple;
       default:

@@ -86,6 +86,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       EasyLoading.showError(result['message']?.toString() ?? '获取群成员失败');
     }
     await _refreshGroupInfo();
+    await _refreshGroupPreview();
     if (mounted) setState(() => _loading = false);
   }
 
@@ -110,6 +111,31 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       }
     }
   }
+
+  Future<void> _refreshGroupPreview() async {
+    final res = await _nativeService.imGetGroupPreview(groupId: widget.groupId);
+    if (res['errorCode'] == 0) {
+      final dataStr = res['data'] as String? ?? '';
+      if (dataStr.isNotEmpty) {
+        try {
+          final map = json.decode(dataStr) as Map<String, dynamic>;
+          final groupName = (map['group_name'] as String?) ?? _groupName;
+          final groupAvatar = (map['group_avatar'] as String?) ?? _groupAvatar;
+          final groupDescription = map['group_description'] as String?;
+          final creatorUserId = map['creator_user_id'] as String?;
+          setState(() {
+            _groupName = groupName;
+            _groupAvatar = groupAvatar;
+            _groupDescription = groupDescription;
+            _creatorUserId = creatorUserId;
+          });
+        } catch (_) {}
+      }
+    }
+  }
+
+
+  
 
   /// 加载群组免打扰状态
   Future<void> _loadDisturbStatus() async {
