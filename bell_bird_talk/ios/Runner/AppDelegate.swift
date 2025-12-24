@@ -2008,18 +2008,32 @@ class NativeBridgeHandler: NSObject {
         let pageSize = args["page_size"] as? Int ?? 20
         let convType = args["conv_type"] as? Int ?? -1
         let isAtMe = args["is_at_me"] as? Bool ?? false
+        let isUnread = args["is_unread"] as? Bool ?? false
         
-        let code = IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
-            print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            result([
-                "errorCode": errorCode,
-                "reqId": reqId,
-                "message": errorCode == 0 ? "获取成功" : "获取失败",
-                "data": data ?? ""
-            ])
-        })
-        
+        var code = 0;
+        if isAtMe || isUnread {
+            code = Int(IMSDKConversationManager.shared().getConversationATUnreadList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
+                print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+                
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "获取成功" : "获取失败",
+                    "data": data ?? ""
+                ])
+            }))
+        } else {
+            code = Int(IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
+                print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+                
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "获取成功" : "获取失败",
+                    "data": data ?? ""
+                ])
+            }))
+        }
         if code != 0 {
             result(FlutterError(code: "GET_CONVERSATION_LIST_ERROR",
                               message: "获取会话列表请求发送失败: \(code)",

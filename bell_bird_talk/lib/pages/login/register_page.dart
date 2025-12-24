@@ -934,6 +934,7 @@ class _RegisterPageState extends State<RegisterPage> {
             
             // 获取 token
             final token = dataMap['token'] as String?;
+            final refresh_token = dataMap['refresh_token'] as String?;
             
             // 获取用户信息
             final userMap = dataMap['user'] as Map<String, dynamic>?;
@@ -944,7 +945,7 @@ class _RegisterPageState extends State<RegisterPage> {
               
               // 保存登录信息到 GlobalController
               final globalController = Get.find<GlobalController>();
-              await globalController.saveLoginInfo(token, user);
+              await globalController.saveLoginInfo(token, refresh_token ?? '', user);
               
               print('✅ 注册成功，用户信息已保存: ${user.nickname}');
               

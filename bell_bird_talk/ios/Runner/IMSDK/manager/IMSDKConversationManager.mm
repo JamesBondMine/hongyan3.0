@@ -276,11 +276,11 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
 
 // ==================== 会话列表 ====================
 
-- (int)getConversationListWithPage:(int)page
+- (int)getConversationATUnreadListWithPage:(int)page
                           pageSize:(int)pageSize
                           convType:(IMConversationType)convType
                               atMe:(BOOL)atme
-                        completion:(IMSDKConversationCompletion)completion {
+                                completion:(IMSDKConversationCompletion)completion{
     NSLog(@"📋 获取会话列表: page=%d, pageSize=%d, convType=%ld", page, pageSize, (long)convType);
     
     // 构建查询请求
@@ -328,7 +328,79 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
             self.callbacks[tempKey] = completion;
         }
     }
+    // 全部:get_conversation_list
+    // @我的: list_unread_conversations
+    int result = list_unread_conversations(ConversationCallback, data, dataLen, reqId);
     
+    if (result == 0) {
+        NSLog(@"✅ 获取会话列表请求发送成功: reqId=%llu", reqId);
+        if (reqId != 0 && completion) {
+            [self setCallback:completion forReqId:reqId];
+            @synchronized (self.callbacks) {
+                [self.callbacks removeObjectForKey:tempKey];
+            }
+        }
+    } else {
+        NSLog(@"❌ 获取会话列表请求失败: %d", result);
+        @synchronized (self.callbacks) {
+            [self.callbacks removeObjectForKey:tempKey];
+        }
+    }
+    
+    return result;
+}
+
+- (int)getConversationListWithPage:(int)page
+                          pageSize:(int)pageSize
+                          convType:(IMConversationType)convType
+                              atMe:(BOOL)atme
+                        completion:(IMSDKConversationCompletion)completion {
+    NSLog(@"📋 获取会话列表: page=%d, pageSize=%d, convType=%ld", page, pageSize, (long)convType);
+    
+    // 构建查询请求
+    ConvListQuery *query = [[ConvListQuery alloc] init];
+    // 设置会话类型（如果需要过滤）
+    if (convType >= 0) {
+        query.convType = (ConversationType)convType;
+    }
+    
+    // 设置分页
+    Page *pageObj = [[Page alloc] init];
+    pageObj.page = page;
+    pageObj.size = pageSize;
+    query.page = pageObj;
+    
+    NSLog(@"\n***************\n🍎 会话列表查询数据: 会话列表 第%d页,长度%d  会话类型 %d \n***************",page,pageSize, query.convType);
+//    print("📋 获取会话列表: page=\(page), pageSize=\(pageSize), convType=\(convType)")
+    // 序列化
+    NSData *serializedData = [query data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ Protobuf 序列化失败");
+        return -1;
+    }
+    
+    // 打印 hex 数据用于调试
+    NSMutableString *hexString = [NSMutableString string];
+    const unsigned char *bytes = (const unsigned char *)serializedData.bytes;
+    for (NSUInteger i = 0; i < serializedData.length; i++) {
+        [hexString appendFormat:@"%02x", bytes[i]];
+    }
+    
+    
+    const char *data = (const char *)serializedData.bytes;
+    int dataLen = (int)serializedData.length;
+    uint64_t reqId = 0;
+    
+    // 保存回调
+    static uint64_t tempId = 5000;
+    NSNumber *tempKey = @(tempId++);
+    if (completion) {
+        @synchronized (self.callbacks) {
+            self.callbacks[tempKey] = completion;
+        }
+    }
+    // 全部:get_conversation_list
+    // @我的: list_unread_conversations
     int result = get_conversation_list(ConversationCallback, data, dataLen, reqId);
     
     if (result == 0) {

@@ -17,6 +17,7 @@ class AppConstants {
   
   // 存储 Key
   static const String keyToken = 'user_token';
+  static const String keyRefreshToken = 'user_refresh_token';
   static const String keyUserId = 'user_id';
   static const String keyUserInfo = 'user_info';
   static const String keyLanguage = 'language';

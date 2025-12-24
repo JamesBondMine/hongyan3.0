@@ -17,6 +17,8 @@ class GlobalController extends GetxController {
   
   // Token
   final RxString token = ''.obs;
+
+  final RxString refresh_token = ''.obs;
   
   // 主题模式
   final RxBool isDarkMode = false.obs;
@@ -118,18 +120,21 @@ class GlobalController extends GetxController {
   }
   
   /// 保存用户登录信息
-  Future<void> saveLoginInfo(String newToken, UserModel user) async {
+  Future<void> saveLoginInfo(String newToken, String newRefreshToken, UserModel user) async {
     token.value = newToken;
+    refresh_token.value = newRefreshToken;
     currentUser.value = user;
     isLoggedIn.value = true;
     
     // 保存到本地
     await StorageUtil().setString(AppConstants.keyToken, newToken);
+    await StorageUtil().setString(AppConstants.keyRefreshToken, newRefreshToken);
     await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
     await StorageUtil().setString(AppConstants.keyUserId, user.id);
     
     // 更新 HTTP 客户端的 Token
     HttpClient().updateToken(newToken);
+    HttpClient().updateRefreshToken(newRefreshToken);
     
     print('✅ 用户登录成功: ${user.nickname}');
   }

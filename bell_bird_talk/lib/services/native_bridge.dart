@@ -1476,6 +1476,7 @@ class IOSNativeService {
     int pageSize = 20,
     int convType = 0,
     bool isAtMe = false,
+    bool isUnread = false,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetConversationList', {
@@ -1483,6 +1484,7 @@ class IOSNativeService {
         'page_size': pageSize,
         'conv_type': convType,
         'is_at_me': isAtMe,
+        'is_unread': isUnread,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

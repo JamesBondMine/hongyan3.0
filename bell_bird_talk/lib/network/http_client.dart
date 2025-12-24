@@ -46,10 +46,15 @@ class HttpClient {
   void updateToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
-  
+
+  /// 更新 Refresh Token
+  void updateRefreshToken(String refreshToken) {
+    _dio.options.headers['Refresh-Token'] = refreshToken;
+  }
   /// 清除 Token
   void clearToken() {
     _dio.options.headers.remove('Authorization');
+    _dio.options.headers.remove('Refresh-Token');
   }
   
   // ==================== GET 请求 ====================

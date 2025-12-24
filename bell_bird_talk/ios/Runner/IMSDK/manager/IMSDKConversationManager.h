@@ -32,6 +32,18 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
 
 // ==================== 会话列表 ====================
 
+/// 获取会话列表----未读&@我的
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param convType 会话类型过滤（可选，-1表示不过滤）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getConversationATUnreadListWithPage:(int)page
+                          pageSize:(int)pageSize
+                          convType:(IMConversationType)convType
+                              atMe:(BOOL)atme
+                        completion:(IMSDKConversationCompletion)completion;
+
 /// 获取会话列表
 /// @param page 页码（从1开始）
 /// @param pageSize 每页数量

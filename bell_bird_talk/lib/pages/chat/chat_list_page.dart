@@ -196,12 +196,6 @@ class _ChatListPageState extends State<ChatListPage> {
     });
 
     final userId = _currentUserId;
-    if (userId.isEmpty) {
-      print('⚠️ 用户未登录，无法加载会话列表');
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
       // 1. 先从本地数据库加载（快速显示）
       await _loadLocalConversations(userId);
@@ -280,17 +274,15 @@ class _ChatListPageState extends State<ChatListPage> {
   Future<void> _loadNetworkConversations(String userId) async {
     if (_isLoadingFromNetwork) return;
     _isLoadingFromNetwork = true;
-    
     try {
-      print('🌐 从网络加载会话列表...');
       final result = await _nativeService.imGetConversationList(
         page: 1,
         pageSize: 20,
         convType: 0,
+        isUnread: false,
+        isAtMe: false,
       );
-
-      print('📋 网络会话列表结果: $result');
-
+      print('🌐 进入页面-首次-从网络加载会话列表...');
       if (result['errorCode'] == 0) {
         final data = result['data'];
         if (data != null && data is String && data.isNotEmpty) {
@@ -476,7 +468,9 @@ class _ChatListPageState extends State<ChatListPage> {
       final result = await _nativeService.imGetConversationList(
         page: _currentPage + 1,
         pageSize: 20,
-        convType: 0,
+        convType: _filterType,
+        isUnread: _filterType == 1||_filterType == 3 ? true : false,
+        isAtMe: _filterType == 3 ? true : false,
       );
 
       if (result['errorCode'] == 0) {
@@ -613,7 +607,8 @@ class _ChatListPageState extends State<ChatListPage> {
         page: 1,
         pageSize: 20,
         convType: convType,
-        isAtMe: isAtMe,
+        isUnread: _filterType == 1||_filterType == 3 ? true : false,
+        isAtMe: _filterType == 3 ? true : false,
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
@@ -1013,23 +1008,7 @@ class _ChatListPageState extends State<ChatListPage> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: _getAvatarColor(conversation.convType, conversation.avatarBg ?? ''),
-                  backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
-                      ? NetworkImage(conversation.avatar!)
-                      : null,
-                  child: (conversation.avatar == null || conversation.avatar!.isEmpty)
-                      ? Text(
-                          _getAvatarText(conversation),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : null,
-                ),
+                _getAvatarWidget(conversation, conversation.convType, conversation.avatarBg ?? ''),
                 // 未读数角标
                 if (conversation.unreadCount > 0)
                   Positioned(
@@ -1155,23 +1134,53 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   /// 获取头像背景色
-  Color _getAvatarColor(int convType, String bg) {
+  Widget _getAvatarWidget(ConversationModel conversation, int convType, String bg) {
     //avatar_bg
     print('背景色: $bg');
+    String bgcolor = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolor = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolor.isNotEmpty && bgcolor.contains('&')) {
+        bgcolor = bgcolor.split('&').first;
+      }
+    }
+
+    Color bgColor = Colors.grey;
     switch (convType) {
       case 0:
-        return bg.isEmpty ? Colors.blue : Color(int.parse(bg.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 1:
-        return bg.isEmpty ? Colors.green : Color(int.parse(bg.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty ? Colors.green : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 2:
-        return bg.isEmpty ? Colors.green : Color(int.parse(bg.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty ? Colors.green : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 3:
-        return bg.isEmpty ? Colors.orange : Color(int.parse(bg.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty ? Colors.orange : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 4:
-        return Colors.purple;
+        bgColor = Colors.purple;
       default:
-        return Colors.grey;
+        bgColor = Colors.grey;
     }
+
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+    return CircleAvatar(
+                  radius: 24,
+                  backgroundColor: bgColor,
+                  backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
+                      ? NetworkImage(conversation.avatar!)
+                      : null,
+                  child: (conversation.avatar == null || conversation.avatar!.isEmpty)
+                      ? Text(
+                          _getAvatarText(conversation),
+                          style: TextStyle(
+                            color: txtColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                );
   }
 
   /// 获取头像文字

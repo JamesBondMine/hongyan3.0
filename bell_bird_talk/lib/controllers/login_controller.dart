@@ -503,6 +503,7 @@ class LoginController extends GetxController {
       // 尝试解析用户信息
       UserModel? user;
       String? token;
+      String? refresh_token;
       
       if (data != null && data is String && data.isNotEmpty) {
         try {
@@ -512,7 +513,8 @@ class LoginController extends GetxController {
           
           // 获取 token
           token = dataMap['token'] as String?;
-          print('🔑 Token: $token');
+          refresh_token = dataMap['refresh_token'] as String?;
+    
           
           // 获取用户信息
           final userMap = dataMap['user'] as Map<String, dynamic>?;
@@ -540,9 +542,10 @@ class LoginController extends GetxController {
       );
       
       token ??= 'token_${DateTime.now().millisecondsSinceEpoch}';
+      refresh_token ??= 'refresh_token_${DateTime.now().millisecondsSinceEpoch}';
       
       // 保存登录信息
-      await _globalCtrl.saveLoginInfo(token, user);
+      await _globalCtrl.saveLoginInfo(token, refresh_token, user);
       
       // 保存账号密码（根据登录方式）
       await _saveCredentialsForCurrentType();
