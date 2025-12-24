@@ -90,6 +90,13 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 - (uint64_t)getUsersInfoWithUserIds:(NSArray<NSString *> *)userIds
                           completion:(IMSDKUserCompletion)completion;
 
+/// 批量获取用户公开信息
+/// @param userIds 用户ID数组（支持多个用户ID）
+/// @param completion 完成回调，data 字段包含公开信息数组（JSON 字符串）
+/// @return 请求ID，失败返回0
+- (uint64_t)batchGetUserPublicInfoWithUserIds:(NSArray<NSString *> *)userIds
+                                    completion:(IMSDKUserCompletion)completion;
+
 /// 获取注销状态
 /// @param userId 用户ID（必填）
 /// @param completion 完成回调，data 字段包含注销状态信息（JSON 字符串）

@@ -18,6 +18,7 @@ class ConversationModel {
   final String? draft;  // 草稿
   final int atMeCount;  // @我的消息数
   final bool mentionAll;  // 是否@所有人
+  final bool disturb;  // 是否免打扰
   final int groupMemberCount;  // 群成员数量
   final String? ext;  // 扩展字段
 
@@ -41,6 +42,7 @@ class ConversationModel {
     this.draft,
     this.atMeCount = 0,
     this.mentionAll = false,
+    this.disturb = false,
     this.groupMemberCount = 0,
     this.ext,
   });
@@ -69,6 +71,7 @@ class ConversationModel {
       draft: json['draft'],
       atMeCount: json['at_me_count'] as int? ?? 0,
       mentionAll: (json['mention_all'] as int? ?? 0) == 1 || json['mention_all'] == true,
+      disturb: (json['disturb'] as int? ?? 0) == 1 || json['disturb'] == true,
       groupMemberCount: json['group_member_count'] as int? ?? 0,
       ext: json['ext'],
     );
@@ -95,6 +98,7 @@ class ConversationModel {
       'draft': draft,
       'at_me_count': atMeCount,
       'mention_all': mentionAll ? 1 : 0,
+      'disturb': disturb ? 1 : 0,
       'group_member_count': groupMemberCount,
       'ext': ext,
     };

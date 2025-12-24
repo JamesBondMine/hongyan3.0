@@ -151,14 +151,14 @@ static void GetGroupMembersCallback(int errorCode, const char* data, int dataLen
                         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                         dict[@"group_id"] = m.groupId ?: @"";
                         dict[@"user_id"] = m.userId ?: @"";
-                        dict[@"member_alias"] = m.memberAlias ?: @"";
-                        dict[@"join_type"] = @(m.joinType);
-                        dict[@"join_time"] = @(m.joinTime);
-                        dict[@"inviter_user_id"] = m.inviterUserId ?: @"";
-                        dict[@"status"] = @(m.status);
-                        dict[@"disturb_until"] = @(m.disturbUntil);
+//                        dict[@"member_alias"] = m.memberAlias ?: @"";
+//                        dict[@"join_type"] = @(m.joinType);   会造成闪退
+//                        dict[@"join_time"] = @(m.joinTime);
+//                        dict[@"inviter_user_id"] = m.inviterUserId ?: @"";
+//                        dict[@"status"] = @(m.status);
+//                        dict[@"disturb_until"] = @(m.disturbUntil);
                         dict[@"is_admin"] = @(m.isAdmin);
-                        dict[@"last_read_time"] = @(m.lastReadTime);
+//                        dict[@"last_read_time"] = @(m.lastReadTime);
                         if (m.rolesArray_Count > 0) {
                             NSMutableArray *roles = [NSMutableArray arrayWithCapacity:m.rolesArray_Count];
                             for (NSUInteger i = 0; i < m.rolesArray_Count; i++) {
@@ -299,10 +299,10 @@ static void GetGroupInfoCallback(int errorCode, const char* data, int dataLen, u
                     jsonDict[@"avatar_bg"] = group.avatarBg ?: @"";
                     jsonDict[@"group_announcement"] = group.groupAnnouncement ?: @"";
                     jsonDict[@"group_description"] = group.groupDescription ?: @"";
-                    jsonDict[@"group_type"] = @(group.groupType);
+//                    jsonDict[@"group_type"] = @(group.groupType);
                     jsonDict[@"max_member_count"] = @(group.maxMemberCount);
                     jsonDict[@"creator_user_id"] = group.creatorUserId ?: @"";
-                    jsonDict[@"status"] = @(group.status);
+//                    jsonDict[@"status"] = @(group.status);
                     jsonDict[@"is_member"] = @(group.isMember);
                     jsonDict[@"created_at"] = @(group.createdAt);
                     jsonDict[@"updated_at"] = @(group.updatedAt);

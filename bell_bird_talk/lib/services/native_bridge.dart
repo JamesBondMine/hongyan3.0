@@ -1117,7 +1117,24 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
-  
+
+  /// 批量获取用户公开信息
+  /// @param userIds 用户ID列表（必填）
+  /// @return 操作结果
+  Future<Map<String, dynamic>> imBatchGetUserPublicInfo({
+    required List<String> userIds,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imBatchGetUserPublicInfo', {
+        'user_ids': userIds,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('批量获取用户公开信息错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 解散群组
   /// @param groupId 群组ID（必填）
   /// @param reason 解散原因（可选）

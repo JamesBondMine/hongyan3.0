@@ -25,7 +25,7 @@ class MessageDatabase {
 
     return await openDatabase(
       path,
-      version: 4,  // 升级版本号：添加@消息字段
+      version: 5,  // 升级版本号：添加用户表
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -80,6 +80,36 @@ class MessageDatabase {
     
     // ==================== 好友表 ====================
     await _createContactsTable(db);
+    
+    // ==================== 用户表 ====================
+    await _createUsersTable(db);
+  }
+  
+  /// 创建用户表
+  Future<void> _createUsersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL UNIQUE,
+        nickname TEXT,
+        avatar TEXT,
+        sex INTEGER DEFAULT 0,
+        signature TEXT,
+        region TEXT,
+        background_file TEXT,
+        phone TEXT,
+        email TEXT,
+        account_id TEXT,
+        online_status INTEGER DEFAULT 0,
+        last_online_time INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    
+    // 用户表索引
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_user_id ON users (user_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_updated_at ON users (updated_at)');
   }
   
   /// 创建好友表
@@ -169,6 +199,10 @@ class MessageDatabase {
     if (oldVersion < 4) {
       await db.execute('ALTER TABLE messages ADD COLUMN is_all INTEGER DEFAULT 0');
       await db.execute('ALTER TABLE messages ADD COLUMN at_info_list TEXT');
+    }
+    // 从版本4升级到版本5：添加用户表
+    if (oldVersion < 5) {
+      await _createUsersTable(db);
     }
   }
   
@@ -920,6 +954,166 @@ class MessageDatabase {
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+  }
+
+  // ==================== 用户相关方法 ====================
+  
+  /// 插入或更新用户信息
+  Future<void> upsertUser(Map<String, dynamic> userInfo) async {
+    final db = await database;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    
+    final userId = userInfo['user_id'] as String?;
+    if (userId == null || userId.isEmpty) {
+      throw ArgumentError('user_id 不能为空');
+    }
+    
+    final data = {
+      'user_id': userId,
+      'nickname': userInfo['nickname'],
+      'avatar': userInfo['avatar'],
+      'sex': userInfo['sex'] ?? 0,
+      'signature': userInfo['signature'],
+      'region': userInfo['region'],
+      'background_file': userInfo['background_file'],
+      'phone': userInfo['phone'],
+      'email': userInfo['email'],
+      'account_id': userInfo['account_id'],
+      'online_status': userInfo['online_status'] ?? 0,
+      'last_online_time': userInfo['last_online_time'],
+      'updated_at': now,
+    };
+    
+    // 检查用户是否已存在
+    final existing = await db.query(
+      'users',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+    
+    if (existing.isNotEmpty) {
+      // 更新现有用户
+      await db.update(
+        'users',
+        data,
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    } else {
+      // 插入新用户
+      data['created_at'] = now;
+      await db.insert('users', data);
+    }
+  }
+  
+  /// 批量插入或更新用户信息
+  Future<void> upsertUsers(List<Map<String, dynamic>> usersInfo) async {
+    final db = await database;
+    final batch = db.batch();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    
+    for (final userInfo in usersInfo) {
+      final userId = userInfo['user_id'] as String?;
+      if (userId == null || userId.isEmpty) continue;
+      
+      final data = {
+        'user_id': userId,
+        'nickname': userInfo['nickname'],
+        'avatar': userInfo['avatar'],
+        'sex': userInfo['sex'] ?? 0,
+        'signature': userInfo['signature'],
+        'region': userInfo['region'],
+        'background_file': userInfo['background_file'],
+        'phone': userInfo['phone'],
+        'email': userInfo['email'],
+        'account_id': userInfo['account_id'],
+        'online_status': userInfo['online_status'] ?? 0,
+        'last_online_time': userInfo['last_online_time'],
+        'updated_at': now,
+      };
+      
+      // 使用 INSERT OR REPLACE
+      batch.insert('users', data, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    
+    await batch.commit(noResult: true);
+  }
+  
+  /// 获取单个用户信息
+  Future<Map<String, dynamic>?> getUser(String userId) async {
+    final db = await database;
+    final results = await db.query(
+      'users',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+    return results.isNotEmpty ? results.first : null;
+  }
+  
+  /// 批量获取用户信息
+  Future<List<Map<String, dynamic>>> getUsers(List<String> userIds) async {
+    if (userIds.isEmpty) return [];
+    
+    final db = await database;
+    final placeholders = List.filled(userIds.length, '?').join(',');
+    final results = await db.query(
+      'users',
+      where: 'user_id IN ($placeholders)',
+      whereArgs: userIds,
+    );
+    return results;
+  }
+  
+  /// 获取所有用户信息
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final db = await database;
+    return await db.query('users', orderBy: 'updated_at DESC');
+  }
+  
+  /// 删除用户信息
+  Future<void> deleteUser(String userId) async {
+    final db = await database;
+    await db.delete(
+      'users',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+  
+  /// 批量删除用户信息
+  Future<void> deleteUsers(List<String> userIds) async {
+    if (userIds.isEmpty) return;
+    
+    final db = await database;
+    final placeholders = List.filled(userIds.length, '?').join(',');
+    await db.delete(
+      'users',
+      where: 'user_id IN ($placeholders)',
+      whereArgs: userIds,
+    );
+  }
+  
+  /// 获取需要更新的用户信息（超过指定小时未更新）
+  Future<List<String>> getUsersNeedUpdate(int hoursAgo) async {
+    final db = await database;
+    final cutoffTime = DateTime.now().subtract(Duration(hours: hoursAgo)).millisecondsSinceEpoch;
+    
+    final results = await db.query(
+      'users',
+      columns: ['user_id'],
+      where: 'updated_at < ?',
+      whereArgs: [cutoffTime],
+    );
+    
+    return results.map((row) => row['user_id'] as String).toList();
+  }
+  
+  /// 清空用户表
+  Future<void> clearUsers() async {
+    final db = await database;
+    await db.delete('users');
   }
 
   /// 关闭数据库

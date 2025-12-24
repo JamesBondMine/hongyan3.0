@@ -460,6 +460,49 @@ static void GetUsersInfoCallback(const char* operationID, int errorCode, const c
     });
 }
 
+// 批量获取用户公开信息回调
+static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 批量获取用户公开信息回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    // 立即拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
+        if (!completion) {
+            NSLog(@"⚠️ 未找到回调: reqId=%llu", reqId);
+            return;
+        }
+        
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        
+        if (errorCode != 0) {
+            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"批量获取公开信息失败";
+            completion(errorCode, errorMsg, nil, reqId);
+            return;
+        }
+        
+        // 解析返回的数据
+        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            NSString *responseStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (responseStr) {
+                result[@"data"] = responseStr;
+            } else {
+                result[@"data"] = @"[]";
+            }
+        } else {
+            result[@"data"] = @"[]";
+        }
+        
+        completion(0, @"批量获取公开信息成功", result, reqId);
+    });
+}
+
 - (uint64_t)getUsersInfoWithUserIds:(NSArray<NSString *> *)userIds
                           completion:(IMSDKUserCompletion)completion {
     NSLog(@"📤 获取用户信息: userIds=%@", userIds);
@@ -506,6 +549,64 @@ static void GetUsersInfoCallback(const char* operationID, int errorCode, const c
                    (char *)[userIdsJson UTF8String]);
     
     NSLog(@"✅ 获取用户信息请求已发送: operationID=%@, reqId=%llu", operationID, reqId);
+    
+    return reqId;
+}
+
+#pragma mark - 批量获取用户公开信息
+
+- (uint64_t)batchGetUserPublicInfoWithUserIds:(NSArray<NSString *> *)userIds
+                                    completion:(IMSDKUserCompletion)completion {
+    NSLog(@"📤 批量获取用户公开信息: userIds=%@", userIds);
+    
+    // 验证参数
+    if (!userIds || userIds.count == 0) {
+        NSLog(@"❌ userIds 不能为空");
+        if (completion) {
+            completion(-1, @"userIds 不能为空", nil, 0);
+        }
+        return 0;
+    }
+    
+    // 将用户ID数组转换为 JSON 字符串
+    NSError *jsonError = nil;
+    NSDictionary *params = @{@"userIds": userIds};
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&jsonError];
+    if (!jsonData || jsonError) {
+        NSLog(@"❌ 序列化参数失败: %@", jsonError);
+        if (completion) {
+            completion(-2, @"序列化参数失败", nil, 0);
+        }
+        return 0;
+    }
+    
+    NSString *paramsJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    NSLog(@"📦 参数 JSON: %@", paramsJson);
+    
+    // 生成一个唯一的 reqId 来标识这次请求
+    uint64_t reqId = (uint64_t)([[NSDate date] timeIntervalSince1970] * 1000);
+    
+    // 保存回调（使用 reqId 作为 key）
+    if (completion) {
+        g_userCallbacks[@(reqId)] = [completion copy];
+    }
+    
+    // 调用 SDK 接口
+    int result = batch_user_public_info(BatchUserPublicInfoCallback,
+                                        (const char *)[paramsJson UTF8String],
+                                        (int)[paramsJson lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
+                                        reqId);
+    
+    if (result != 0) {
+        NSLog(@"❌ 调用 batch_user_public_info 失败: %d", result);
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        if (completion) {
+            completion(result, @"调用接口失败", nil, reqId);
+        }
+        return 0;
+    }
+    
+    NSLog(@"✅ 批量获取用户公开信息请求已发送: reqId=%llu", reqId);
     
     return reqId;
 }

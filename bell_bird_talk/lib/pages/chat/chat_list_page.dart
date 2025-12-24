@@ -1018,7 +1018,7 @@ class _ChatListPageState extends State<ChatListPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                       constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: conversation.disturb ? Colors.grey : Colors.red,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
@@ -1100,7 +1100,7 @@ class _ChatListPageState extends State<ChatListPage> {
                   Text(
                     conversation.lastMessageDisplay.isNotEmpty 
                         ? conversation.lastMessageDisplay 
-                        : '暂无消息',
+                        :  '暂无消息',
                     style: TextStyle(
                       fontSize: 14,
                       color: conversation.unreadCount > 0 

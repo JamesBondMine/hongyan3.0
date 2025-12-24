@@ -126,6 +126,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"target_id"] = conv.targetId ?: @"";
                 convDict[@"status"] = @(conv.status);
                 convDict[@"is_private"] = @(conv.isPrivate);
+                convDict[@"disturb"] = @(conv.disturb);
                 convDict[@"created_at"] = @(conv.createdAt);
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
@@ -177,6 +178,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"target_id"] = conv.targetId ?: @"";
                 convDict[@"status"] = @(conv.status);
                 convDict[@"is_private"] = @(conv.isPrivate);
+                convDict[@"disturb"] = @(conv.disturb);
                 convDict[@"created_at"] = @(conv.createdAt);
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
