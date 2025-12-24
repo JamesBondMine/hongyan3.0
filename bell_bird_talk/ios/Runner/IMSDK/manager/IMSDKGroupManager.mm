@@ -49,15 +49,15 @@ static void CreateGroupCallback(int errorCode, const char* data, int dataLen, ui
                     jsonDict[@"group_id"] = group.groupId ?: @"";
                     jsonDict[@"group_name"] = group.groupName ?: @"";
                     jsonDict[@"group_avatar"] = group.groupAvatar ?: @"";
+                    jsonDict[@"avatar_bg"] = group.avatarBg ?: @"";
                     jsonDict[@"group_description"] = group.groupDescription ?: @"";
                     jsonDict[@"group_type"] = @(group.groupType);
                     jsonDict[@"max_member_count"] = @(group.maxMemberCount);
                     jsonDict[@"creator_user_id"] = group.creatorUserId ?: @"";
                     jsonDict[@"status"] = @(group.status);
-                    jsonDict[@"is_muted"] = @(group.isMuted);
+                    jsonDict[@"is_member"] = @(group.isMember);
                     jsonDict[@"created_at"] = @(group.createdAt);
                     jsonDict[@"updated_at"] = @(group.updatedAt);
-                    jsonDict[@"version"] = @(group.version);
                     
                     if (group.hasPolicy) {
                         NSMutableDictionary *policyDict = [NSMutableDictionary dictionary];
@@ -72,6 +72,14 @@ static void CreateGroupCallback(int errorCode, const char* data, int dataLen, ui
                         policyDict[@"message_notification"] = @(group.policy.messageNotification);
                         policyDict[@"allow_search_member"] = @(group.policy.allowSearchMember);
                         policyDict[@"speak_interval_sec"] = @(group.policy.speakIntervalSec);
+                        if (group.policy.disturbRolesArray_Count > 0) {
+                            NSMutableArray *disturbRoles = [NSMutableArray arrayWithCapacity:group.policy.disturbRolesArray_Count];
+                            for (NSUInteger i = 0; i < group.policy.disturbRolesArray_Count; i++) {
+                                [disturbRoles addObject:group.policy.disturbRolesArray[i]];
+                            }
+                            policyDict[@"disturb_roles"] = disturbRoles;
+                        }
+                        policyDict[@"notify_member_threshold"] = @(group.policy.notifyMemberThreshold);
                         jsonDict[@"policy"] = policyDict;
                     }
                     
@@ -148,7 +156,7 @@ static void GetGroupMembersCallback(int errorCode, const char* data, int dataLen
                         dict[@"join_time"] = @(m.joinTime);
                         dict[@"inviter_user_id"] = m.inviterUserId ?: @"";
                         dict[@"status"] = @(m.status);
-                        dict[@"mute_until"] = @(m.muteUntil);
+                        dict[@"disturb_until"] = @(m.disturbUntil);
                         dict[@"is_admin"] = @(m.isAdmin);
                         dict[@"last_read_time"] = @(m.lastReadTime);
                         if (m.rolesArray_Count > 0) {
@@ -208,8 +216,8 @@ static void ListGroupsCallback(int errorCode, const char* data, int dataLen, uin
             NSString *dataStr = nil;
             if (errorCode == 0 && responseData && responseData.length > 0) {
                 NSError *parseError = nil;
-                // 优先解析为 GroupListSearchResult
-                GroupListSearchResult *result = [GroupListSearchResult parseFromData:responseData error:&parseError];
+                // 解析为 GList
+                GList *result = [GList parseFromData:responseData error:&parseError];
                 if (!result || parseError) {
                     parseError = nil;
                 }
@@ -220,15 +228,15 @@ static void ListGroupsCallback(int errorCode, const char* data, int dataLen, uin
                         dict[@"group_id"] = group.groupId ?: @"";
                         dict[@"group_name"] = group.groupName ?: @"";
                         dict[@"group_avatar"] = group.groupAvatar ?: @"";
+                        dict[@"avatar_bg"] = group.avatarBg ?: @"";
                         dict[@"group_description"] = group.groupDescription ?: @"";
                         dict[@"group_type"] = @(group.groupType);
                         dict[@"max_member_count"] = @(group.maxMemberCount);
                         dict[@"creator_user_id"] = group.creatorUserId ?: @"";
                         dict[@"status"] = @(group.status);
-                        dict[@"is_muted"] = @(group.isMuted);
+                        dict[@"is_member"] = @(group.isMember);
                         dict[@"created_at"] = @(group.createdAt);
                         dict[@"updated_at"] = @(group.updatedAt);
-                        dict[@"version"] = @(group.version);
                         [groups addObject:dict];
                     }
                     NSMutableDictionary *json = [NSMutableDictionary dictionary];
@@ -288,16 +296,16 @@ static void GetGroupInfoCallback(int errorCode, const char* data, int dataLen, u
                     jsonDict[@"group_id"] = group.groupId ?: @"";
                     jsonDict[@"group_name"] = group.groupName ?: @"";
                     jsonDict[@"group_avatar"] = group.groupAvatar ?: @"";
+                    jsonDict[@"avatar_bg"] = group.avatarBg ?: @"";
                     jsonDict[@"group_announcement"] = group.groupAnnouncement ?: @"";
                     jsonDict[@"group_description"] = group.groupDescription ?: @"";
                     jsonDict[@"group_type"] = @(group.groupType);
                     jsonDict[@"max_member_count"] = @(group.maxMemberCount);
                     jsonDict[@"creator_user_id"] = group.creatorUserId ?: @"";
                     jsonDict[@"status"] = @(group.status);
-                    jsonDict[@"is_muted"] = @(group.isMuted);
+                    jsonDict[@"is_member"] = @(group.isMember);
                     jsonDict[@"created_at"] = @(group.createdAt);
                     jsonDict[@"updated_at"] = @(group.updatedAt);
-                    jsonDict[@"version"] = @(group.version);
                     
                     if (group.hasPolicy) {
                         NSMutableDictionary *policyDict = [NSMutableDictionary dictionary];
@@ -312,6 +320,14 @@ static void GetGroupInfoCallback(int errorCode, const char* data, int dataLen, u
                         policyDict[@"message_notification"] = @(group.policy.messageNotification);
                         policyDict[@"allow_search_member"] = @(group.policy.allowSearchMember);
                         policyDict[@"speak_interval_sec"] = @(group.policy.speakIntervalSec);
+                        if (group.policy.disturbRolesArray_Count > 0) {
+                            NSMutableArray *disturbRoles = [NSMutableArray arrayWithCapacity:group.policy.disturbRolesArray_Count];
+                            for (NSUInteger i = 0; i < group.policy.disturbRolesArray_Count; i++) {
+                                [disturbRoles addObject:group.policy.disturbRolesArray[i]];
+                            }
+                            policyDict[@"disturb_roles"] = disturbRoles;
+                        }
+                        policyDict[@"notify_member_threshold"] = @(group.policy.notifyMemberThreshold);
                         jsonDict[@"policy"] = policyDict;
                     }
                     
@@ -786,7 +802,7 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     if (groupAvatar && groupAvatar.length > 0) req.groupAvatar = groupAvatar;
     if (groupAnnouncement && groupAnnouncement.length > 0) req.groupAnnouncement = groupAnnouncement;
     if (groupDescription && groupDescription.length > 0) req.groupDescription = groupDescription;
-    req.version = 1;
+    req.version = version > 0 ? version : 1;
     
     
     NSLog(@"\n🍎 更新群组信息: 群ID=%@、群名称=%@、群头像=%@、群描述=%@、", req.groupId, req.groupName, req.groupAvatar, req.groupDescription);
@@ -1182,8 +1198,17 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     pg.size = pageSize > 0 ? pageSize : 20;
     
     
-    GroupListSearchResult *req = [GroupListSearchResult message]; // 仅使用 page 作为查询容器
+    listQuery *req = [listQuery message];
     req.page = pg;
+    if (groupType >= 0) {
+        req.groupType = (GroupType)groupType;
+    }
+    if (status >= 0) {
+        req.status = (GroupStatus)status;
+    }
+    if (keyword && keyword.length > 0) {
+        req.keyword = keyword;
+    }
     // 目前 group_pb 未提供专用查询对象，服务端按 userId 查询，额外过滤暂未支持；keyword/type/status 如有需要可扩展字段
 
     NSData *protoData = [req data];
