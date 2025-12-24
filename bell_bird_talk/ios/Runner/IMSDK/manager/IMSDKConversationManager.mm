@@ -130,6 +130,25 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
                 
+                // 添加标签信息
+                if (conv.sysTagsArray_Count > 0) {
+                    NSMutableArray *sysTags = [NSMutableArray arrayWithCapacity:conv.sysTagsArray_Count];
+                    for (NSUInteger i = 0; i < conv.sysTagsArray_Count; i++) {
+                        [sysTags addObject:conv.sysTagsArray[i]];
+                    }
+                    convDict[@"sys_tags"] = sysTags;
+                }
+                if (conv.userTagsArray_Count > 0) {
+                    NSMutableArray *userTags = [NSMutableArray arrayWithCapacity:conv.userTagsArray_Count];
+                    for (NSUInteger i = 0; i < conv.userTagsArray_Count; i++) {
+                        [userTags addObject:conv.userTagsArray[i]];
+                    }
+                    convDict[@"user_tags"] = userTags;
+                }
+                
+                // 添加免打扰状态
+                convDict[@"disturb"] = @(conv.disturb);
+                
                 // 添加未读数信息（来自 ConvWithUnread）
                 convDict[@"unread_count"] = @(convWithUnread.unreadCount);
                 convDict[@"last_read_seq"] = @(convWithUnread.lastReadSeq);
@@ -161,6 +180,25 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"created_at"] = @(conv.createdAt);
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
+                
+                // 添加标签信息
+                if (conv.sysTagsArray_Count > 0) {
+                    NSMutableArray *sysTags = [NSMutableArray arrayWithCapacity:conv.sysTagsArray_Count];
+                    for (NSUInteger i = 0; i < conv.sysTagsArray_Count; i++) {
+                        [sysTags addObject:conv.sysTagsArray[i]];
+                    }
+                    convDict[@"sys_tags"] = sysTags;
+                }
+                if (conv.userTagsArray_Count > 0) {
+                    NSMutableArray *userTags = [NSMutableArray arrayWithCapacity:conv.userTagsArray_Count];
+                    for (NSUInteger i = 0; i < conv.userTagsArray_Count; i++) {
+                        [userTags addObject:conv.userTagsArray[i]];
+                    }
+                    convDict[@"user_tags"] = userTags;
+                }
+                
+                // 添加免打扰状态
+                convDict[@"disturb"] = @(conv.disturb);
                 
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:convDict options:0 error:nil];
                 jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -414,6 +452,30 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         conv.description_p = description;
     }
     
+    // 设置头像背景色（可选）
+    NSString *avatarBg = params[@"avatar_bg"];
+    if (avatarBg) {
+        conv.avatarBg = avatarBg;
+    }
+    
+    // 设置系统标签（可选）
+    NSArray *sysTags = params[@"sys_tags"];
+    if (sysTags && [sysTags isKindOfClass:[NSArray class]]) {
+        [conv.sysTagsArray addObjectsFromArray:sysTags];
+    }
+    
+    // 设置用户标签（可选）
+    NSArray *userTags = params[@"user_tags"];
+    if (userTags && [userTags isKindOfClass:[NSArray class]]) {
+        [conv.userTagsArray addObjectsFromArray:userTags];
+    }
+    
+    // 设置免打扰状态（可选）
+    NSNumber *disturbNum = params[@"disturb"];
+    if (disturbNum) {
+        conv.disturb = [disturbNum boolValue];
+    }
+    
     // 序列化
     NSData *serializedData = [conv data];
     if (!serializedData || serializedData.length == 0) {
@@ -657,6 +719,30 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     NSString *description = params[@"description"];
     if (description) {
         conv.description_p = description;
+    }
+    
+    // 设置头像背景色（可选）
+    NSString *avatarBg = params[@"avatar_bg"];
+    if (avatarBg) {
+        conv.avatarBg = avatarBg;
+    }
+    
+    // 设置系统标签（可选）
+    NSArray *sysTags = params[@"sys_tags"];
+    if (sysTags && [sysTags isKindOfClass:[NSArray class]]) {
+        [conv.sysTagsArray addObjectsFromArray:sysTags];
+    }
+    
+    // 设置用户标签（可选）
+    NSArray *userTags = params[@"user_tags"];
+    if (userTags && [userTags isKindOfClass:[NSArray class]]) {
+        [conv.userTagsArray addObjectsFromArray:userTags];
+    }
+    
+    // 设置免打扰状态（可选）
+    NSNumber *disturbNum = params[@"disturb"];
+    if (disturbNum) {
+        conv.disturb = [disturbNum boolValue];
     }
     
     // 序列化

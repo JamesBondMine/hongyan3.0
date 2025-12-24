@@ -71,7 +71,11 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
 ///   - target_id: 目标ID（必填）
 ///   - display_name: 显示名称（必填）
 ///   - avatar_url: 头像URL（可选）
+///   - avatar_bg: 头像背景色（可选）
 ///   - description: 描述（可选）
+///   - sys_tags: 系统标签数组（可选）
+///   - user_tags: 用户标签数组（可选）
+///   - disturb: 是否免打扰（可选，BOOL）
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)createConversationWithParams:(NSDictionary *)params
@@ -103,7 +107,11 @@ typedef void (^IMSDKConversationCompletion)(int errorCode, uint64_t reqId, NSStr
 /// @param params 更新参数字典，支持以下字段：
 ///   - display_name: 显示名称
 ///   - avatar_url: 头像URL
+///   - avatar_bg: 头像背景色
 ///   - description: 描述
+///   - sys_tags: 系统标签数组
+///   - user_tags: 用户标签数组
+///   - disturb: 是否免打扰（BOOL）
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)updateConversationWithId:(NSString *)convId
