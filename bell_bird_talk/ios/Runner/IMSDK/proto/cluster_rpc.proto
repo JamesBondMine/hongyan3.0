@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package com.cloud.im.common.core.protocol.cluster;
+
+option java_package = "com.cloud.im.common.core.protocol.cluster";
+option java_outer_classname = "ClusterRpcProtos";
+
+// 集群节点间 RPC 服务
+service ClusterRpcService {
+  // 单向消息发送（Tell 模式）
+  rpc SendMessage(ClusterMessage) returns (Empty);
+  
+  // 请求-响应消息（Ask 模式）
+  rpc AskMessage(ClusterMessage) returns (ClusterMessage);
+  
+  // 批量消息发送
+  rpc SendBatchMessage(BatchClusterMessage) returns (Empty);
+}
+
+// 集群消息包装
+message ClusterMessage {
+  // 消息类型标识
+  string message_type = 1;
+  
+  // 消息内容（Protobuf 序列化的 InnerCommand）
+  bytes payload = 2;
+  
+  // 追踪 ID
+  string trace_id = 3;
+  
+  // 目标 Actor 路径（可选，用于路由）
+  string target_actor_path = 4;
+}
+
+// 批量消息
+message BatchClusterMessage {
+  repeated ClusterMessage messages = 1;
+}
+
+// 空响应
+message Empty {
+}
+

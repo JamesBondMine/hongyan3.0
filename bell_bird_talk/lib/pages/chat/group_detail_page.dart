@@ -354,7 +354,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       onTap: () async{
       //如果是我自己。跳转个人中心
       if (userId == _globalCtrl.currentUser.value?.id) {
-        Navigator.of(context).pushNamed('/profile');
+        Get.toNamed('/profile');
         return;
       } else {
         final result = await _nativeService.imSearchUser(

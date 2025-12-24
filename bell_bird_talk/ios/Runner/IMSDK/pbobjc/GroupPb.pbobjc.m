@@ -112,9 +112,9 @@ GPBEnumDescriptor *GroupType_EnumDescriptor(void) {
                                      enumVerifier:GroupType_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -150,9 +150,9 @@ GPBEnumDescriptor *GroupStatus_EnumDescriptor(void) {
                                      enumVerifier:GroupStatus_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -189,9 +189,9 @@ GPBEnumDescriptor *JoinType_EnumDescriptor(void) {
                                      enumVerifier:JoinType_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -228,9 +228,9 @@ GPBEnumDescriptor *MemberStatus_EnumDescriptor(void) {
                                      enumVerifier:MemberStatus_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -267,9 +267,9 @@ GPBEnumDescriptor *GroupMessageStatus_EnumDescriptor(void) {
                                      enumVerifier:GroupMessageStatus_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -309,9 +309,9 @@ GPBEnumDescriptor *JoinRequestStatus_EnumDescriptor(void) {
                                      enumVerifier:JoinRequestStatus_IsValidValue
                                             flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }

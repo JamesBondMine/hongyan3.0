@@ -1,0 +1,122 @@
+syntax = "proto3";
+package im.permission;
+
+option java_package = "com.cloud.im.common.core.protocol.permission";
+option java_outer_classname = "PermissionProtos";
+
+import "system_pb.proto";
+
+// ============ 枚举类型定义 ============
+
+// 权限类型枚举
+enum PermissionType {
+  LEVEL = 0;                    // 成长等级（默认值）
+  ROLE = 1;                     // 职能角色
+  VIP = 2;                      // 特权身份
+  CUSTOM = 3;                   // 自定义
+}
+
+// ============ 核心领域对象 ============
+
+// 权限定义
+message PermissionDefinition {
+  string permission_id = 1;      // 权限ID（必填）
+  string permission_name = 2;    // 权限名称（必填）
+  PermissionType permission_type = 3;  // 权限类型（必填）
+  string description = 4;        // 权限描述（可选）
+  bool is_system = 5;           // 是否系统预定义
+}
+
+// 用户权限
+message Permission {
+  string permission_id = 1;      // 权限ID
+  PermissionType permission_type = 2;  // 权限类型
+  string permission_name = 3;    // 权限名称
+  int32 permission_level = 4;    // 权限级别
+  bool is_active = 5;           // 是否生效
+  int64 expires_at = 6;         // 过期时间（毫秒时间戳，0表示永不过期）
+  int64 created_at = 7;         // 创建时间
+  string assigned_by = 8;       // 分配者
+}
+
+// ============ 请求消息 ============
+
+// 查询用户权限
+message PermissionQuery {
+  string user_id = 1;                      // 用户ID（必填）
+  repeated PermissionType permission_types = 2;  // 权限类型过滤（可选）
+}
+
+// 授予权限
+message GrantPermission {
+  string user_id = 1;           // 用户ID（必填）
+  string permission_id = 2;     // 权限ID（必填）
+  int32 expire_days = 3;        // 过期天数（0或不填表示永不过期）
+  string assigned_by = 4;       // 分配者（可选）
+}
+
+// 撤销权限
+message RevokePermission {
+  string user_id = 1;           // 用户ID（必填）
+  string permission_id = 2;     // 权限ID（必填）
+}
+
+// 查询权限定义
+message PermissionDefinitionQuery {
+  PermissionType permission_type = 1;  // 权限类型过滤（可选）
+  bool system_only = 2;                // 是否只查询系统预定义（可选）
+}
+
+// 创建权限定义
+message CreatePermission {
+  string permission_id = 1;      // 权限ID（必填，全局唯一）
+  string permission_name = 2;    // 权限名称（必填）
+  PermissionType permission_type = 3;  // 权限类型（必填）
+  string description = 4;        // 权限描述（可选）
+}
+
+// 删除权限定义
+message DeletePermission {
+  string permission_id = 1;      // 权限ID（必填）
+  bool force = 2;               // 是否强制删除（如果有用户使用该权限）
+}
+
+// ============ 响应消息 ============
+
+// 权限列表响应
+message PermissionList {
+  repeated Permission permissions = 1;
+  com.cloud.im.common.core.system.Page page = 2;       // 分页信息（可选）
+}
+
+// 权限定义列表响应
+message PermissionDefinitionList {
+  repeated PermissionDefinition definitions = 1;
+  com.cloud.im.common.core.system.Page page = 2;       // 分页信息（可选）
+}
+
+// ============ 批量操作消息 ============
+
+// 批量授予权限
+message BatchGrantPermission {
+  repeated string user_ids = 1;  // 用户ID列表
+  string permission_id = 2;      // 权限ID
+  int32 expire_days = 3;        // 过期天数
+  string assigned_by = 4;       // 分配者
+}
+
+// 批量撤销权限
+message BatchRevokePermission {
+  repeated string user_ids = 1;  // 用户ID列表
+  string permission_id = 2;      // 权限ID
+}
+
+// 批量操作响应
+message BatchOperationResult {
+  int32 total = 1;              // 总数
+  int32 success_count = 2;      // 成功数量
+  int32 failed_count = 3;       // 失败数量
+  repeated string failed_user_ids = 4;  // 失败的用户ID列表
+}
+
+

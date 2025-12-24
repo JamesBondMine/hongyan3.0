@@ -79,13 +79,33 @@ enum RegisterType {
   OAUTH_THIRD_PARTY = 3;        // 第三方登录注册（暂不支持）
 }
 
+// 注销状态枚举 - 定义用户注销的各种状态
+enum DeactivateStatus {
+  NORMAL = 0;              // 正常状态（默认值）
+  COOLING = 1;             // 冷静期
+  PENDING_REVIEW = 2;      // 待审核
+  DEACTIVATED = 3;         // 已注销
+}
+
+// 审核结果枚举 - 定义审核结果
+enum ReviewResult {
+  APPROVED = 0;            // 审核通过（默认值）
+  REJECTED = 1;            // 审核拒绝
+}
+
+// 创建来源枚举 - 定义账号创建来源
+enum CreateSource {
+  USER_REGISTERED = 0;     // 用户自己注册（默认值）
+  ADMIN_CREATED = 1;       // 后台系统创建
+}
+
 // ============ 核心领域对象 ============
 
 // 用户信息 - 核心领域对象
 // 用于用户的基本信息存储和传输
 message User {
-  string user_id = 1;           // 用户ID（必填）
-  string account_id = 2;         // 账户ID（必填，最大长度50字符，用于用户名密码登录）
+  string user_id = 1;           // 系统唯一ID（必填，8位，数字+大写字母，全局唯一，不可修改）
+  string account_id = 2;        // 账户ID（必填，最大长度50字符，用于用户名密码登录）
   string nickname = 3;          // 昵称（可选，最大长度50字符）
   string nickname_pinyin = 4;   // 昵称拼音（可选，最大长度255字符）
   UserSex sex = 5;              // 性别（可选）
@@ -94,8 +114,9 @@ message User {
   string signature = 8;         // 个性签名（可选，最大长度250字符）
   string region = 9;            // 地区（可选，最大长度20字符）
   string avatar = 10;           // 头像URL（可选，最大长度500字符）
+  string avatar_bg = 35;        // 头像背景色（可选，当avatar为空时使用，格式：#色值1 或 #色值1&#色值2）
   string background_file = 11;  // 背景图片URL（可选，最大长度500字符）
-  string biz_code = 12;        // 业务邀请码（可选，6-8位Base62）
+  string biz_code = 12;         // 业务邀请码（可选，6-8位Base62）
   string security_code = 13;    // 安全码（可选，最大长度30字符）
   UserStatus status = 14;       // 状态（必填）
   OnlineStatus online_status = 15; // 在线状态（可选）
@@ -136,10 +157,12 @@ message ServerEndpoint {
 // ============ 查询操作 ============
 
 // 获取用户 - 查询操作
-// 用于根据用户ID或账户ID查询用户信息
+// 用于根据用户ID、账户ID、手机号或邮箱查询用户信息
 message GetUser {
   string user_id = 1;          // 用户ID（可选）
   string account_id = 2;       // 账户ID（可选，最大长度50字符）
+  string phone = 3;            // 手机号（可选，最大长度20字符）
+  string email = 4;            // 邮箱（可选，最大长度50字符）
 }
 
 // 用户列表查询 - 查询操作
@@ -303,12 +326,34 @@ message UserProfile {
   string user_id = 1;           // 用户ID（必填）
   string nickname = 2;          // 昵称（可选）
   string avatar = 3;            // 头像URL（可选）
+  string avatar_bg = 10;        // 头像背景色（可选，当avatar为空时使用，格式：#色值1 或 #色值1&#色值2）
   string signature = 4;         // 个性签名（可选）
   string region = 5;            // 地区（可选）
   UserSex sex = 6;              // 性别（可选）
   OnlineStatus online_status = 7; // 在线状态（可选）
   int64 last_line_time = 8;     // 最后在线时间（可选）
   int64 created_at = 9;         // 注册时间（可选）
+}
+
+// 用户对外信息 - 结果对象
+// 用于返回用户的公开信息，仅包含必要字段
+message UserPublicInfo {
+  string user_id = 1;           // 用户ID（必填）
+  string nickname = 2;          // 昵称（可选）
+  string avatar = 3;            // 头像URL（可选）
+  string avatar_bg = 4;          // 头像背景色（可选，当avatar为空时使用，格式：#色值1 或 #色值1&#色值2）
+}
+
+// 用户ID列表 - 查询操作
+// 用于批量查询用户对外信息
+message UserIdList {
+  repeated string user_ids = 1;  // 用户ID列表（必填）
+}
+
+// 用户对外信息列表 - 结果对象
+// 用于返回批量查询的用户对外信息
+message UserPublicInfoList {
+  repeated UserPublicInfo users = 1;  // 用户列表（必填）
 }
 
 
@@ -411,5 +456,46 @@ message KickDevice {
 message KickDeviceResult {
   int32 kicked_count = 1;       // 被踢下线的设备数量（必填）
   repeated string kicked_session_ids = 2; // 被踢下线的会话ID列表（可选）
+}
+
+// ============ 用户注销相关消息 ============
+
+// 申请注销 - 操作对象
+// 用于用户申请注销账号
+message DeactivateAccount {
+  string user_id = 1;      // 用户ID（必填）
+  string reason = 2;       // 注销原因（可选，最大长度500字符）
+}
+
+// 撤回注销 - 操作对象
+// 用于用户在冷静期内撤回注销申请
+message CancelDeactivateAccount {
+  string user_id = 1;     // 用户ID（必填）
+}
+
+// 审核注销 - 操作对象
+// 用于企业后台审核用户注销申请
+message ReviewDeactivateAccount {
+  string user_id = 1;          // 用户ID（必填）
+  string reviewer_id = 2;      // 审核人ID（必填）
+  ReviewResult result = 3;     // 审核结果（必填）
+  string reason = 4;           // 审核原因（可选，最大长度500字符）
+}
+
+// 查询注销状态 - 查询操作
+// 用于查询用户注销状态
+message GetDeactivateStatus {
+  string user_id = 1;     // 用户ID（必填）
+}
+
+// 注销状态信息 - 结果对象
+// 用于返回用户注销状态信息
+message DeactivateStatusInfo {
+  string user_id = 1;                    // 用户ID（返回字段）
+  DeactivateStatus status = 2;           // 注销状态（返回字段）
+  int64 request_time = 3;                 // 申请时间（返回字段，可选）
+  int64 review_time = 4;                  // 审核时间（返回字段，可选）
+  string reviewer_id = 5;                // 审核人ID（返回字段，可选）
+  ReviewResult review_result = 6;         // 审核结果（返回字段，可选）
 }
 

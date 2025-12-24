@@ -91,7 +91,7 @@ message Device {
 
 // 检查设备 - 查询操作
 // 用于检查设备是否存在、是否需要认证等
-message CheckDevice {
+message Check {
   string user_id = 1;           // 用户ID（必填，最大长度100字符）
   string device_id = 2;         // 设备ID（必填，最大长度100字符）
   Device device = 3;            // 设备信息（可选，用于新设备注册）
@@ -99,14 +99,14 @@ message CheckDevice {
 
 // 获取设备详情 - 查询操作
 // 用于获取指定设备的详细信息
-message GetDevice {
+message Get {
   string user_id = 1;           // 用户ID（必填，最大长度100字符）
   string device_id = 2;         // 设备ID（必填，最大长度100字符）
 }
 
 // 设备列表查询 - 查询操作
 // 用于分页查询用户的设备列表
-message DeviceListQuery {
+message ListQuery {
   string user_id = 1;           // 用户ID（必填，最大长度100字符）
   DeviceType device_type = 2;   // 设备类型过滤（可选）
   DeviceStatus status = 3;      // 设备状态过滤（可选）
@@ -115,7 +115,7 @@ message DeviceListQuery {
 
 // 根据设备ID查询用户 - 查询操作
 // 用于从设备ID反向查询用户信息
-message getUserByDevice {
+message GetUserByDevice {
   string device_id = 1;         // 设备ID（必填，最大长度100字符）
 }
 
@@ -123,7 +123,7 @@ message getUserByDevice {
 
 // 更新设备活跃状态 - 操作对象
 // 用于更新设备的最后活跃时间和IP
-message updateActivity {
+message UpdateActivity {
   string user_id = 1;           // 用户ID（必填，最大长度100字符）
   string device_id = 2;         // 设备ID（必填，最大长度100字符）
   string client_ip = 3;         // 客户端IP（可选，最大长度50字符）
@@ -140,7 +140,7 @@ message RenameDevice {
 
 // 设备认证成功 - 操作对象
 // 用于设备认证通过后的信息记录
-message authSuccess {
+message DeviceAuthSuccess {
   string user_id = 1;           // 用户ID（必填，最大长度100字符）
   string device_id = 2;         // 设备ID（必填，最大长度100字符）
   Device device = 3;            // 设备信息（必填）
@@ -151,7 +151,7 @@ message authSuccess {
 
 // 设备检查结果 - 结果对象
 // 用于设备检查操作的响应
-message checkResult {
+message DCheckResult {
   bool device_exists = 1;       // 设备是否存在
   bool auth_required = 2;       // 是否需要认证
   bool limit_exceeded = 3;      // 是否超过设备数量限制
@@ -169,7 +169,7 @@ message DeviceList {
 
 // 用户信息 - 结果对象
 // 用于根据设备查询用户的响应
-message userInfo {
+message UserInfo {
   string user_id = 1;           // 用户ID
   Device device = 2;            // 设备信息
 }
@@ -179,7 +179,7 @@ message userInfo {
 // 生成二维码 - 操作对象
 // 用于生成设备认证二维码
 message GenerateQR {
-  string auth_token_jwt = 1;    // 认证令牌JWT（必填，从 checkResult 中获取，已签名）
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，从 DCheckResult 中获取，已签名）
 }
 
 // 二维码数据 - 结果对象
@@ -227,5 +227,5 @@ message AuthRequired {
 
 // ============ 响应说明 ============
 // 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
-// 查询成功响应：返回具体对象（Device、list、checkResult 等）
+// 查询成功响应：返回具体对象（Device、DeviceList、DCheckResult 等）
 // 错误响应：使用 com.cloud.im.common.core.system.Error

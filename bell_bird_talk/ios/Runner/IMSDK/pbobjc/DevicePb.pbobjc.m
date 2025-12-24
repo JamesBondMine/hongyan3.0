@@ -73,9 +73,9 @@ GPBEnumDescriptor *DeviceType_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:DeviceType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }
@@ -112,9 +112,9 @@ GPBEnumDescriptor *DeviceStatus_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:DeviceStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
-    }
+//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//      [worker release];
+//    }
   }
   return descriptor;
 }

@@ -1,0 +1,199 @@
+syntax = "proto3";
+
+package im.chat;
+
+option java_package = "com.cloud.im.common.core.protocol.chat";
+option java_multiple_files = true;
+option java_outer_classname = "ChatProtos";
+
+import "message_pb.proto";
+import "conv_pb.proto";
+import "system_pb.proto";
+
+// ============ 查询操作 ============
+
+// 消息搜索 - 查询操作
+// 用于搜索单聊和群聊的聊天记录
+message Search {
+  string keyword = 1;                     // 搜索关键词（必填）
+  im.conv.ConversationType conv_type = 2;  // 会话类型过滤（可选，单聊/群聊，使用枚举）
+  string from_user_id = 4;                 // 按发送者用户ID过滤（可选）
+  int64 start_time_ms = 5;                 // 开始时间（可选，毫秒时间戳）
+  int64 end_time_ms = 6;                   // 结束时间（可选，毫秒时间戳）
+  com.cloud.im.common.core.system.Page page = 3; // 分页参数（使用系统类型）
+  string conv_id = 7;                      // 会话ID过滤（可选，用于频道内搜索）
+}
+
+// ============ 结果对象 ============
+
+// 消息搜索结果 - 结果对象
+// 用于消息搜索的响应
+message CSearchResult {
+  repeated im.message.ImMessage messages = 1;        // 消息列表（返回字段）
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（返回字段，使用系统类型）
+  
+  // 扩展搜索结果：分类结果（每个类型最多3条）
+  repeated ContactSearchResult contact_results = 3;   // 好友昵称搜索结果
+  repeated GroupSearchResult group_results = 4;       // 群聊名称搜索结果
+  repeated GroupMemberSearchResult member_results = 5; // 群成员昵称搜索结果
+}
+
+// 好友搜索结果
+message ContactSearchResult {
+  string contact_user_id = 1;    // 好友用户ID
+  string contact_nickname = 2;    // 好友昵称
+  string remark = 3;              // 备注
+  string avatar = 4;               // 头像
+}
+
+// 群聊搜索结果
+message GroupSearchResult {
+  string group_id = 1;             // 群组ID
+  string group_name = 2;            // 群组名称
+  string avatar = 3;                // 群组头像
+  int32 member_count = 4;           // 成员数量
+}
+
+// 群成员搜索结果
+message GroupMemberSearchResult {
+  string group_id = 1;              // 群组ID
+  string group_name = 2;            // 群组名称
+  string member_user_id = 3;        // 成员用户ID
+  string member_nickname = 4;        // 成员昵称
+  string member_alias = 5;          // 成员群内昵称
+  string avatar = 6;                // 成员头像
+}
+
+// ============ @我消息相关 ============
+
+// 搜索@我的消息 - 查询操作
+// 用于查询所有@我的消息
+message SearchAtMe {
+  string keyword = 1;                     // 搜索关键词（可选，在@消息内容中搜索）
+  string group_id = 2;                    // 群组ID过滤（可选）
+  int64 start_time_ms = 3;                // 开始时间（可选，毫秒时间戳）
+  int64 end_time_ms = 4;                  // 结束时间（可选，毫秒时间戳）
+  bool unread_only = 5;                   // 仅未读消息（可选，默认false）
+  com.cloud.im.common.core.system.Page page = 6; // 分页参数（使用系统类型）
+}
+
+// @我消息搜索结果 - 结果对象
+message SearchAtMeResult {
+  repeated AtMeMessage messages = 1;      // @我的消息列表
+  int32 total = 2;                        // 总数
+  bool has_more = 3;                      // 是否还有更多
+  com.cloud.im.common.core.system.Page page = 4; // 分页元数据
+}
+
+// @我消息详情 - 领域对象
+message AtMeMessage {
+  im.message.ImMessage message = 1;       // 消息内容
+  string group_id = 2;                    // 群组ID（群聊消息时非空）
+  string group_name = 3;                  // 群组名称（可选）
+  string from_user_id = 4;                // 发送者ID
+  string from_user_name = 5;              // 发送者名称（可选）
+  int64 send_time_ms = 6;                 // 发送时间（毫秒）
+  bool is_read = 7;                       // 是否已读
+  int64 group_seq = 8;                    // 群组序列号（群聊消息时非空）
+}
+
+// 获取@我消息未读数量 - 查询操作
+// 用于获取@我消息的未读数量
+message GetAtMeUnreadCount {
+  // 空消息体，使用用户ID从上下文获取
+}
+
+// @我消息未读数量结果 - 结果对象
+message AtMeUnreadCountResult {
+  int32 total_unread = 1;                 // 总未读数
+  map<string, int32> group_unread = 2;    // 各群组未读数（group_id -> count）
+}
+
+// 标记@我消息为已读 - 操作
+message MarkAtMeRead {
+  repeated string message_ids = 1;        // 消息ID列表（可选，为空则标记所有）
+  string group_id = 2;                     // 群组ID（可选，标记整个群组的@消息为已读）
+}
+
+// 标记@我消息已读结果 - 结果对象
+message MarkAtMeReadResult {
+  int32 marked_count = 1;                 // 标记数量
+  repeated string failed_message_ids = 2;   // 失败的消息ID列表
+}
+
+// ============ 通知消息操作 ============
+
+// 通知状态枚举
+enum NotificationStatus {
+  NOTIFICATION_UNREAD = 0;   // 未读（默认值）
+  NOTIFICATION_READ = 1;    // 已读
+  NOTIFICATION_DELETED = 2; // 已删除
+}
+
+// 通知消息对象（用于返回）
+message Notification {
+  int64 id = 1;                      // 通知ID（雪花ID）
+  string app_id = 2;                 // 应用ID
+  string user_id = 3;                // 接收者用户ID
+  string notification_type = 4;      // 通知类型（如 "FRIEND_REQUEST_ACCEPTED"）
+  string title = 5;                  // 通知标题
+  string content = 6;                // 通知内容（JSON字符串）
+  string business_type = 7;           // 业务类型（如 "CONTACT"）
+  string server_msg_id = 8;          // 全局唯一消息ID
+  string related_user_id = 9;       // 关联用户ID（可选）
+  int64 related_request_id = 10;     // 关联申请ID（可选）
+  NotificationStatus status = 11;     // 状态（UNREAD, READ, DELETED）
+  int64 create_time = 12;            // 创建时间（毫秒时间戳）
+  int64 read_time = 13;              // 已读时间（毫秒时间戳，可选）
+  int64 expire_time = 14;            // 过期时间（毫秒时间戳，可选）
+}
+
+// 通知拉取 - 查询操作
+message NotificationPull {
+  repeated string notification_types = 1;  // 通知类型过滤（可选，如 ["FRIEND_REQUEST_ACCEPTED", "FRIEND_ADD"]）
+  NotificationStatus status = 2;           // 状态过滤（可选，默认拉取所有状态）
+  int64 start_time = 3;                    // 开始时间（可选，毫秒时间戳）
+  int64 end_time = 4;                      // 结束时间（可选，毫秒时间戳）
+  com.cloud.im.common.core.system.Page page = 5;  // 分页参数（使用系统类型）
+}
+
+// 通知拉取结果 - 结果对象
+message NotificationPullList {
+  repeated Notification notifications = 1;  // 通知列表
+  com.cloud.im.common.core.system.Page page = 2;    // 分页元数据（使用系统类型）
+}
+
+// 通知标记已读 - 操作对象
+message NotificationMarkRead {
+  repeated int64 notification_ids = 1;  // 要标记已读的通知ID列表（可选，为空则标记全部）
+  int64 read_time = 2;                   // 已读时间戳（可选，默认当前时间）
+}
+
+// 通知标记已读结果 - 结果对象
+message NotificationMarkReadResult {
+  int32 success_count = 1;              // 成功标记的通知数量
+  repeated int64 failed_ids = 2;        // 标记失败的通知ID列表
+}
+
+// 通知删除 - 操作对象
+message NotificationDelete {
+  repeated int64 notification_ids = 1;  // 要删除的通知ID列表（必填，至少一个）
+}
+
+// 通知删除结果 - 结果对象
+message NotificationDeleteResult {
+  int32 success_count = 1;              // 成功删除的通知数量
+  repeated int64 failed_ids = 2;        // 删除失败的通知ID列表
+}
+
+// 通知未读数查询 - 查询操作
+message NotificationUnreadCount {
+  repeated string notification_types = 1;  // 通知类型过滤（可选，为空则统计所有类型）
+}
+
+// 通知未读数统计 - 结果对象
+message NotificationUnreadCountResult {
+  int64 total_unread = 1;                    // 总未读数量
+  map<string, int64> type_unread = 2;        // 各类型的未读数量（key为 notification_type）
+}
+

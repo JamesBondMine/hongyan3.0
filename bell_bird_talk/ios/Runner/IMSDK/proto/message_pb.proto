@@ -1,0 +1,729 @@
+syntax = "proto3";
+package im.message;
+option java_package = "com.cloud.im.common.core.protocol.message";
+option java_multiple_files = true;
+option go_package = "./;pb";
+import "google/protobuf/timestamp.proto";
+import "conv_pb.proto";
+
+// ============================================================================
+// 消息类型统一设计说明
+// ============================================================================
+//
+// 本文件使用统一的 ImMessage 结构来表示所有消息类型，通过 MessageType 枚举来区分
+// 不同类型的消息。根据消息的用途、存储策略和处理流程，消息被分为三类：
+//
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ 1. 内容消息 - 用户可见的消息                                              │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │ 特征：                                                                  │
+// │   - 用户主动发送或系统生成的可视化消息                                  │
+// │   - 需要存储到消息历史记录                                              │
+// │   - 需要计入未读消息数                                                  │
+// │   - 需要支持离线消息推送                                                │
+// │   - 包含会话ID、会话序号等存储相关字段                                  │
+// │                                                                         │
+// │ 包含的消息类型：                                                        │
+// │   - 基础消息：TEXT, IMAGE, VIDEO, VOICE, FILE, LOCATION, CARD,         │
+// │              SHARE_URL, STICKER, CUSTOM                                │
+// │   - 通用功能：AT_MESSAGE, FORWARD, REPLY, EDIT                         │
+// │   - 特殊展示：NET_CALL, RED_PACKET, NOTIFICATION, POLL, ANNOUNCEMENT   │
+// │   - 特殊消息：ENCRYPTED（加密消息）                                     │
+// │                                                                         │
+// │ 判断标准：                                                              │
+// │   ✓ 用户可以在聊天界面看到这条消息                                      │
+// │   ✓ 消息需要保存到历史记录                                              │
+// │   ✓ 消息会影响未读消息数                                                │
+// │   ✓ 消息有明确的会话归属（conversation_id）                            │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ 2. 系统消息 - 统一所有业务系统消息                                        │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │ 特征：                                                                  │
+// │   - 系统生成的通知消息（好友申请、群组加入等）                          │
+// │   - 需要存储到消息历史记录                                              │
+// │   - 需要计入未读消息数                                                  │
+// │   - 需要支持离线消息推送                                                │
+// │   - 通过 business_type 字段区分具体业务（使用 BizModel.name()）        │
+// │                                                                         │
+// │ 使用方式：                                                              │
+// │   - 所有业务系统消息统一使用 SYSTEM 类型                                │
+// │   - business_type 使用 BizModel.name()，如 "CONTACT", "GROUP" 等      │
+// │   - content 字段使用 JSON 格式存储业务相关数据                          │
+// │                                                                         │
+// │ 示例：                                                                  │
+// │   - 好友申请：business_type="CONTACT", content={"requester_id":"xxx"}  │
+// │   - 群组加入：business_type="GROUP", content={"group_id":"xxx"}        │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ 3. 状态消息 - 统一所有状态消息                                            │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │ 特征：                                                                  │
+// │   - 用于同步消息状态、用户状态等实时信息                                │
+// │   - 不计入未读消息数                                                    │
+// │   - 不存储到消息历史记录（或仅短期存储）                                │
+// │   - 不需要离线推送（实时性要求高）                                      │
+// │   - 可能不需要会话ID（如全局在线状态）                                  │
+// │   - 通过 status_type 字段区分具体状态                                   │
+// │                                                                         │
+// │ 使用方式：                                                              │
+// │   - 所有状态消息统一使用 STATUS 类型                                    │
+// │   - status_type 使用 StatusType 枚举                                   │
+// │   - data 字段使用 JSON 格式存储状态数据                                 │
+// │                                                                         │
+// │ 包含的状态类型：                                                        │
+// │   - TYPING: 正在输入状态                                                │
+// │   - PRESENCE: 在线状态更新（使用 im.user.OnlineStatus 枚举值）          │
+// │   - REACTION: 消息表情反应                                              │
+// │   - READ_ACK: 已读回执                                                  │
+// │   - MESSAGE_STATUS: 消息发送状态更新                                    │
+// │   - CHAT_ACK: 聊天回执（客户端回馈给服务端）                            │
+// └─────────────────────────────────────────────────────────────────────────┘
+//
+// ============================================================================
+// 添加新消息类型的规则
+// ============================================================================
+//
+// 1. 判断消息应该属于哪种类型：
+//    - 用户可见的内容 → 内容消息类型
+//    - 系统业务通知 → 系统消息类型（SYSTEM），通过 business_type 区分
+//    - 状态同步信息 → 状态消息类型（STATUS），通过 status_type 区分
+//    - 注意：命令消息（撤回、删除、编辑等）由各模块处理，不在消息模块实现
+//
+// 2. 在 ImMessage.MessageType 枚举中添加类型，选择合适的枚举值范围：
+//    - 内容消息：0-18（基础消息0-9，通用功能10-13，特殊展示14-18）
+//    - 系统消息：21
+//    - 状态消息：30
+//    - 特殊消息：33（ENCRYPTED）
+//    - 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息类型
+//
+// 3. 在 ImMessage.body 的 oneof 中添加对应的消息体字段
+//
+// 4. 定义对应的消息结构（如 TextMessage, SystemMessage, StatusMessage 等）
+//
+// 5. 注意字段编号：
+//    - 不要重复使用已存在的字段编号
+//    - 保持字段编号的连续性和可读性
+//    - 建议字段编号与 MessageType 枚举值保持一定对应关系
+//
+// ============================================================================
+// 枚举值分配对照表（避免冲突）
+// ============================================================================
+//
+// ImMessage.MessageType 统一枚举值分配：
+//   - 0-9:   基础消息类型（TEXT, IMAGE, VIDEO, VOICE, FILE, LOCATION, CARD, SHARE_URL, STICKER, CUSTOM）
+//   - 10-13: 通用功能类型（AT_MESSAGE, FORWARD, REPLY, EDIT）
+//   - 14-18: 特殊展示类型（NET_CALL, RED_PACKET, NOTIFICATION, POLL, ANNOUNCEMENT）
+//   - 21:    系统消息类型（SYSTEM）- 统一所有业务系统消息
+//   - 30:    状态消息类型（STATUS）- 统一所有状态消息
+//   - 33:    加密消息（ENCRYPTED）
+//   注意：命令消息（撤回、删除、编辑等）由各模块处理，不在消息模块实现
+//   - 40+:   可用于新增消息类型
+//   注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息类型
+//
+// ============================================================================
+
+// ========== 消息元数据（所有消息类型共享） ==========
+// 基础消息元数据 - 用于所有消息类型的公共字段
+message MessageMetadata {
+  string msg_id = 1;             // 客户端消息ID（必填）
+                                  // - 群组消息：必须提供，用于@消息分发时的去重
+                                  // - 单聊消息：建议提供，用于消息去重和幂等性保证
+                                  // - 格式：建议使用UUID（去掉横线）或时间戳+随机数组合
+  string from = 2;               // 发送者（用户ID）（必填）
+  string nick = 3;               // 发送者昵称（可选）
+  string to = 4;                 // 接受者（用户ID/群组ID）（可选）
+  int64 send_time = 5;           // 发送时间戳（必填，毫秒级）
+  string server_msg_id = 6;      // 服务端消息ID（返回字段，系统自动生成）
+  int64 receive_time = 7;        // 服务端接收消息时间戳（返回字段，系统自动生成，用于问题排查和性能监控）
+  string trace_id = 8;           // 链路追踪ID（可选，用于排障）
+  string client_nonce = 9;       // 客户端幂等随机值（可选，用于去重）
+  map<string, string> headers = 10; // 顶层扩展标签（可选，路由/策略/标签）
+}
+
+// ========== 统一消息结构 ==========
+// ImMessage 作为统一的消息结构，包含所有类型的消息
+// 通过 MessageType 枚举来区分不同类型的消息（内容消息、状态消息）
+// 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息类型
+//
+message ImMessage {
+  // 消息类型枚举 - 统一所有消息类型
+  // 按照功能分组，使用连续编号，便于维护和扩展
+  // 
+  // 【枚举值分配规则】
+  // - 内容消息类型：0-18（基础消息0-9，通用功能10-13，特殊展示14-18）
+  // - 系统消息类型：21
+  // - 状态消息类型：30
+  // - 特殊消息类型：33（ENCRYPTED）
+  // 注意：命令消息（撤回、删除、编辑等）由各模块处理，不在消息模块实现
+  // - 40+: 可用于新增消息类型
+  // 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息类型
+  //
+  enum MessageType {
+    // ==================== 内容消息类型 ====================
+    // 基础消息类型 (0-9)
+    TEXT = 0;                    // 文本消息 - 纯文本内容
+    IMAGE = 1;                   // 图片消息 - 图片文件，包含缩略图
+    VIDEO = 2;                   // 视频消息 - 视频文件，包含封面图
+    VOICE = 3;                   // 语音消息 - 音频文件，包含时长
+    FILE = 4;                    // 文件消息 - 任意类型文件
+    LOCATION = 5;                // 位置消息 - 地理位置信息
+    CARD = 6;                    // 名片消息 - 用户名片分享
+    SHARE_URL = 7;               // 链接分享 - 网页链接分享
+    STICKER = 8;                 // 表情消息 - 表情包/贴纸
+    CUSTOM = 9;                  // 自定义消息 - JSON格式自定义内容
+    
+    // 业务消息类型 (10-18)
+    AT_MESSAGE = 10;             // @消息 - 群聊中@特定用户
+    FORWARD = 11;                // 转发消息 - 转发其他消息
+    REPLY = 12;                  // 回复消息 - 回复特定消息
+    EDIT = 13;                   // 编辑消息 - 编辑已发送的消息
+    NET_CALL = 14;               // 音视频通话 - 语音/视频通话相关（命令类消息，改变客户端展示行为）
+    RED_PACKET = 15;             // 红包消息 - 红包相关消息
+    NOTIFICATION = 16;           // 小黑条消息 - 群震、系统提示等（不占消息流，顶部/底部提示）
+    POLL = 17;                   // 投票消息 - 群组投票
+    ANNOUNCEMENT = 18;           // 公告消息 - 系统公告和群公告
+    
+    // ==================== 系统消息类型 ====================
+    SYSTEM = 21;                 // 系统消息 - 统一所有业务系统消息（好友申请、群组加入等）
+    
+    // ==================== 状态消息类型 ====================
+    STATUS = 30;                 // 状态消息 - 统一所有状态消息（正在输入、在线状态等）
+    
+    // ==================== 特殊消息类型 ====================
+    ENCRYPTED = 33;              // 加密消息 - 端到端密文体
+  }
+  
+  // 消息元数据
+  MessageMetadata metadata = 1;  // 基础消息元数据
+  MessageType m_type = 2;        // 消息类型
+  
+  // 会话相关字段（内容消息必填，状态消息和系统协议消息可选）
+  string conversation_id = 3;     // 会话ID（必填，内容消息；可选，状态消息。分区、路由与存储关键字段）
+  int64 conversation_seq = 4;    // 会话内单调序（必填，内容消息；可选，状态消息。严格有序、去重，仅内容消息使用）
+  int64 server_seq = 5;          // 服务端全局序（返回字段，系统自动生成）
+  im.conv.ConversationType conversation_type = 6; // 会话类型（必填，单聊/群聊/频道）
+  int64 store_time = 7;          // 入库时间（返回字段，系统自动生成，仅内容消息使用）
+  int64 deliver_time = 8;        // 首次投递时间（返回字段，系统自动生成，可选）
+  
+  // 消息体 - 根据消息类型选择对应的消息内容
+  // 
+  // 【字段编号分配规则】
+  // - 内容消息类型 (0-18): 字段编号 9-27
+  // - 系统消息类型 (21): 字段编号 28（避免与 reply_message=21 冲突）
+  // - 状态消息类型 (30): 字段编号 30
+  // - 特殊消息类型 (33): 字段编号 33
+  // - 40+: 可用于新增消息类型字段
+  // 注意：系统协议消息（PULL、PULL_RESULT、SEND_ACK）已通过方法处理，不再作为消息体字段
+  //
+  oneof body {
+    // ==================== 内容消息类型 (0-18) ====================
+    // 基础消息类型 (0-9)
+    TextMessage text_message = 9;           // TEXT = 0
+    ImageMessage image_message = 10;         // IMAGE = 1
+    VideoMessage video_message = 11;         // VIDEO = 2
+    VoiceMessage voice_message = 12;         // VOICE = 3
+    FileMessage file_message = 13;          // FILE = 4
+    LocationMessage location_message = 14;   // LOCATION = 5
+    CardMessage card_message = 15;            // CARD = 6
+    ShareUrlMessage share_url_message = 16;   // SHARE_URL = 7
+    StickerMessage sticker_message = 17;     // STICKER = 8
+    CustomMessage custom_message = 18;       // CUSTOM = 9
+
+    // 业务消息类型 (10-18)
+    AtMessage at_message = 19;              // AT_MESSAGE = 10
+    ForwardMessage forward_message = 20;      // FORWARD = 11
+    ReplyMessage reply_message = 21;          // REPLY = 12
+    EditMessage edit_message = 22;            // EDIT = 13
+    NetCallMessage net_call_message = 23;      // NET_CALL = 14
+    RedPacketMessage red_packet_message = 24;     // RED_PACKET = 15
+    TipMessage tip_message = 25; // NOTIFICATION = 16（小黑条提示）
+    PollMessage poll_message = 26;            // POLL = 17
+    AnnouncementMessage announcement_message = 27; // ANNOUNCEMENT = 18
+    
+    // ==================== 系统消息类型 (21) ====================
+    SystemMessage system_message = 28;        // SYSTEM = 21 (字段编号使用 28，避免与 reply_message=21 冲突)
+    
+    // ==================== 状态消息类型 (30) ====================
+    StatusMessage status_message = 30;        // STATUS = 30
+    
+    // ==================== 特殊消息类型 (33) ====================
+    EncryptedMessage encrypted_message = 33;  // ENCRYPTED = 33
+  }
+}
+
+// 文本消息 - 纯文本内容
+message TextMessage {
+  string content = 1;    // 文本内容
+  string ext = 2;        // 扩展字段
+  string translate = 3;  // 翻译内容
+}
+// 图片消息 - 图片文件，包含缩略图
+message ImageMessage {
+  int32 height = 1;             // 图片高度
+  int32 width = 2;              // 图片宽度
+  int64 size = 3;               // 图片文件大小
+  string name = 4;              // 图片文件名
+  string thumbnail_url = 5;     // 图片缩略图URL
+  string original_url = 6;      // 图片原图URL
+  string ext = 7;               // 扩展字段
+}
+// 视频消息 - 视频文件，包含封面图
+message VideoMessage {
+  int64 duration = 1;           // 视频时长（秒）
+  string name = 2;              // 视频文件名
+  string cover_url = 3;         // 视频封面图URL
+  int32 cover_height = 4;       // 封面图高度
+  int32 cover_width = 5;        // 封面图宽度
+  string video_url = 6;         // 视频文件URL
+  int64 size = 7;               // 视频文件大小
+  string ext = 8;               // 扩展字段
+}
+// 位置消息 - 地理位置信息
+message LocationMessage {
+  double longitude = 1;    // 经度
+  double latitude = 2;     // 纬度
+  string name = 3;         // 地理位置名称
+  string cover_image = 4;  // 位置封面图URL
+  int32 cover_height = 5;  // 封面图高度
+  int32 cover_width = 6;   // 封面图宽度
+  string ext = 7;          // 扩展字段
+  string details = 8;      // 地理位置详细信息
+}
+// 语音消息 - 音频文件，包含时长
+message VoiceMessage {
+  int32 duration = 1;           // 语音时长（秒）
+  string name = 2;              // 语音文件名
+  string audio_url = 3;         // 语音文件URL
+  int64 size = 4;               // 语音文件大小
+  string ext = 5;               // 扩展字段
+}
+// 文件消息 - 任意类型文件
+message FileMessage {
+  int64 size = 1;               // 文件大小
+  string name = 2;              // 文件名
+  string file_url = 3;          // 文件URL
+  string type = 4;              // 文件类型（MIME类型）
+  string path = 5;              // 文件路径（可选）
+  string ext = 6;               // 扩展字段
+}
+// 名片消息 - 用户名片分享
+message CardMessage {
+  string user_id = 1;           // 用户ID
+  string user_name = 2;         // 用户名
+  string nick_name = 3;         // 用户昵称
+  string avatar_url = 4;        // 头像URL
+  string card_url = 5;          // 名片访问地址
+  string ext = 6;               // 扩展字段
+}
+// 链接分享消息 - 网页链接分享
+message ShareUrlMessage {
+  string url = 1;        // 分享链接URL
+  string title = 2;      // 链接标题
+  string logo = 3;       // 链接logo图片URL
+  string description = 4; // 链接描述
+  string ext = 5;        // 扩展字段
+}
+// 撤回消息和删除消息已统一到 CommandMessage，通过 command_type 区分
+//@用户消息(该消息为特殊消息，前后端一起定义)
+message AtMessage {
+  string content = 1;           // 消息内容
+  repeated AtInfo at_info = 2;  // @用户信息列表
+  string translate = 3;         // 翻译内容
+  string ext = 4;               // 扩展字段
+  bool is_all = 5;              // 是否 @所有人
+  repeated string exclude_user_ids = 6; // @所有人时的排除列表
+}
+
+// @用户信息
+message AtInfo {
+  string user_id = 1;           // 用户ID
+  string nick_name = 2;         // 用户昵称
+}
+//发红包消息
+message RedPacketMessage {
+  string red_packet_id = 1;     // 红包ID
+  string send_user_id = 2;      // 发送红包的用户ID
+  string send_user_name = 3;    // 发送红包的用户昵称
+  RedPacketType type = 4;       // 红包类型（使用枚举）
+  string remark = 5;            // 红包备注
+  string exclusive_user_id = 6; // 专属红包指定用户ID
+  string exclusive_user_name = 7; // 专属红包指定用户名称
+  string ext = 8;               // 扩展字段
+}
+// 音视频通话消息 - 语音/视频通话相关
+message NetCallMessage {
+  string call_id = 1;           // 通话ID
+  string room_id = 2;           // 房间ID
+  string room_create_user = 3;  // 创建房间的用户ID
+  string token = 4;             // 鉴权token
+  NetCallType call_type = 5;    // 通话类型（使用枚举）
+  im.conv.ConversationType chat_type = 6; // 聊天类型（使用枚举）
+  NetCallStatus status = 7;    // 通话状态（使用枚举）
+  int32 timeout = 8;            // 超时时间（秒）
+  int32 duration = 9;           // 通话时长（秒）
+  repeated string room_users = 10;      // 房间成员列表（群聊）
+  repeated string operation_users = 11; // 操作用户ID列表
+  int64 call_time = 12;         // 通话时间戳
+  string ext = 13;              // 扩展字段
+}
+
+
+//转发消息 - 转发其他消息
+message ForwardMessage {
+  ForwardType type = 1;                 // 转发类型（使用枚举）
+  string title = 2;                     // 转发标题
+  repeated ImMessage messages = 3;      // 转发消息列表（完整体）
+  repeated string message_ids = 4;      // 仅转发历史中的消息ID（轻量模式）
+  string ext = 5;                       // 扩展字段
+}
+
+
+// 小黑条提示消息（仅用于展示，轻量且不区分业务类型）
+message TipMessage {
+  // 展示文案或 i18n key；如果是 key，可配合 ext 参数由客户端渲染
+  string content = 1;
+  // 提示位置（TOP/BOTTOM，可选）
+  NotificationPosition position = 3;
+  // 展示时间戳（用于排序/去重，可选）
+  int64 notification_time = 4;
+  // 扩展参数，JSON 字符串（如占位符、跳转信息等，可选）
+  string ext = 5;
+}
+
+// 已读回执消息已统一到 StatusMessage，通过 status_type=STATUS_READ_ACK 实现
+//自定义消息
+message CustomMessage {
+  string content = 1;           // JSON格式的自定义内容
+  string ext = 3;               // 扩展字段
+}
+// 表情消息 - 表情包/贴纸（包含普通表情和游戏表情）
+message StickerMessage {
+  int32 height = 1;           // 表情图片高度
+  int32 width = 2;            // 表情图片宽度
+  int64 size = 3;             // 表情文件大小
+  string name = 4;            // 表情名称
+  string id = 5;              // 表情的唯一标识
+  string thumbnail_url = 6;   // 表情缩略图URL
+  string image_url = 7;       // 表情原图URL
+  bool is_sticker_set = 8;    // 是否是表情包（true:表情包，false:单个表情）
+  StickerType sticker_type = 9; // 表情类型（普通表情/游戏表情）
+  string result = 10;         // 游戏结果（仅游戏表情使用）
+  string ext = 11;            // 扩展字段
+}
+// 系统消息 - 统一所有业务系统消息
+// 所有业务系统消息（好友申请、群组加入等）都通过此消息类型发送
+// 通过 business_type 字段区分具体业务，使用 BizModel.name() 的值
+message SystemMessage {
+  // 系统消息业务类型（使用 BizModel.name()，如 "CONTACT", "GROUP", "USER" 等）
+  // 用于路由到具体的业务处理器
+  string business_type = 1;
+  
+  // 系统消息标题
+  string title = 2;
+  
+  // 系统消息内容（JSON格式，包含业务相关数据）
+  // 例如：好友申请 {"requester_id":"xxx","requester_name":"xxx","message":"xxx"}
+  // 例如：群组加入 {"group_id":"xxx","group_name":"xxx","inviter_id":"xxx"}
+  string content = 3;
+  
+  // 系统消息类型（用于UI展示样式）
+  SystemMessageType type = 4;
+  
+  // 相关图片URL列表
+  repeated string images = 5;
+  
+  // 过期时间戳（可选）
+  int64 expire_time = 6;
+  
+  // 扩展字段
+  string ext = 7;
+}
+
+// 状态消息 - 统一所有状态消息
+// 所有状态消息（正在输入、在线状态等）都通过此消息类型发送
+// 通过 status_type 字段区分具体状态
+message StatusMessage {
+  // 状态类型
+  StatusType status_type = 1;
+  
+  // 状态数据（JSON格式，包含状态相关数据）
+  // 例如：正在输入 {"user_id":"xxx","is_typing":true}
+  // 例如：已读回执 {"server_msg_ids":["msg1","msg2"],"conversation_id":"conv123"}
+  // 例如：在线状态 {"user_id":"xxx","status":"ONLINE","last_seen":1234567890}
+  //       注意：在线状态的 status 字段使用 im.user.OnlineStatus 枚举值（ONLINE/OFFLINE/BUSY/AWAY）
+  string data = 2;
+  
+  // 状态时间戳
+  int64 status_time = 3;
+  
+  // 扩展字段
+  string ext = 4;
+}
+
+// 回复消息 - 回复特定消息
+message ReplyMessage {
+  string reference_msg_id = 1;  // 被回复的消息ID
+  string reference_content = 2; // 被回复消息的预览内容
+  string reply_content = 3;     // 回复内容
+  string ext = 4;               // 扩展字段
+}
+
+// 编辑消息 - 编辑已发送的消息
+message EditMessage {
+  string original_msg_id = 1;   // 原始消息ID
+  string original_content = 2;  // 原始消息内容
+  string edited_content = 3;    // 编辑后的内容
+  int64 edit_time = 4;          // 编辑时间戳
+  string ext = 5;               // 扩展字段
+}
+
+// 消息状态消息、正在输入消息、在线状态消息、消息反应消息已统一到 StatusMessage
+// 通过 status_type 区分：STATUS_MESSAGE_STATUS, STATUS_TYPING, STATUS_PRESENCE, STATUS_REACTION
+
+// 投票消息 - 群组投票
+message PollMessage {
+  string poll_id = 1;           // 投票ID
+  string question = 2;          // 投票问题
+  repeated string options = 3;  // 投票选项
+  int64 end_time = 4;           // 投票结束时间
+  map<string, int32> votes = 5; // 投票结果（选项ID -> 票数）
+  bool allow_multi = 6;         // 是否多选
+  bool anonymous = 7;           // 是否匿名
+  bool allow_add_option = 8;    // 是否允许新增选项
+  string ext = 9;               // 扩展字段
+}
+
+// 公告消息 - 系统公告和群公告（统一使用此类型）
+message AnnouncementMessage {
+  string announcement_id = 1;   // 公告ID
+  string title = 2;             // 公告标题
+  string content = 3;           // 公告内容
+  int64 publish_time = 4;       // 发布时间
+  int64 expire_time = 5;        // 过期时间
+  string scope = 6;             // 作用范围（全局/群/频道等标识）
+  MessagePriority priority = 7; // 优先级（使用枚举）
+  bool require_ack = 8;         // 是否要求阅读确认
+  string ext = 9;               // 扩展字段
+}
+
+// 聊天回执消息已统一到 StatusMessage，通过 status_type=STATUS_CHAT_ACK 实现
+
+// 加密消息 - 端到端密文体（服务器仅转发与存储，不解密）
+message EncryptedMessage {
+  string key_id = 1;        // 密钥标识（公钥指纹/会话密钥版本）
+  string alg = 2;           // 加密算法（如 AES-GCM, XChaCha20-Poly1305 等）
+  bytes nonce = 3;          // 随机向量/IV
+  bytes aad = 4;            // 额外认证数据（可选，用于完整性绑定）
+  bytes ciphertext = 5;     // 密文载荷
+  bytes signature = 6;      // 发送端签名（可选，绑定明文/密文+元数据）
+  string ext = 7;           // 扩展
+}
+
+// 消息历史查询 - 查询操作
+message HistoryQuery {
+  string conversation_id = 1;    // 会话ID
+  int32 page = 2;                // 页码（从1开始）- 兼容保留
+  int32 size = 3;                // 每页大小
+  int64 before_time = 4;         // 查询此时间之前的消息（可选）
+  int64 after_time = 5;          // 查询此时间之后的消息（可选）
+  string cursor = 6;             // 游标（优先于页码）
+  HistoryDirection direction = 7; // 查询方向（向上/向下）
+  string anchor_message_id = 8;  // 锚点消息ID（从该消息上下拉）
+}
+
+// 消息历史列表 - 结果对象
+message History {
+  repeated ImMessage messages = 1;    // 消息列表
+  int32 total_count = 2;             // 总消息数量
+  int32 current_page = 3;            // 当前页码
+  bool has_more = 4;                 // 是否还有更多消息
+}
+
+// 获取未读消息数量 - 查询操作
+message UnreadCount {
+  string user_id = 1;          // 用户ID
+  string conversation_id = 2;   // 会话ID（可选，不传则获取全部未读数）
+}
+
+// 未读消息数量统计 - 结果对象
+message UnreadCountStats {
+  int64 total_unread = 1;           // 总未读数量
+  map<string, int64> conversation_unread = 2;  // 各会话的未读数量
+}
+
+// 批量标记已读 - 操作对象
+message MarkRead {
+  repeated string message_ids = 1;    // 要标记已读的消息ID列表
+  string conversation_id = 2;         // 会话ID
+  int64 read_time = 3;               // 已读时间戳
+}
+
+// 标记已读结果 - 结果对象
+message MarkReadResult {
+  int32 success_count = 1;      // 成功标记的消息数量
+  repeated string failed_ids = 2;  // 标记失败的消息ID列表
+}
+
+// 消息状态更新 - 消息状态变更通知
+message MessageStatusUpdate {
+  string message_id = 1;        // 消息ID
+  MessageStatus status = 2;     // 新状态（使用枚举）
+  int64 update_time = 3;        // 更新时间戳
+  string user_id = 4;          // 操作用户ID
+}
+
+// 回执类型（统一使用枚举，避免自由字符串）
+enum AcknowledgeType {
+  ACK_RECEIVED = 0;   // 已接收（服务端已收到，默认值）
+  ACK_DELIVERED = 1;  // 已送达（推到接收端）
+  ACK_READ = 2;       // 已读
+}
+
+// 历史查询方向
+enum HistoryDirection {
+  DIRECTION_BEFORE = 0; // 向上翻（更早）
+  DIRECTION_AFTER = 1;  // 向下翻（更新）
+}
+
+// ========== 消息类型枚举 ==========
+
+// 表情类型枚举
+enum StickerType {
+  STICKER_NORMAL = 0;                    // 普通表情（默认值）
+  STICKER_GAME_ROCK_PAPER_SCISSORS = 1;  // 游戏表情：石头剪刀布
+  STICKER_GAME_DICE = 2;                 // 游戏表情：色子
+  STICKER_GAME_OTHER = 3;                // 游戏表情：其他
+}
+
+// 红包类型枚举
+enum RedPacketType {
+  RED_PACKET_EXCLUSIVE = 0;  // 专属红包（默认值）
+  RED_PACKET_LUCKY = 1;      // 碰运气红包
+  RED_PACKET_EQUAL = 2;      // 等额红包
+}
+
+// 音视频通话类型枚举
+enum NetCallType {
+  NET_CALL_VOICE = 0;    // 语音通话（默认值）
+  NET_CALL_VIDEO = 1;    // 视频通话
+}
+
+// 音视频通话状态枚举
+enum NetCallStatus {
+  NET_CALL_STATUS_INITIATED = 0;         // 发起（默认值）
+  NET_CALL_STATUS_CANCELLED = 1;         // 取消
+  NET_CALL_STATUS_TIMEOUT = 2;           // 超时未应答
+  NET_CALL_STATUS_REJECTED = 3;          // 拒绝
+  NET_CALL_STATUS_HANGUP = 4;            // 挂断
+  NET_CALL_STATUS_ACCEPTED = 5;          // 接受
+  NET_CALL_STATUS_INTERRUPTED = 6;       // 通话中断
+  NET_CALL_STATUS_OTHER_DEVICE_ANSWERED = 7; // 其他设备已接听
+  NET_CALL_STATUS_INVITE_JOIN = 8;       // 邀请加入
+  NET_CALL_STATUS_ACTIVE_JOIN = 9;      // 主动加入
+  NET_CALL_STATUS_ENDED = 10;            // 结束
+}
+
+// 转发类型枚举
+enum ForwardType {
+  FORWARD_SINGLE = 0;   // 单聊转发（默认值）
+  FORWARD_GROUP = 1;    // 群聊转发
+}
+
+// 小黑条消息位置枚举
+enum NotificationPosition {
+  NOTIFICATION_TOP = 0;    // 顶部提示（默认值）
+  NOTIFICATION_BOTTOM = 1; // 底部提示
+}
+
+// 系统消息类型枚举（用于UI展示样式）
+enum SystemMessageType {
+  SYSTEM_MESSAGE_ANNOUNCEMENT = 0;  // 公告（默认值）
+  SYSTEM_MESSAGE_WARNING = 1;        // 警告
+  SYSTEM_MESSAGE_INFO = 2;          // 信息
+  SYSTEM_MESSAGE_ERROR = 3;         // 错误
+}
+
+// 状态类型枚举
+enum StatusType {
+  STATUS_TYPING = 0;        // 正在输入
+  STATUS_PRESENCE = 1;      // 在线状态
+  STATUS_REACTION = 2;      // 消息反应
+  STATUS_READ_ACK = 3;      // 已读回执
+  STATUS_MESSAGE_STATUS = 4; // 消息状态更新
+  STATUS_CHAT_ACK = 5;      // 聊天回执
+}
+
+// 消息状态枚举
+enum MessageStatus {
+  MESSAGE_STATUS_SENDING = 0;  // 发送中（默认值）
+  MESSAGE_STATUS_SENT = 1;     // 已发送
+  MESSAGE_STATUS_DELIVERED = 2; // 已送达
+  MESSAGE_STATUS_READ = 3;      // 已读
+  MESSAGE_STATUS_FAILED = 4;    // 失败
+  MESSAGE_STATUS_RECALLED = 5;  // 已撤回
+  MESSAGE_STATUS_DELETED = 6;   // 已删除
+}
+
+// 消息优先级枚举
+enum MessagePriority {
+  PRIORITY_LOW = 0;      // 低优先级（默认）
+  PRIORITY_NORMAL = 1;   // 普通优先级
+  PRIORITY_HIGH = 2;     // 高优先级
+  PRIORITY_URGENT = 3;   // 紧急优先级
+}
+
+// 会话通知类型枚举 - 定义会话相关的通知类型
+enum ConversationNotificationType {
+  CREATED = 0;                    // 会话创建通知（默认值）
+  UPDATED = 1;                    // 会话更新通知
+  DELETED = 2;                    // 会话删除通知（预留）
+  MEMBER_ADDED = 3;               // 成员加入通知（预留）
+  MEMBER_REMOVED = 4;             // 成员移除通知（预留）
+}
+
+// ========== 客户端登录消息拉取 ==========
+
+// 会话拉取 - 操作对象（动词+领域对象，去除Request后缀）
+message ConvPull {
+  im.conv.ConversationType conv_type = 1;  // 会话类型（必填）
+  string target_id = 2;                     // 目标ID（必填，单聊=对方用户ID，群聊=群ID）
+  int64 last_conv_seq = 3;                  // 最后序号（可选，默认0）
+  string conversation_id = 4;               // 会话ID（可选，优先使用此ID匹配并按该会话的最后序列号拉取）
+}
+
+// 拉取消息 - 查询操作（客户端登录后拉取未读消息）
+message Pull {
+  int64 last_msg_time = 1;                 // 客户端最后一条消息的时间戳（可选，毫秒，备选）
+  int32 limit = 2;                         // 每个会话的拉取数量限制（可选，默认100，最大500）
+  string device_id = 3;                     // 设备ID（可选，用于多端同步）
+  repeated ConvPull conv_pulls = 4;         // 会话拉取列表（必填，至少一个）
+  string conversation_id = 5;               // 会话ID（可选，直接按会话ID拉取，优先使用该会话的最后序列号）
+}
+
+// 拉取结果 - 结果对象（使用简洁名词，符合规范）
+message PullList {
+  repeated ImMessage messages = 1;          // 拉取到的消息列表（必填，按会话和序号排序）
+  int64 server_time = 2;                    // 服务器当前时间戳（必填）
+  int32 total_count = 3;                    // 本次拉取消息总数（必填）
+  // 使用map结构存储各会话的同步信息，key格式：conv_type:target_id
+  map<string, int64> max_conv_seqs = 4;     // 各会话的最大序号（必填，key格式：SINGLE:userId 或 GROUP:groupId）
+  map<string, bool> has_more = 5;           // 各会话是否还有更多消息（必填，key格式同上）
+  map<string, int64> unread_counts = 6;     // 各会话的未读数量（可选，key格式同上）
+}
+
+// ========== 消息发送确认 ==========
+
+// 发送确认 - 服务端确认消息已入库（入库后发送）
+message SendAck {
+  string server_msg_id = 1;          // 服务端消息ID（必填）
+  string client_msg_id = 2;          // 客户端消息ID（必填，用于客户端匹配）
+  int64 conversation_seq = 3;        // 会话内序号（必填）
+  int64 server_seq = 4;              // 服务端全局序号（必填）
+  int64 ingress_time = 5;            // 服务端接收时间（毫秒）
+  string trace_id = 6;               // 追踪ID（用于问题排查）
+  int64 persist_time = 7;            // 入库时间（毫秒）
+  string conv_id = 8;                // 会话ID（必填）
+}

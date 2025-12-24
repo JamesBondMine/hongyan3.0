@@ -171,6 +171,18 @@ NET_API int search_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uin
 NET_API int get_user(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
+ * 批量获取用户公开信息
+ * Topic: /im/USER/{userId}/batchPublicInfo
+ * @param cCallback 回调函数（用于接收批量获取用户信息的结果，参数：errorCode, data, dataLen, reqId）
+ * @param data 序列化后的批量查询参数数据（包含用户ID列表等）
+ * @param dataLen 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其他表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int batch_user_public_info(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+/**
  * 更新用户信息
  * Topic: /im/user/{userId}/update
  * @param cCallback 回调函数（用于接收更新用户的结果，参数：errorCode, data, dataLen, reqId）

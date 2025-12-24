@@ -59,3 +59,50 @@ message ErrorCodeDetail {
 message Param {
   string param = 1;  // 参数值（必填，具体含义由方法上下文决定，如community_id、channel_id等）
 }
+
+// 通用参数请求 - 用于所有只需要一个字符串参数的请求（布尔类型）
+message BParam {
+  bool param = 1;  // 参数值（必填，switch、Exist 等）
+}
+
+// ====================================
+// 区号相关消息
+// ====================================
+
+// 区号信息
+message AreaCode {
+  string code = 1;              // 区号，如 +86
+  string country_code = 2;       // 国家代码，如 CN
+  string country_name = 3;       // 国家名称，如 中国
+  string country_name_en = 4;   // 国家名称（英文）
+  string flag = 5;              // 国旗emoji，如 🇨🇳
+  int32 phone_length = 6;        // 手机号长度（可选）
+  string phone_pattern = 7;      // 手机号格式正则表达式（可选）
+}
+
+// 区号列表响应
+message AreaCodeList {
+  repeated AreaCode area_codes = 1;  // 区号列表
+}
+
+// ====================================
+// IP定位相关消息
+// ====================================
+
+// IP定位请求
+message IpLocationRequest {
+  string ip = 1;  // IP地址（可选，如果不提供则从连接上下文获取）
+}
+
+// IP定位响应
+message IpLocationResponse {
+  string ip = 1;              // IP地址
+  string area_code = 2;        // 区号，如 +86
+  string country_code = 3;    // 国家代码，如 CN
+  string country_name = 4;     // 国家名称，如 中国
+  string country_name_en = 5; // 国家名称（英文）
+  string flag = 6;             // 国旗emoji，如 🇨🇳
+  string region = 7;           // 地区信息（可选）
+  string city = 8;             // 城市信息（可选）
+  bool found = 9;              // 是否找到定位信息
+}

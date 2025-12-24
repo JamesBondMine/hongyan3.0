@@ -10,10 +10,8 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		2A0BE5F12EE428A1001FF039 /* CommunityPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2A0BE5F82EE428A1001FF039 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A7ADB6C2EDD2A6F00D0B045 /* libnet_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */; };
 		2A7ADED02EDD7AAF00D0B045 /* libabsl_random_distributions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEA62EDD7AAF00D0B045 /* libabsl_random_distributions.a */; };
 		2A7ADED12EDD7AAF00D0B045 /* libabsl_scoped_set_env.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEB32EDD7AAF00D0B045 /* libabsl_scoped_set_env.a */; };
@@ -115,22 +113,51 @@
 		2A7ADF312EDD7AAF00D0B045 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEC42EDD7AAF00D0B045 /* libcrypto.a */; };
 		2A7ADF332EDD7D6100D0B045 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */; };
 		2A7ADF352EDD807300D0B045 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF342EDD807300D0B045 /* libcurses.tbd */; };
-		2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */; };
-		2ACV0001EDDCCA7E00000001 /* IMSDKConversationManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */; };
-		2AD65F762EEFAC9000D9C5A1 /* IMSDKGroupManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */; };
 		2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */; };
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
-		2AE9F1A02EDD500000000001 /* IMSDKManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9F1A12EDD500000000002 /* IMSDKManager.mm */; };
-		2AE9F1A42EDD500000000004 /* IMSDKAuthManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9F1A52EDD500000000005 /* IMSDKAuthManager.mm */; };
-		2AFL0001EDDCCA7E00000001 /* IMSDKFileManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */; };
+		2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */; };
+		2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */; };
+		2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */; };
+		2AF663B92EFBC3A000A18180 /* Protobuf命名规范.md in Resources */ = {isa = PBXBuildFile; fileRef = 2AF663B12EFBC3A000A18180 /* Protobuf命名规范.md */; };
+		2AF663BA2EFBC3A000A18180 /* broadcast_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */; };
+		2AF663BB2EFBC3A000A18180 /* system_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B52EFBC3A000A18180 /* system_pb.proto */; };
+		2AF663BC2EFBC3A000A18180 /* contact_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A62EFBC3A000A18180 /* contact_pb.proto */; };
+		2AF663BD2EFBC3A000A18180 /* captcha_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A12EFBC3A000A18180 /* captcha_pb.proto */; };
+		2AF663BE2EFBC3A000A18180 /* ban_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639F2EFBC3A000A18180 /* ban_pb.proto */; };
+		2AF663BF2EFBC3A000A18180 /* invite_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AD2EFBC3A000A18180 /* invite_pb.proto */; };
+		2AF663C02EFBC3A000A18180 /* presence_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B02EFBC3A000A18180 /* presence_pb.proto */; };
+		2AF663C12EFBC3A000A18180 /* device_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A82EFBC3A000A18180 /* device_pb.proto */; };
+		2AF663C22EFBC3A000A18180 /* translate_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B62EFBC3A000A18180 /* translate_pb.proto */; };
+		2AF663C32EFBC3A000A18180 /* connect_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A52EFBC3A000A18180 /* connect_pb.proto */; };
+		2AF663C42EFBC3A000A18180 /* app_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639E2EFBC3A000A18180 /* app_pb.proto */; };
+		2AF663C52EFBC3A000A18180 /* conv_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A72EFBC3A000A18180 /* conv_pb.proto */; };
+		2AF663C62EFBC3A000A18180 /* inner_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AC2EFBC3A000A18180 /* inner_pb.proto */; };
+		2AF663C72EFBC3A000A18180 /* setting_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B42EFBC3A000A18180 /* setting_pb.proto */; };
+		2AF663C82EFBC3A000A18180 /* sensitive_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B32EFBC3A000A18180 /* sensitive_pb.proto */; };
+		2AF663C92EFBC3A000A18180 /* chat_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A22EFBC3A000A18180 /* chat_pb.proto */; };
+		2AF663CA2EFBC3A000A18180 /* file_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A92EFBC3A000A18180 /* file_pb.proto */; };
+		2AF663CB2EFBC3A000A18180 /* group_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AA2EFBC3A000A18180 /* group_pb.proto */; };
+		2AF663CC2EFBC3A000A18180 /* handshake_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AB2EFBC3A000A18180 /* handshake_pb.proto */; };
+		2AF663CD2EFBC3A000A18180 /* push_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B22EFBC3A000A18180 /* push_pb.proto */; };
+		2AF663CE2EFBC3A000A18180 /* community_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A42EFBC3A000A18180 /* community_pb.proto */; };
+		2AF663CF2EFBC3A000A18180 /* permission_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AF2EFBC3A000A18180 /* permission_pb.proto */; };
+		2AF663D02EFBC3A000A18180 /* message_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663AE2EFBC3A000A18180 /* message_pb.proto */; };
+		2AF663D12EFBC3A000A18180 /* user_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B72EFBC3A000A18180 /* user_pb.proto */; };
+		2AF663D22EFBC3A000A18180 /* cluster_rpc.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A32EFBC3A000A18180 /* cluster_rpc.proto */; };
+		2AF663D52EFBC3CA00A18180 /* pb_to_ios.sh in Resources */ = {isa = PBXBuildFile; fileRef = 2AF663D32EFBC3CA00A18180 /* pb_to_ios.sh */; };
+		2AF663ED2EFBDB3700A18180 /* IMSDKAuthManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663DD2EFBDB3700A18180 /* IMSDKAuthManager.mm */; };
+		2AF663EE2EFBDB3700A18180 /* IMSDKMessageManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E92EFBDB3700A18180 /* IMSDKMessageManager.mm */; };
+		2AF663EF2EFBDB3700A18180 /* IMSDKManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E72EFBDB3700A18180 /* IMSDKManager.mm */; };
+		2AF663F02EFBDB3700A18180 /* IMSDKGroupManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E52EFBDB3700A18180 /* IMSDKGroupManager.mm */; };
+		2AF663F12EFBDB3700A18180 /* IMSDKFileManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E32EFBDB3700A18180 /* IMSDKFileManager.mm */; };
+		2AF663F22EFBDB3700A18180 /* IMSDKConversationManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E12EFBDB3700A18180 /* IMSDKConversationManager.mm */; };
+		2AF663F32EFBDB3700A18180 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663DF2EFBDB3700A18180 /* IMSDKContactManager.mm */; };
+		2AF663F42EFBDB3700A18180 /* IMSDKUserManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663EB2EFBDB3700A18180 /* IMSDKUserManager.mm */; };
 		2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2AMG0001EDDCCA7E00000001 /* IMSDKMessageManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */; };
 		2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2AUS0001EDDCCA7E00000001 /* IMSDKUserManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */; };
 		31EB8EEFDBA90F6F0A55D7D2 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -174,19 +201,13 @@
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessagePb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessagePb.pbobjc.m; sourceTree = "<group>"; };
-		2A0BE5E92EE428A1001FF039 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
-		2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5EB2EE428A1001FF039 /* CommunityPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CommunityPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CommunityPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContactPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
-		2A0BE5F62EE428A1001FF039 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
-		2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GroupPb.pbobjc.m; sourceTree = "<group>"; };
 		2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnet_core.a; sourceTree = "<group>"; };
-		2A7ADB702EDD3E6B00D0B045 /* callback_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callback_types.h; sourceTree = "<group>"; };
-		2A7ADB712EDD3E6B00D0B045 /* common_definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_definitions.h; sourceTree = "<group>"; };
 		2A7ADB732EDD3E6B00D0B045 /* network_lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = network_lib.h; sourceTree = "<group>"; };
 		2A7ADE6D2EDD7AAF00D0B045 /* libabsl_bad_any_cast_impl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libabsl_bad_any_cast_impl.a; sourceTree = "<group>"; };
 		2A7ADE6E2EDD7AAF00D0B045 /* libabsl_bad_optional_access.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libabsl_bad_optional_access.a; sourceTree = "<group>"; };
@@ -288,37 +309,72 @@
 		2A7ADECE2EDD7AAF00D0B045 /* libutf8_validity.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libutf8_validity.a; sourceTree = "<group>"; };
 		2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		2A7ADF342EDD807300D0B045 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
-		2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKContactManager.mm; sourceTree = "<group>"; };
-		2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
-		2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKConversationManager.mm; sourceTree = "<group>"; };
-		2ACV0003EDDCCA7E00000003 /* IMSDKConversationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKConversationManager.h; sourceTree = "<group>"; };
-		2AD65F742EEFAC9000D9C5A1 /* IMSDKGroupManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKGroupManager.h; sourceTree = "<group>"; };
-		2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKGroupManager.mm; sourceTree = "<group>"; };
 		2AD9E3352ED409A800C4E6A3 /* DataTransViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTransViewController.h; sourceTree = "<group>"; };
 		2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransViewController.mm; sourceTree = "<group>"; };
 		2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DataTransViewController.xib; sourceTree = "<group>"; };
 		2AD9E33A2ED409C100C4E6A3 /* DataCPlus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DataCPlus.hpp; sourceTree = "<group>"; };
 		2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DataCPlus.cpp; sourceTree = "<group>"; };
-		2AE9F1A12EDD500000000002 /* IMSDKManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKManager.mm; sourceTree = "<group>"; };
-		2AE9F1A32EDD500000000003 /* IMSDKManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKManager.h; sourceTree = "<group>"; };
-		2AE9F1A52EDD500000000005 /* IMSDKAuthManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKAuthManager.mm; sourceTree = "<group>"; };
-		2AE9F1A62EDD500000000006 /* IMSDKAuthManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKAuthManager.h; sourceTree = "<group>"; };
-		2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKFileManager.mm; sourceTree = "<group>"; };
-		2AFL0003EDDCCA7E00000003 /* IMSDKFileManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKFileManager.h; sourceTree = "<group>"; };
+		2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
+		2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
+		2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
+		2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GroupPb.pbobjc.m; sourceTree = "<group>"; };
+		2AF6639B2EFBC08300A18180 /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
+		2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DevicePb.pbobjc.m; sourceTree = "<group>"; };
+		2AF6639E2EFBC3A000A18180 /* app_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = app_pb.proto; sourceTree = "<group>"; };
+		2AF6639F2EFBC3A000A18180 /* ban_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = ban_pb.proto; sourceTree = "<group>"; };
+		2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = broadcast_pb.proto; sourceTree = "<group>"; };
+		2AF663A12EFBC3A000A18180 /* captcha_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = captcha_pb.proto; sourceTree = "<group>"; };
+		2AF663A22EFBC3A000A18180 /* chat_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = chat_pb.proto; sourceTree = "<group>"; };
+		2AF663A32EFBC3A000A18180 /* cluster_rpc.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cluster_rpc.proto; sourceTree = "<group>"; };
+		2AF663A42EFBC3A000A18180 /* community_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = community_pb.proto; sourceTree = "<group>"; };
+		2AF663A52EFBC3A000A18180 /* connect_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = connect_pb.proto; sourceTree = "<group>"; };
+		2AF663A62EFBC3A000A18180 /* contact_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = contact_pb.proto; sourceTree = "<group>"; };
+		2AF663A72EFBC3A000A18180 /* conv_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = conv_pb.proto; sourceTree = "<group>"; };
+		2AF663A82EFBC3A000A18180 /* device_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = device_pb.proto; sourceTree = "<group>"; };
+		2AF663A92EFBC3A000A18180 /* file_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = file_pb.proto; sourceTree = "<group>"; };
+		2AF663AA2EFBC3A000A18180 /* group_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = group_pb.proto; sourceTree = "<group>"; };
+		2AF663AB2EFBC3A000A18180 /* handshake_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = handshake_pb.proto; sourceTree = "<group>"; };
+		2AF663AC2EFBC3A000A18180 /* inner_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = inner_pb.proto; sourceTree = "<group>"; };
+		2AF663AD2EFBC3A000A18180 /* invite_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = invite_pb.proto; sourceTree = "<group>"; };
+		2AF663AE2EFBC3A000A18180 /* message_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = message_pb.proto; sourceTree = "<group>"; };
+		2AF663AF2EFBC3A000A18180 /* permission_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = permission_pb.proto; sourceTree = "<group>"; };
+		2AF663B02EFBC3A000A18180 /* presence_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = presence_pb.proto; sourceTree = "<group>"; };
+		2AF663B12EFBC3A000A18180 /* Protobuf命名规范.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Protobuf命名规范.md"; sourceTree = "<group>"; };
+		2AF663B22EFBC3A000A18180 /* push_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = push_pb.proto; sourceTree = "<group>"; };
+		2AF663B32EFBC3A000A18180 /* sensitive_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = sensitive_pb.proto; sourceTree = "<group>"; };
+		2AF663B42EFBC3A000A18180 /* setting_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = setting_pb.proto; sourceTree = "<group>"; };
+		2AF663B52EFBC3A000A18180 /* system_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = system_pb.proto; sourceTree = "<group>"; };
+		2AF663B62EFBC3A000A18180 /* translate_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = translate_pb.proto; sourceTree = "<group>"; };
+		2AF663B72EFBC3A000A18180 /* user_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = user_pb.proto; sourceTree = "<group>"; };
+		2AF663D32EFBC3CA00A18180 /* pb_to_ios.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = pb_to_ios.sh; sourceTree = "<group>"; };
+		2AF663D62EFBC64C00A18180 /* README_PROTO_FIX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README_PROTO_FIX.md; sourceTree = "<group>"; };
+		2AF663D72EFBC64C00A18180 /* regenerate_all_pbobjc.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = regenerate_all_pbobjc.sh; sourceTree = "<group>"; };
+		2AF663DA2EFBDAFD00A18180 /* callback_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = callback_types.h; sourceTree = "<group>"; };
+		2AF663DB2EFBDAFD00A18180 /* common_definitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_definitions.h; sourceTree = "<group>"; };
+		2AF663DC2EFBDB3700A18180 /* IMSDKAuthManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKAuthManager.h; sourceTree = "<group>"; };
+		2AF663DD2EFBDB3700A18180 /* IMSDKAuthManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKAuthManager.mm; sourceTree = "<group>"; };
+		2AF663DE2EFBDB3700A18180 /* IMSDKContactManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKContactManager.h; sourceTree = "<group>"; };
+		2AF663DF2EFBDB3700A18180 /* IMSDKContactManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKContactManager.mm; sourceTree = "<group>"; };
+		2AF663E02EFBDB3700A18180 /* IMSDKConversationManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKConversationManager.h; sourceTree = "<group>"; };
+		2AF663E12EFBDB3700A18180 /* IMSDKConversationManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKConversationManager.mm; sourceTree = "<group>"; };
+		2AF663E22EFBDB3700A18180 /* IMSDKFileManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKFileManager.h; sourceTree = "<group>"; };
+		2AF663E32EFBDB3700A18180 /* IMSDKFileManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKFileManager.mm; sourceTree = "<group>"; };
+		2AF663E42EFBDB3700A18180 /* IMSDKGroupManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKGroupManager.h; sourceTree = "<group>"; };
+		2AF663E52EFBDB3700A18180 /* IMSDKGroupManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKGroupManager.mm; sourceTree = "<group>"; };
+		2AF663E62EFBDB3700A18180 /* IMSDKManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKManager.h; sourceTree = "<group>"; };
+		2AF663E72EFBDB3700A18180 /* IMSDKManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKManager.mm; sourceTree = "<group>"; };
+		2AF663E82EFBDB3700A18180 /* IMSDKMessageManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKMessageManager.h; sourceTree = "<group>"; };
+		2AF663E92EFBDB3700A18180 /* IMSDKMessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKMessageManager.mm; sourceTree = "<group>"; };
+		2AF663EA2EFBDB3700A18180 /* IMSDKUserManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKUserManager.h; sourceTree = "<group>"; };
+		2AF663EB2EFBDB3700A18180 /* IMSDKUserManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKUserManager.mm; sourceTree = "<group>"; };
 		2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FilePb.pbobjc.m; sourceTree = "<group>"; };
 		2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilePb.pbobjc.h; sourceTree = "<group>"; };
-		2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKMessageManager.mm; sourceTree = "<group>"; };
-		2AMG0003EDDCCA7E00000003 /* IMSDKMessageManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKMessageManager.h; sourceTree = "<group>"; };
 		2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserPb.pbobjc.m; sourceTree = "<group>"; };
 		2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemPb.pbobjc.m; sourceTree = "<group>"; };
-		2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DevicePb.pbobjc.m; sourceTree = "<group>"; };
 		2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CaptchaPb.pbobjc.m; sourceTree = "<group>"; };
 		2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserPb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPb.pbobjc.h; sourceTree = "<group>"; };
-		2APB000CEDDCCA7E0000000C /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
 		2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptchaPb.pbobjc.h; sourceTree = "<group>"; };
-		2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKUserManager.mm; sourceTree = "<group>"; };
-		2AUS0003EDDCCA7E00000003 /* IMSDKUserManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKUserManager.h; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -469,49 +525,15 @@
 		2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */ = {
 			isa = PBXGroup;
 			children = (
-				2AD65F742EEFAC9000D9C5A1 /* IMSDKGroupManager.h */,
-				2AD65F752EEFAC9000D9C5A1 /* IMSDKGroupManager.mm */,
-				2AE9F1A32EDD500000000003 /* IMSDKManager.h */,
-				2AE9F1A12EDD500000000002 /* IMSDKManager.mm */,
-				2AE9F1A62EDD500000000006 /* IMSDKAuthManager.h */,
-				2AE9F1A52EDD500000000005 /* IMSDKAuthManager.mm */,
-				2ACM0003EDDCCA7E00000003 /* IMSDKContactManager.h */,
-				2ACM0002EDDCCA7E00000002 /* IMSDKContactManager.mm */,
-				2ACV0003EDDCCA7E00000003 /* IMSDKConversationManager.h */,
-				2ACV0002EDDCCA7E00000002 /* IMSDKConversationManager.mm */,
-				2AMG0003EDDCCA7E00000003 /* IMSDKMessageManager.h */,
-				2AMG0002EDDCCA7E00000002 /* IMSDKMessageManager.mm */,
-				2AUS0003EDDCCA7E00000003 /* IMSDKUserManager.h */,
-				2AUS0002EDDCCA7E00000002 /* IMSDKUserManager.mm */,
-				2AFL0003EDDCCA7E00000003 /* IMSDKFileManager.h */,
-				2AFL0002EDDCCA7E00000002 /* IMSDKFileManager.mm */,
-				2A0BE5E92EE428A1001FF039 /* ChatPb.pbobjc.h */,
-				2A0BE5EA2EE428A1001FF039 /* ChatPb.pbobjc.m */,
-				2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */,
-				2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */,
-				2A0BE5EB2EE428A1001FF039 /* CommunityPb.pbobjc.h */,
-				2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */,
-				2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */,
-				2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */,
-				2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */,
-				2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */,
-				2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */,
-				2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */,
-				2A0BE5F62EE428A1001FF039 /* GroupPb.pbobjc.h */,
-				2A0BE5F72EE428A1001FF039 /* GroupPb.pbobjc.m */,
+				2AF663D42EFBC3CA00A18180 /* sh */,
+				2AF663B82EFBC3A000A18180 /* proto */,
+				2AF663982EFBC01D00A18180 /* pbobjc */,
+				2AF663EC2EFBDB3700A18180 /* manager */,
 				2A7ADECF2EDD7AAF00D0B045 /* ios_sdk_la */,
+				2AF663DA2EFBDAFD00A18180 /* callback_types.h */,
+				2AF663DB2EFBDAFD00A18180 /* common_definitions.h */,
 				2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */,
-				2A7ADB702EDD3E6B00D0B045 /* callback_types.h */,
-				2A7ADB712EDD3E6B00D0B045 /* common_definitions.h */,
 				2A7ADB732EDD3E6B00D0B045 /* network_lib.h */,
-				2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */,
-				2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */,
-				2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */,
-				2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */,
-				2APB000CEDDCCA7E0000000C /* DevicePb.pbobjc.h */,
-				2APB0006EDDCCA7E00000006 /* DevicePb.pbobjc.m */,
-				2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */,
-				2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */,
 			);
 			path = IMSDK;
 			sourceTree = "<group>";
@@ -631,6 +653,101 @@
 				2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */,
 			);
 			path = DataTrans;
+			sourceTree = "<group>";
+		};
+		2AF663982EFBC01D00A18180 /* pbobjc */ = {
+			isa = PBXGroup;
+			children = (
+				2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */,
+				2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */,
+				2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */,
+				2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */,
+				2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */,
+				2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */,
+				2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */,
+				2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */,
+				2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */,
+				2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */,
+				2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */,
+				2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */,
+				2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */,
+				2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */,
+				2A0BE5EB2EE428A1001FF039 /* CommunityPb.pbobjc.h */,
+				2A0BE5EC2EE428A1001FF039 /* CommunityPb.pbobjc.m */,
+				2AF6639B2EFBC08300A18180 /* DevicePb.pbobjc.h */,
+				2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */,
+				2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */,
+				2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */,
+				2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */,
+				2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */,
+			);
+			path = pbobjc;
+			sourceTree = "<group>";
+		};
+		2AF663B82EFBC3A000A18180 /* proto */ = {
+			isa = PBXGroup;
+			children = (
+				2AF6639E2EFBC3A000A18180 /* app_pb.proto */,
+				2AF6639F2EFBC3A000A18180 /* ban_pb.proto */,
+				2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */,
+				2AF663A12EFBC3A000A18180 /* captcha_pb.proto */,
+				2AF663A22EFBC3A000A18180 /* chat_pb.proto */,
+				2AF663A32EFBC3A000A18180 /* cluster_rpc.proto */,
+				2AF663A42EFBC3A000A18180 /* community_pb.proto */,
+				2AF663A52EFBC3A000A18180 /* connect_pb.proto */,
+				2AF663A62EFBC3A000A18180 /* contact_pb.proto */,
+				2AF663A72EFBC3A000A18180 /* conv_pb.proto */,
+				2AF663A82EFBC3A000A18180 /* device_pb.proto */,
+				2AF663A92EFBC3A000A18180 /* file_pb.proto */,
+				2AF663AA2EFBC3A000A18180 /* group_pb.proto */,
+				2AF663AB2EFBC3A000A18180 /* handshake_pb.proto */,
+				2AF663AC2EFBC3A000A18180 /* inner_pb.proto */,
+				2AF663AD2EFBC3A000A18180 /* invite_pb.proto */,
+				2AF663AE2EFBC3A000A18180 /* message_pb.proto */,
+				2AF663AF2EFBC3A000A18180 /* permission_pb.proto */,
+				2AF663B02EFBC3A000A18180 /* presence_pb.proto */,
+				2AF663B12EFBC3A000A18180 /* Protobuf命名规范.md */,
+				2AF663B22EFBC3A000A18180 /* push_pb.proto */,
+				2AF663B32EFBC3A000A18180 /* sensitive_pb.proto */,
+				2AF663B42EFBC3A000A18180 /* setting_pb.proto */,
+				2AF663B52EFBC3A000A18180 /* system_pb.proto */,
+				2AF663B62EFBC3A000A18180 /* translate_pb.proto */,
+				2AF663B72EFBC3A000A18180 /* user_pb.proto */,
+			);
+			path = proto;
+			sourceTree = "<group>";
+		};
+		2AF663D42EFBC3CA00A18180 /* sh */ = {
+			isa = PBXGroup;
+			children = (
+				2AF663D62EFBC64C00A18180 /* README_PROTO_FIX.md */,
+				2AF663D72EFBC64C00A18180 /* regenerate_all_pbobjc.sh */,
+				2AF663D32EFBC3CA00A18180 /* pb_to_ios.sh */,
+			);
+			path = sh;
+			sourceTree = "<group>";
+		};
+		2AF663EC2EFBDB3700A18180 /* manager */ = {
+			isa = PBXGroup;
+			children = (
+				2AF663DC2EFBDB3700A18180 /* IMSDKAuthManager.h */,
+				2AF663DD2EFBDB3700A18180 /* IMSDKAuthManager.mm */,
+				2AF663DE2EFBDB3700A18180 /* IMSDKContactManager.h */,
+				2AF663DF2EFBDB3700A18180 /* IMSDKContactManager.mm */,
+				2AF663E02EFBDB3700A18180 /* IMSDKConversationManager.h */,
+				2AF663E12EFBDB3700A18180 /* IMSDKConversationManager.mm */,
+				2AF663E22EFBDB3700A18180 /* IMSDKFileManager.h */,
+				2AF663E32EFBDB3700A18180 /* IMSDKFileManager.mm */,
+				2AF663E42EFBDB3700A18180 /* IMSDKGroupManager.h */,
+				2AF663E52EFBDB3700A18180 /* IMSDKGroupManager.mm */,
+				2AF663E62EFBDB3700A18180 /* IMSDKManager.h */,
+				2AF663E72EFBDB3700A18180 /* IMSDKManager.mm */,
+				2AF663E82EFBDB3700A18180 /* IMSDKMessageManager.h */,
+				2AF663E92EFBDB3700A18180 /* IMSDKMessageManager.mm */,
+				2AF663EA2EFBDB3700A18180 /* IMSDKUserManager.h */,
+				2AF663EB2EFBDB3700A18180 /* IMSDKUserManager.mm */,
+			);
+			path = manager;
 			sourceTree = "<group>";
 		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
@@ -814,8 +931,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AF663B92EFBC3A000A18180 /* Protobuf命名规范.md in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
+				2AF663D52EFBC3CA00A18180 /* pb_to_ios.sh in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */,
@@ -954,27 +1073,52 @@
 				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
 				CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
 				CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,
+				2AF663ED2EFBDB3700A18180 /* IMSDKAuthManager.mm in Sources */,
+				2AF663EE2EFBDB3700A18180 /* IMSDKMessageManager.mm in Sources */,
+				2AF663EF2EFBDB3700A18180 /* IMSDKManager.mm in Sources */,
+				2AF663F02EFBDB3700A18180 /* IMSDKGroupManager.mm in Sources */,
+				2AF663F12EFBDB3700A18180 /* IMSDKFileManager.mm in Sources */,
+				2AF663F22EFBDB3700A18180 /* IMSDKConversationManager.mm in Sources */,
+				2AF663F32EFBDB3700A18180 /* IMSDKContactManager.mm in Sources */,
+				2AF663F42EFBDB3700A18180 /* IMSDKUserManager.mm in Sources */,
 				2A0BE5F12EE428A1001FF039 /* CommunityPb.pbobjc.m in Sources */,
 				2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */,
-				2A0BE5F32EE428A1001FF039 /* ChatPb.pbobjc.m in Sources */,
 				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
 				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
-				2A0BE5F82EE428A1001FF039 /* GroupPb.pbobjc.m in Sources */,
-				2ACM0001EDDCCA7E00000001 /* IMSDKContactManager.mm in Sources */,
-				2ACV0001EDDCCA7E00000001 /* IMSDKConversationManager.mm in Sources */,
-				2AMG0001EDDCCA7E00000001 /* IMSDKMessageManager.mm in Sources */,
-				2AUS0001EDDCCA7E00000001 /* IMSDKUserManager.mm in Sources */,
-				2AFL0001EDDCCA7E00000001 /* IMSDKFileManager.mm in Sources */,
 				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
-				2AD65F762EEFAC9000D9C5A1 /* IMSDKGroupManager.mm in Sources */,
+				2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */,
+				2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
+				2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */,
 				2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,
-				2AE9F1A02EDD500000000001 /* IMSDKManager.mm in Sources */,
-				2AE9F1A42EDD500000000004 /* IMSDKAuthManager.mm in Sources */,
+				2AF663BA2EFBC3A000A18180 /* broadcast_pb.proto in Sources */,
+				2AF663BB2EFBC3A000A18180 /* system_pb.proto in Sources */,
+				2AF663BC2EFBC3A000A18180 /* contact_pb.proto in Sources */,
+				2AF663BD2EFBC3A000A18180 /* captcha_pb.proto in Sources */,
+				2AF663BE2EFBC3A000A18180 /* ban_pb.proto in Sources */,
+				2AF663BF2EFBC3A000A18180 /* invite_pb.proto in Sources */,
+				2AF663C02EFBC3A000A18180 /* presence_pb.proto in Sources */,
+				2AF663C12EFBC3A000A18180 /* device_pb.proto in Sources */,
+				2AF663C22EFBC3A000A18180 /* translate_pb.proto in Sources */,
+				2AF663C32EFBC3A000A18180 /* connect_pb.proto in Sources */,
+				2AF663C42EFBC3A000A18180 /* app_pb.proto in Sources */,
+				2AF663C52EFBC3A000A18180 /* conv_pb.proto in Sources */,
+				2AF663C62EFBC3A000A18180 /* inner_pb.proto in Sources */,
+				2AF663C72EFBC3A000A18180 /* setting_pb.proto in Sources */,
+				2AF663C82EFBC3A000A18180 /* sensitive_pb.proto in Sources */,
+				2AF663C92EFBC3A000A18180 /* chat_pb.proto in Sources */,
+				2AF663CA2EFBC3A000A18180 /* file_pb.proto in Sources */,
+				2AF663CB2EFBC3A000A18180 /* group_pb.proto in Sources */,
+				2AF663CC2EFBC3A000A18180 /* handshake_pb.proto in Sources */,
+				2AF663CD2EFBC3A000A18180 /* push_pb.proto in Sources */,
+				2AF663CE2EFBC3A000A18180 /* community_pb.proto in Sources */,
+				2AF663CF2EFBC3A000A18180 /* permission_pb.proto in Sources */,
+				2AF663D02EFBC3A000A18180 /* message_pb.proto in Sources */,
+				2AF663D12EFBC3A000A18180 /* user_pb.proto in Sources */,
+				2AF663D22EFBC3A000A18180 /* cluster_rpc.proto in Sources */,
 				2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */,
 				2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */,
-				2APB0005EDDCCA7E00000005 /* DevicePb.pbobjc.m in Sources */,
 				2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

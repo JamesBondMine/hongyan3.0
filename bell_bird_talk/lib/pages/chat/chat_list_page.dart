@@ -1161,6 +1161,8 @@ class _ChatListPageState extends State<ChatListPage> {
     switch (convType) {
       case 0:
         return bg.isEmpty ? Colors.blue : Color(int.parse(bg.replaceFirst('#', '0xFF')));
+      case 1:
+        return bg.isEmpty ? Colors.green : Color(int.parse(bg.replaceFirst('#', '0xFF')));
       case 2:
         return bg.isEmpty ? Colors.green : Color(int.parse(bg.replaceFirst('#', '0xFF')));
       case 3:

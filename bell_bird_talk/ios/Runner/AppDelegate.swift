@@ -1698,8 +1698,6 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        print("📁 获取群信息: groupId=\(groupId)")
-        
         let code = IMSDKGroupManager.shared().getGroupPerview(withId: groupId, completion: { errorCode, reqId, data in
             print("📁 获取群信息回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
