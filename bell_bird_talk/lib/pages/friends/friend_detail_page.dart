@@ -36,6 +36,37 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   bool _hasChanges = false;  // 标记是否有修改（用于刷新列表）
   bool? _isBlocked;  // 黑名单状态（null=未查询，true=已拉黑，false=未拉黑）
   
+  /// 清理UTF-16字符串，移除无效字符
+  String _cleanUtf16String(String? input) {
+    if (input == null || input.isEmpty) return '';
+    
+    try {
+      // 尝试将字符串转换为UTF-16并验证
+      final bytes = utf8.encode(input);
+      final decoded = utf8.decode(bytes, allowMalformed: false);
+      return decoded;
+    } catch (e) {
+      // 如果解码失败，移除无效字符
+      try {
+        final runes = input.runes.toList();
+        final validRunes = <int>[];
+        
+        for (final rune in runes) {
+          // 检查是否为有效的Unicode码点
+          if (rune >= 0 && rune <= 0x10FFFF && 
+              !(rune >= 0xD800 && rune <= 0xDFFF)) { // 排除代理对
+            validRunes.add(rune);
+          }
+        }
+        
+        return String.fromCharCodes(validRunes);
+      } catch (e) {
+        // 如果还是失败，返回安全的默认值
+        return '无效文本';
+      }
+    }
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -198,8 +229,8 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                       : null,
                   child: (_friend.avatar == null || _friend.avatar!.isEmpty)
                       ? Text(
-                          _friend.displayName.isNotEmpty
-                              ? _friend.displayName[0].toUpperCase()
+                          _cleanUtf16String(_friend.displayName).isNotEmpty
+                              ? _cleanUtf16String(_friend.displayName)[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
                             fontSize: 40,
@@ -233,7 +264,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  _friend.displayName,
+                  _cleanUtf16String(_friend.displayName),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -253,7 +284,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  '昵称: ${_friend.nickname}',
+                  '昵称: ${_cleanUtf16String(_friend.nickname)}',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -409,7 +440,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             _buildInfoRow(
               icon: Icons.badge_outlined,
               label: '账号ID',
-              value: _friend.accountId!,
+              value: _cleanUtf16String(_friend.accountId!),
               canCopy: true,
             ),
           
@@ -417,7 +448,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           _buildInfoRow(
             icon: Icons.fingerprint,
             label: '用户ID',
-            value: _friend.id,
+            value: _cleanUtf16String(_friend.id),
             canCopy: true,
           ),
           
@@ -425,7 +456,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           _buildInfoRow(
             icon: Icons.edit_note,
             label: '备注',
-            value: _friend.remark ?? '未设置',
+            value: _cleanUtf16String(_friend.remark) ?? '未设置',
             onTap: () => _showSetRemarkDialog(),
           ),
           
@@ -638,7 +669,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       final result = await _nativeService.imCreateConversation(
         convType: 1,  // 单聊
         targetId: _friend.id,
-        displayName: _friend.displayName,
+        displayName: _cleanUtf16String(_friend.displayName),
         avatarUrl: _friend.avatar,
       );
       
@@ -827,8 +858,8 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
     final bool isBlocked = _isBlocked ?? (_friend.relationship == 3);
     final String title = isBlocked ? '取消黑名单' : '加入黑名单';
     final String content = isBlocked
-        ? '确定要将「${_friend.displayName}」移出黑名单吗？\n\n移出后，对方可以再次向你发送消息。'
-        : '确定要将「${_friend.displayName}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。';
+        ? '确定要将「${_cleanUtf16String(_friend.displayName)}」移出黑名单吗？\n\n移出后，对方可以再次向你发送消息。'
+        : '确定要将「${_cleanUtf16String(_friend.displayName)}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。';
 
     Get.dialog(
       AlertDialog(
@@ -879,7 +910,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
     Get.dialog(
       AlertDialog(
         title: const Text('删除好友'),
-        content: Text('确定要删除好友「${_friend.displayName}」吗？\n\n删除后，聊天记录将被清空，且需要重新添加才能继续聊天。'),
+        content: Text('确定要删除好友「${_cleanUtf16String(_friend.displayName)}」吗？\n\n删除后，聊天记录将被清空，且需要重新添加才能继续聊天。'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
