@@ -939,6 +939,7 @@ class NativeBridgeHandler: NSObject {
         case "token":
             // Token 登录
             if let token = args["token"] as? String {
+                print("📋 🍎🍎🍎🍎🍎🍎🍎🍎 token登录 appdelegate. : token=\(token ?? "nil")")
                 // 对于 token 登录，使用旧的方法
                 let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
 //                    print("✅ Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")

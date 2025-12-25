@@ -502,18 +502,21 @@ class LoginController extends GetxController {
       
       // 尝试解析用户信息
       UserModel? user;
-      String? token;
-      String? refresh_token;
+      String token = "";
+      String refresh_token = "";
       
       if (data != null && data is String && data.isNotEmpty) {
         try {
           // 解析 JSON 数据
           final dataMap = json.decode(data) as Map<String, dynamic>;
           print('📝 登录返回数据解析: $dataMap');
+
+
+          print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 登录原始信息: Token=${dataMap['token']  ?? ''}");
           
           // 获取 token
-          token = dataMap['token'] as String?;
-          refresh_token = dataMap['refresh_token'] as String?;
+          token = dataMap['token']  ?? '';
+          refresh_token = dataMap['refresh_token']  ?? '';
     
           
           // 获取用户信息
@@ -541,8 +544,8 @@ class LoginController extends GetxController {
         updatedAt: DateTime.now(),
       );
       
-      token ??= 'token_${DateTime.now().millisecondsSinceEpoch}';
-      refresh_token ??= 'refresh_token_${DateTime.now().millisecondsSinceEpoch}';
+
+      print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 解析登录信息: Token=$token");
       
       // 保存登录信息
       await _globalCtrl.saveLoginInfo(token, refresh_token, user);

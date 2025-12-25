@@ -125,6 +125,8 @@ class GlobalController extends GetxController {
     refresh_token.value = newRefreshToken;
     currentUser.value = user;
     isLoggedIn.value = true;
+
+    print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 保存登录信息: Token=$newToken");
     
     // 保存到本地
     await StorageUtil().setString(AppConstants.keyToken, newToken);
@@ -295,7 +297,7 @@ class GlobalController extends GetxController {
       });
       
       if (initResult) {
-        print('✅ IM SDK 初始化成功');
+        print('✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ IM SDK 初始化成功');
         isIMSDKInitialized.value = true;
         imsdkStatus.value = '初始化成功';
         
@@ -353,7 +355,7 @@ class GlobalController extends GetxController {
     
     try {
       final nativeService = IOSNativeService();
-      
+      print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Token登录. 拉取Token=$savedToken");
       // 调用 Token 登录
       final result = await nativeService.imLoginWithToken(token: savedToken)
           .timeout(const Duration(seconds: 10), onTimeout: () {

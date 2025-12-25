@@ -35,7 +35,6 @@ class _ChatListPageState extends State<ChatListPage> {
   bool _isLoadingFromNetwork = false;  // 网络加载状态
   int _currentPage = 1;
   bool _hasMore = true;
-  bool _isSearchMode = false;
   int _filterType = 0; // 0=全部, 1=未读, 2=群聊, 3=@我的
   
   Worker? _refreshWorker;
@@ -71,9 +70,11 @@ class _ChatListPageState extends State<ChatListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
+      appBar: _buildNormalAppBar(),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
+          _buildSearchBar(),
           // 筛选栏
           _buildFilterBar(),
           // 会话列表
@@ -705,6 +706,35 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
 
+  /// 构建搜索栏
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.only(left: 12, right: 16, top: 12, bottom: 12),
+      color: Colors.white,
+      child: InkWell(
+        onTap: _openSearchPage,
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                '搜索',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// 构建筛选栏
   Widget _buildFilterBar() {
     return Container(
@@ -755,9 +785,9 @@ class _ChatListPageState extends State<ChatListPage> {
           decoration: BoxDecoration(
             color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
             borderRadius: BorderRadius.circular(20),
-            border: isSelected
-                ? Border.all(color: Colors.blue, width: 1)
-                : null,
+            // border: isSelected
+            //     ? Border.all(color: Colors.blue, width: 1)
+            //     : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -844,58 +874,15 @@ class _ChatListPageState extends State<ChatListPage> {
         ),
       ),
       title: const Text('聊天'),
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
+      centerTitle: false,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
       elevation: 0,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: _openSearchPage,
-        ),
         IconButton(
           icon: const Icon(Icons.add),
           onPressed: _showNewChatOptions,
         ),
-      ],
-    );
-  }
-
-  /// 构建搜索 AppBar
-  PreferredSizeWidget _buildSearchAppBar() {
-    return AppBar(
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          setState(() {
-            _isSearchMode = false;
-            _searchController.clear();
-            _filterConversations();
-          });
-        },
-      ),
-      title: TextField(
-        controller: _searchController,
-        autofocus: true,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: '搜索会话',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-          border: InputBorder.none,
-        ),
-        onChanged: (value) => _filterConversations(),
-      ),
-      actions: [
-        if (_searchController.text.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              _searchController.clear();
-              _filterConversations();
-            },
-          ),
       ],
     );
   }
@@ -1074,7 +1061,8 @@ class _ChatListPageState extends State<ChatListPage> {
                         ),
                       // 会话名称
                       Expanded(
-                        child: Text(
+                        child: Row(children: [
+                          Text(
                           conversation.displayName,
                           style: const TextStyle(
                             fontSize: 16,
@@ -1083,7 +1071,19 @@ class _ChatListPageState extends State<ChatListPage> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        // 免打扰图标
+                      if (!conversation.disturb)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2),
+                          child: Icon(
+                            Icons.notifications_off,
+                            size: 16,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        ],),
                       ),
+                      
                       // 时间
                       if (conversation.lastMessageTime != null)
                         Text(

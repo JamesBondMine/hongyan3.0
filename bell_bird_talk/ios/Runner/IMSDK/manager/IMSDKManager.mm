@@ -72,6 +72,10 @@
             return startResult;
         }
         
+        // 初始化信号量用于等待回调
+        g_initSemaphore = dispatch_semaphore_create(0);
+        g_initResult = -1;
+        
          // 添加目标服务器
         NSString *serverIP = @"175.178.227.41";
         int serverPort = 8885;
@@ -98,8 +102,26 @@
             NSLog(@"⚠️ network_start_net_check 失败: %d（不影响初始化）", checkResult);
         }
         
-        NSLog(@"✅ SDK 初始化成功");
-        return 0;
+        // 等待初始化成功回调（event_code = 6），超时时间 10 秒
+        NSLog(@"⏳ 等待 SDK 初始化成功回调 (event_code=6)...");
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC);
+        long waitResult = dispatch_semaphore_wait(g_initSemaphore, timeout);
+        
+        if (waitResult == 0) {
+            // 信号量被触发，检查结果
+            if (g_initResult == 0) {
+                NSLog(@"✅ SDK 初始化成功 (收到 event_code=6)");
+                return 0;
+            } else {
+                NSLog(@"❌ SDK 初始化失败: 回调返回错误结果 %d", g_initResult);
+                return g_initResult;
+            }
+        } else {
+            // 超时
+            NSLog(@"⏱️ SDK 初始化超时: 未收到 event_code=6 回调");
+            g_initSemaphore = NULL; // 清理信号量
+            return -1000; // 自定义超时错误码
+        }
     } @catch (NSException *exception) {
         NSLog(@"❌ SDK 初始化异常: %@", exception);
         return -9999;
@@ -107,11 +129,22 @@
 }
 
 // 全局回调函数（C 函数，SDK 需要）
+static dispatch_semaphore_t g_initSemaphore = NULL;
+static int g_initResult = -1;
+
 static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint32_t length) {
     NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     NSLog(@"🔔 网络事件回调");
     NSLog(@"   事件代码: %d", event_code);
     NSLog(@"   描述长度: %u", length);
+    
+    // 检查是否是初始化成功事件
+    if (event_code == 6 && g_initSemaphore != NULL) {
+        NSLog(@"🎉 SDK 初始化成功事件 (event_code=6)");
+        g_initResult = 0;
+        dispatch_semaphore_signal(g_initSemaphore);
+        g_initSemaphore = NULL; // 重置信号量
+    }
     
     if (event_desc && length > 0) {
         // 使用 length 创建字符串，确保完整读取

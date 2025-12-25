@@ -446,6 +446,7 @@ class IOSNativeService {
   Future<Map<String, dynamic>> imLoginWithToken({
     required String token,
   }) async {
+    print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 去登录: Token=$token");
     return imLogin(
       loginType: 'token',
       token: token,

@@ -379,14 +379,6 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     Param * p = [[Param alloc] init];
     p.param = token;
     
-//    AuthUser *authUser = [[AuthUser alloc] init];
-//    authUser.loginType = LoginType_Token;
-//    // 设备ID（使用 UUID）
-//    authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-//    
-//    NSLog(@"\nToken登录参数:\n===========================\n loginType=token(%d),\n deviceId=%@ \n===========================",
-//          (int)authUser.loginType, authUser.deviceId);
-//    
     // 序列化为 Protobuf 二进制数据
     NSData *serializedData = [p data];
     if (!serializedData || serializedData.length == 0) {
