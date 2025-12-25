@@ -71,7 +71,7 @@ class ConversationModel {
       draft: json['draft'],
       atMeCount: json['at_me_count'] as int? ?? 0,
       mentionAll: (json['mention_all'] as int? ?? 0) == 1 || json['mention_all'] == true,
-      disturb: (json['disturb'] as int? ?? 0) == 1 || json['disturb'] == true,
+      disturb: json['disturb'] ?? false,
       groupMemberCount: json['group_member_count'] as int? ?? 0,
       ext: json['ext'],
     );

@@ -51,10 +51,10 @@ static void CreateGroupCallback(int errorCode, const char* data, int dataLen, ui
                     jsonDict[@"group_avatar"] = group.groupAvatar ?: @"";
                     jsonDict[@"avatar_bg"] = group.avatarBg ?: @"";
                     jsonDict[@"group_description"] = group.groupDescription ?: @"";
-                    jsonDict[@"group_type"] = @(group.groupType);
+//                    jsonDict[@"group_type"] = @(group.groupType);
                     jsonDict[@"max_member_count"] = @(group.maxMemberCount);
                     jsonDict[@"creator_user_id"] = group.creatorUserId ?: @"";
-                    jsonDict[@"status"] = @(group.status);
+//                    jsonDict[@"status"] = @(group.status);
                     jsonDict[@"is_member"] = @(group.isMember);
                     jsonDict[@"created_at"] = @(group.createdAt);
                     jsonDict[@"updated_at"] = @(group.updatedAt);
@@ -230,10 +230,10 @@ static void ListGroupsCallback(int errorCode, const char* data, int dataLen, uin
                         dict[@"group_avatar"] = group.groupAvatar ?: @"";
                         dict[@"avatar_bg"] = group.avatarBg ?: @"";
                         dict[@"group_description"] = group.groupDescription ?: @"";
-                        dict[@"group_type"] = @(group.groupType);
+//                        dict[@"group_type"] = @(group.groupType);
                         dict[@"max_member_count"] = @(group.maxMemberCount);
                         dict[@"creator_user_id"] = group.creatorUserId ?: @"";
-                        dict[@"status"] = @(group.status);
+//                        dict[@"status"] = @(group.status);
                         dict[@"is_member"] = @(group.isMember);
                         dict[@"created_at"] = @(group.createdAt);
                         dict[@"updated_at"] = @(group.updatedAt);
@@ -574,16 +574,7 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     // 创建 CreateGroup Protobuf 对象
     CreateGroup *createGroup = [[CreateGroup alloc] init];
     createGroup.groupName = groupName;
-    
-    if (groupAvatar && groupAvatar.length > 0) {
-        createGroup.groupAvatar = groupAvatar;
-    }
-    
-    if (groupDescription && groupDescription.length > 0) {
-        createGroup.groupDescription = groupDescription;
-    }
-    
-    createGroup.groupType = (GroupType)groupType;
+//    createGroup.groupType = GroupType_Normal;
     
     if (maxMemberCount > 0) {
         createGroup.maxMemberCount = maxMemberCount;
