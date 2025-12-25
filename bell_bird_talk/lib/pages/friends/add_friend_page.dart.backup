@@ -45,7 +45,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackgroundPrimary,
+      backgroundColor: AppColors.lightBackgroundSecondary,
       appBar: AppBar(
         title: const Text('添加好友'),
         centerTitle: true,
@@ -396,12 +396,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
   /// 搜索区域
   Widget _buildSearchSection() {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.grey[50],
           borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
@@ -569,26 +568,40 @@ class _AddFriendPageState extends State<AddFriendPage> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              '选择分组',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[50],
+              ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String?>(
                   value: _selectedGroupId,
                   isExpanded: true,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  hint: const Text('好友分组'),
+                  hint: const Text('不选择分组（默认）'),
                   items: [
                     const DropdownMenuItem<String?>(
                       value: null,
-                      child: Text('好友分组'),
+                      child: Text('不选择分组（默认）'),
                     ),
                     ..._groups.map((group) {
                       final groupIdInt = int.tryParse(group.id);
@@ -610,7 +623,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
               ),
             ),
           ],
-        
+        ),
       ),
     );
   }
@@ -626,7 +639,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(24),
           ),
           elevation: 0,
         ),
@@ -643,42 +656,37 @@ class _AddFriendPageState extends State<AddFriendPage> {
   
   /// 移出黑名单按钮
   Widget _buildBlacklistButton(SearchUserModel user) {
+    // 这里需要根据用户的黑名单状态来决定按钮的样式和文本
+    // 暂时假设用户不在黑名单中，显示"移出黑名单"（灰色）
+    // 如果在黑名单中，显示"移出黑名单"（蓝色高亮）
+    final isInBlacklist = false; // 这里应该从用户数据或API获取
+    
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: GestureDetector(
-        onTap: () {
+      child: ElevatedButton(
+        onPressed: () {
           // TODO: 实现黑名单操作
           EasyLoading.showInfo('黑名单功能开发中');
         },
-
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-          Text(
-             '已添加至黑名单,',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isInBlacklist ? Colors.blue : Colors.grey[300],
+          foregroundColor: isInBlacklist ? Colors.white : Colors.grey[600],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          SizedBox(width: 8),
-          Text(
-           '移出黑名单',
+          elevation: 0,
+        ),
+        child: Text(
+          isInBlacklist ? '移出黑名单' : '已添加至黑名单',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.blue 
           ),
         ),
-        ],)
       ),
     );
   }
-  
-  /// 用户卡片
-  Widget _buildUserCard(SearchUserModel user) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,

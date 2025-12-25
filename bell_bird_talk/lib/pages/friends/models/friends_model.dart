@@ -108,4 +108,43 @@ class GroupRequestModel {
     if (diff.inMinutes > 0) return '${diff.inMinutes}分钟前';
     return '刚刚';
   }
+
+
+  
+}
+
+/// 搜索结果用户模型
+class SearchUserModel {
+  final String id;
+  final String? accountId;
+  final String nickname;
+  final String? avatar;
+  final String? phone;
+  final String? email;
+  final int? gender;
+  final String? signature;
+  
+  SearchUserModel({
+    required this.id,
+    this.accountId,
+    required this.nickname,
+    this.avatar,
+    this.phone,
+    this.email,
+    this.gender,
+    this.signature,
+  });
+  
+  factory SearchUserModel.fromJson(Map<String, dynamic> json) {
+    return SearchUserModel(
+      id: json['user_id'] ?? json['id'] ?? '',
+      accountId: json['account_id'],
+      nickname: json['nickname'] ?? '未知用户',
+      avatar: json['avatar'],
+      phone: json['phone'],
+      email: json['email'],
+      gender: json['gender'] ?? json['sex'],
+      signature: json['signature'],
+    );
+  }
 }

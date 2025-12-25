@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
