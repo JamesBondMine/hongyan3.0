@@ -1015,14 +1015,40 @@ class MessageDatabase {
     final batch = db.batch();
     final now = DateTime.now().millisecondsSinceEpoch;
     
+    // 批量查询现有用户，获取他们的 created_at
+    final userIds = usersInfo
+        .map((info) => info['user_id'] as String?)
+        .where((id) => id != null && id.isNotEmpty)
+        .toList();
+    
+    final existingUsers = <String, int>{};
+    if (userIds.isNotEmpty) {
+      final placeholders = List.filled(userIds.length, '?').join(',');
+      final results = await db.rawQuery(
+        'SELECT user_id, created_at FROM users WHERE user_id IN ($placeholders)',
+        userIds,
+      );
+      for (final row in results) {
+        final userId = row['user_id'] as String?;
+        final createdAt = row['created_at'] as int?;
+        if (userId != null && createdAt != null) {
+          existingUsers[userId] = createdAt;
+        }
+      }
+    }
+    
     for (final userInfo in usersInfo) {
       final userId = userInfo['user_id'] as String?;
       if (userId == null || userId.isEmpty) continue;
+      
+      // 如果用户已存在，使用原有的 created_at；否则使用当前时间
+      final createdAt = existingUsers[userId] ?? now;
       
       final data = {
         'user_id': userId,
         'nickname': userInfo['nickname'],
         'avatar': userInfo['avatar'],
+        'avatar_bg': userInfo['avatar_bg'], // 添加 avatar_bg 字段
         'sex': userInfo['sex'] ?? 0,
         'signature': userInfo['signature'],
         'region': userInfo['region'],
@@ -1032,6 +1058,7 @@ class MessageDatabase {
         'account_id': userInfo['account_id'],
         'online_status': userInfo['online_status'] ?? 0,
         'last_online_time': userInfo['last_online_time'],
+        'created_at': createdAt, // 添加 created_at 字段
         'updated_at': now,
       };
       

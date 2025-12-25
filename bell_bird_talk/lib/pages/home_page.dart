@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
   }
   
   /// 处理收到的消息
-  void _handleReceivedMessage(Map<String, dynamic> message) {
+  void _handleReceivedMessage(Map<String, dynamic> message) async {
     print('📨 首页收到消息: $message');
 
     /// 📨 首页收到消息: 
@@ -130,7 +130,24 @@ class _HomePageState extends State<HomePage> {
     final content = message['content'] as String?;
     final from = message['from'] as String?;
 
-    
+    // 获取用户信息，如果获取到昵称，则将 from 设置成昵称
+    String displayName = from ?? '未知用户';
+    if (from != null && from.isNotEmpty) {
+      try {
+        final userInfo = await _globalCtrl.getUserInfo(from);
+        if (userInfo['errorCode'] == 0) {
+          final data = userInfo['data'];
+          if (data is Map<String, dynamic>) {
+            final nickname = data['nickname'] as String?;
+            if (nickname != null && nickname.isNotEmpty) {
+              displayName = nickname;
+            }
+          }
+        }
+      } catch (e) {
+        print('⚠️ 获取用户信息失败: $e');
+      }
+    }
     
     String convTypeStr = '未知';
     switch (convType) {
@@ -139,10 +156,10 @@ class _HomePageState extends State<HomePage> {
       case 4: convTypeStr = '社区'; break;
     }
     
-    print('📨 [$convTypeStr] 来自 $from: $content');
+    print('📨 [$convTypeStr] 来自 $displayName: $content');
     final conversationId = message['conversation_id'] as String?;
     if (conversationId != null && conversationId.isNotEmpty && conversationId == ChatController.to.conversationId) {
-      _createNotification(1, '[$convTypeStr] 来自 $from: $content');
+      _createNotification(1, '[$convTypeStr] 来自 $displayName: $content');
     }
     
     

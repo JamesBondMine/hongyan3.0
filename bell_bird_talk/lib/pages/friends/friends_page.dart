@@ -137,7 +137,9 @@ class _FriendsPageState extends State<FriendsPage> {
     } catch (e) {
       print('❌ 获取好友申请失败: $e');
     } finally {
-      setState(() => _isLoadingRequests = false);
+      if (mounted) {
+        setState(() => _isLoadingRequests = false);
+      }
     }
   }
 
@@ -284,9 +286,11 @@ class _FriendsPageState extends State<FriendsPage> {
       print('❌ 获取好友列表失败: $e');
       EasyLoading.showError('获取好友列表失败');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

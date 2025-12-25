@@ -273,7 +273,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
 
 - (int)loginWithDictionary:(NSDictionary *)loginDict
                 completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"🔐 用户登录（字典）: %@", loginDict);
+    
     
     if (!loginDict) {
         NSLog(@"❌ 登录信息不能为空");
@@ -316,12 +316,18 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         authUser.captchaId = loginDict[@"captcha_id"];
     }
     // 设备ID（使用 UUID）
-    if (loginDict[@"device_id"]) {
-        authUser.deviceId = loginDict[@"device_id"];
-    } else {
-        // 自动获取设备 UUID
-        authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-    }
+    NSString *deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    NSLog(@"📱 设备ID: %@", deviceId);
+    authUser.deviceId = deviceId;
+
+//    if (loginDict[@"device_id"]) {
+//        NSString *deviceId = [[NSUUID UUID] UUIDString];
+//        authUser.deviceId = deviceId;
+//        
+//    } else {
+//        // 自动获取设备 UUID
+//        authUser.deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+//    }
     // 业务邀请码（可选）
     if (loginDict[@"biz_code"]) {
         authUser.bizCode = loginDict[@"biz_code"];

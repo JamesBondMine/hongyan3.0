@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/controllers/group_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:bell_bird_talk/pages/chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
@@ -416,9 +418,9 @@ class _ChatPageState extends State<ChatPage> {
     try {
       // 根据会话类型选择不同的拉取方法
       final result = widget.convType == 2  // 群聊
-          ? await _nativeService.imPullGroupMessages(
-              conversationId: widget.convId,
-              groupId: widget.targetUserId,
+          ? await GroupController.to.getGroupMessages(
+              widget.convId,
+              widget.targetUserId,
               lastSeq: 0,   // 0 表示从最新开始
               limit: 50,
             )
@@ -1702,17 +1704,28 @@ class _ChatPageState extends State<ChatPage> {
     // 添加成员列表
     for (final member in filteredMembers) {
       final userId = (member['user_id'] as String?) ?? '';
-      final alias = (member['member_alias'] as String?) ?? '';
+      final alias = (member['nickname'] as String?) ?? '';
       final nickname = alias.isNotEmpty ? alias : userId;
       final isAdmin = (member['is_admin'] as bool?) ?? false;
-      
+      final avatar = (member['avatar'] as String?) ?? '';
       memberItems.add(
         ListTile(
           dense: true,
           leading: CircleAvatar(
             radius: 16,
             backgroundColor: Colors.blue.shade50,
-            child: Text(
+            child: avatar.isNotEmpty ? Container(
+              width: 32,
+              height: 32,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(avatar),
+                  fit: BoxFit.cover,
+                ),
+              ),child: CachedNetworkImage(imageUrl: avatar, width: 32, height: 32, fit: BoxFit.cover),
+            ): Text(
               nickname.isNotEmpty ? nickname.characters.first : '#',
               style: const TextStyle(fontSize: 14),
             ),

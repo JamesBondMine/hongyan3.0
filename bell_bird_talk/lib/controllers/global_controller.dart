@@ -6,6 +6,7 @@ import '../utils/storage_util.dart';
 import '../config/constants.dart';
 import '../network/http_client.dart';
 import '../services/native_bridge.dart';
+import '../services/message_database.dart';
 
 /// 全局控制器 - 管理应用全局状态
 class GlobalController extends GetxController {
@@ -483,6 +484,62 @@ class GlobalController extends GetxController {
   bool needAutoLogin() {
     final savedToken = StorageUtil().getString(AppConstants.keyToken);
     return savedToken != null && savedToken.isNotEmpty;
+  }
+
+
+
+
+  final MessageDatabase _messageDatabase = MessageDatabase();
+
+  // 获取用户信息（优先从数据库获取）
+  Future<Map<String, dynamic>> getUserInfo(String userId) async {
+    // 1. 先尝试从数据库获取用户信息
+    final userFromDb = await _messageDatabase.getUser(userId);
+    if (userFromDb != null) {
+      // 如果数据库中有用户信息，直接返回
+      return {
+        'errorCode': 0,
+        'message': '获取成功',
+        'data': {
+          'user_id': userFromDb['user_id'],
+          'nickname': userFromDb['nickname'],
+          'avatar': userFromDb['avatar'],
+          'avatar_bg': userFromDb['avatar_bg'],
+        },
+      };
+    }
+    
+    // 2. 如果数据库中没有，则调用接口获取（使用批量接口，传入单个用户ID）
+    final nativeService = IOSNativeService();
+    final result = await nativeService.imGetUsersInfo(userIds: [userId]);
+    
+    // 3. 解析返回结果，提取第一个用户信息
+    if (result['errorCode'] == 0) {
+      final dataStr = result['data'] as String? ?? '';
+      if (dataStr.isNotEmpty) {
+        try {
+          final data = json.decode(dataStr);
+          if (data is List && data.isNotEmpty) {
+            final userInfo = data[0] as Map<String, dynamic>;
+            return {
+              'errorCode': 0,
+              'message': '获取成功',
+              'data': userInfo,
+            };
+          } else if (data is Map) {
+            return {
+              'errorCode': 0,
+              'message': '获取成功',
+              'data': data,
+            };
+          }
+        } catch (e) {
+          print('⚠️ 解析用户信息失败: $e');
+        }
+      }
+    }
+    
+    return result;
   }
 }
 

@@ -6,6 +6,7 @@
 //
 
 #import "IMSDKManager.h"
+#import <UIKit/UIKit.h>
 #include "network_lib.h"
 #include "callback_types.h"
 #include "common_definitions.h"
@@ -59,7 +60,9 @@
         }
         
         // 步骤2: 设置客户端信息
-        set_client_info("ios", "16.0", "device321", "Asia/Shanghai");
+        NSString *deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+        set_client_info("ios", "16.0", [deviceId UTF8String], "Asia/Shanghai");
+        NSLog(@"📱 设备ID: %@", deviceId);
         
         // 步骤3: 设置回调
         network_set_event_callback(GlobalEventCallback);
@@ -80,7 +83,7 @@
         NSString *serverIP = @"175.178.227.41";
         int serverPort = 8885;
         
-//        NSString *serverIP = @"10.226.7.239";
+//        NSString *serverIP = @"10.226.7.240";
 //        int serverPort = 5280;
 
         // 先测试服务器连通性

@@ -207,9 +207,11 @@ class _ChatListPageState extends State<ChatListPage> {
     } catch (e) {
       print('❌ 加载会话列表错误: $e');
     } finally {
-      setState(() {
+      if (!mounted) {
+        setState(() {
         _isLoading = false;
       });
+      }
     }
   }
   

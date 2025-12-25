@@ -521,6 +521,23 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         if (msg.mType == ImMessage_MessageType_Text && msg.textMessage) {
             msgDict[@"content"] = msg.textMessage.content ?: @"";
             msgDict[@"ext"] = msg.textMessage.ext ?: @"";
+        } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
+            msgDict[@"content"] = msg.atMessage.content ?: @"";
+            NSMutableArray<AtInfo*> *infoList = msg.atMessage.atInfoArray;
+            
+            // 组装 @ 用户信息列表
+            NSMutableArray<NSDictionary *> *atInfoList = [[NSMutableArray alloc] init];
+            if (infoList && infoList.count > 0) {
+                for (AtInfo *atInfo in infoList) {
+                    NSMutableDictionary *info = [[NSMutableDictionary alloc] init];
+                    info[@"user_id"] = atInfo.userId ?: @"";
+                    info[@"nickname"] = atInfo.nickName ?: @"";
+                    [atInfoList addObject:info];
+                }
+            }
+            msgDict[@"atInfoList"] = atInfoList;
+            
+            msgDict[@"ext"] = msg.atMessage.ext ?: @"";
         } else if (msg.mType == ImMessage_MessageType_Image && msg.imageMessage) {
             msgDict[@"content"] = @"[图片]";
             msgDict[@"image_url"] = msg.imageMessage.originalURL ?: @"";

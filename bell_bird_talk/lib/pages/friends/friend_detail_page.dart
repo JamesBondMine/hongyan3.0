@@ -714,7 +714,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               convId: convId,
               convType: 1,
               targetId: _friend.id,
-              displayName: _friend.displayName,
+              displayName: _cleanUtf16String(_friend.displayName),
               avatar: _friend.avatar,
             );
             await _messageDatabase.upsertConversation(currentUserId, conversation);

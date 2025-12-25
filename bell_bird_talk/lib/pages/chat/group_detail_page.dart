@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
-import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import '../../services/native_bridge.dart';
 import '../../controllers/global_controller.dart';
+import '../../controllers/group_controller.dart';
 import '../friends/group_list_page.dart';
 
 class GroupDetailPage extends StatefulWidget {
@@ -31,8 +32,7 @@ class GroupDetailPage extends StatefulWidget {
 
 class _GroupDetailPageState extends State<GroupDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
-  
-
+  final GroupController _groupController = GroupController.to;
   final GlobalController _globalCtrl = Get.find<GlobalController>();
   bool _loading = false;
   List<Map<String, dynamic>> _members = [];
@@ -57,35 +57,28 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 
   Future<void> _loadMembers() async {
     setState(() => _loading = true);
-    final result = await _nativeService.imGetGroupMembers(
-      groupId: widget.groupId,
+    
+    final result = await _groupController.getGroupMembersFullInfo(
+      widget.groupId,
       page: 1,
       pageSize: 200,
     );
+    
     if (!mounted) return;
+    
     if (result['errorCode'] == 0) {
-      final dataStr = result['data'] as String? ?? '';
-      if (dataStr.isNotEmpty) {
-        try {
-          final map = json.decode(dataStr) as Map<String, dynamic>;
-          final list = (map['members'] as List?) ?? [];
-          list.forEach( (e){
-            if (e is Map && e["is_admin"] != null && e['is_admin'] == true) {
-              _creatorUserId = e['user_id'];
-            }
-          });
-          setState(() {
-            _members = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
-          });
-        } catch (e) {
-          EasyLoading.showError('解析群成员失败');
-        }
-      } else {
-        setState(() => _members = []);
-      }
+      final members = result['members'] as List<dynamic>? ?? [];
+      final creatorUserId = result['creatorUserId'] as String?;
+      
+      setState(() {
+        _members = members.map((e) => (e as Map).cast<String, dynamic>()).toList();
+        _creatorUserId = creatorUserId;
+      });
     } else {
       EasyLoading.showError(result['message']?.toString() ?? '获取群成员失败');
+      setState(() => _members = []);
     }
+    
     await _refreshGroupInfo();
     await _refreshGroupPreview();
     if (mounted) setState(() => _loading = false);
@@ -337,6 +330,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final userId = (m['user_id'] as String?) ?? '';
     final alias = (m['member_alias'] as String?) ?? '';
     final isAdmin = (m['is_admin'] as bool?) ?? false;
+
+    final avatar = (m['avatar'] as String?) ?? '';
+    final nickname = (m['nickname'] as String?) ?? '';
+    
     final name = alias.isNotEmpty ? alias : userId;
     final initial = name.isNotEmpty ? name.characters.first : '#';
     return GestureDetector(
@@ -389,14 +386,25 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           CircleAvatar(
             radius: 22,
             backgroundColor: Colors.grey.shade200,
-            child: Text(
-              initial,
+            child: avatar.isNotEmpty ? Container(
+              width: 44,
+              height: 44,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(avatar),
+                  fit: BoxFit.cover,
+                ),
+              ),child: CachedNetworkImage(imageUrl: avatar, width: 44, height: 44, fit: BoxFit.cover),
+            ) : Text(
+              nickname.isNotEmpty ? nickname : initial,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            name,
+            nickname.isNotEmpty ? nickname : name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12),
@@ -1373,6 +1381,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('申请已发送');
+        GroupController.to.getGroupMembersFullInfo(widget.groupId, forceRefresh: true);
         Get.back();
       } else {
         EasyLoading.showError(result['message'] ?? '发送失败');

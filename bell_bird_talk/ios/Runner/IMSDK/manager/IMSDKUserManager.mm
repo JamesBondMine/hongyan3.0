@@ -485,18 +485,34 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
             return;
         }
         
-        // 解析返回的数据
+        // 解析返回的 UserPublicInfoList
         NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        NSMutableArray *usersArray = [NSMutableArray array];
         
         if (responseData && responseData.length > 0) {
-            NSString *responseStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-            if (responseStr) {
-                result[@"data"] = responseStr;
+            NSError *error = nil;
+            UserPublicInfoList *publicInfoList = [UserPublicInfoList parseFromData:responseData error:&error];
+            
+            if (publicInfoList && !error) {
+                // 遍历用户列表
+                for (UserPublicInfo *publicInfo in publicInfoList.usersArray) {
+                    NSMutableDictionary *userDict = [NSMutableDictionary dictionary];
+                    userDict[@"user_id"] = publicInfo.userId ?: @"";
+                    userDict[@"nickname"] = publicInfo.nickname ?: @"";
+                    userDict[@"avatar"] = publicInfo.avatar ?: @"";
+                    userDict[@"avatar_bg"] = publicInfo.avatarBg ?: @"";
+                    [usersArray addObject:userDict];
+                }
+                
+                result[@"users"] = usersArray;
+                NSLog(@"✅ 批量获取用户公开信息成功: %lu 个用户", (unsigned long)usersArray.count);
             } else {
-                result[@"data"] = @"[]";
+                NSLog(@"⚠️ 解析 UserPublicInfoList 失败: %@", error);
+                result[@"users"] = @[];
             }
         } else {
-            result[@"data"] = @"[]";
+            result[@"users"] = @[];
+            NSLog(@"⚠️ 响应数据为空");
         }
         
         completion(0, @"批量获取公开信息成功", result, reqId);
@@ -568,35 +584,38 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
         return 0;
     }
     
-    // GetUserProfile PB 一次只能请求一个用户，所以只取第一个 userId
-    NSString *firstUserId = userIds.firstObject;
-    if (!firstUserId || firstUserId.length == 0) {
-        NSLog(@"❌ 第一个 userId 不能为空");
+    // 创建 UserIdList 对象
+    UserIdList *userIdList = [[UserIdList alloc] init];
+    
+    // 添加所有用户ID到列表中
+    for (NSString *userId in userIds) {
+        if (userId && userId.length > 0) {
+            [userIdList.userIdsArray addObject:userId];
+        }
+    }
+    
+    // 验证是否有有效的用户ID
+    if (userIdList.userIdsArray.count == 0) {
+        NSLog(@"❌ 没有有效的 userId");
         if (completion) {
-            completion(-1, @"第一个 userId 不能为空", nil, 0);
+            completion(-1, @"没有有效的 userId", nil, 0);
         }
         return 0;
     }
     
-    if (userIds.count > 1) {
-        NSLog(@"⚠️ GetUserProfile 一次只能请求一个用户，只处理第一个 userId: %@", firstUserId);
-    }
+    NSLog(@"📋 准备批量请求 %lu 个用户的公开信息", (unsigned long)userIdList.userIdsArray.count);
     
-    // 创建 GetUserProfile 对象
-    GetUserProfile *getUserProfile = [[GetUserProfile alloc] init];
-    getUserProfile.userId = firstUserId;
-    
-    // 序列化
-    NSData *serializedData = [getUserProfile data];
+    // 序列化 UserIdList
+    NSData *serializedData = [userIdList data];
     if (!serializedData || serializedData.length == 0) {
-        NSLog(@"❌ 序列化 GetUserProfile 失败");
+        NSLog(@"❌ 序列化 UserIdList 失败");
         if (completion) {
             completion(-2, @"序列化失败", nil, 0);
         }
         return 0;
     }
     
-    NSLog(@"📦 序列化成功: %lu 字节, userId=%@", (unsigned long)serializedData.length, firstUserId);
+    NSLog(@"📦 序列化成功: %lu 字节, 用户数量=%lu", (unsigned long)serializedData.length, (unsigned long)userIdList.userIdsArray.count);
     
     // 生成一个唯一的 reqId 来标识这次请求
     uint64_t reqId = (uint64_t)([[NSDate date] timeIntervalSince1970] * 1000);
@@ -621,7 +640,7 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
         return 0;
     }
     
-    NSLog(@"✅ 获取用户公开信息请求已发送: reqId=%llu, userId=%@", reqId, firstUserId);
+    NSLog(@"✅ 批量获取用户公开信息请求已发送: reqId=%llu, 用户数量=%lu", reqId, (unsigned long)userIdList.userIdsArray.count);
     
     return reqId;
 }

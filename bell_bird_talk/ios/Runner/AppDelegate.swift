@@ -1983,12 +1983,41 @@ class NativeBridgeHandler: NSObject {
         print("👤 批量获取用户公开信息: userIds=\(userIds)")
         
         let reqId = IMSDKUserManager.shared().batchGetUserPublicInfo(withUserIds: userIds) { errorCode, message, data, reqId in
-            print("👤 批量获取用户公开信息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDelegate 批量获取用户公开信息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             // 将返回的数据转换为 JSON 字符串
-            var dataStr = ""
-            if let data = data, let dataValue = data["data"] as? String {
-                dataStr = dataValue
+            print("📦 批量获取用户公开信息回调数据: \(String(describing: data))")
+            
+            var dataStr = "[]"
+            if let data = data, let usersValue = data["users"] {
+                // 处理 NSArray 或 Array 类型
+                var usersArray: Any?
+                
+                if let nsArray = usersValue as? NSArray {
+                    // 将 NSArray 转换为 Swift Array
+                    usersArray = nsArray as? [[String: Any]] ?? nsArray
+                } else if let swiftArray = usersValue as? [[String: Any]] {
+                    usersArray = swiftArray
+                } else if let anyArray = usersValue as? [Any] {
+                    usersArray = anyArray
+                }
+                
+                if let array = usersArray {
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: array, options: [])
+                        if let jsonString = String(data: jsonData, encoding: .utf8) {
+                            dataStr = jsonString
+                            print("✅ 成功转换为 JSON: \(dataStr)")
+                        }
+                    } catch {
+                        print("❌ JSON 序列化失败: \(error)")
+                        dataStr = "[]"
+                    }
+                } else {
+                    print("⚠️ users 数据格式不正确: \(type(of: usersValue))")
+                }
+            } else {
+                print("⚠️ 未找到 users 字段")
             }
             
             result([

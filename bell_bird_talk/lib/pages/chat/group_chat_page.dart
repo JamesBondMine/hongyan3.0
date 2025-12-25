@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:flutter/material.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
@@ -40,17 +41,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   Future<void> _loadGroupMembers() async {
     try {
-      final result = await _nativeService.imGetGroupMembers(
-        groupId: widget.groupId,
-        page: 1,
-        pageSize: 200,
-      );
+      final result = await GroupController.to.getGroupMembersFullInfo(
+      widget.groupId,
+      page: 1,
+      pageSize: 200,
+    );
       if (!mounted) return;
       if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String? ?? '';
+        final dataStr = result as Map<String, dynamic>? ?? {};
         if (dataStr.isNotEmpty) {
           try {
-            final map = json.decode(dataStr) as Map<String, dynamic>;
+            final map = json.decode(json.encode(dataStr)) as Map<String, dynamic>;
             final list = (map['members'] as List?) ?? [];
             final members = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
             
