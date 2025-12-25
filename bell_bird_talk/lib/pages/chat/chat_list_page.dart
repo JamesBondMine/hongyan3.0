@@ -278,21 +278,14 @@ class _ChatListPageState extends State<ChatListPage> {
     if (_isLoadingFromNetwork) return;
     _isLoadingFromNetwork = true;
     try {
-      final result = await _nativeService.imGetConversationList(
+      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
         page: 1,
         pageSize: 20,
         convType: 0,
         isUnread: false,
         isAtMe: false,
       );
-      print('🌐 进入页面-首次-从网络加载会话列表...');
-      if (result['errorCode'] == 0) {
-        final data = result['data'];
-        if (data != null && data is String && data.isNotEmpty) {
-          try {
-            final dataMap = json.decode(data) as Map<String, dynamic>;
-            final conversations = dataMap['conversations'] as List<dynamic>?;
-            if (conversations != null) {
+   
               final networkConversations = conversations
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
                   .toList();
@@ -326,15 +319,10 @@ class _ChatListPageState extends State<ChatListPage> {
               final totalUnread = mergedConversations.fold<int>(
                 0, (sum, conv) => sum + conv.unreadCount);
               _globalCtrl.unreadCount.value = totalUnread;
-            }
-          } catch (e) {
-            print('❌ 解析会话列表失败: $e');
-          }
-        }
-      } else {
-        print('⚠️ 网络获取会话列表失败，使用本地数据');
-        // 网络失败时，保持使用本地数据
-      }
+            
+ 
+        
+
     } catch (e) {
       print('❌ 网络加载会话列表错误: $e');
     } finally {
