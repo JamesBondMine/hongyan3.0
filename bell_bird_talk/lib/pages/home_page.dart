@@ -197,28 +197,34 @@ class _HomePageState extends State<HomePage> {
 
   /// 构建底部导航栏
   Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
+    return Obx(() => BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.blue,
       unselectedItemColor: Colors.grey,
       currentIndex: _currentIndex,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline),
-          activeIcon: Icon(Icons.chat_bubble),
+          icon: _buildIconWithBadge(
+            icon: Icons.chat_bubble_outline,
+            unreadCount: _globalCtrl.unreadCount.value,
+          ),
+          activeIcon: _buildIconWithBadge(
+            icon: Icons.chat_bubble,
+            unreadCount: _globalCtrl.unreadCount.value,
+          ),
           label: '聊天',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
           activeIcon: Icon(Icons.people),
           label: '好友',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.group_outlined),
           activeIcon: Icon(Icons.group),
           label: '社群',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
           label: '我的',
@@ -229,6 +235,47 @@ class _HomePageState extends State<HomePage> {
           _currentIndex = index;
         });
       },
+    ));
+  }
+
+  /// 构建带角标的图标
+  Widget _buildIconWithBadge({required IconData icon, required int unreadCount}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon),
+        if (unreadCount > 0)
+          Positioned(
+            right: -8,
+            top: -8,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: unreadCount > 99 ? 4 : 5,
+                vertical: 2,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: Center(
+                child: Text(
+                  unreadCount > 99 ? '99+' : unreadCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

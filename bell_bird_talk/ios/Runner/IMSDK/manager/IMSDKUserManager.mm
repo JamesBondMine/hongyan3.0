@@ -568,20 +568,35 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
         return 0;
     }
     
-    // 将用户ID数组转换为 JSON 字符串
-    NSError *jsonError = nil;
-    NSDictionary *params = @{@"userIds": userIds};
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&jsonError];
-    if (!jsonData || jsonError) {
-        NSLog(@"❌ 序列化参数失败: %@", jsonError);
+    // GetUserProfile PB 一次只能请求一个用户，所以只取第一个 userId
+    NSString *firstUserId = userIds.firstObject;
+    if (!firstUserId || firstUserId.length == 0) {
+        NSLog(@"❌ 第一个 userId 不能为空");
         if (completion) {
-            completion(-2, @"序列化参数失败", nil, 0);
+            completion(-1, @"第一个 userId 不能为空", nil, 0);
         }
         return 0;
     }
     
-    NSString *paramsJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    NSLog(@"📦 参数 JSON: %@", paramsJson);
+    if (userIds.count > 1) {
+        NSLog(@"⚠️ GetUserProfile 一次只能请求一个用户，只处理第一个 userId: %@", firstUserId);
+    }
+    
+    // 创建 GetUserProfile 对象
+    GetUserProfile *getUserProfile = [[GetUserProfile alloc] init];
+    getUserProfile.userId = firstUserId;
+    
+    // 序列化
+    NSData *serializedData = [getUserProfile data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ 序列化 GetUserProfile 失败");
+        if (completion) {
+            completion(-2, @"序列化失败", nil, 0);
+        }
+        return 0;
+    }
+    
+    NSLog(@"📦 序列化成功: %lu 字节, userId=%@", (unsigned long)serializedData.length, firstUserId);
     
     // 生成一个唯一的 reqId 来标识这次请求
     uint64_t reqId = (uint64_t)([[NSDate date] timeIntervalSince1970] * 1000);
@@ -593,8 +608,8 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
     
     // 调用 SDK 接口
     int result = batch_user_public_info(BatchUserPublicInfoCallback,
-                                        (const char *)[paramsJson UTF8String],
-                                        (int)[paramsJson lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
+                                        (const char *)serializedData.bytes,
+                                        (int)serializedData.length,
                                         reqId);
     
     if (result != 0) {
@@ -606,7 +621,7 @@ static void BatchUserPublicInfoCallback(int errorCode, const char* data, int dat
         return 0;
     }
     
-    NSLog(@"✅ 批量获取用户公开信息请求已发送: reqId=%llu", reqId);
+    NSLog(@"✅ 获取用户公开信息请求已发送: reqId=%llu, userId=%@", reqId, firstUserId);
     
     return reqId;
 }

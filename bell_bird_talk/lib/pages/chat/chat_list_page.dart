@@ -744,8 +744,8 @@ class _ChatListPageState extends State<ChatListPage> {
         children: [
           _buildFilterButton(0, '全部', _getAllUnreadCount()),
           _buildFilterButton(1, '未读', _getAllUnreadCount()),  // 和全部一样显示总未读数
-          _buildFilterButton(2, '群聊', _getGroupUnreadCount()),
-          _buildFilterButton(3, '@我的', _getGroupUnreadCount()),
+          _buildFilterButton(2, '群聊', _getGroupUnreadCount(false)),
+          _buildFilterButton(3, '@我的', _getGroupUnreadCount(true)),
         ],
       ),
     );
@@ -832,7 +832,12 @@ class _ChatListPageState extends State<ChatListPage> {
 
 
   /// 获取群聊未读消息数
-  int _getGroupUnreadCount() {
+  int _getGroupUnreadCount(bool isOnlyAtMe) {
+    if (isOnlyAtMe) {
+      return _conversations
+          .where((conv) => conv.convType == 2)
+          .fold(0, (sum, conv) => sum + conv.unreadCount);
+    }
     return _conversations
         .where((conv) => conv.convType == 2)
         .fold(0, (sum, conv) => sum + conv.unreadCount);

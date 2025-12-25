@@ -31,7 +31,11 @@ class LoginController extends GetxController {
   final RxBool rememberPassword = false.obs;
   
   // 登录方式
-  final Rx<LoginType> loginType = LoginType.emailCode.obs;
+  final Rx<LoginType> loginType = LoginType.smsCode.obs;
+  
+  // 区号选择
+  final RxString selectedCountryCode = '+86'.obs;
+  final RxString selectedFlag = '🇨🇳'.obs;
   
   // 手机/邮箱登录模式：true=密码登录，false=验证码登录
   final RxBool smsUsePassword = true.obs;      // 手机登录默认使用密码

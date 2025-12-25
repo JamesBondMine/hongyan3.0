@@ -2,9 +2,9 @@ import 'package:bell_bird_talk/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'register_page.dart';
-import 'forgot_password_page.dart';
 import '../settings/language_page.dart';
 import '../settings/reset_password_page.dart';
+import 'country_code_page.dart';
 
 /// 登录页面
 class LoginPage extends StatelessWidget {
@@ -15,53 +15,78 @@ class LoginPage extends StatelessWidget {
     final controller = Get.put(LoginController());
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade700,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // 主内容
-              Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo 和标题
-                  _buildHeader(),
-                  
-                      const SizedBox(height: 40),
-                  
-                  // 登录表单
-                  _buildLoginForm(controller),
-                  
-                      const SizedBox(height: 24),
-                  
-                  // 其他操作
-                  _buildFooter(),
-                ],
+      body: Stack(
+        children: [
+          // 背景渐变（上半部分）
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: Get.height * 0.6, // 上半部分高度
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft, // 左上
+                  end: Alignment.bottomRight, // 右下
+                  colors: [
+                    Colors.blue.shade200, // 淡蓝色
+                    Colors.white, // 白色
+                    Colors.purple.shade100, // 趋近于白色的淡紫色
+                  ],
+                ),
               ),
             ),
-              ),
-              
-              // 右上角语言切换按钮
-              Positioned(
-                top: 8,
-                right: 8,
-                child: _buildLanguageButton(),
-              ),
-            ],
           ),
-        ),
+
+          // 白色背景（下半部分）
+          Positioned(
+            top: Get.height * 0.4, // 从40%高度开始
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              color: Colors.white,
+            ),
+          ),
+
+          // 主内容
+          SafeArea(
+            child: Stack(
+              children: [
+                // 主内容
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo 和标题
+                        _buildHeader(),
+
+                        const SizedBox(height: 40),
+
+                        // 登录表单
+                        _buildLoginForm(controller),
+
+                        const SizedBox(height: 24),
+
+                        // 其他操作
+                        _buildFooter(),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 右上角语言切换按钮
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _buildLanguageButton(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -107,41 +132,59 @@ class LoginPage extends StatelessWidget {
 
   /// 构建头部
   Widget _buildHeader() {
-    return Column(
+    return Container(
+      width: Get.width,
+      child:  Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
       children: [
         // Logo
-  
-        
+        Container(
+          width: 60,
+          height: 60,
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            // color: Colors.white,
+          ),
+          child:  Image.asset(
+              'assets/img/logo/logo.png',
+              fit: BoxFit.contain,
+            ),
+          
+        ),
+
+        const SizedBox(height: 16),
+
         // 标题
         const Text(
-          '铃鸟聊天',
+          '登录',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         // 副标题
         Text(
-          '欢迎回来',
+          '请输入手机号/邮箱',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.black.withOpacity(0.9),
           ),
         ),
       ],
-    );
+    ));
   }
 
   /// 构建登录表单
   Widget _buildLoginForm(LoginController controller) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      // padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -186,19 +229,14 @@ class LoginPage extends StatelessWidget {
       child: Row(
         children: [
           _buildTabItem(
-            title: '邮箱登录',
-            isSelected: controller.loginType.value == LoginType.emailCode,
-            onTap: () => controller.switchLoginType(LoginType.emailCode),
-          ),
-          _buildTabItem(
             title: '手机登录',
             isSelected: controller.loginType.value == LoginType.smsCode,
             onTap: () => controller.switchLoginType(LoginType.smsCode),
           ),
           _buildTabItem(
-            title: '密码登录',
-            isSelected: controller.loginType.value == LoginType.password,
-            onTap: () => controller.switchLoginType(LoginType.password),
+            title: '邮箱登录',
+            isSelected: controller.loginType.value == LoginType.emailCode,
+            onTap: () => controller.switchLoginType(LoginType.emailCode),
           ),
         ],
       ),
@@ -244,85 +282,14 @@ class LoginPage extends StatelessWidget {
   /// 构建登录表单内容
   Widget _buildLoginFormContent(LoginController controller) {
     switch (controller.loginType.value) {
-      case LoginType.password:
-        return _buildPasswordLoginForm(controller);
       case LoginType.smsCode:
         return _buildSMSLoginForm(controller);
       case LoginType.emailCode:
         return _buildEmailLoginForm(controller);
+      default:
+        // 默认使用手机登录
+        return _buildSMSLoginForm(controller);
     }
-  }
-  
-  /// 密码登录表单
-  Widget _buildPasswordLoginForm(LoginController controller) {
-    return Column(
-        children: [
-          // 用户名输入框
-          TextField(
-            controller: controller.usernameController,
-            decoration: InputDecoration(
-            labelText: '账号',
-            hintText: '请输入账号',
-              prefixIcon: const Icon(Icons.person_outline),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // 密码输入框
-          Obx(() => TextField(
-            controller: controller.passwordController,
-            obscureText: controller.obscurePassword.value,
-            decoration: InputDecoration(
-              labelText: '密码',
-            hintText: '请输入密码',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  controller.obscurePassword.value
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: controller.togglePasswordVisibility,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-            ),
-          )),
-          
-          const SizedBox(height: 12),
-          
-          // 记住密码
-          Row(
-            children: [
-              Obx(() => Checkbox(
-                value: controller.rememberPassword.value,
-                onChanged: (value) {
-                  controller.rememberPassword.value = value ?? false;
-                },
-              )),
-              const Text('记住密码'),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                Get.to(() => const ForgotPasswordPage());
-                },
-                child: const Text('忘记密码？'),
-              ),
-            ],
-          ),
-        // 邀请码输入框
-        _buildInviteCodeInput(controller),
-      ],
-    );
   }
   
   /// 短信登录表单（支持密码/验证码模式切换）
@@ -336,7 +303,25 @@ class LoginPage extends StatelessWidget {
           decoration: InputDecoration(
             labelText: '手机号',
             hintText: '请输入手机号',
-            prefixIcon: const Icon(Icons.phone_android),
+            prefixIcon: InkWell(
+              onTap: () => showModalBottomSheet(
+                context: Get.context!,
+                builder: (context) => const CountryCodePage(),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Obx(() => Text(controller.selectedFlag.value, style: const TextStyle(fontSize: 18))),
+                    const SizedBox(width: 4),
+                    Obx(() => Text(controller.selectedCountryCode.value, style: const TextStyle(fontSize: 14, color: Colors.grey))),
+                    const SizedBox(width: 8),
+                    const Text('|', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -377,10 +362,23 @@ class LoginPage extends StatelessWidget {
           _buildCodeInputRow(controller),
         ],
         
+        
+        
+        const SizedBox(height: 16),
+        
+        // 邀请码输入框
+        _buildInviteCodeInput(controller),
         const SizedBox(height: 8),
         
         // 模式切换和忘记密码
-        Row(
+        _changeLoginTypeView(controller),
+      ],
+    ));
+  }
+
+  // 
+  Widget _changeLoginTypeView( LoginController controller) {
+    return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // 左侧：模式切换
@@ -409,14 +407,7 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
           ],
-        ),
-        
-        const SizedBox(height: 8),
-        
-        // 邀请码输入框
-        _buildInviteCodeInput(controller),
-      ],
-    ));
+        );
   }
   
   /// 邮箱登录表单（支持密码/验证码模式切换）
@@ -629,26 +620,38 @@ class LoginPage extends StatelessWidget {
   /// 注册按钮
   Widget _buildRegisterButton() {
     return SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton(
-              onPressed: () {
-                Get.to(() => const RegisterPage());
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue,
-                side: const BorderSide(color: Colors.blue),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+      width: double.infinity,
+      height: 50,
+      child: TextButton(
+        onPressed: () {
+          Get.to(() => const RegisterPage());
+        },
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '还没有账号?',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
               ),
-              child: const Text(
-                '注册账号',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '去注册',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
+            ),
+          ],
+        ),
       ),
     );
   }
