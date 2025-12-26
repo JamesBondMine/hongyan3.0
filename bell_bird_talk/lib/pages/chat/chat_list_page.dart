@@ -589,15 +589,8 @@ class _ChatListPageState extends State<ChatListPage> {
     // 重置分页
     _currentPage = 1;
     _hasMore = true;
-    
     final userId = _currentUserId;
-    if (userId.isEmpty) {
-      EasyLoading.showError('用户未登录');
-      return;
-    }
-    
     try {
-
       List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
         page: 1,
         pageSize: 20,
