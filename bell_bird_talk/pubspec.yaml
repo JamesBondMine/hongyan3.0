@@ -96,6 +96,8 @@ dependencies:
   #
   awesome_notifications: ^0.10.0
 
+  flutter_popup: ^3.3.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -125,7 +127,7 @@ flutter:
     - assets/img/user/
     - assets/img/chat/
     - assets/img/common/
-    
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

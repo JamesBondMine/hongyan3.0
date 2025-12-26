@@ -26,38 +26,6 @@ class LoginPage extends StatelessWidget {
             width: double.infinity,
             height: double.infinity,
           ),
-          // // 背景渐变（上半部分）
-          // Positioned(
-          //   top: 0,
-          //   left: 0,
-          //   right: 0,
-          //   height: Get.height * 0.6, // 上半部分高度
-          //   child: Container(
-          //     decoration: BoxDecoration(
-          //       gradient: LinearGradient(
-          //         begin: Alignment.topLeft, // 左上
-          //         end: Alignment.bottomRight, // 右下
-          //         colors: [
-          //           Colors.blue.shade200, // 淡蓝色
-          //           Colors.white, // 白色
-          //           Colors.purple.shade100, // 趋近于白色的淡紫色
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-
-          // // 白色背景（下半部分）
-          // Positioned(
-          //   top: Get.height * 0.4, // 从40%高度开始
-          //   left: 0,
-          //   right: 0,
-          //   bottom: 0,
-          //   child: Container(
-          //     color: Colors.white,
-          //   ),
-          // ),
-
           // 主内容
           SafeArea(
             child: Stack(

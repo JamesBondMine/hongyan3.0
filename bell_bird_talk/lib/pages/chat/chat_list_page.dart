@@ -4,13 +4,13 @@ import 'package:bell_bird_talk/pages/chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
 import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
-import 'chat_search_page.dart';
 import 'create_group_page.dart';
 
 
@@ -279,7 +279,7 @@ class _ChatListPageState extends State<ChatListPage> {
     _isLoadingFromNetwork = true;
     try {
       List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
-        page: 1,
+        page: _currentPage,
         pageSize: 20,
         convType: 0,
         isUnread: false,
@@ -321,10 +321,11 @@ class _ChatListPageState extends State<ChatListPage> {
               _globalCtrl.unreadCount.value = totalUnread;
             
  
-        
+        _isLoading = false;
 
     } catch (e) {
       print('❌ 网络加载会话列表错误: $e');
+      _isLoading = false;
     } finally {
       _isLoadingFromNetwork = false;
     }
@@ -456,7 +457,15 @@ class _ChatListPageState extends State<ChatListPage> {
     });
 
     try {
-      final result = await _nativeService.imGetConversationList(
+      // final result = await _nativeService.imGetConversationList(
+      //   page: _currentPage + 1,
+      //   pageSize: 20,
+      //   convType: _filterType,
+      //   isUnread: _filterType == 1||_filterType == 3 ? true : false,
+      //   isAtMe: _filterType == 3 ? true : false,
+      // );
+
+      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
         page: _currentPage + 1,
         pageSize: 20,
         convType: _filterType,
@@ -464,12 +473,7 @@ class _ChatListPageState extends State<ChatListPage> {
         isAtMe: _filterType == 3 ? true : false,
       );
 
-      if (result['errorCode'] == 0) {
-        final data = result['data'];
-        if (data != null && data is String && data.isNotEmpty) {
-          try {
-            final dataMap = json.decode(data) as Map<String, dynamic>;
-            final conversations = dataMap['conversations'] as List<dynamic>?;
+
             if (conversations != null && conversations.isNotEmpty) {
               _conversations.addAll(
                 conversations
@@ -481,14 +485,13 @@ class _ChatListPageState extends State<ChatListPage> {
             } else {
               _hasMore = false;
             }
-          } catch (e) {
-            print('解析会话列表失败: $e');
-          }
-        }
+   
+        _isLoading = false;
         _filterConversations();
-      }
+      
     } catch (e) {
       print('加载更多会话错误: $e');
+      _isLoading = false;
     } finally {
       setState(() {
         _isLoading = false;
@@ -505,6 +508,7 @@ class _ChatListPageState extends State<ChatListPage> {
     }
     
     EasyLoading.show(status: '加载未读会话...');
+    
     
     try {
       print('📋 加载未读会话列表...');
@@ -593,28 +597,15 @@ class _ChatListPageState extends State<ChatListPage> {
     }
     
     try {
-      // 设置30秒超时
-      final result = await _nativeService.imGetConversationList(
+
+      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
         page: 1,
         pageSize: 20,
-        convType: convType,
+        convType: _filterType,
         isUnread: _filterType == 1||_filterType == 3 ? true : false,
         isAtMe: _filterType == 3 ? true : false,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          print('⏰ 刷新会话列表超时');
-          return {'errorCode': -408, 'message': '请求超时'};
-        },
       );
 
-      if (result['errorCode'] == 0) {
-        final data = result['data'];
-        print('💬 刷新. convType $convType  isAtMe $isAtMe.  会话列表结果:   $data');
-        if (data != null && data is String && data.isNotEmpty) {
-          try {
-            final dataMap = json.decode(data) as Map<String, dynamic>;
-            final conversations = dataMap['conversations'] as List<dynamic>?;
             if (conversations != null) {
               final networkConversations = conversations
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
@@ -640,20 +631,9 @@ class _ChatListPageState extends State<ChatListPage> {
                 0, (sum, conv) => sum + conv.unreadCount);
               _globalCtrl.unreadCount.value = totalUnread;
             }
-          } catch (e) {
-            print('解析会话列表失败: $e');
-          }
-        }
-        
+
         // 刷新成功提示
         EasyLoading.showSuccess('刷新成功', duration: const Duration(seconds: 1));
-      } else if (result['errorCode'] == -408) {
-        // 超时，恢复页面状态
-        EasyLoading.showError('刷新超时，请稍后重试');
-        setState(() {});  // 恢复页面状态
-      } else {
-        EasyLoading.showError('刷新失败');
-      }
     } catch (e) {
       print('刷新会话列表错误: $e');
       EasyLoading.showError('刷新失败');
@@ -833,6 +813,47 @@ class _ChatListPageState extends State<ChatListPage> {
         .fold(0, (sum, conv) => sum + conv.unreadCount);
   }
 
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      GestureDetector(
+        child: Container(
+          width: 120,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.group_add_outlined, color: Colors.green),
+                const SizedBox(width: 8),
+                const Text('创建群聊'),
+              ],
+            ),
+        ),
+        onTap: () {
+          // 发起单聊
+          EasyLoading.showInfo('发起单聊');
+        }),
+        GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          width: 120,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.group_add_outlined, color: Colors.green),
+                const SizedBox(width: 8),
+                const Text('创建群聊'),
+              ],
+            ),
+        ),
+        onTap: () {
+          _createGroup();
+        }),
+    ];
+  }
+
   /// 构建普通 AppBar
   PreferredSizeWidget _buildNormalAppBar() {
     final globalController = Get.find<GlobalController>();
@@ -874,10 +895,14 @@ class _ChatListPageState extends State<ChatListPage> {
       foregroundColor: Colors.black,
       elevation: 0,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: _showNewChatOptions,
-        ),
+        CustomPopup(
+          // contentPadding: EdgeInsets.only(right: 16),
+  content: Column(
+  mainAxisSize: MainAxisSize.min,
+    children: _buildAppBarActions()
+  ),
+  child: Image.asset('assets/img/chat/chatadd.png', width: 24, height: 24),
+),SizedBox(width: 16,)
       ],
     );
   }
@@ -955,7 +980,42 @@ class _ChatListPageState extends State<ChatListPage> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: _showNewChatOptions,
+            onPressed: () {
+              // 显示相同的弹出菜单
+              showMenu<String>(
+                context: context,
+                position: const RelativeRect.fromLTRB(100, 100, 100, 100),
+                items: [
+                  const PopupMenuItem<String>(
+                    value: 'single',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person),
+                        SizedBox(width: 8),
+                        Text('发起单聊'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'group',
+                    child: Row(
+                      children: [
+                        Icon(Icons.group),
+                        SizedBox(width: 8),
+                        Text('发起群聊'),
+                      ],
+                    ),
+                  ),
+                ],
+              ).then((value) {
+                if (value == 'single') {
+                  // TODO: 导航到好友选择页面
+                  Get.snackbar('提示', '单聊功能开发中');
+                } else if (value == 'group') {
+                  _createGroup();
+                }
+              });
+            },
             icon: const Icon(Icons.add),
             label: const Text('发起聊天'),
             style: ElevatedButton.styleFrom(
@@ -1325,64 +1385,18 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
-  /// 打开搜索页面
-  void _openSearchPage() {
-    Get.to(() => ChatSearchPage(conversations: _conversations));
-  }
-
-  /// 显示新建聊天选项
-  void _showNewChatOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_add_outlined, color: Colors.blue),
-              title: const Text('发起单聊'),
-              subtitle: const Text('选择好友开始聊天'),
-              onTap: () {
-                Navigator.pop(context);
-                EasyLoading.showInfo('发起单聊');
-                // TODO: 跳转到好友列表选择
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.group_add_outlined, color: Colors.green),
-              title: const Text('创建群聊'),
-              subtitle: const Text('邀请多人加入群聊'),
-              onTap: () async {
-                Navigator.pop(context);
-                final result = await Navigator.push<bool>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateGroupPage(),
-                  ),
-                );
-                // 如果创建成功，刷新会话列表
-                if (result == true) {
-                  _refreshConversations(0);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+  /// 创建群聊
+  Future<void> _createGroup() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateGroupPage(),
       ),
     );
+    // 如果创建成功，刷新会话列表
+    if (result == true) {
+      _refreshConversations(0);
+    }
   }
 
   /// 标记已读
@@ -1443,6 +1457,12 @@ class _ChatListPageState extends State<ChatListPage> {
         EasyLoading.showError('删除失败: $e');
       }
     }
+  }
+
+  /// 打开搜索页面
+  void _openSearchPage() {
+    // TODO: 实现聊天搜索功能
+    Get.snackbar('提示', '搜索功能开发中');
   }
 }
 

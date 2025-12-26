@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/models/user_model.dart';
+import 'package:bell_bird_talk/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -58,58 +59,60 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade700,
-            ],
+      backgroundColor: AppColors.lightBackgroundPrimary,
+      body: Stack(
+        children: [
+          Image.asset(
+            'assets/img/login/loginbgsmall.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 顶部导航栏
-              _buildAppBar(),
-              
-              // 表单内容
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      // Logo 和标题
-                      _buildHeader(),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // 注册方式切换
-                      _buildRegisterTypeSwitch(),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // 注册表单
-                      _buildRegisterForm(),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // 用户协议
-                      _buildTermsCheckbox(),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // 注册按钮
-                      _buildRegisterButton(),
-                    ],
+          // 主内容
+          SafeArea(
+            child: Column(
+              children: [
+                // 顶部导航栏
+                _buildAppBar(),
+
+                
+                
+                // 表单内容
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        // Logo 和标题
+                        _buildHeader(),
+                        
+                        const SizedBox(height: 30),
+                        
+                        // 注册方式切换
+                        _buildRegisterTypeSwitch(),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // 注册表单
+                        _buildRegisterForm(),
+                        
+                        const SizedBox(height: 30),
+                        
+                        // 用户协议
+                        _buildTermsCheckbox(),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // 注册按钮
+                        _buildRegisterButton(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -136,35 +139,53 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  /// Logo 和标题
+  /// 构建头部
   Widget _buildHeader() {
-    return Column(
+    return Container(
+      width: Get.width,
+      child:  Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
       children: [
         // Logo
- 
-        
+        Container(
+          width: 60,
+          height: 60,
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            // color: Colors.white,
+          ),
+          child:  Image.asset(
+              'assets/img/logo/logo.png',
+              fit: BoxFit.contain,
+            ),
+          
+        ),
+
+        const SizedBox(height: 16),
+
         // 标题
         const Text(
-          '创建新账号',
+          '注册',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         // 副标题
         Text(
-          '欢迎加入我们',
+          '请输入手机号/邮箱',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.black.withOpacity(0.9),
           ),
         ),
       ],
-    );
+    ));
   }
 
   /// 注册方式切换
