@@ -109,7 +109,7 @@ class LoginPage extends StatelessWidget {
 
   /// 构建头部
   Widget _buildHeader() {
-    return Container(
+    return SizedBox(
       width: Get.width,
       child:  Column(
       crossAxisAlignment: CrossAxisAlignment.start, // 左对齐

@@ -381,10 +381,10 @@ class LoginController extends GetxController {
       EasyLoading.showError('请输入验证码');
       return;
     }
-    if (_captchaId == null) {
-      EasyLoading.showError('请先获取验证码');
-      return;
-    }
+    // if (_captchaId == null) {
+    //   EasyLoading.showError('请先获取验证码');
+    //   return;
+    // }
 
     try {
       isLoading.value = true;
@@ -465,10 +465,10 @@ class LoginController extends GetxController {
       EasyLoading.showError('请输入验证码');
       return;
     }
-    if (_captchaId == null) {
-      EasyLoading.showError('请先获取验证码');
-      return;
-    }
+    // if (_captchaId == null) {
+    //   EasyLoading.showError('请先获取验证码');
+    //   return;
+    // }
 
     try {
       isLoading.value = true;

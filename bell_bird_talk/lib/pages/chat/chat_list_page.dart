@@ -849,7 +849,14 @@ class _ChatListPageState extends State<ChatListPage> {
     final globalController = Get.find<GlobalController>();
     final user = globalController.currentUser.value;
     final avatar = user?.avatar;
+    
     final nickname = user?.nickname ?? '我';
+
+    String userId = '';
+    if (user != null) {
+      userId = user.id;
+      
+    }
     
     return AppBar(
       leadingWidth: 56,
@@ -860,23 +867,7 @@ class _ChatListPageState extends State<ChatListPage> {
             // 点击头像打开侧边栏菜单
             showSideMenu(context);
           },
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.white.withOpacity(0.3),
-            backgroundImage: avatar != null && avatar.isNotEmpty
-                ? NetworkImage(avatar)
-                : null,
-            child: avatar == null || avatar.isEmpty
-                ? Text(
-                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
-          ),
+          child: _userHeadImgView(avatar ?? '', nickname,userId),
         ),
       ),
       title: const Text('聊天'),
@@ -895,6 +886,59 @@ class _ChatListPageState extends State<ChatListPage> {
 ),SizedBox(width: 16,)
       ],
     );
+  }
+
+  Future<String> _fetchUserAvatarUrl(String userId) async {
+    await Future.delayed(Duration(seconds: 2));
+    // 从数据库获取用户信息
+    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
+    String bg = res?['avatar_bg'] ?? '';
+
+    
+    return bg;
+  }
+
+  Widget _userHeadImgView(String avatar, String nickname, String userId){
+    return FutureBuilder(future: _fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
+
+
+      String bg = '';
+
+      if (snapshot.hasData && snapshot.data != null) {
+        bg = snapshot.data as String;
+      }
+      String bgcolorStr = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolorStr = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+        bgcolorStr = bgcolorStr.split('&').first;
+      }
+    }
+
+    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+
+      return CircleAvatar(
+            radius: 18,
+            backgroundColor: bgColor,
+            backgroundImage: avatar.isNotEmpty
+                ? NetworkImage(avatar)
+                : null,
+            child: avatar.isEmpty
+                ? Text(
+                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                    style: TextStyle(
+                      color: txtColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          );
+    });
   }
 
   /// 构建会话列表
@@ -1181,8 +1225,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 获取头像背景色
   Widget _getAvatarWidget(ConversationModel conversation, int convType, String bg) {
-    //avatar_bg
-    print('背景色: $bg');
+
     String bgcolor = '';
     String txtcolorStr = '';
     if (bg.isNotEmpty && bg.contains(':')) {

@@ -4,6 +4,7 @@ class UserModel {
   final String username;
   final String nickname;
   final String? avatar;
+  final String? avatarbg;
   final String? phone;
   final String? email;
   final int? gender; // 0: 未知, 1: 男, 2: 女
@@ -15,6 +16,7 @@ class UserModel {
     required this.id,
     required this.username,
     required this.nickname,
+    this.avatarbg,
     this.avatar,
     this.phone,
     this.email,
@@ -47,6 +49,7 @@ class UserModel {
       username: (json['username'] ?? json['account_id'] ?? json['accountId']) as String? ?? '',
       nickname: json['nickname'] as String? ?? '',
       avatar: json['avatar'] as String?,
+      avatarbg: json['avatar_bg'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       // 支持 gender / sex
@@ -65,6 +68,7 @@ class UserModel {
       'username': username,
       'nickname': nickname,
       'avatar': avatar,
+      'avatar_bg': avatarbg,
       'phone': phone,
       'email': email,
       'gender': gender,
@@ -92,6 +96,7 @@ class UserModel {
     String? username,
     String? nickname,
     String? avatar,
+    String? avatarbg,
     String? phone,
     String? email,
     int? gender,
@@ -104,6 +109,7 @@ class UserModel {
       username: username ?? this.username,
       nickname: nickname ?? this.nickname,
       avatar: avatar ?? this.avatar,
+      avatarbg: avatarbg ?? this.avatarbg,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       gender: gender ?? this.gender,

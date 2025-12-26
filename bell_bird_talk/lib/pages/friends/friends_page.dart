@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
+import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/utils/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
@@ -27,6 +31,7 @@ class _FriendsPageState extends State<FriendsPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final MessageDatabase _messageDatabase = MessageDatabase();
   
   final List<FriendModel> _friends = [];
   List<FriendModel> _filteredFriends = [];
@@ -86,7 +91,7 @@ class _FriendsPageState extends State<FriendsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: _isSearchMode ? _buildSearchAppBar() : _buildNormalAppBar(),
+      appBar: _buildNormalAppBar(),
       body: _isLoading && _friends.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : _buildMainContent(),
@@ -98,6 +103,160 @@ class _FriendsPageState extends State<FriendsPage> {
       ),
     );
   }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      GestureDetector(
+        child: Container(
+          width: 120,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(  'assets/img//chat/chatuseradd.png', width: 20, height: 20),
+                const SizedBox(width: 8),
+                const Text('添加好友'),
+              ], 
+            ),
+        ),
+        onTap: () {
+          Navigator.pop(  context); // 先关闭弹出菜单
+          Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddFriendPage (),
+      ),
+    );
+        }),
+        GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          width: 120,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(  'assets/img//chat/chataddchat.png', width: 20, height: 20),
+                const SizedBox(width: 8),
+                const Text('创建群聊'),
+              ],
+            ),
+        ),
+        onTap: () {
+          Navigator.pop(  context); // 先关闭弹出菜单
+          _createGroup();
+        }),
+    ];
+  }
+
+  /// 创建群聊
+  Future<void> _createGroup() async {
+    Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateGroupPage(),
+      ),
+    );
+  }
+
+  /// 构建普通 AppBar
+  PreferredSizeWidget _buildNormalAppBar() {
+    final globalController = Get.find<GlobalController>();
+    final user = globalController.currentUser.value;
+    final avatar = user?.avatar;
+    
+    final nickname = user?.nickname ?? '我';
+
+    String userId = '';
+    if (user != null) {
+      userId = user.id;
+      
+    }
+    
+    return AppBar(
+      leadingWidth: 56,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: GestureDetector(
+          onTap: () {
+            // 点击头像打开侧边栏菜单
+            showSideMenu(context);
+          },
+          child: _userHeadImgView(avatar ?? '', nickname,userId),
+        ),
+      ),
+      title: const Text('聊天'),
+      centerTitle: false,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      actions: [
+        CustomPopup(
+          // contentPadding: EdgeInsets.only(right: 16),
+  content: Column(
+  mainAxisSize: MainAxisSize.min,
+    children: _buildAppBarActions()
+  ),
+  child: Image.asset('assets/img/chat/chatadd.png', width: 24, height: 24),
+),SizedBox(width: 16,)
+      ],
+    );
+  }
+
+  Future<String> _fetchUserAvatarUrl(String userId) async {
+    await Future.delayed(Duration(seconds: 2));
+    // 从数据库获取用户信息
+    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
+    String bg = res?['avatar_bg'] ?? '';
+
+    
+    return bg;
+  }
+
+  Widget _userHeadImgView(String avatar, String nickname, String userId){
+    return FutureBuilder(future: _fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
+
+
+      String bg = '';
+
+      if (snapshot.hasData && snapshot.data != null) {
+        bg = snapshot.data as String;
+      }
+      String bgcolorStr = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolorStr = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+        bgcolorStr = bgcolorStr.split('&').first;
+      }
+    }
+
+    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+
+      return CircleAvatar(
+            radius: 18,
+            backgroundColor: bgColor,
+            backgroundImage: avatar.isNotEmpty
+                ? NetworkImage(avatar)
+                : null,
+            child: avatar.isEmpty
+                ? Text(
+                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                    style: TextStyle(
+                      color: txtColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          );
+    });
+  }
+
   
 
   @override
@@ -704,78 +863,6 @@ class _FriendsPageState extends State<FriendsPage> {
           ],
         ),
       ),
-    );
-  }
-
-  /// 普通 AppBar
-  AppBar _buildNormalAppBar() {
-    return AppBar(
-      title: const Text('好友'),
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: Colors.blue,
-      automaticallyImplyLeading: false,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: _openSearchPage,
-          tooltip: '搜索好友',
-        ),
-        IconButton(
-          icon: const Icon(Icons.person_add_outlined),
-          onPressed: () => Get.toNamed('/add-friend'),
-          tooltip: '添加好友',
-        ),
-      ],
-    );
-  }
-
-  /// 打开搜索页面
-  void _openSearchPage() {
-    Get.to(() => FriendSearchPage(friends: _friends));
-  }
-  
-  /// 搜索模式 AppBar
-  AppBar _buildSearchAppBar() {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Colors.blue,
-      automaticallyImplyLeading: false,
-      title: TextField(
-        controller: _searchController,
-        autofocus: true,
-        style: const TextStyle(color: Colors.white),
-        cursorColor: Colors.white,
-        decoration: InputDecoration(
-          hintText: '搜索好友',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-          border: InputBorder.none,
-          prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.7)),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white),
-                  onPressed: () {
-                    _searchController.clear();
-                    _filterFriends('');
-                  },
-                )
-              : null,
-        ),
-        onChanged: _filterFriends,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            _searchController.clear();
-            _filterFriends('');
-            setState(() => _isSearchMode = false);
-          },
-          child: const Text(
-            '取消',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-        ),
-      ],
     );
   }
 

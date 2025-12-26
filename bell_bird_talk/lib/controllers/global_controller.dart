@@ -10,6 +10,8 @@ import '../services/message_database.dart';
 
 /// 全局控制器 - 管理应用全局状态
 class GlobalController extends GetxController {
+
+  static GlobalController get to => Get.put(GlobalController());
   // 用户信息
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
   
@@ -392,6 +394,10 @@ class GlobalController extends GetxController {
               final user = UserModel.fromJson(userMap);
               currentUser.value = user;
               await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
+
+              // 根据user_id获取我的用户信息
+              String userId = userMap['user_id'] ?? '';
+              logMyPublicInfo(userId);
             }
           } catch (e) {
             print('⚠️ 解析登录数据失败: $e');
@@ -409,6 +415,37 @@ class GlobalController extends GetxController {
       return false;
     } finally {
       isAutoLogging.value = false;
+    }
+  }
+
+  // 获取用户信息
+  Future<void> logMyPublicInfo(String userId) async {
+    if (userId.isEmpty) {
+      return;
+    }
+    final nativeService = IOSNativeService();
+    try {
+      final result = await nativeService.imBatchGetUserPublicInfo(userIds: [userId]);
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final publicInfoList = json.decode(dataStr) as List<dynamic>;
+          
+          // 转换为数据库需要的格式
+          final usersInfo = publicInfoList
+              .where((info) => info is Map<String, dynamic>)
+              .map((info) => info as Map<String, dynamic>)
+              .toList();
+          
+          // 批量存储用户信息到数据库
+          if (usersInfo.isNotEmpty) {
+            await MessageDatabase().upsertUsers(usersInfo);
+            print('💾 已存储我的用户信息到数据库');
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ 获取并存储用户信息异常: $e');
     }
   }
   // 刷新Token
