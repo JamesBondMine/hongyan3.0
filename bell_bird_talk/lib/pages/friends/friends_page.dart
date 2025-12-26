@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../controllers/global_controller.dart';
+import '../../controllers/user_controller.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
 import 'friend_detail_page.dart';
@@ -223,7 +224,7 @@ class _FriendsPageState extends State<FriendsPage> {
         }
       }
       
-      final result = await _nativeService.imGetContactList(
+      final result = await UserController.to.getContactList(
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
         groupId: groupId,

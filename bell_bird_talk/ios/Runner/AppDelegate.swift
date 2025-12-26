@@ -3267,7 +3267,7 @@ class NativeBridgeHandler: NSObject {
             }
             
             result(response)
-        }
+        })
         
         if reqId == 0 {
             result(FlutterError(code: "CANCEL_DEACTIVATE_ACCOUNT_ERROR",
