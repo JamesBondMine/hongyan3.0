@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
 import 'chat_page.dart';
@@ -199,9 +200,56 @@ class _GroupChatPageState extends State<GroupChatPage> {
               );
             },
           ),
+          CustomPopup(
+          // contentPadding: EdgeInsets.only(right: 16),
+  content: Column(
+  mainAxisSize: MainAxisSize.min,
+    children: _buildAppBarActions()
+  ),
+  child: Image.asset('assets/img/chat/chatadd.png', width: 24, height: 24),
+),SizedBox(width: 16,)
         ],
       ),
     );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      popviewItem(context, '语音聊天', 'assets/img/chat/chataddchat.png', () {
+        print('发起群聊'); }),
+        popviewItem(context, '添加好友', 'assets/img/chat/chataddchat.png', () {
+        print('发起群聊'); }),
+        popviewItem(context, '搜索聊天', 'assets/img/chat/chataddchat.png', () {
+        print('发起群聊'); }),
+        popviewItem(context, '免打扰', 'assets/img/chat/chataddchat.png', () {
+        print('发起群聊'); }),
+        popviewItem(context, '更多设置', 'assets/img/chat/chataddchat.png', () {
+        print('发起群聊'); })
+    ];
+  }
+
+
+  Widget popviewItem(BuildContext context, String title, String imgPath, VoidCallback onTap) { 
+    return
+        GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          width: 120,
+          padding: const EdgeInsets.only(top: 10, bottom: 6, left: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
+                const SizedBox(width: 8),
+                Text(title),
+              ],
+            ),
+        ),
+        onTap: () {
+          Navigator.pop(  context); // 先关闭弹出菜单
+          onTap();
+          // _createGroup();
+        });
   }
 }
 

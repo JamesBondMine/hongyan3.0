@@ -1985,11 +1985,6 @@ class NativeBridgeHandler: NSObject {
         print("👤 批量获取用户公开信息: userIds=\(userIds)")
         
         let reqId = IMSDKUserManager.shared().batchGetUserPublicInfo(withUserIds: userIds) { errorCode, message, data, reqId in
-            print("AppDelegate 批量获取用户公开信息回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            // 将返回的数据转换为 JSON 字符串
-            print("📦 批量获取用户公开信息回调数据: \(String(describing: data))")
-            
             var dataStr = "[]"
             if let data = data, let usersValue = data["users"] {
                 // 处理 NSArray 或 Array 类型
@@ -2009,7 +2004,6 @@ class NativeBridgeHandler: NSObject {
                         let jsonData = try JSONSerialization.data(withJSONObject: array, options: [])
                         if let jsonString = String(data: jsonData, encoding: .utf8) {
                             dataStr = jsonString
-                            print("✅ 成功转换为 JSON: \(dataStr)")
                         }
                     } catch {
                         print("❌ JSON 序列化失败: \(error)")

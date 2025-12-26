@@ -662,22 +662,14 @@ class _ChatPageState extends State<ChatPage> {
     });
     
     try {
-      // 检查是否有@成员（群聊且消息中包含@）
+      // 检查是否有@成员（群聊且已@成员列表不为空）
       final hasAtMembers = widget.convType == 2 && 
                            widget.groupMembers != null && 
-                           text.contains('@');
+                           _atMembers.isNotEmpty;
       
       if (hasAtMembers) {
-        // 从文本中解析@成员信息
-        final parsedAtMembers = _parseAtMembersFromText(text);
-        
-        if (parsedAtMembers.isNotEmpty) {
-          // 发送@消息
-          await _sendAtMessage(text, parsedAtMembers);
-        } else {
-          // 没有找到匹配的@成员，发送普通文本消息
-          await _sendNormalTextMessage(text);
-        }
+        // 直接使用已存储的@成员信息发送@消息
+        await _sendAtMessage(text, _atMembers);
       } else {
         // 发送普通文本消息
         await _sendNormalTextMessage(text);
@@ -1804,57 +1796,61 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
   
-  /// 从输入框文本中解析@成员信息
-  List<Map<String, dynamic>> _parseAtMembersFromText(String text) {
-    final atMembers = <Map<String, dynamic>>[];
+  // /// 从输入框文本中解析@成员信息
+  // List<Map<String, dynamic>> _parseAtMembersFromText(String text) {
+
+
+  //   print(_atMembers);
+
+  //   final atMembers = <Map<String, dynamic>>[];
     
-    if (widget.groupMembers == null || widget.groupMembers!.isEmpty) {
-      return atMembers;
-    }
+  //   if (widget.groupMembers == null || widget.groupMembers!.isEmpty) {
+  //     return atMembers;
+  //   }
     
-    // 使用正则表达式匹配@昵称（匹配@后面直到空格或@符号的内容）
-    final regex = RegExp(r'@([^\s@]+)');
-    final matches = regex.allMatches(text);
+  //   // 使用正则表达式匹配@昵称（匹配@后面直到空格或@符号的内容）
+  //   final regex = RegExp(r'@([^\s@]+)');
+  //   final matches = regex.allMatches(text);
     
-    for (final match in matches) {
-      final atNickname = match.group(1) ?? '';
-      if (atNickname.isEmpty) continue;
+  //   for (final match in matches) {
+  //     final atNickname = match.group(1) ?? '';
+  //     if (atNickname.isEmpty) continue;
       
-      // 检查是否是@所有人
-      if (atNickname == '所有人') {
-        // 检查是否已添加（避免重复）
-        final exists = atMembers.any((m) => m['user_id'] == 'all');
-        if (!exists) {
-          atMembers.add({
-            'user_id': 'all',
-            'nickname': '所有人',
-          });
-        }
-        continue;
-      }
+  //     // 检查是否是@所有人
+  //     if (atNickname == '所有人') {
+  //       // 检查是否已添加（避免重复）
+  //       final exists = atMembers.any((m) => m['user_id'] == 'all');
+  //       if (!exists) {
+  //         atMembers.add({
+  //           'user_id': 'all',
+  //           'nickname': '所有人',
+  //         });
+  //       }
+  //       continue;
+  //     }
       
-      // 在群成员列表中查找匹配的成员
-      for (final member in widget.groupMembers!) {
-        final userId = (member['user_id'] as String?) ?? '';
-        final alias = (member['member_alias'] as String?) ?? '';
-        final nickname = alias.isNotEmpty ? alias : userId;
+  //     // 在群成员列表中查找匹配的成员
+  //     for (final member in widget.groupMembers!) {
+  //       final userId = (member['user_id'] as String?) ?? '';
+  //       final alias = (member['member_alias'] as String?) ?? '';
+  //       final nickname = alias.isNotEmpty ? alias : userId;
         
-        if (nickname == atNickname) {
-          // 检查是否已添加（避免重复）
-          final exists = atMembers.any((m) => m['user_id'] == userId);
-          if (!exists) {
-            atMembers.add({
-              'user_id': userId,
-              'nickname': nickname,
-            });
-          }
-          break;
-        }
-      }
-    }
+  //       if (nickname == atNickname) {
+  //         // 检查是否已添加（避免重复）
+  //         final exists = atMembers.any((m) => m['user_id'] == userId);
+  //         if (!exists) {
+  //           atMembers.add({
+  //             'user_id': userId,
+  //             'nickname': nickname,
+  //           });
+  //         }
+  //         break;
+  //       }
+  //     }
+  //   }
     
-    return atMembers;
-  }
+  //   return atMembers;
+  // }
 
   void _toggleVoicePanel() {
     // 检查是否禁言（群聊时）
