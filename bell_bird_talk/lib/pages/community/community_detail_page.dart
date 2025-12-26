@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'models/community_model.dart';
@@ -31,7 +32,7 @@ class CommunityDetailPage extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.blue[400]!,
-                    Colors.blue[600]!,
+                    AppColors.textTapPrimary,
                   ],
                 ),
               ),

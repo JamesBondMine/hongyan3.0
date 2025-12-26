@@ -40,6 +40,9 @@ class AppColors {
   /// 主要按钮文字颜色
   static const Color lightButtonTextPrimary = Color(0xFFFFFFFF);
 
+  /// 文字tap颜色
+  static const Color textTapPrimary = Color(0xFF1D61E7);
+
   /// 次要按钮颜色
   static const Color lightSecondaryButton = Color(0xFFE3F2FD);
 

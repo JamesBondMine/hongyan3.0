@@ -3,6 +3,7 @@ import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
+import 'package:bell_bird_talk/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -562,7 +563,7 @@ class _FriendsPageState extends State<FriendsPage> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Colors.blue[600],
+                  color: AppColors.textTapPrimary,
                 ),
               ),
             ),

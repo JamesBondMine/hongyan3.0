@@ -1,4 +1,6 @@
 import 'package:bell_bird_talk/controllers/login_controller.dart';
+import 'package:bell_bird_talk/utils/app_colors.dart';
+import 'package:bell_bird_talk/widgets/login_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'register_page.dart';
@@ -15,39 +17,46 @@ class LoginPage extends StatelessWidget {
     final controller = Get.put(LoginController());
 
     return Scaffold(
+      backgroundColor: AppColors.lightBackgroundPrimary ,
       body: Stack(
         children: [
-          // 背景渐变（上半部分）
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: Get.height * 0.6, // 上半部分高度
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft, // 左上
-                  end: Alignment.bottomRight, // 右下
-                  colors: [
-                    Colors.blue.shade200, // 淡蓝色
-                    Colors.white, // 白色
-                    Colors.purple.shade100, // 趋近于白色的淡紫色
-                  ],
-                ),
-              ),
-            ),
+          Image.asset(
+            'assets/img/login/loginbgsmall.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
+          // // 背景渐变（上半部分）
+          // Positioned(
+          //   top: 0,
+          //   left: 0,
+          //   right: 0,
+          //   height: Get.height * 0.6, // 上半部分高度
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       gradient: LinearGradient(
+          //         begin: Alignment.topLeft, // 左上
+          //         end: Alignment.bottomRight, // 右下
+          //         colors: [
+          //           Colors.blue.shade200, // 淡蓝色
+          //           Colors.white, // 白色
+          //           Colors.purple.shade100, // 趋近于白色的淡紫色
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
-          // 白色背景（下半部分）
-          Positioned(
-            top: Get.height * 0.4, // 从40%高度开始
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color: Colors.white,
-            ),
-          ),
+          // // 白色背景（下半部分）
+          // Positioned(
+          //   top: Get.height * 0.4, // 从40%高度开始
+          //   left: 0,
+          //   right: 0,
+          //   bottom: 0,
+          //   child: Container(
+          //     color: Colors.white,
+          //   ),
+          // ),
 
           // 主内容
           SafeArea(
@@ -297,36 +306,29 @@ class LoginPage extends StatelessWidget {
     return Obx(() => Column(
       children: [
         // 手机号输入框
-        TextField(
+        LoginTextField(
           controller: controller.phoneController,
+          title: '手机号',
+          hintText: '请输入手机号',
           keyboardType: TextInputType.phone,
-          decoration: InputDecoration(
-            labelText: '手机号',
-            hintText: '请输入手机号',
-            prefixIcon: InkWell(
-              onTap: () => showModalBottomSheet(
-                context: Get.context!,
-                builder: (context) => const CountryCodePage(),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Obx(() => Text(controller.selectedFlag.value, style: const TextStyle(fontSize: 18))),
-                    const SizedBox(width: 4),
-                    Obx(() => Text(controller.selectedCountryCode.value, style: const TextStyle(fontSize: 14, color: Colors.grey))),
-                    const SizedBox(width: 8),
-                    const Text('|', style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
+          prefixIcon: InkWell(
+            onTap: () => showModalBottomSheet(
+              context: Get.context!,
+              builder: (context) => const CountryCodePage(),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Obx(() => Text(controller.selectedFlag.value, style: const TextStyle(fontSize: 18))),
+                  const SizedBox(width: 4),
+                  Obx(() => Text(controller.selectedCountryCode.value, style: const TextStyle(fontSize: 14, color: Colors.grey))),
+                  const SizedBox(width: 8),
+                  const Text('|', style: TextStyle(color: Colors.grey)),
+                ],
               ),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: Colors.grey[50],
           ),
         ),
           
@@ -335,26 +337,19 @@ class LoginPage extends StatelessWidget {
         // 根据模式显示密码或验证码
         if (controller.smsUsePassword.value) ...[
           // 密码输入框
-          TextField(
+          LoginTextField(
             controller: controller.passwordController,
+            title: '密码',
+            hintText: '请输入密码',
             obscureText: controller.obscurePassword.value,
-            decoration: InputDecoration(
-              labelText: '密码',
-              hintText: '请输入密码',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  controller.obscurePassword.value
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: controller.togglePasswordVisibility,
+            // prefixIcon: const Icon(Icons.lock_outline),
+            suffixIcon: IconButton(
+              icon: Icon(
+                controller.obscurePassword.value
+                    ? Icons.visibility_off
+                    : Icons.visibility,
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+              onPressed: controller.togglePasswordVisibility,
             ),
           ),
         ] else ...[
@@ -387,7 +382,7 @@ class LoginPage extends StatelessWidget {
             child: Text(
               controller.smsUsePassword.value ? '验证码登录' : '密码登录',
               style: TextStyle(
-                color: Colors.blue[600],
+                color: AppColors.textTapPrimary,
                 fontSize: 13,
               ),
             ),
@@ -401,7 +396,7 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '忘记密码',
                   style: TextStyle(
-                    color: Colors.blue[600],
+                    color: AppColors.textTapPrimary,
                     fontSize: 13,
                   ),
                 ),
@@ -415,19 +410,12 @@ class LoginPage extends StatelessWidget {
     return Obx(() => Column(
       children: [
         // 邮箱输入框
-        TextField(
+        LoginTextField(
           controller: controller.emailController,
+          title: '邮箱',
+          hintText: '请输入邮箱地址',
           keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            labelText: '邮箱',
-            hintText: '请输入邮箱地址',
-            prefixIcon: const Icon(Icons.email_outlined),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: Colors.grey[50],
-          ),
+          prefixIcon: const Icon(Icons.email_outlined),
         ),
         
         const SizedBox(height: 16),
@@ -435,26 +423,19 @@ class LoginPage extends StatelessWidget {
         // 根据模式显示密码或验证码
         if (controller.emailUsePassword.value) ...[
           // 密码输入框
-          TextField(
+          LoginTextField(
             controller: controller.passwordController,
+            title: '密码',
+            hintText: '请输入密码',
             obscureText: controller.obscurePassword.value,
-            decoration: InputDecoration(
-              labelText: '密码',
-              hintText: '请输入密码',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  controller.obscurePassword.value
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: controller.togglePasswordVisibility,
+            prefixIcon: const Icon(Icons.lock_outline),
+            suffixIcon: IconButton(
+              icon: Icon(
+                controller.obscurePassword.value
+                    ? Icons.visibility_off
+                    : Icons.visibility,
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+              onPressed: controller.togglePasswordVisibility,
             ),
           ),
         ] else ...[
@@ -474,7 +455,7 @@ class LoginPage extends StatelessWidget {
             child: Text(
               controller.emailUsePassword.value ? '验证码登录' : '密码登录',
               style: TextStyle(
-                color: Colors.blue[600],
+                color: AppColors.textTapPrimary,
                 fontSize: 13,
               ),
             ),
@@ -488,7 +469,7 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '忘记密码',
                   style: TextStyle(
-                    color: Colors.blue[600],
+                    color: AppColors.textTapPrimary,
                     fontSize: 13,
                   ),
                 ),
@@ -506,77 +487,58 @@ class LoginPage extends StatelessWidget {
   
   /// 邀请码输入框
   Widget _buildInviteCodeInput(LoginController controller) {
-    return TextField(
+    return LoginTextField(
       controller: controller.inviteCodeController,
-      decoration: InputDecoration(
-        labelText: '邀请码',
-        hintText: '请输入邀请码（选填）',
-        prefixIcon: const Icon(Icons.card_giftcard_outlined),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
+      title: '邀请码',
+      hintText: '请输入邀请码（选填）',
+      // prefixIcon: const Icon(Icons.card_giftcard_outlined),
     );
   }
   
   /// 验证码输入行（验证码输入框 + 发送按钮）
   Widget _buildCodeInputRow(LoginController controller) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller.codeController,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            decoration: InputDecoration(
-              labelText: '验证码',
-              hintText: '请输入验证码',
-              prefixIcon: const Icon(Icons.security),
-              counterText: '',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+    return LoginTextField(
+      controller: controller.codeController,
+      title: '验证码',
+      keyboardType: TextInputType.number,
+      maxLength: 6,
+      hintText: '请输入验证码',
+      trailingWidget: Obx(() => Container(
+        margin: const EdgeInsets.only(right: 8),
+        child: TextButton(
+          onPressed: controller.countdown.value > 0 || controller.isSendingCode.value
+              ? null
+              : controller.sendVerificationCode,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-          Obx(() => SizedBox(
-          width: 110,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: controller.countdown.value > 0 || controller.isSendingCode.value
-                ? null
-                : controller.sendVerificationCode,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              disabledBackgroundColor: Colors.grey[300],
-            ),
-            child: controller.isSendingCode.value
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Text(
-                    controller.countdown.value > 0
-                        ? '${controller.countdown.value}s'
-                        : '获取验证码',
-                    style: const TextStyle(fontSize: 13),
+          child: controller.isSendingCode.value
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                   ),
-          ),
-        )),
-      ],
+                )
+              : Text(
+                  controller.countdown.value > 0
+                      ? '${controller.countdown.value}s'
+                      : '获取验证码',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: controller.countdown.value > 0 || controller.isSendingCode.value
+                        ? Colors.grey
+                        : Colors.blue,
+                  ),
+                ),
+        ),
+      )),
     );
   }
   
@@ -645,7 +607,7 @@ class LoginPage extends StatelessWidget {
             Text(
               '去注册',
               style: TextStyle(
-                color: Colors.blue,
+                color: AppColors.textTapPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
