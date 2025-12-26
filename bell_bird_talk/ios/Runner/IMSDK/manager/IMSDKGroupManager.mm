@@ -1406,22 +1406,14 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     }
     
     BParam * bp = [[BParam alloc] init];
+    bp.param = groupId;
     
     
+    NSData * dataNs = [bp data];
     
-    // 创建一个简单的请求数据，包含是否免打扰的状态
-    NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
-    requestDict[@"disturb"] = @(disturb);
+    const char *data = (const char *)dataNs.bytes;
     
-    NSError *jsonError = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&jsonError];
-    if (!jsonData || jsonError) {
-        NSLog(@"❌ JSON 序列化失败: %@", jsonError);
-        return -1;
-    }
-    
-    const char *data = (const char *)jsonData.bytes;
-    int dataLen = (int)jsonData.length;
+    int dataLen = (int)dataNs.length;
     uint64_t reqId = 0;
     const char *targetId = [groupId UTF8String];
     
@@ -1458,17 +1450,12 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
         return -1;
     }
     
-    // 查询接口可以传递空数据或简单的查询参数
-    NSMutableDictionary *requestDict = [NSMutableDictionary dictionary];
-    NSError *jsonError = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&jsonError];
-    if (!jsonData || jsonError) {
-        NSLog(@"❌ JSON 序列化失败: %@", jsonError);
-        return -1;
-    }
     
-    const char *data = (const char *)jsonData.bytes;
-    int dataLen = (int)jsonData.length;
+    BParam * bp = [[BParam alloc] init];
+    bp.param = groupId;
+    NSData * dataNs = [bp data];
+    const char *data = (const char *)dataNs.bytes;
+    int dataLen = (int)dataNs.length;
     uint64_t reqId = 0;
     const char *targetId = [groupId UTF8String];
     

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_popup/flutter_popup.dart';
@@ -289,16 +290,6 @@ class _ChatListPageState extends State<ChatListPage> {
               final networkConversations = conversations
                   .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
                   .toList();
-              
-              // 调用原生更新会话接口，确保会话信息同步到 SDK
-              // for (final conv in networkConversations) {
-              //   _nativeService.imUpdateConversation(
-              //     convId: conv.convId,
-              //     displayName: conv.displayName,
-              //     avatarUrl: conv.avatar,
-              //   );
-              // }
-              
               // 合并本地和网络数据
               final mergedConversations = await _mergeConversations(
                 userId,
@@ -817,15 +808,20 @@ class _ChatListPageState extends State<ChatListPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.group_add_outlined, color: Colors.green),
+                Image.asset(  'assets/img//chat/chatuseradd.png', width: 20, height: 20),
                 const SizedBox(width: 8),
-                const Text('创建群聊'),
-              ],
+                const Text('添加好友'),
+              ], 
             ),
         ),
         onTap: () {
-          // 发起单聊
-          EasyLoading.showInfo('发起单聊');
+          Navigator.pop(  context); // 先关闭弹出菜单
+          Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddFriendPage (),
+      ),
+    );
         }),
         GestureDetector(
         child: Container(
@@ -835,13 +831,14 @@ class _ChatListPageState extends State<ChatListPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.group_add_outlined, color: Colors.green),
+                Image.asset(  'assets/img//chat/chataddchat.png', width: 20, height: 20),
                 const SizedBox(width: 8),
                 const Text('创建群聊'),
               ],
             ),
         ),
         onTap: () {
+          Navigator.pop(  context); // 先关闭弹出菜单
           _createGroup();
         }),
     ];
@@ -1027,6 +1024,7 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 构建会话项
   Widget _buildConversationItem(ConversationModel conversation) {
+    
     return InkWell(
       onTap: () => _openChat(conversation),
       onLongPress: () => _showConversationOptions(conversation),
@@ -1111,7 +1109,7 @@ class _ChatListPageState extends State<ChatListPage> {
                       Expanded(
                         child: Row(children: [
                           Text(
-                          conversation.displayName,
+                          conversation.displayName ,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -1120,7 +1118,7 @@ class _ChatListPageState extends State<ChatListPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         // 免打扰图标
-                      if (!conversation.disturb)
+                      if (conversation.disturb  == true)
                         Padding(
                           padding: const EdgeInsets.only(left: 2),
                           child: Icon(

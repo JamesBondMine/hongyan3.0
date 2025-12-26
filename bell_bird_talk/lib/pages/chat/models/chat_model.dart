@@ -72,6 +72,7 @@ class ConversationModel {
       atMeCount: json['at_me_count'] as int? ?? 0,
       mentionAll: (json['mention_all'] as int? ?? 0) == 1 || json['mention_all'] == true,
       disturb: json['disturb'] ?? false,
+      
       groupMemberCount: json['group_member_count'] as int? ?? 0,
       ext: json['ext'],
     );
@@ -98,7 +99,7 @@ class ConversationModel {
       'draft': draft,
       'at_me_count': atMeCount,
       'mention_all': mentionAll ? 1 : 0,
-      'disturb': disturb ? 1 : 0,
+      'disturb': disturb,
       'group_member_count': groupMemberCount,
       'ext': ext,
     };
@@ -124,6 +125,7 @@ class ConversationModel {
     String? draft,
     int? atMeCount,
     bool? mentionAll,
+    bool? disturb,
     int? groupMemberCount,
     String? ext,
   }) {
@@ -146,6 +148,7 @@ class ConversationModel {
       draft: draft ?? this.draft,
       atMeCount: atMeCount ?? this.atMeCount,
       mentionAll: mentionAll ?? this.mentionAll,
+      disturb: disturb ?? this.disturb,
       groupMemberCount: groupMemberCount ?? this.groupMemberCount,
       ext: ext ?? this.ext,
     );
