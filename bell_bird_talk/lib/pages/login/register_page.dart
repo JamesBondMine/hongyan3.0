@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/models/user_model.dart';
-import 'package:bell_bird_talk/utils/app_colors.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -59,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackgroundPrimary,
+      backgroundColor: GbsColors.lightBackgroundA,
       body: Stack(
         children: [
           Image.asset(

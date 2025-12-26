@@ -4,7 +4,7 @@ import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:bell_bird_talk/pages/notification/notification_page.dart';
 import 'package:bell_bird_talk/services/message_database.dart';
-import 'package:bell_bird_talk/utils/app_colors.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -168,7 +168,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
             Text(
               nickname,
               style: const TextStyle(
-                color: AppColors.lightTitlePrimary,
+                color: GbsColors.lightTitlePrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -181,7 +181,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
               Text(
                 'ID: $userId',
                 style: TextStyle(
-                  color: AppColors.lightTitlePrimary,
+                  color: GbsColors.lightTitlePrimary,
                   fontSize: 13,
                 ),
               ),

@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
-import '../../utils/app_colors.dart';
+import '../../utils/gbs_colors.dart';
 
 
 /// 添加好友页面
@@ -45,12 +45,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackgroundPrimary,
+      backgroundColor: GbsColors.lightBackgroundB,
       appBar: AppBar(
         title: const Text('添加好友'),
         centerTitle: true,
-        backgroundColor: AppColors.lightAppBarPrimary,
-        foregroundColor: AppColors.lightAppBarTitle,
+        backgroundColor: GbsColors.lightAppBarColorA,
+        foregroundColor: GbsColors.lightAppBarTitle,
         elevation: 0,
       ),
       body: Column(

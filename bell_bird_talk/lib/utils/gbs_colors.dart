@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 
 /// 应用颜色配置类
 /// 支持亮色模式和深色模式的颜色定义
-class AppColors {
+class GbsColors {
   // 私有构造函数，防止实例化
-  AppColors._();
+  GbsColors._();
 
   // ===========================================================================
   // 亮色模式颜色定义
   // ===========================================================================
 
   /// 页面背景主色A - 主要背景色
-  static const Color lightBackgroundPrimary = Color(0xFFF5F5F5);
+  static const Color lightBackgroundA = Color(0xFFF3F3F3);
 
   /// 页面背景主色B - 次要背景色
-  static const Color lightBackgroundSecondary = Color(0xFFFFFFFF);
+  static const Color lightBackgroundB = Color(0xFFFFFFFF);
 
   /// 主要按钮颜色
   static const Color lightPrimaryButton = Color(0xFF2196F3);
@@ -23,10 +23,10 @@ class AppColors {
   static const Color lightCardPrimary = Color(0xFFFFFFFF);
 
   /// APPBar的主色A - 主要背景
-  static const Color lightAppBarPrimary = Color(0xFFFFFFFF);
+  static const Color lightAppBarColorA = Color(0xFFFFFFFF);
 
   /// APPBar的主色B - 次要背景（渐变用）
-  static const Color lightAppBarSecondary = Color(0xFFF8F9FA);
+  static const Color lightAppBarColorB = Color(0xFFF3F3F3);
 
   /// APPBar的标题颜色
   static const Color lightAppBarTitle = Color(0xFF212121);
@@ -186,11 +186,11 @@ class AppColors {
 
   /// 根据是否为深色模式获取对应的颜色
   static Color getBackgroundPrimary(bool isDark) {
-    return isDark ? darkBackgroundPrimary : lightBackgroundPrimary;
+    return isDark ? darkBackgroundPrimary : lightBackgroundA;
   }
 
   static Color getBackgroundSecondary(bool isDark) {
-    return isDark ? darkBackgroundSecondary : lightBackgroundSecondary;
+    return isDark ? darkBackgroundSecondary : lightBackgroundB;
   }
 
   static Color getPrimaryButton(bool isDark) {
@@ -202,11 +202,11 @@ class AppColors {
   }
 
   static Color getAppBarPrimary(bool isDark) {
-    return isDark ? darkAppBarPrimary : lightAppBarPrimary;
+    return isDark ? darkAppBarPrimary : lightAppBarColorA;
   }
 
   static Color getAppBarSecondary(bool isDark) {
-    return isDark ? darkAppBarSecondary : lightAppBarSecondary;
+    return isDark ? darkAppBarSecondary : lightAppBarColorB;
   }
 
   static Color getAppBarTitle(bool isDark) {

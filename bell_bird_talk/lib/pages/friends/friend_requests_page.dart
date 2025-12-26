@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/constants.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
-
 
 /// 好友/群组申请列表页面
 class FriendRequestsPage extends StatefulWidget {
@@ -228,6 +229,37 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
     }
   }
 
+  /// 按日期分组好友请求
+Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
+  final Map<String, List<FriendRequestModel>> groupedRequests = {};
+
+  for (final request in _friendRequests) {
+    // 将毫秒时间戳转换为DateTime对象
+    final requestDate = DateTime.fromMillisecondsSinceEpoch(request.requestTime);
+    final requestDateOnly = DateTime(requestDate.year, requestDate.month, requestDate.day);
+    
+    // 获取今天的日期
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    
+    String dateLabel;
+    if (requestDateOnly.difference(todayDateOnly).inDays == 0) {
+      dateLabel = '今天';
+    } else {
+      // 格式化日期为 "MM月dd日 星期X"
+      final weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      dateLabel = '${requestDate.month}月${requestDate.day}日 星期${weekdays[requestDate.weekday - 1]}';
+    }
+    
+    if (!groupedRequests.containsKey(dateLabel)) {
+      groupedRequests[dateLabel] = [];
+    }
+    groupedRequests[dateLabel]!.add(request);
+  }
+
+  return groupedRequests;
+}
+
   @override
   Widget build(BuildContext context) {
     final isFriend = widget.type == RequestType.friend;
@@ -239,12 +271,12 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
         Get.back(result: _hasChanges);
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: GbsColors.lightAppBarColorB,
         appBar: AppBar(
           title: Text(isFriend ? '好友申请' : '群组申请'),
           centerTitle: true,
           elevation: 0,
-          backgroundColor: Colors.blue,
+          backgroundColor: GbsColors.lightAppBarColorB,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Get.back(result: _hasChanges),
@@ -270,33 +302,106 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       return _buildEmptyView();
     }
     
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollEndNotification &&
-            notification.metrics.extentAfter < 100 &&
-            _hasMore &&
-            !_isLoading) {
-          _loadMore();
-        }
-        return false;
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: requests.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == requests.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
+    if (isFriend) {
+      // 好友申请按日期分组显示
+      final groupedRequests = _groupRequestsByDate();
+      final allDateKeys = groupedRequests.keys.toList();
+      
+      return NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollEndNotification &&
+              notification.metrics.extentAfter < 100 &&
+              _hasMore &&
+              !_isLoading) {
+            _loadMore();
           }
-          
-          if (widget.type == RequestType.friend) {
-            return _buildFriendRequestItem(_friendRequests[index]);
-          } else {
-            return _buildGroupRequestItem(_groupRequests[index]);
-          }
+          return false;
         },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: allDateKeys.length * 2 + (_hasMore ? 1 : 0), // 每组包括日期头和请求列表
+          itemBuilder: (context, index) {
+            if (index == allDateKeys.length * 2) {
+              // 加载更多指示器
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            
+            final groupIndex = index ~/ 2;
+            final isHeader = index % 2 == 0;
+            
+            if (isHeader) {
+              // 日期头部
+              return _buildDateHeader(allDateKeys[groupIndex]);
+            } else {
+              // 请求列表
+              final requestsForDate = groupedRequests[allDateKeys[groupIndex]]!;
+              return Column(
+                children: requestsForDate.map((request) => 
+                  _buildFriendRequestItem(request)
+                ).toList(),
+              );
+            }
+          },
+        ),
+      );
+    } else {
+      // 群组申请保持原有逻辑
+      return NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollEndNotification &&
+              notification.metrics.extentAfter < 100 &&
+              _hasMore &&
+              !_isLoading) {
+            _loadMore();
+          }
+          return false;
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: requests.length + (_hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == requests.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            
+            return _buildGroupRequestItem(_groupRequests[index]);
+          },
+        ),
+      );
+    }
+  }
+  
+  /// 日期头部
+  Widget _buildDateHeader(String dateLabel) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 16),
+      margin: const EdgeInsets.only(top: 16),
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorB,
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey[200]!,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            dateLabel,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -352,138 +457,100 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            // 用户信息行
-            Row(
-              children: [
-                // 头像
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.orange[100],
-                  backgroundImage: request.requesterAvatar != null
-                      ? NetworkImage(request.requesterAvatar!)
-                      : null,
-                  child: request.requesterAvatar == null
-                      ? Text(
-                          request.requesterName.isNotEmpty
-                              ? request.requesterName[0].toUpperCase()
-                              : '?',
-                          style: TextStyle(
-                            color: Colors.orange[700],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                
-                // 名称和时间
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        request.requesterName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        request.formattedTime,
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // 状态标签
-                if (!request.isPending)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: request.status == 1
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.grey.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      request.status == 1 ? '已同意' : '已拒绝',
+            // 左侧 - 头像
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.orange[100],
+              backgroundImage: request.requesterAvatar != null
+                  ? NetworkImage(request.requesterAvatar!)
+                  : null,
+              child: request.requesterAvatar == null
+                  ? Text(
+                      request.requesterName.isNotEmpty
+                          ? request.requesterName[0].toUpperCase()
+                          : '?',
                       style: TextStyle(
-                        color: request.status == 1 ? Colors.green : Colors.grey,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.orange[700],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
-                    ),
-                  ),
-              ],
+                    )
+                  : null,
             ),
             
-            // 验证消息
-            if (request.message != null && request.message!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '验证消息: ${request.message}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
+            const SizedBox(width: 12),
             
-            // 操作按钮（仅待处理状态显示）
-            if (request.isPending) ...[
-              const SizedBox(height: 16),
+            // 中间 - 用户信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    request.requesterName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // 假设账号信息在另一个字段中，如果没有则显示时间
+                  Text(
+                    request.formattedTime, // 替换为实际的账号字段，例如 request.account
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 14,
+                    ),
+                  ),
+                  // 如果有验证消息，则显示
+                  if (request.message != null && request.message!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      '验证消息: ${request.message}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
+            // 右侧 - 操作按钮
+            if (request.isPending)
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _rejectFriendRequest(request),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey[600],
-                        side: BorderSide(color: Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: const Text('拒绝'),
+                  IconButton(
+                    onPressed: () => _rejectFriendRequest(request),
+                    icon: Image.asset(  'assets/img/user/request_off.png',
+                      width: 24,
+                      height: 24,
                     ),
+                    // style: IconButton.styleFrom(
+                    //   backgroundColor: Colors.grey[100],
+                    //   padding: const EdgeInsets.all(8),
+                    //   shape: const CircleBorder(),
+                    // ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _acceptFriendRequest(request),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: const Text('同意'),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => _acceptFriendRequest(request),
+                    icon: Image.asset(  'assets/img/user/request_on.png',
+                      width: 24,
+                      height: 24,
                     ),
+                    // style: IconButton.styleFrom(
+                    //   backgroundColor: Colors.blue,
+                    //   padding: const EdgeInsets.all(8),
+                    //   shape: const CircleBorder(),
+                    // ),
                   ),
                 ],
               ),
-            ],
           ],
         ),
       ),
@@ -629,4 +696,3 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
     );
   }
 }
-

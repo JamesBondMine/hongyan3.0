@@ -6,7 +6,7 @@ import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart' hide FriendRequestModel;
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
-import 'package:bell_bird_talk/utils/app_colors.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
@@ -286,13 +286,19 @@ class _FriendsPageState extends State<FriendsPage> {
           final data = json.decode(dataStr);
           final requestsJson = data['requests'] as List? ?? [];
           
+          final globalCtrl = Get.find<GlobalController>();
+          final requestCount = data['total_count'] ?? 0;
+          
           setState(() {
-            _groupRequestCount = data['total_count'] ?? 0;
+            _groupRequestCount = requestCount;
             _friendRequests.clear();
             _friendRequests.addAll(
               requestsJson.map((json) => FriendRequestModel.fromJson(json)).toList(),
             );
           });
+          
+          // 同步更新全局控制器中的好友申请数量
+          globalCtrl.groupRequestCount.value = requestCount;
         }
       }
     } catch (e) {
@@ -722,7 +728,7 @@ class _FriendsPageState extends State<FriendsPage> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textTapPrimary,
+                  color: GbsColors.textTapPrimary,
                 ),
               ),
             ),

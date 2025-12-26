@@ -231,9 +231,15 @@ class _HomePageState extends State<HomePage> {
           ),
           label: '聊天',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.people_outline),
-          activeIcon: Icon(Icons.people),
+        BottomNavigationBarItem(
+          icon: _buildIconWithBadge(
+            icon: Icons.people_outline,
+            unreadCount: _globalCtrl.groupRequestCount.value,
+          ),
+          activeIcon: _buildIconWithBadge(
+            icon: Icons.people,
+            unreadCount: _globalCtrl.groupRequestCount.value,
+          ),
           label: '好友',
         ),
         const BottomNavigationBarItem(

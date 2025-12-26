@@ -49,7 +49,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       appBar: AppBar(
         title: const Text('添加好友'),
         centerTitle: true,
-        backgroundColor: AppColors.lightAppBarPrimary,
+        backgroundColor: AppColors.lightAppBarColorA,
         foregroundColor: AppColors.lightAppBarTitle,
         elevation: 0,
       ),

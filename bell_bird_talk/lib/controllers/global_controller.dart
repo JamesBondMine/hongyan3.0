@@ -38,6 +38,9 @@ class GlobalController extends GetxController {
   // 未读消息数
   final RxInt unreadCount = 0.obs;
   
+  // 好友申请数量（群组申请）
+  final RxInt groupRequestCount = 0.obs;
+  
   // 刷新触发器（用于通知页面刷新）
   final RxInt refreshFriendList = 0.obs;
   final RxInt refreshFriendRequests = 0.obs;

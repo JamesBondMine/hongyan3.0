@@ -1,5 +1,5 @@
 import 'package:bell_bird_talk/controllers/login_controller.dart';
-import 'package:bell_bird_talk/utils/app_colors.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/login_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
     final controller = Get.put(LoginController());
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackgroundPrimary ,
+      backgroundColor: GbsColors.lightBackgroundA ,
       body: Stack(
         children: [
           Image.asset(
@@ -350,7 +350,7 @@ class LoginPage extends StatelessWidget {
             child: Text(
               controller.smsUsePassword.value ? '验证码登录' : '密码登录',
               style: TextStyle(
-                color: AppColors.textTapPrimary,
+                color: GbsColors.textTapPrimary,
                 fontSize: 13,
               ),
             ),
@@ -364,7 +364,7 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '忘记密码',
                   style: TextStyle(
-                    color: AppColors.textTapPrimary,
+                    color: GbsColors.textTapPrimary,
                     fontSize: 13,
                   ),
                 ),
@@ -423,7 +423,7 @@ class LoginPage extends StatelessWidget {
             child: Text(
               controller.emailUsePassword.value ? '验证码登录' : '密码登录',
               style: TextStyle(
-                color: AppColors.textTapPrimary,
+                color: GbsColors.textTapPrimary,
                 fontSize: 13,
               ),
             ),
@@ -437,7 +437,7 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '忘记密码',
                   style: TextStyle(
-                    color: AppColors.textTapPrimary,
+                    color: GbsColors.textTapPrimary,
                     fontSize: 13,
                   ),
                 ),
@@ -575,7 +575,7 @@ class LoginPage extends StatelessWidget {
             Text(
               '去注册',
               style: TextStyle(
-                color: AppColors.textTapPrimary,
+                color: GbsColors.textTapPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),

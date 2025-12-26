@@ -80,11 +80,11 @@
         g_initResult = -1;
         
          // 添加目标服务器
-//        NSString *serverIP = @"175.178.227.41";
-//        int serverPort = 8885;
+        NSString *serverIP = @"175.178.227.41";
+        int serverPort = 8885;
         
-        NSString *serverIP = @"10.226.7.239";
-        int serverPort = 5280;
+//        NSString *serverIP = @"10.226.7.239";
+//        int serverPort = 5280;
 
         // 先测试服务器连通性
         NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
