@@ -320,7 +320,11 @@ class LoginController extends GetxController {
       print('🔐 密码登录结果: $result');
       
       await _handleLoginResult(result, username);
-      
+
+      String userId = result['data']['user_id'] as String? ?? '';
+      if (userId.isNotEmpty) {
+        GlobalController.to.logMyPublicInfo(userId);
+      }
     } catch (e) {
       print('登录错误: $e');
       EasyLoading.showError('登录失败，请稍后重试');
@@ -381,11 +385,6 @@ class LoginController extends GetxController {
       EasyLoading.showError('请输入验证码');
       return;
     }
-    // if (_captchaId == null) {
-    //   EasyLoading.showError('请先获取验证码');
-    //   return;
-    // }
-
     try {
       isLoading.value = true;
       EasyLoading.show(status: '登录中...');
@@ -404,6 +403,7 @@ class LoginController extends GetxController {
       print('📱 短信登录结果: $result');
       
       await _handleLoginResult(result, phone);
+
       
     } catch (e) {
       print('登录错误: $e');
@@ -443,6 +443,8 @@ class LoginController extends GetxController {
       print('📧 邮箱密码登录结果: $result');
       
       await _handleLoginResult(result, email);
+
+      
       
     } catch (e) {
       print('登录错误: $e');
@@ -528,6 +530,10 @@ class LoginController extends GetxController {
           if (userMap != null) {
             user = UserModel.fromJson(userMap);
             print('👤 用户信息: ${user.nickname}');
+            String userId = user.id ;
+      if (userId.isNotEmpty) {
+        GlobalController.to.logMyPublicInfo(userId);
+      }
           }
         } catch (e) {
           print('⚠️ 解析登录数据失败: $e');

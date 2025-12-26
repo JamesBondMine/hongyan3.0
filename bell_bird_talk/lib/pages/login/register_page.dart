@@ -979,6 +979,10 @@ class _RegisterPageState extends State<RegisterPage> {
               
               if (loginSuccess) {
                 print('✅ Token 自动登录成功');
+                String userId = result['data']['user_id'] as String? ?? '';
+      if (userId.isNotEmpty) {
+        GlobalController.to.logMyPublicInfo(userId);
+      }
                 EasyLoading.showSuccess('注册成功');
                 
                 // 延迟后跳转到首页
