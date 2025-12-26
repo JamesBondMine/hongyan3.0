@@ -186,7 +186,7 @@ class _FriendsPageState extends State<FriendsPage> {
           child: _userHeadImgView(avatar ?? '', nickname,userId),
         ),
       ),
-      title: const Text('聊天'),
+      title: const Text('好友'),
       centerTitle: false,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,

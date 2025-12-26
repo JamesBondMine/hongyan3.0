@@ -3,6 +3,7 @@ import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:bell_bird_talk/pages/notification/notification_page.dart';
+import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:bell_bird_talk/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
   final IOSNativeService _nativeService = IOSNativeService();
   int _notificationUnread = 0;
   bool _fetchingUnread = false;
+  final MessageDatabase _messageDatabase = MessageDatabase();
   
   @override
   void initState() {
@@ -128,6 +130,9 @@ class _SideMenuContentState extends State<SideMenuContent> {
       final avatar = user?.avatar;
       final nickname = user?.nickname ?? '未设置昵称';
       final userId = user?.id ?? '';
+
+
+
       return Container(
         padding:  EdgeInsets.only(top: 16, left: 20, right: 20),
         decoration: BoxDecoration(
@@ -145,23 +150,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
             // 头像
             GestureDetector(
               onTap: () => Get.toNamed('/profile'),
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white.withOpacity(0.3),
-                backgroundImage: avatar != null && avatar.isNotEmpty
-                    ? NetworkImage(avatar)
-                    : null,
-                child: avatar == null || avatar.isEmpty
-                    ? Text(
-                        nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
+              child: _userHeadImgView(avatar ?? '', nickname, userId),
             ),
             
             const SizedBox(height: 12),
@@ -204,6 +193,74 @@ class _SideMenuContentState extends State<SideMenuContent> {
           ],
         ),
       ));
+    });
+  }
+
+  Future<String> _fetchUserAvatarUrl(String userId) async {
+    await Future.delayed(Duration(seconds: 2));
+    // 从数据库获取用户信息
+    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
+    String bg = res?['avatar_bg'] ?? '';
+
+    
+    return bg;
+  }
+
+  Widget _userHeadImgView(String avatar, String nickname, String userId){
+    return FutureBuilder(future: _fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
+
+
+      String bg = '';
+
+      if (snapshot.hasData && snapshot.data != null) {
+        bg = snapshot.data as String;
+      }
+      String bgcolorStr = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolorStr = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+        bgcolorStr = bgcolorStr.split('&').first;
+      }
+    }
+
+    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+
+      return Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: bgColor,
+          image: avatar.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(avatar),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: CircleAvatar(
+            radius: 18,
+            
+            backgroundColor: bgColor,
+            backgroundImage: avatar.isNotEmpty
+                ? NetworkImage(avatar)
+                : null,
+            child: avatar.isEmpty
+                ? Text(
+                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                    style: TextStyle(
+                      color: txtColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+      );
     });
   }
 
@@ -373,23 +430,6 @@ class _SideMenuContentState extends State<SideMenuContent> {
         ],
       ),
     );
-  }
-
-  /// 隐藏邮箱中间部分
-  String _maskEmail(String email) {
-    if (email.isEmpty) return '';
-    final parts = email.split('@');
-    if (parts.length != 2) return email;
-    final name = parts[0];
-    final domain = parts[1];
-    if (name.length <= 2) return email;
-    return '${name.substring(0, 2)}***@$domain';
-  }
-
-  /// 隐藏手机号中间部分
-  String _maskPhone(String phone) {
-    if (phone.length < 7) return phone;
-    return '${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}';
   }
 }
 
