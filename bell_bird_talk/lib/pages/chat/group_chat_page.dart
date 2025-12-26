@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import '../../services/native_bridge.dart';
@@ -215,21 +216,27 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   List<Widget> _buildAppBarActions() {
     return [
-      popviewItem(context, '语音聊天', 'assets/img/chat/chataddchat.png', () {
+      popviewItem(context, '语音聊天', 'msgitemphone', () {
         print('发起群聊'); }),
-        popviewItem(context, '添加好友', 'assets/img/chat/chataddchat.png', () {
+        popviewItem(context, '添加好友', 'msgitemadd', () {
+        Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddFriendPage (),
+      ),
+    );
+     }),
+        popviewItem(context, '搜索聊天', 'msgitemchat', () {
         print('发起群聊'); }),
-        popviewItem(context, '搜索聊天', 'assets/img/chat/chataddchat.png', () {
+        popviewItem(context, '免打扰', 'msgitemdistunb', () {
         print('发起群聊'); }),
-        popviewItem(context, '免打扰', 'assets/img/chat/chataddchat.png', () {
-        print('发起群聊'); }),
-        popviewItem(context, '更多设置', 'assets/img/chat/chataddchat.png', () {
+        popviewItem(context, '更多设置', 'msgitemmore', () {
         print('发起群聊'); })
     ];
   }
 
 
-  Widget popviewItem(BuildContext context, String title, String imgPath, VoidCallback onTap) { 
+  Widget popviewItem(BuildContext context, String title, String img, VoidCallback onTap) { 
     return
         GestureDetector(
         child: Container(
@@ -239,7 +246,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
+                Image.asset('assets/img//msg/$img.png', width: 20, height: 20),
                 const SizedBox(width: 8),
                 Text(title),
               ],
