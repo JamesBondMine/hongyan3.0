@@ -104,6 +104,13 @@ typedef void (^IMSDKUserCompletion)(int errorCode, NSString * _Nullable message,
 - (uint64_t)getDeactivateStatusWithUserId:(NSString *)userId
                                completion:(IMSDKUserCompletion)completion;
 
+/// 撤回注销用户
+/// @param userId 用户ID（必填）
+/// @param completion 完成回调
+/// @return 请求ID，失败返回0
+- (uint64_t)cancelDeactivateAccountWithUserId:(NSString *)userId
+                                     completion:(IMSDKUserCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

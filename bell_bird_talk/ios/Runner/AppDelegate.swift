@@ -316,6 +316,8 @@ class NativeBridgeHandler: NSObject {
             imDeactivateAccount(call: call, result: result)
         case "imGetDeactivateStatus":
             imGetDeactivateStatus(call: call, result: result)
+        case "imCancelDeactivateAccount":
+            imCancelDeactivateAccount(call: call, result: result)
             
 
         case "imChangePassword":
@@ -3228,6 +3230,48 @@ class NativeBridgeHandler: NSObject {
         if reqId == 0 {
             result(FlutterError(code: "GET_DEACTIVATE_STATUS_ERROR",
                               message: "获取注销状态请求发送失败",
+                              details: nil))
+        }
+    }
+    
+    /// 撤回注销用户
+    private func imCancelDeactivateAccount(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String, !userId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "user_id 不能为空", details: nil))
+            return
+        }
+        
+        print("🔄 撤回注销用户: userId=\(userId)")
+        
+        let reqId = IMSDKUserManager.shared().cancelDeactivateAccount(withUserId: userId, completion: { errorCode, message, data, reqId in
+            print("✅ 撤回注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            // 构建返回数据
+            var response: [String: Any] = [
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": message ?? ""
+            ]
+            
+            if let data = data {
+                // 将数据转换为 JSON 字符串
+                if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    response["data"] = jsonString
+                }
+            }
+            
+            result(response)
+        }
+        
+        if reqId == 0 {
+            result(FlutterError(code: "CANCEL_DEACTIVATE_ACCOUNT_ERROR",
+                              message: "撤回注销用户请求失败",
                               details: nil))
         }
     }

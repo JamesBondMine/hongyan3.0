@@ -57,6 +57,47 @@ void DeleteUserCallback(int errorCode, const char* data, int dataLen, uint64_t r
 }
 
 
+// 撤回注销用户回调
+void CancelDeactivateUserCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📨 撤回注销用户回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    // 立即拷贝数据
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKUserCompletion completion = g_userCallbacks[@(reqId)];
+        if (!completion) {
+            NSLog(@"⚠️ 未找到回调: reqId=%llu", reqId);
+            return;
+        }
+        
+        [g_userCallbacks removeObjectForKey:@(reqId)];
+        
+        if (errorCode != 0) {
+            NSString *errorMsg = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"撤回注销失败";
+            completion(errorCode, errorMsg, nil, reqId);
+            return;
+        }
+        
+        // 解析返回的数据
+        NSMutableDictionary *result = [NSMutableDictionary dictionary];
+        
+        if (responseData && responseData.length > 0) {
+            NSString *responseStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+            if (responseStr) {
+                result[@"message"] = responseStr;
+            }
+        }
+        
+        NSLog(@"✅ 撤回注销用户成功");
+        completion(0, @"撤回注销成功", result, reqId);
+    });
+}
+
+
 // 更新用户信息回调
 void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📨 更新用户回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -347,6 +388,57 @@ static void LogoutCallback(int errorCode, const char* data, int dataLen, uint64_
         NSLog(@"✅ 注销用户请求已发送: reqId=%llu", reqId);
     } else {
         NSLog(@"❌ 注销用户请求失败: result=%d", result);
+        if (completion) {
+            completion(result, @"发送请求失败", nil, 0);
+        }
+    }
+    
+    return reqId;
+}
+
+- (uint64_t)cancelDeactivateAccountWithUserId:(NSString *)userId
+                                     completion:(IMSDKUserCompletion)completion {
+    NSLog(@"📤 撤回注销用户: userId=%@", userId ?: @"无");
+    
+    // 验证 userId
+    if (!userId || userId.length == 0) {
+        NSLog(@"❌ userId 不能为空");
+        if (completion) {
+            completion(-1, @"userId 不能为空", nil, 0);
+        }
+        return 0;
+    }
+    
+    // 创建 CancelDeactivateAccount 对象
+    CancelDeactivateAccount *cancelDeactivateAccount = [[CancelDeactivateAccount alloc] init];
+    cancelDeactivateAccount.userId = userId;
+    
+    // 序列化
+    NSData *serializedData = [cancelDeactivateAccount data];
+    if (!serializedData || serializedData.length == 0) {
+        NSLog(@"❌ 序列化撤回注销数据失败");
+        if (completion) {
+            completion(-2, @"序列化失败", nil, 0);
+        }
+        return 0;
+    }
+    
+    NSLog(@"📦 序列化成功: %lu 字节", (unsigned long)serializedData.length);
+    
+    // 保存回调
+    uint64_t reqId = 0;
+    int result = cancel_deactivate_account(CancelDeactivateUserCallback,
+                                           (const char *)serializedData.bytes,
+                                           (int)serializedData.length,
+                                           reqId);
+    
+    if (result == 0 && reqId > 0) {
+        if (completion) {
+            g_userCallbacks[@(reqId)] = [completion copy];
+        }
+        NSLog(@"✅ 撤回注销用户请求已发送: reqId=%llu", reqId);
+    } else {
+        NSLog(@"❌ 撤回注销用户请求失败: result=%d", result);
         if (completion) {
             completion(result, @"发送请求失败", nil, 0);
         }

@@ -2117,5 +2117,22 @@ class IOSNativeService {
     }
   }
   
+  /// 撤回注销用户
+  /// @param userId 用户ID
+  /// @return 返回结果
+  Future<Map<String, dynamic>> imCancelDeactivateAccount({
+    required String userId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imCancelDeactivateAccount', {
+        'user_id': userId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('撤回注销用户错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
 }
 

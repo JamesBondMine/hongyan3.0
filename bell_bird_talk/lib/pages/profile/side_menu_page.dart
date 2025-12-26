@@ -599,7 +599,17 @@ class _SideMenuContentState extends State<SideMenuContent> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // 关闭对话框
+                await _cancelDeactivateAccount(context, controller);
+              },
+              child: const Text(
+                '撤回注销',
+                style: TextStyle(color: Colors.blue),
+              ),
             ),
           ],
         ),
@@ -670,6 +680,41 @@ class _SideMenuContentState extends State<SideMenuContent> {
     } catch (e) {
       EasyLoading.dismiss();
       EasyLoading.showError('注销失败: $e');
+    }
+  }
+
+  /// 执行撤回注销账号
+  Future<void> _cancelDeactivateAccount(BuildContext context, GlobalController controller) async {
+    EasyLoading.show(status: '正在撤回注销...');
+    
+    try {
+      final userId = controller.currentUser.value?.id;
+      if (userId == null || userId.isEmpty) {
+        EasyLoading.dismiss();
+        EasyLoading.showError('无法获取用户ID');
+        return;
+      }
+      
+      final nativeService = IOSNativeService();
+      final result = await nativeService.imCancelDeactivateAccount(userId: userId);
+      
+      EasyLoading.dismiss();
+      
+      final errorCode = result['errorCode'] as int? ?? -1;
+      final message = result['message'] as String? ?? '未知错误';
+      
+      if (errorCode == 0) {
+        // 撤回成功，刷新注销状态
+        await _loadDeactivateStatus();
+        EasyLoading.showSuccess('撤回注销成功');
+        
+      } else {
+        // 撤回失败
+        EasyLoading.showError(message);
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('撤回注销失败: $e');
     }
   }
 
