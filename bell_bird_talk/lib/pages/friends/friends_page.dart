@@ -728,7 +728,7 @@ class _FriendsPageState extends State<FriendsPage> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: GbsColors.textTapPrimary,
+                  color: GbsColors.textPrimary,
                 ),
               ),
             ),

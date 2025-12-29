@@ -32,7 +32,7 @@ class CommunityDetailPage extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.blue[400]!,
-                    GbsColors.textTapPrimary,
+                    GbsColors.textPrimary,
                   ],
                 ),
               ),

@@ -175,6 +175,76 @@ class LoginController extends GetxController {
     }
   }
 
+  /// 发送忘记密码的验证码
+  Future<void> sendForgetVerificationCode() async {
+    String target = '';
+    String codeType = '';
+    
+    if (loginType.value == LoginType.smsCode) {
+      target = phoneController.text.trim();
+      codeType = 'SMS';
+      if (target.isEmpty) {
+        EasyLoading.showError('请输入手机号');
+        return;
+      }
+      if (!_isValidPhone(target)) {
+        EasyLoading.showError('请输入正确的手机号');
+        return;
+      }
+    } else if (loginType.value == LoginType.emailCode) {
+      target = emailController.text.trim();
+      codeType = 'EMAIL';
+      if (target.isEmpty) {
+        EasyLoading.showError('请输入邮箱');
+        return;
+      }
+      if (!_isValidEmail(target)) {
+        EasyLoading.showError('请输入正确的邮箱地址');
+        return;
+      }
+    }
+    
+    try {
+      isSendingCode.value = true;
+      EasyLoading.show(status: '发送验证码中...');
+      
+      // 调用原生发送验证码
+      final result = await _nativeBridge.imGetCaptcha(
+        target,
+        type: codeType,
+        scene: 'login', // 登录场景
+      );
+      
+      print('📬 验证码发送结果: $result');
+      
+      if (result['errorCode'] == 0) {
+        // 解析 data 字段获取 captcha_id
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
+            _captchaId = dataMap['captcha_id'] as String?;
+            print('📝 验证码ID: $_captchaId');
+          } catch (e) {
+            print('⚠️ 解析验证码数据失败: $e');
+          }
+        }
+        
+        EasyLoading.showSuccess('验证码已发送');
+        _startCountdown();
+      } else {
+        EasyLoading.showError(result['message'] ?? '发送失败');
+      }
+    } catch (e) {
+      print('发送验证码错误: $e');
+      EasyLoading.showError('发送验证码失败');
+    } finally {
+      isSendingCode.value = false;
+    }
+  }
+
+
+
   /// 发送验证码
   Future<void> sendVerificationCode() async {
     String target = '';

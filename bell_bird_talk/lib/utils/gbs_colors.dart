@@ -17,7 +17,7 @@ class GbsColors {
   static const Color lightBackgroundB = Color(0xFFFFFFFF);
 
   /// 主要按钮颜色
-  static const Color lightPrimaryButton = Color(0xFF2196F3);
+  static const Color lightPrimaryButton = Color(0xFF1D61E7);
 
   /// 主要卡片主色
   static const Color lightCardPrimary = Color(0xFFFFFFFF);
@@ -35,13 +35,20 @@ class GbsColors {
   static const Color lightTitlePrimary = Color(0xFF212121);
 
   /// 主要描述文字颜色
-  static const Color lightDescriptionPrimary = Color(0xFF757575);
+  static const Color lightDesPrimary = Color(0xFF757575);
 
   /// 主要按钮文字颜色
   static const Color lightButtonTextPrimary = Color(0xFFFFFFFF);
 
   /// 文字tap颜色
-  static const Color textTapPrimary = Color(0xFF1D61E7);
+  static const Color textPrimary = Color(0xFF1D61E7);
+
+  /// 文字主要颜色
+  static const Color titleColor = Color(0xFF000000);
+  /// 文字描述颜色
+  static const Color des6Color = Color(0xFF666666);
+  /// 文字描述颜色
+  static const Color des9Color = Color(0xFF999999);
 
   /// 次要按钮颜色
   static const Color lightSecondaryButton = Color(0xFFE3F2FD);
@@ -56,7 +63,7 @@ class GbsColors {
   static const Color lightDivider = Color(0xFFE0E0E0);
 
   /// 禁用状态颜色
-  static const Color lightDisabled = Color(0xFFBDBDBD);
+  static final Color lightDisabled = const Color(0xFF1D61E7).withOpacity(0.5);
 
   /// 成功状态颜色
   static const Color lightSuccess = Color(0xFF4CAF50);
@@ -218,7 +225,7 @@ class GbsColors {
   }
 
   static Color getDescriptionPrimary(bool isDark) {
-    return isDark ? darkDescriptionPrimary : lightDescriptionPrimary;
+    return isDark ? darkDescriptionPrimary : lightDesPrimary;
   }
 
   static Color getButtonTextPrimary(bool isDark) {

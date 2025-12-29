@@ -85,25 +85,25 @@ class StorageConfig {
   static const int fileCacheDays = 7;
 }
 
-/// 主题颜色
-class AppColors {
-  // 主色调
-  static const int primaryValue = 0xFF2196F3;
-  static const int accentValue = 0xFF03A9F4;
+// /// 主题颜色
+// class AppColors {
+//   // 主色调
+//   static const int primaryValue = 0xFF2196F3;
+//   static const int accentValue = 0xFF03A9F4;
   
-  // 文本颜色
-  static const int textPrimaryValue = 0xFF212121;
-  static const int textSecondaryValue = 0xFF757575;
-  static const int textHintValue = 0xFF9E9E9E;
+//   // 文本颜色
+//   static const int textPrimaryValue = 0xFF212121;
+//   static const int textSecondaryValue = 0xFF757575;
+//   static const int textHintValue = 0xFF9E9E9E;
   
-  // 背景颜色
-  static const int backgroundValue = 0xFFF5F5F5;
-  static const int cardValue = 0xFFFFFFFF;
+//   // 背景颜色
+//   static const int backgroundValue = 0xFFF5F5F5;
+//   static const int cardValue = 0xFFFFFFFF;
   
-  // 状态颜色
-  static const int successValue = 0xFF4CAF50;
-  static const int warningValue = 0xFFFF9800;
-  static const int errorValue = 0xFFF44336;
-  static const int infoValue = 0xFF2196F3;
-}
+//   // 状态颜色
+//   static const int successValue = 0xFF4CAF50;
+//   static const int warningValue = 0xFFFF9800;
+//   static const int errorValue = 0xFFF44336;
+//   static const int infoValue = 0xFF2196F3;
+// }
 

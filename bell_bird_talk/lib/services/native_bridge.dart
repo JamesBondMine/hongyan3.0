@@ -580,6 +580,7 @@ class IOSNativeService {
   Future<Map<String, dynamic>> imUpdateUserInfo({
     String? userId,
     String? nickname,
+    String? username,
     int? sex,
     String? signature,
     String? avatar,
@@ -591,6 +592,7 @@ class IOSNativeService {
       
       if (userId != null) params['user_id'] = userId;
       if (nickname != null) params['nickname'] = nickname;
+      if (username != null) params['username'] = username;
       if (sex != null) params['sex'] = sex;
       if (signature != null) params['signature'] = signature;
       if (avatar != null) params['avatar'] = avatar;
@@ -610,6 +612,11 @@ class IOSNativeService {
   /// 更新昵称（便捷方法）
   Future<Map<String, dynamic>> imUpdateNickname(String nickname) async {
     return imUpdateUserInfo(nickname: nickname);
+  }
+
+  /// 更新昵称+用户名（便捷方法）
+  Future<Map<String, dynamic>> imUpdateNickAndUsername(String nickname,String username) async {
+    return imUpdateUserInfo(nickname: nickname,username: nickname);
   }
   
   /// 更新签名（便捷方法）

@@ -105,7 +105,7 @@ class LoginTextField extends StatelessWidget {
           Text(
             title!,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: Color(0xFF212121),
               fontWeight: FontWeight.normal,
             ),

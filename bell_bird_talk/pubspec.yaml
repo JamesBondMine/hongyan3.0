@@ -98,6 +98,8 @@ dependencies:
 
   flutter_popup: ^3.3.9
 
+  pinput: ^6.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
