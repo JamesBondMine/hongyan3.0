@@ -287,7 +287,6 @@ class _RegisterPageState extends State<RegisterPage> {
               )
             ],
             const SizedBox(height: 20),
-
             CommonButton(
                 text: '下一步',
                 enabled: true,
@@ -298,24 +297,20 @@ class _RegisterPageState extends State<RegisterPage> {
                       EasyLoading.showError('请先输入手机号');
                       return;
                     }
-                    _getVerifyCode(() {
-                      Get.to(() =>  RegisterCodePage(registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode));
+                    _getVerifyCode((cid) {
+                      Get.to(() =>  RegisterCodePage(cid:cid, registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode, isForget: false));
                     });
                   } else if (_registerType == RegisterType.emailCode) {
                     if (_emailController.text.isEmpty) {
                       EasyLoading.showError('请输入邮箱');
                       return;
                     }
-                    _getEmailVerifyCode(() {
-                      Get.to(() =>  RegisterCodePage(registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode));
+                    _getEmailVerifyCode((cid) {
+                      Get.to(() =>  RegisterCodePage(cid:cid, registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode, isForget: false,));
                     });
                   }
-                  
                 },
               ),
-              
-           
-
           ],
         ),
       ),
@@ -324,7 +319,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
 
    /// 获取验证码
-  void _getVerifyCode(VoidCallback onVerifyCodeSuccess) async {
+  void _getVerifyCode(ValueChanged onVerifyCodeSuccess) async {
     // 验证手机号
     if (_phoneController.text.isEmpty) {
       EasyLoading.showError('请先输入手机号');
@@ -360,13 +355,14 @@ class _RegisterPageState extends State<RegisterPage> {
             final dataMap = json.decode(data);
             _captchaId = dataMap['captcha_id'];
             print('✅ 获取到 captcha_id: $_captchaId');
+            onVerifyCodeSuccess(_captchaId);
           } catch (e) {
             print('⚠️ 解析 captcha_id 失败: $e');
           }
         }
         
         EasyLoading.showSuccess('验证码已发送');
-        onVerifyCodeSuccess();
+        
       } else {
         EasyLoading.showError('发送失败: $message (code: $errorCode)');
       }
@@ -378,7 +374,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
    /// 获取邮箱验证码
-  void _getEmailVerifyCode(VoidCallback onVerifyCodeSuccess) async {
+  void _getEmailVerifyCode(ValueChanged onVerifyCodeSuccess) async {
     // 验证邮箱
     if (_emailController.text.isEmpty) {
       EasyLoading.showError('请先输入邮箱');
@@ -413,13 +409,14 @@ class _RegisterPageState extends State<RegisterPage> {
             final dataMap = json.decode(data);
             _emailCaptchaId = dataMap['captcha_id'];
             print('✅ 获取到邮箱 captcha_id: $_emailCaptchaId');
+            onVerifyCodeSuccess(_emailCaptchaId);
           } catch (e) {
             print('⚠️ 解析邮箱 captcha_id 失败: $e');
           }
         }
         
         EasyLoading.showSuccess('验证码已发送到邮箱');
-        onVerifyCodeSuccess();
+        
       } else {
         EasyLoading.showError('发送失败: $message (code: $errorCode)');
       }

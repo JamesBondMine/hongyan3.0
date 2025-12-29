@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/constants.dart';
+import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -72,11 +74,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
   /// 加载好友申请
   Future<void> _loadFriendRequests(bool refresh) async {
     try {
-      final result = await _nativeService.imGetFriendRequests(
-        status: -1,  // 获取所有状态
-        page: _currentPage,
-        pageSize: _pageSize,
-      );
+      final result = await UserController.to.getFriendRequests(status: -1, page: _currentPage, pageSize: _pageSize);
       
       print('📋 好友申请列表结果: $result');
       
@@ -380,7 +378,7 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
   /// 日期头部
   Widget _buildDateHeader(String dateLabel) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 16),
+      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
       margin: const EdgeInsets.only(top: 16),
       decoration: BoxDecoration(
         color: GbsColors.lightAppBarColorB,
@@ -439,6 +437,41 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
       ),
     );
   }
+
+  Widget _userHeadImgView(String avatar, String avatarbg, String nickname) {
+  String bgcolorStr = '';
+  String txtcolorStr = '';
+  if (avatarbg.isNotEmpty && avatarbg.contains(':')) {
+    bgcolorStr = avatarbg.split(':').first;
+    txtcolorStr = avatarbg.split(':').last;
+    if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+      bgcolorStr = bgcolorStr.split('&').first;
+    }
+  }
+
+  Color bgColor = avatarbg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+  Color txtColor = avatarbg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+  print('avatar $avatar');
+  return SizedBox(width: 40,height: 40,child: CircleAvatar(
+    radius: 18,
+    
+    backgroundColor: bgColor,
+    backgroundImage: avatar.isNotEmpty
+        ? CachedNetworkImageProvider(avatar) // 使用 CachedNetworkImageProvider 替代 CachedNetworkImage
+        : null,
+    child: avatar.isEmpty
+        ? Text(
+            nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+            style: TextStyle(
+              color: txtColor,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        : null,
+  ),);
+}
   
   /// 好友申请项
   Widget _buildFriendRequestItem(FriendRequestModel request) {
@@ -460,25 +493,26 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
         child: Row(
           children: [
             // 左侧 - 头像
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.orange[100],
-              backgroundImage: request.requesterAvatar != null
-                  ? NetworkImage(request.requesterAvatar!)
-                  : null,
-              child: request.requesterAvatar == null
-                  ? Text(
-                      request.requesterName.isNotEmpty
-                          ? request.requesterName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: Colors.orange[700],
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    )
-                  : null,
-            ),
+            _userHeadImgView(request.requesterAvatar ?? '', request.avatarBG ?? '',  request.requesterName),
+            // CircleAvatar(
+            //   radius: 28,
+            //   backgroundColor: Colors.orange[100],
+            //   backgroundImage: request.requesterAvatar != null
+            //       ? NetworkImage(request.requesterAvatar!)
+            //       : null,
+            //   child: request.requesterAvatar == null
+            //       ? Text(
+            //           request.requesterName.isNotEmpty
+            //               ? request.requesterName[0].toUpperCase()
+            //               : '?',
+            //           style: TextStyle(
+            //             color: Colors.orange[700],
+            //             fontWeight: FontWeight.bold,
+            //             fontSize: 20,
+            //           ),
+            //         )
+            //       : null,
+            // ),
             
             const SizedBox(width: 12),
             

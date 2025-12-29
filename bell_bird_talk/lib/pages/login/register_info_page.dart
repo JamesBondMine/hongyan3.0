@@ -39,6 +39,12 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
   String? _uploadedAvatarUrl; // 存储上传后的头像URL
   bool _isUploadingAvatar = false;
 
+
+
+
+
+
+
   /// 从相册选择图片并上传
   Future<void> _pickImageFromGallery() async {
     if (_isUploadingAvatar) {
@@ -311,6 +317,24 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
     } catch (e) {
       print('❌ POST 上传失败: $e');
       return false;
+    }
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _loadUserInfo();
+  }
+
+  Future _loadUserInfo() async {
+    final result = widget.loginData;
+    print('注册完成的用户信息: $result');
+    String userId =  result['user_id'] as String? ?? '';
+    if (userId.isNotEmpty) {
+      GlobalController.to.logMyPublicInfo(userId);
     }
   }
   

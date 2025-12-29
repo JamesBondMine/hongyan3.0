@@ -375,7 +375,6 @@ class GlobalController extends GetxController {
       
       if (errorCode == 0) {
         // 登录成功
-        print('✅ Token 自动登录成功');
         autoLoginStatus.value = '登录成功';
         
         // 解析返回的用户数据（如果有）

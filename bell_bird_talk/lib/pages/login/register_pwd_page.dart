@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/login_controller.dart';
 import 'package:bell_bird_talk/pages/login/login_page.dart';
 import 'package:bell_bird_talk/pages/login/register_info_page.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
@@ -17,13 +18,17 @@ class RegisterPwdPage extends StatefulWidget {
    this.registerType = RegisterType.phoneCode,
    this.account = '',
     this.code = '',
+    this.cid = '',
      this.invateCode = '',
+      this.isForget = false,
   });
 
   String account = '';
   String code = '';
+  String cid = '';
   String invateCode = '';
   RegisterType registerType = RegisterType.phoneCode;
+  bool isForget = false;
 
 
   @override
@@ -77,9 +82,6 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
               children: [
                 // 顶部导航栏
                 _buildAppBar(),
-
-                
-                
                 // 表单内容
                 Expanded(
                   child: SingleChildScrollView(
@@ -88,8 +90,6 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
                       children: [
                         // Logo 和标题
                         _buildHeader(),
-              
-                        
                         const SizedBox(height: 20),
                         
                         // 注册表单
@@ -102,10 +102,9 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
             color: GbsColors.des9Color,
           ),
         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 50),
                    
                         
-                        const SizedBox(height: 20),
                         
                         // 注册按钮
                         _buildRegisterButton(),
@@ -143,12 +142,10 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
       child:  Column(
       crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
       children: [
-      
         const SizedBox(height: 16),
-
         // 标题
-        const Text(
-          '注册',
+        Text(
+          widget.isForget ? '忘记密码' : '注册',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -368,16 +365,22 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
   Widget _buildRegisterButton() {
     return CommonButton(text:    '确认',
     enabled: true,
-     onPressed: _handleRegister,);
+     onPressed: (){
+      if (widget.isForget) {
+        resetPassword();
+        return;
+      }
+      _handleRegister();
+     });
+  }
+
+  // 重置密码
+  Future<void> resetPassword() async {
+    await LoginController.to.resetPassword(widget.registerType  == RegisterType.phoneCode ? widget.account : '', widget.registerType  == RegisterType.emailCode ? widget.account : '', widget.code, _passwordController.text, widget.cid);
+  
   }
 /// 处理注册
   void _handleRegister() async {
-    // 验证用户协议
-    // if (!_agreeTerms) {
-    //   EasyLoading.showError('请先阅读并同意用户协议');
-    //   return;
-    // }
-    
     // 表单验证
     if (!_formKey.currentState!.validate()) {
       return;
@@ -398,9 +401,9 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
         };
         
         // 添加验证码信息（如果有 captcha_id）
-        if (_captchaId != null ) {
+        if (widget.cid != null ) {
           registerData['captcha'] = {
-            'captcha_id': _captchaId,
+            'captcha_id': widget.cid,
             'answer': widget.code,
           };
         }
@@ -419,9 +422,9 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
         };
         
         // 添加验证码信息（如果有 captcha_id）
-        if (_emailCaptchaId != null) {
+        if (widget.cid != null) {
           registerData['captcha'] = {
-            'captcha_id': _emailCaptchaId,
+            'captcha_id': widget.cid,
             'answer': widget.code,
           };
         }
@@ -469,13 +472,9 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
               EasyLoading.dismiss();
               if (loginSuccess) {
                 print('✅ Token 自动登录成功');
-                String userId = result['data']['user_id'] as String? ?? '';
-                if (userId.isNotEmpty) {
-                  GlobalController.to.logMyPublicInfo(userId);
-                }
-                EasyLoading.showSuccess('注册成功');
                 // 延迟后跳转到设置用户信息页
                 Get.to(() =>  RegisterInfoPage(loginWithToken: true, data:dataMap));
+                EasyLoading.showSuccess('注册成功');
               } else {
                 print('⚠️ Token 自动登录失败，仍跳转到登录'); 
                 EasyLoading.showSuccess('注册成功');

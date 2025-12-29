@@ -11,6 +11,7 @@ class FriendRequestModel {
   final String requesterId;
   final String requesterName;
   final String? requesterAvatar;
+  final String? avatarBG;
   final String? message;
   final int channel;
   final int status;  // 0=待处理, 1=已同意, 2=已拒绝
@@ -22,6 +23,7 @@ class FriendRequestModel {
     required this.requesterId,
     required this.requesterName,
     this.requesterAvatar,
+    this.avatarBG,
     this.message,
     this.channel = 0,
     this.status = 0,
@@ -35,6 +37,7 @@ class FriendRequestModel {
       requesterId: json['requester_id'] ?? '',
       requesterName: json['requester_name'] ?? '未知用户',
       requesterAvatar: json['requester_avatar'],
+      avatarBG: json['avatar_bg'],
       message: json['message'],
       channel: json['channel'] ?? 0,
       status: json['status'] ?? 0,

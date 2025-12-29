@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bell_bird_talk/pages/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -196,7 +197,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('密码重置成功');
         await Future.delayed(const Duration(milliseconds: 500));
-        Get.back();
+        Get.offAll(LoginPage());
       } else {
         EasyLoading.showError(result['message'] ?? '重置失败');
       }

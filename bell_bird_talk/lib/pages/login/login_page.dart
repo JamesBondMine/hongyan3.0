@@ -370,9 +370,10 @@ class LoginPage extends StatelessWidget {
                     return;
                   }
                   // 发验证码
-                  
-                  Get.to(() =>  RegisterCodePage( account: controller.loginType.value == LoginType.smsCode ? controller.phoneController.text : controller.emailController.text, isForget: true,));
-                },
+                  controller.sendForgetVerificationCode((cid){
+                    Get.to(() =>  RegisterCodePage(cid: cid, registerType:controller.loginType.value == LoginType.smsCode ? RegisterType.phoneCode : RegisterType.emailCode ,  account: controller.loginType.value == LoginType.smsCode ? controller.phoneController.text : controller.emailController.text, isForget: true,));
+                  });
+                  },
                 child: Text(
                   '忘记密码',
                   style: TextStyle(
@@ -457,8 +458,9 @@ class LoginPage extends StatelessWidget {
                     EasyLoading.showError('请输入邮箱地址');
                     return;
                   }
-                  Get.to(() =>  RegisterCodePage( account: controller.loginType.value == LoginType.smsCode ? controller.phoneController.text : controller.emailController.text, isForget: true,));
-
+                  controller.sendForgetVerificationCode((cid){
+                    Get.to(() =>  RegisterCodePage(cid: cid, registerType:controller.loginType.value == LoginType.smsCode ? RegisterType.phoneCode : RegisterType.emailCode , account: controller.loginType.value == LoginType.smsCode ? controller.phoneController.text : controller.emailController.text, isForget: true,));
+                  });
                 },
                 child: Text(
                   '忘记密码',
@@ -473,6 +475,8 @@ class LoginPage extends StatelessWidget {
       ],
     ));
   }
+
+
   
   /// 邀请码输入框
   Widget _buildInviteCodeInput(LoginController controller) {

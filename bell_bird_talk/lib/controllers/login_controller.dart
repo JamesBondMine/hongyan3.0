@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -24,6 +25,8 @@ class LoginController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController codeController = TextEditingController();
   final TextEditingController inviteCodeController = TextEditingController();  // 邀请码
+
+  static LoginController get to => Get.put(LoginController());
   
   // 状态
   final RxBool isLoading = false.obs;
@@ -176,7 +179,7 @@ class LoginController extends GetxController {
   }
 
   /// 发送忘记密码的验证码
-  Future<void> sendForgetVerificationCode() async {
+  Future sendForgetVerificationCode(ValueChanged success) async {
     String target = '';
     String codeType = '';
     
@@ -185,22 +188,22 @@ class LoginController extends GetxController {
       codeType = 'SMS';
       if (target.isEmpty) {
         EasyLoading.showError('请输入手机号');
-        return;
+        return '';
       }
       if (!_isValidPhone(target)) {
         EasyLoading.showError('请输入正确的手机号');
-        return;
+        return '';
       }
     } else if (loginType.value == LoginType.emailCode) {
       target = emailController.text.trim();
       codeType = 'EMAIL';
       if (target.isEmpty) {
         EasyLoading.showError('请输入邮箱');
-        return;
+        return '';
       }
       if (!_isValidEmail(target)) {
         EasyLoading.showError('请输入正确的邮箱地址');
-        return;
+        return '';
       }
     }
     
@@ -212,11 +215,11 @@ class LoginController extends GetxController {
       final result = await _nativeBridge.imGetCaptcha(
         target,
         type: codeType,
-        scene: 'login', // 登录场景
+        scene: 'reset_password', // 登录场景
       );
       
       print('📬 验证码发送结果: $result');
-      
+      EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         // 解析 data 字段获取 captcha_id
         final dataStr = result['data'] as String?;
@@ -224,23 +227,30 @@ class LoginController extends GetxController {
           try {
             final dataMap = json.decode(dataStr) as Map<String, dynamic>;
             _captchaId = dataMap['captcha_id'] as String?;
+
             print('📝 验证码ID: $_captchaId');
+            success(_captchaId);
+            return _captchaId ?? '';
           } catch (e) {
             print('⚠️ 解析验证码数据失败: $e');
+            return '';
           }
         }
         
         EasyLoading.showSuccess('验证码已发送');
-        _startCountdown();
       } else {
         EasyLoading.showError(result['message'] ?? '发送失败');
+        return '';
       }
     } catch (e) {
       print('发送验证码错误: $e');
       EasyLoading.showError('发送验证码失败');
+      return '';
     } finally {
       isSendingCode.value = false;
+      
     }
+    return '';
   }
 
 
@@ -286,7 +296,7 @@ class LoginController extends GetxController {
       );
       
       print('📬 验证码发送结果: $result');
-      
+      EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         // 解析 data 字段获取 captcha_id
         final dataStr = result['data'] as String?;
@@ -694,5 +704,37 @@ class LoginController extends GetxController {
   Future<void> _clearCredentials() async {
     await StorageUtil().remove('saved_username');
     await StorageUtil().remove('saved_password');
+  }
+
+
+
+  /// 重置密码
+  Future<void> resetPassword(String phone, String email, String code, String password, String captchaId) async {
+
+    EasyLoading.show(status: '正在重置密码...');
+
+    try {
+      final result = await _nativeBridge.imResetPassword(
+        phone: phone,
+        email: email,
+        code: code,
+        captchaId: captchaId,
+        newPassword: password,
+      );
+      
+      print('🔐 重置密码结果: $result');
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('密码重置成功');
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAll(LoginPage());
+      } else {
+        EasyLoading.showError(result['message'] ?? '重置失败');
+      }
+    } catch (e) {
+      print('重置密码错误: $e');
+      EasyLoading.dismiss();
+      EasyLoading.showError('重置失败，请稍后重试');
+    }
   }
 }
