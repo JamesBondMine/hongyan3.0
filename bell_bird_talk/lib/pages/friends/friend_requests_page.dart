@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/config/constants.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';

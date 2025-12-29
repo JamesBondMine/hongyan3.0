@@ -52,8 +52,8 @@ import netinet_in
     let nativeMapViewFactory = NativeMapViewFactory(messenger: registrar.messenger())
     registrar.register(nativeMapViewFactory, withId: "native-map-view")
     
-    print("✅ Native Bridge 已初始化")
-    print("✅ Platform Views 已注册")
+    print("AppDeleate Native Bridge 已初始化")
+    print("AppDeleate Platform Views 已注册")
   }
 }
 
@@ -771,7 +771,7 @@ class NativeBridgeHandler: NSObject {
         
         // 调用 IMSDKAuthManager 注册（使用 protobuf）
         let code = IMSDKAuthManager.shared().register(with: args) { errorCode, reqId, data in
-            print("✅ 注册回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 注册回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([
@@ -831,8 +831,6 @@ class NativeBridgeHandler: NSObject {
             type: captchaType,
             value: value
         ) { errorCode, reqId, data in
-            print("✅ 验证码回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
             let message = typeStr.uppercased() == "EMAIL" ? "验证码已发送到邮箱" : "验证码已发送"
             
             if errorCode == 0 {
@@ -944,7 +942,7 @@ class NativeBridgeHandler: NSObject {
                 print("📋 🍎🍎🍎🍎🍎🍎🍎🍎 token登录 appdelegate. : token=\(token ?? "nil")")
                 // 对于 token 登录，使用旧的方法
                 let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
-//                    print("✅ Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//                    print("AppDeleate Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
                     result([
                         "errorCode": errorCode,
                         "reqId": reqId,
@@ -962,7 +960,7 @@ class NativeBridgeHandler: NSObject {
             // 兼容旧的 userId + token 方式
             if let userId = args["userId"] as? String, let token = args["token"] as? String {
                 let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
-//                    print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//                    print("AppDeleate 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
                     result([
                         "errorCode": errorCode,
                         "reqId": reqId,
@@ -990,7 +988,7 @@ class NativeBridgeHandler: NSObject {
         
         // 调用新的字典登录方法
         let code = IMSDKAuthManager.shared().login(with: loginDict) { errorCode, reqId, data in
-//            print("✅ 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//            print("AppDeleate 登录回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([
@@ -1037,7 +1035,7 @@ class NativeBridgeHandler: NSObject {
         print("🔍 搜索用户: user_id=\(userId ?? "nil"), account_id=\(accountId ?? "nil")")
         
         let code = IMSDKAuthManager.shared().searchUser(withUserId: userId, accountId: accountId) { errorCode, reqId, data in
-            print("✅ 用户搜索回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 用户搜索回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([
@@ -1078,7 +1076,7 @@ class NativeBridgeHandler: NSObject {
         print("🔄 刷新认证Token: \(refreshToken)")
         
         let code = IMSDKAuthManager.shared().refreshAuthToken(withToken: refreshToken) { errorCode, reqId, data in
-            print("✅ 刷新Token回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 刷新Token回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([
@@ -1121,7 +1119,7 @@ class NativeBridgeHandler: NSObject {
         print("👥 添加联系人: \(args)")
         
         let code = IMSDKContactManager.shared().addContact(withParams: args) { errorCode, reqId, data in
-            print("✅ 添加联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 添加联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             if errorCode == 0 {
                 result([
@@ -1162,7 +1160,7 @@ class NativeBridgeHandler: NSObject {
         print("🗑️ 删除联系人: \(contact_user_id)")
         
         let code = IMSDKContactManager.shared().deleteContact(withUserId: contact_user_id) { errorCode, reqId, data in
-            print("✅ 删除联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 删除联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1194,7 +1192,7 @@ class NativeBridgeHandler: NSObject {
         print("🚫 拉黑用户: \(userId)")
         
         let code = IMSDKContactManager.shared().blockContact(withUserId: userId) { errorCode, reqId, data in
-            print("✅ 拉黑用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 拉黑用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1223,10 +1221,10 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        print("✅ 取消拉黑用户: \(userId)")
+        print("AppDeleate 取消拉黑用户: \(userId)")
         
         let code = IMSDKContactManager.shared().unblockContact(withUserId: userId) { errorCode, reqId, data in
-            print("✅ 取消拉黑回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 取消拉黑回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1288,7 +1286,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 获取联系人列表: page=\(page), pageSize=\(pageSize), relationship=\(relationship), groupId=\(groupId), keyword=\(keyword ?? "(nil)")")
         
         let code = IMSDKContactManager.shared().getContactList(withPage: Int32(page), pageSize: Int32(pageSize), relationship: Int32(relationship), groupId: groupId, keyword: keyword) { errorCode, reqId, data in
-            print("✅ 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 联系人列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1323,7 +1321,7 @@ class NativeBridgeHandler: NSObject {
         }
         
         let code = IMSDKContactManager.shared().searchContact(withKeyword: keyword) { errorCode, reqId, data in
-            print("✅ 搜索联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 搜索联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1353,7 +1351,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 获取好友申请列表: status=\(status), page=\(page), pageSize=\(pageSize)")
         
         let code = IMSDKContactManager.shared().getFriendRequests(withStatus: Int32(status), page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("✅ 好友申请列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 好友申请列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1378,10 +1376,10 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        print("✅ 同意好友申请: requestId=\(requestId)")
+        print("AppDeleate 同意好友申请: requestId=\(requestId)")
         
         let code = IMSDKContactManager.shared().acceptFriendRequest(withId: Int64(requestId)) { errorCode, reqId, data in
-            print("✅ 同意申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 同意申请回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1411,7 +1409,7 @@ class NativeBridgeHandler: NSObject {
         print("❌ 拒绝好友申请: requestId=\(requestId), reason=\(reason ?? "")")
         
         let code = IMSDKContactManager.shared().rejectFriendRequest(withId: Int64(requestId), reason: reason) { errorCode, reqId, data in
-            print("✅ 拒绝申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 拒绝申请回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1438,7 +1436,7 @@ class NativeBridgeHandler: NSObject {
         print("📁 获取联系人分组列表: page=\(page), pageSize=\(pageSize)")
         
         let code = IMSDKContactManager.shared().getContactGroups(withPage: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("✅ 联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1471,7 +1469,7 @@ class NativeBridgeHandler: NSObject {
         print("📁 创建联系人分组: groupName=\(groupName)")
         
         let code = IMSDKContactManager.shared().createContactGroup(withName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription, completion: { errorCode, reqId, data in
-            print("✅ 创建联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 创建联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -1505,7 +1503,7 @@ class NativeBridgeHandler: NSObject {
         print("📁 更新联系人分组: groupId=\(groupId), name=\(groupName ?? "")")
         
         let code = IMSDKContactManager.shared().updateContactGroup(withId: groupId, groupName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription) { errorCode, reqId, data in
-            print("✅ 更新联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 更新联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,
@@ -1532,7 +1530,7 @@ class NativeBridgeHandler: NSObject {
         print("📁 删除联系人分组: groupId=\(groupId)")
         
         let code = IMSDKContactManager.shared().deleteContactGroup(withId: groupId) { errorCode, reqId, data in
-            print("✅ 删除联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 删除联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,
@@ -1906,7 +1904,7 @@ class NativeBridgeHandler: NSObject {
         print("📝 设置联系人备注: userId=\(userId), remark=\(remark)")
         
         let code = IMSDKContactManager.shared().setRemarkForUserId(userId, remark: remark, completion: { errorCode, reqId, data in
-            print("✅ 设置备注回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 设置备注回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2043,7 +2041,7 @@ class NativeBridgeHandler: NSObject {
         print("📁 移动联系人到分组: contactUserId=\(contactUserId), groupId=\(groupId)")
         
         let code = IMSDKContactManager.shared().moveContactToGroup(withContactUserId: contactUserId, groupId: groupId, completion: { errorCode, reqId, data in
-            print("✅ 移动联系人到分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 移动联系人到分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2074,7 +2072,7 @@ class NativeBridgeHandler: NSObject {
         var code = 0;
         if isAtMe || isUnread {
             code = Int(IMSDKConversationManager.shared().getConversationATUnreadList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
-                print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+                print("AppDeleate 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
                 
                 result([
                     "errorCode": errorCode,
@@ -2085,7 +2083,7 @@ class NativeBridgeHandler: NSObject {
             }))
         } else {
             code = Int(IMSDKConversationManager.shared().getConversationList(withPage: Int32(page), pageSize: Int32(pageSize), convType: IMConversationType(rawValue: convType) ?? IMConversationType.all, atMe: isAtMe, completion: { errorCode, reqId, data in
-                print("✅ 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+                print("AppDeleate 会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
                 
                 result([
                     "errorCode": errorCode,
@@ -2113,7 +2111,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 获取会话: convId=\(convId)")
         
         let code = IMSDKConversationManager.shared().getConversationWithId(convId, completion: { errorCode, reqId, data in
-            print("✅ 获取会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 获取会话回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2141,7 +2139,7 @@ class NativeBridgeHandler: NSObject {
         let convType = IMConversationType(rawValue: convTypeValue) ?? IMConversationType(rawValue: -1) ?? .single
         
         let code = IMSDKConversationManager.shared().getUnreadConversations(withPage: Int32(page), pageSize: Int32(pageSize), convType: convType, completion: { errorCode, reqId, data in
-            print("✅ 获取未读会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 获取未读会话列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2180,7 +2178,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 更新会话: convId=\(convId), params=\(params)")
         
         let code = IMSDKConversationManager.shared().updateConversation(withId: convId, params: params) { errorCode, reqId, data in
-            print("✅ 更新会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 更新会话回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2219,7 +2217,7 @@ class NativeBridgeHandler: NSObject {
         }
         
         let code = IMSDKConversationManager.shared().createConversation(withParams: params) { errorCode, reqId, data in
-            print("✅ 创建会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 创建会话回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2247,7 +2245,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 删除会话: convId=\(convId)")
         
         let code = IMSDKConversationManager.shared().deleteConversation(withId: convId) { errorCode, reqId, data in
-            print("✅ 删除会话回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 删除会话回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2274,7 +2272,7 @@ class NativeBridgeHandler: NSObject {
         }
         
         let code = IMSDKConversationManager.shared().markConversationRead(withId: convId, msgIds: msgIds, completion:{ errorCode, reqId, data in
-            print("✅ 标记已读回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 标记已读回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2302,7 +2300,7 @@ class NativeBridgeHandler: NSObject {
         print("📋 清空会话消息: convId=\(convId)")
         
         let code = IMSDKConversationManager.shared().clearConversationMessages(withId: convId) { errorCode, reqId, data in
-            print("✅ 清空消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 清空消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2423,7 +2421,7 @@ class NativeBridgeHandler: NSObject {
             }
     
         let code = IMSDKMessageManager.shared().deleteMessage(conversationId, clientMsgId: clientMsgId, completion: { errorCode, reqId, data in
-                print("✅ 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+                print("AppDeleate 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
                 
                 result([
                     "errorCode": errorCode,
@@ -2461,7 +2459,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             receiverId: receiverId
         ) { errorCode, reqId, data in
-            print("✅ 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2502,7 +2500,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             receiverId: receiverId
         ) { errorCode, reqId, data in
-            print("✅ 发送图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2539,7 +2537,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             receiverId: receiverId
         ) { errorCode, reqId, data in
-            print("✅ 发送语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2584,7 +2582,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             receiverId: receiverId
         ) { errorCode, reqId, data in
-            print("✅ 发送视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2623,7 +2621,7 @@ class NativeBridgeHandler: NSObject {
             lastSeq: lastSeq,
             limit: Int32(limit)
         ) { errorCode, reqId, data in
-            print("✅ 拉取消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 拉取消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2657,7 +2655,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             groupId: groupId
         ) { errorCode, reqId, data in
-            print("✅ 发送群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2698,7 +2696,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             groupId: groupId
         ) { errorCode, reqId, data in
-            print("✅ 发送群聊图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送群聊图片消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2735,7 +2733,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             groupId: groupId
         ) { errorCode, reqId, data in
-            print("✅ 发送群聊语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送群聊语音消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2780,7 +2778,7 @@ class NativeBridgeHandler: NSObject {
             conversationId: conversationId,
             groupId: groupId
         ) { errorCode, reqId, data in
-            print("✅ 发送群聊视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送群聊视频消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2825,7 +2823,7 @@ class NativeBridgeHandler: NSObject {
         }
         
         let code = IMSDKMessageManager.shared().sendGroup(atMessage: content, conversationId: conversationId, groupId: groupId, atInfoList: atInfoArray, isAll: isAll, completion:{ errorCode, reqId, data in
-            print("✅ 发送群聊@消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 发送群聊@消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -2862,7 +2860,7 @@ class NativeBridgeHandler: NSObject {
             lastSeq: lastSeq,
             limit: Int32(limit)
         ) { errorCode, reqId, data in
-            print("✅ 拉取群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 拉取群聊消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -3059,7 +3057,7 @@ class NativeBridgeHandler: NSObject {
         }
         
         let reqId = IMSDKUserManager.shared().updateUser(withInfo: userInfo) { errorCode, message, data, reqId in
-            print("✅ 更新用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 更新用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             // 构建返回数据
             var response: [String: Any] = [
@@ -3095,7 +3093,7 @@ class NativeBridgeHandler: NSObject {
         let reason = args["reason"] as? NSNumber
         
         let reqId = IMSDKUserManager.shared().logout(withUserId: userId, clientIp: clientIp, reason: reason) { errorCode, message, data, reqId in
-            print("✅ 退出登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 退出登录回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             let response: [String: Any] = [
                 "errorCode": errorCode,
@@ -3118,7 +3116,7 @@ class NativeBridgeHandler: NSObject {
 //        print("🗑 Flutter调用注销用户")
 //        
 //        let code = IMSDKAuthManager.shared().deleteCurrentUser(completion:  { errorCode, reqId, data in
-//            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+//            print("AppDeleate 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
 //            
 //            result([
 //                "errorCode": errorCode,
@@ -3155,7 +3153,7 @@ class NativeBridgeHandler: NSObject {
         print("🗑️ 注销用户: userId=\(userId), reason=\(reason ?? "无")")
         
         let reqId = IMSDKUserManager.shared().deactivateAccount(withUserId: userId, reason: reason, completion: { errorCode, message, data, reqId in
-            print("✅ 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             // 构建返回数据
             var response: [String: Any] = [
@@ -3243,7 +3241,7 @@ class NativeBridgeHandler: NSObject {
         print("🔄 撤回注销用户: userId=\(userId)")
         
         let reqId = IMSDKUserManager.shared().cancelDeactivateAccount(withUserId: userId, completion: { errorCode, message, data, reqId in
-            print("✅ 撤回注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 撤回注销用户回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             // 构建返回数据
             var response: [String: Any] = [
@@ -3283,7 +3281,7 @@ class NativeBridgeHandler: NSObject {
         print("🔐 修改密码: userId=\(userId)")
         
         let code = IMSDKAuthManager.shared().changePassword(withUserId: userId, oldPassword: oldPassword, newPassword: newPassword, completion: { errorCode, reqId, data in
-            print("✅ 修改密码回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 修改密码回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -3321,7 +3319,7 @@ class NativeBridgeHandler: NSObject {
         print("🔐 重置密码: phone=\(phone ?? ""), email=\(email ?? ""), captchaId=\(captchaId)")
         
         let resultCode = IMSDKAuthManager.shared().resetPassword(withPhone: phone, email: email, captchaId: captchaId, captchaCode: code, newPassword: newPassword, completion:{ errorCode, reqId, data in
-            print("✅ 重置密码回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 重置密码回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
@@ -3371,7 +3369,7 @@ class NativeBridgeHandler: NSObject {
                                                             fileName: fileName,
                                                             fileSize: fileSize,
                                                             contentType: contentType) { errorCode, message, data, reqId in
-            print("✅ 准备上传回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 准备上传回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             // 构建返回数据
             var response: [String: Any] = [
@@ -3463,7 +3461,7 @@ class NativeBridgeHandler: NSObject {
             print("📊 上传进度: \(Int(progress * 100))%")
         }) { uploadResult in
             if uploadResult.success {
-                print("✅ 腾讯云上传成功: \(uploadResult.url ?? "")")
+                print("AppDeleate 腾讯云上传成功: \(uploadResult.url ?? "")")
                 result([
                     "success": true,
                     "url": uploadResult.url ?? "",
@@ -3508,7 +3506,7 @@ class NativeBridgeHandler: NSObject {
             maxMemberCount: maxMemberCount,
             initialMembers: memberIds.isEmpty ? nil : memberIds as [String],
             completion: { errorCode, reqId, data in
-            print("✅ 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
+            print("AppDeleate 创建群聊回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([
                 "errorCode": errorCode,
