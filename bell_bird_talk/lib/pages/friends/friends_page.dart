@@ -96,11 +96,6 @@ class _FriendsPageState extends State<FriendsPage> {
           ? const Center(child: CircularProgressIndicator())
           : _buildMainContent(),
       // 浮动添加按钮
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/add-friend'),
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.person_add, color: Colors.white),
-      ),
     );
   }
 
@@ -643,16 +638,67 @@ class _FriendsPageState extends State<FriendsPage> {
     return grouped;
   }
 
-  // 是否显示搜索模式
-  bool _isSearchMode = false;
-  
-  
+  /// 构建搜索栏
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.only(left: 12, right: 16, top: 12, bottom: 12),
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
+          Get.to(() => const FriendSearchPage(friends: [],));
+        },
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                '搜索',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   /// 主内容区域
   Widget _buildMainContent() {
     return Stack(
       children: [
-        RefreshIndicator(
+        Column(children: [
+          Container(height: 150,width: Get.width,color: Colors.white,child: Column(children: [
+            // 好友申请入口
+            _buildSearchBar(),
+          _buildRequestEntryItem(
+            icon: Icons.person_add,
+            iconColor: Colors.orange,
+            iconBgColor: Colors.orange[50]!,
+            title: '新的朋友',
+            count: _groupRequestCount,
+            onTap: () async {
+              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.friend));
+              if (result == true) {
+                // 有好友申请被处理，刷新好友列表和请求数量
+                _loadFriends(refresh: true);
+                _loadFriendRequests();
+              }
+            },
+          ),
+          /// 好友、分组、群组。左对齐的Tab bar --分别对应三个子页面
+          /// 默认选中好友
+          /// 好友对应现在的好友列表、分组是一个折叠的分组列表、群组是分页的群组列表
+
+          ],),),
+Expanded(child: RefreshIndicator(
           onRefresh: _refreshFriends,
           child: NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -668,9 +714,6 @@ class _FriendsPageState extends State<FriendsPage> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(), // 确保可以下拉刷新
         slivers: [
-          // 新消息入口（好友申请、群组申请）
-          SliverToBoxAdapter(child: _buildRequestsEntry()),
-          
           // 好友分组
           SliverToBoxAdapter(child: _buildGroupTabs()),
           
@@ -682,7 +725,8 @@ class _FriendsPageState extends State<FriendsPage> {
               ],
             ),
           ),
-        ),
+        ))
+        ],),
         // 右侧字母索引条
         if (_filteredFriends.isNotEmpty)
           Positioned(
@@ -750,60 +794,7 @@ class _FriendsPageState extends State<FriendsPage> {
       );
     }
   }
-  
-  /// 新消息入口（好友申请、群组申请）
-  Widget _buildRequestsEntry() {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // 好友申请入口
-          _buildRequestEntryItem(
-            icon: Icons.person_add,
-            iconColor: Colors.orange,
-            iconBgColor: Colors.orange[50]!,
-            title: '好友申请',
-            count: _groupRequestCount,
-            onTap: () async {
-              final result = await Get.to(() => const FriendRequestsPage(type: RequestType.friend));
-              if (result == true) {
-                // 有好友申请被处理，刷新好友列表和请求数量
-                _loadFriends(refresh: true);
-                _loadFriendRequests();
-              }
-            },
-          ),
-          
-          Divider(height: 1, indent: 56, color: Colors.grey[100]),
-          
-          // 群组入口
-          _buildRequestEntryItem(
-            icon: Icons.group_add,
-            iconColor: Colors.blue,
-            iconBgColor: Colors.blue[50]!,
-            title: '群组',
-            count: 0,
-            onTap: () async {
-              await Get.to(() => const GroupListPage());
-              // 返回后可选择刷新，确保显示最新好友/群关联
-              // _loadFriends(refresh: true);
-            },
-          ),
-        ],
-      ),
-    );
-  }
+
   
   /// 申请入口项
   Widget _buildRequestEntryItem({

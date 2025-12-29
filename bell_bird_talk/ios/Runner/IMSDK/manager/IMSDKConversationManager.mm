@@ -286,9 +286,9 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     NSLog(@"📋 获取会话列表: page=%d, pageSize=%d, convType=%ld", page, pageSize, (long)convType);
     
     // 构建查询请求
-    ListUnreadQuery *query = [[ListUnreadQuery alloc] init];
+    ConvListQuery *query = [[ConvListQuery alloc] init];
     if (atme) {
-        query.mentionOnly = true;
+        query.withUnread = true;
     }
     // 设置会话类型（如果需要过滤）
     if (convType >= 0) {
@@ -301,7 +301,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
     pageObj.size = pageSize;
     query.page = pageObj;
     
-    NSLog(@"\n***************\n🍎 会话列表查询数据: 会话列表 第%d页,长度%d  会话类型 %d 是否是AT我的 %d \n***************",page,pageSize, query.convType,query.mentionOnly);
+    NSLog(@"\n***************\n🍎 会话列表查询数据: 会话列表 第%d页,长度%d  会话类型 %d 是否是AT我的 %d \n***************",page,pageSize, query.convType,query.withUnread);
 //    print("📋 获取会话列表: page=\(page), pageSize=\(pageSize), convType=\(convType)")
     // 序列化
     NSData *serializedData = [query data];

@@ -114,7 +114,7 @@ BOOL NotificationStatus_IsValidValue(int32_t value__) {
 
 typedef struct Search__storage_ {
   uint32_t _has_storage_[1];
-  ConversationType convType;
+    enum ConversationType convType;
   NSString *keyword;
   Page *page;
   NSString *fromUserId;
@@ -140,7 +140,7 @@ typedef struct Search__storage_ {
       },
       {
         .name = "convType",
-        .dataTypeSpecific.enumDescFunc = ConversationType_EnumDescriptor,
+        .dataTypeSpecific.enumDescFunc = ForwardType_EnumDescriptor,
         .number = Search_FieldNumber_ConvType,
         .hasIndex = 1,
         .offset = (uint32_t)offsetof(Search__storage_, convType),

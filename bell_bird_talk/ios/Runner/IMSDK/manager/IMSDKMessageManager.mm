@@ -355,8 +355,8 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
                             msgDict[@"videoUrl"] = msg.videoMessage.videoURL ?: @"";
                         } else if (msg.mType == ImMessage_MessageType_AtMessage && msg.atMessage) {
                             msgDict[@"content"] = msg.atMessage.content;
-                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
-                            msgDict[@"content"] = msg.notificationMessage.content;
+                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.tipMessage) {
+                            msgDict[@"content"] = msg.tipMessage.content;
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                         }
@@ -1297,9 +1297,9 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
                                     [atInfoList addObject:info];
                                 }
                                 msgDict[@"atInfoList"] = atInfoList;
-                            }                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.notificationMessage) {
-                            msgDict[@"content"] = msg.notificationMessage.content;
-                            msgDict[@"ext"] = msg.notificationMessage.ext ?: @"";
+                            }                        } else if (msg.mType == ImMessage_MessageType_Notification && msg.tipMessage) {
+                            msgDict[@"content"] = msg.tipMessage.content;
+//                            msgDict[@"ext"] = msg.tipMessage.ext ?: @"";
                         } else {
                             msgDict[@"content"] = [NSString stringWithFormat:@"[消息类型:%d]", (int)msg.mType];
                             msgDict[@"ext"] = msg.textMessage.ext ?: @"";
@@ -1355,7 +1355,7 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
     
     // 构建群聊拉取条件
     ConvPull *convPull = [[ConvPull alloc] init];
-    convPull.convType = ConversationType_Group;  // 群聊类型
+//    convPull.convType = Conversation;  // 群聊类型
     convPull.targetId = groupId ?: @"";
     convPull.lastConvSeq = lastSeq;
     if (conversationId && conversationId.length > 0) {

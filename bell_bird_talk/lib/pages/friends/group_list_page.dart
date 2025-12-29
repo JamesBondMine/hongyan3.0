@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -57,7 +58,7 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('群组列表')),
+      appBar: AppBar(title: const Text('群组')),
       body: RefreshIndicator(
         onRefresh: _loadGroups,
         child: _loading
@@ -66,16 +67,22 @@ class _GroupListPageState extends State<GroupListPage> {
                 ? const Center(child: Text('暂无群组'))
                 : ListView.separated(
                     itemCount: _groups.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, __) => Container(),
                     itemBuilder: (context, index) {
                       final item = _groups[index];
                       final name = (item['group_name'] as String?) ?? '群组';
-                      final desc = (item['group_description'] as String?) ?? '';
                       final avatar = (item['group_avatar'] as String?) ?? '';
                       final gid = (item['group_id'] as String?) ?? '';
                       final type = (item['group_type'] as num?)?.toInt() ?? 0;
-                      return ListTile(
-                        leading: CircleAvatar(
+                      return Container(
+                        height: 52,
+                        margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          color: GbsColors.lightBackgroundB
+                        ),
+                        child: ListTile(
+                        leading: SizedBox(width: 36, height: 36,child: CircleAvatar(
                           backgroundColor: Colors.blue.shade50,
                           backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
                           child: avatar.isEmpty
@@ -84,24 +91,10 @@ class _GroupListPageState extends State<GroupListPage> {
                                   style: const TextStyle(color: Colors.blue),
                                 )
                               : null,
-                        ),
+                        ),),
                         title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (desc.isNotEmpty)
-                              Text(
-                                desc,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            // Text(
-                            //   'ID: $gid${type == 1 ? " · 超级群" : ""}',
-                            //   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                            // ),
-                          ],
-                        ),
                         onTap: () => _enterGroupChat(gid: gid, name: name, avatar: avatar, type: type),
+                      ),
                       );
                     },
                   ),

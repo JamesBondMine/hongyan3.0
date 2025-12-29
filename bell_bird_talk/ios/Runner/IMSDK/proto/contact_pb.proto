@@ -387,6 +387,7 @@ message ContactGroup {
   int32 contact_count = 7;             // 该分组中的联系人数量
   int64 create_time = 8;               // 创建时间
   int64 update_time = 9;               // 更新时间
+  repeated string failed_user_ids = 10; // 失败的用户ID列表（创建分组时批量添加失败的用户）
 }
 
 // GroupQuery - 分组查询参数
@@ -409,6 +410,7 @@ message GroupCreate {
   int32 group_order = 3;              // 排序权重（可选）
   string group_icon = 4;              // 分组图标（可选）
   string group_description = 5;       // 分组描述（可选）
+  repeated string user_ids = 6;        // 用户ID列表（可选，创建分组时批量添加的联系人）
 }
 
 // GroupUpdate - 更新分组请求

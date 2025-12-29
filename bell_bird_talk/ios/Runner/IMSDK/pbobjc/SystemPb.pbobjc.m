@@ -13,6 +13,8 @@
  #import "GPBProtocolBuffers_RuntimeSupport.h"
 #endif
 
+#import <stdatomic.h>
+
 #import "SystemPb.pbobjc.h"
 // @@protoc_insertion_point(imports)
 
@@ -48,6 +50,47 @@ static GPBFileDescriptor *SystemPbRoot_FileDescriptor(void) {
                                                      syntax:GPBFileSyntaxProto3];
   }
   return descriptor;
+}
+
+#pragma mark - Enum ConversationType
+
+GPBEnumDescriptor *ConversationType_EnumDescriptor(void) {
+  static _Atomic(GPBEnumDescriptor*) descriptor = nil;
+  if (!descriptor) {
+    static const char *valueNames =
+        "All\000Single\000Group\000System\000Community\000";
+    static const int32_t values[] = {
+        ConversationType_All,
+        ConversationType_Single,
+        ConversationType_Group,
+        ConversationType_System,
+        ConversationType_Community,
+    };
+    GPBEnumDescriptor *worker =
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(ConversationType)
+                                       valueNames:valueNames
+                                           values:values
+                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))
+                                     enumVerifier:ConversationType_IsValidValue];
+    GPBEnumDescriptor *expected = nil;
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+      [worker release];
+    }
+  }
+  return descriptor;
+}
+
+BOOL ConversationType_IsValidValue(int32_t value__) {
+  switch (value__) {
+    case ConversationType_All:
+    case ConversationType_Single:
+    case ConversationType_Group:
+    case ConversationType_System:
+    case ConversationType_Community:
+      return YES;
+    default:
+      return NO;
+  }
 }
 
 #pragma mark - ConfigResp
@@ -536,6 +579,50 @@ typedef struct Param__storage_ {
 
 @end
 
+#pragma mark - BParam
+
+@implementation BParam
+
+@dynamic param;
+
+typedef struct BParam__storage_ {
+  uint32_t _has_storage_[1];
+} BParam__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "param",
+        .dataTypeSpecific.clazz = Nil,
+        .number = BParam_FieldNumber_Param,
+        .hasIndex = 0,
+        .offset = 1,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeBool,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[BParam class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(BParam__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
 #pragma mark - AreaCode
 
 @implementation AreaCode
@@ -868,51 +955,6 @@ typedef struct IpLocationResponse__storage_ {
 }
 
 @end
-
-#pragma mark - BParam
-
-@implementation BParam
-
-@dynamic param;
-
-typedef struct BParam__storage_ {
-  uint32_t _has_storage_[1];
-} BParam__storage_;
-
-// This method is threadsafe because it is initially called
-// in +initialize for each subclass.
-+ (GPBDescriptor *)descriptor {
-  static GPBDescriptor *descriptor = nil;
-  if (!descriptor) {
-    static GPBMessageFieldDescription fields[] = {
-      {
-        .name = "param",
-        .dataTypeSpecific.clazz = Nil,
-        .number = BParam_FieldNumber_Param,
-        .hasIndex = 0,
-        .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-    };
-    GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[BParam class]
-                                     rootClass:[SystemPbRoot class]
-                                          file:SystemPbRoot_FileDescriptor()
-                                        fields:fields
-                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(BParam__storage_)
-                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
-    #if defined(DEBUG) && DEBUG
-      NSAssert(descriptor == nil, @"Startup recursed!");
-    #endif  // DEBUG
-    descriptor = localDescriptor;
-  }
-  return descriptor;
-}
-
-@end
-
 
 
 #pragma clang diagnostic pop

@@ -31,6 +31,40 @@ CF_EXTERN_C_BEGIN
 
 NS_ASSUME_NONNULL_BEGIN
 
+#pragma mark - Enum ConversationType
+
+/** 会话类型（单聊/群聊/系统/社区） */
+typedef GPB_ENUM(ConversationType) {
+  /**
+   * Value used if any message's field encounters a value that is not defined
+   * by this enum. The message will also have C functions to get/set the rawValue
+   * of the field.
+   **/
+  ConversationType_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
+  /** 查询所有类型（protobuf 要求第一个值必须是 0） */
+  ConversationType_All = 0,
+
+  /** 单聊 */
+  ConversationType_Single = 1,
+
+  /** 群聊 */
+  ConversationType_Group = 2,
+
+  /** 系统 */
+  ConversationType_System = 3,
+
+  /** 社区 */
+  ConversationType_Community = 4,
+};
+
+GPBEnumDescriptor *ConversationType_EnumDescriptor(void);
+
+/**
+ * Checks to see if the given value is defined by the enum or was not known at
+ * the time this source was generated.
+ **/
+BOOL ConversationType_IsValidValue(int32_t value);
+
 #pragma mark - SystemPbRoot
 
 /**
@@ -222,6 +256,22 @@ GPB_FINAL @interface Param : GPBMessage
 
 @end
 
+#pragma mark - BParam
+
+typedef GPB_ENUM(BParam_FieldNumber) {
+  BParam_FieldNumber_Param = 1,
+};
+
+/**
+ * 通用参数请求 - 用于所有只需要一个字符串参数的请求（布尔类型）
+ **/
+GPB_FINAL @interface BParam : GPBMessage
+
+/** 参数值（必填，switch、Exist 等） */
+@property(nonatomic, readwrite) BOOL param;
+
+@end
+
 #pragma mark - AreaCode
 
 typedef GPB_ENUM(AreaCode_FieldNumber) {
@@ -293,22 +343,6 @@ GPB_FINAL @interface IpLocationRequest : GPBMessage
 
 /** IP地址（可选，如果不提供则从连接上下文获取） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *ip;
-
-@end
-
-#pragma mark - BParam
-
-typedef GPB_ENUM(BParam_FieldNumber) {
-  BParam_FieldNumber_Param = 1,
-};
-
-/**
- * 通用参数请求 - 用于所有只需要一个字符串参数的请求（布尔类型）
- **/
-GPB_FINAL @interface BParam : GPBMessage
-
-/** 参数值（必填，switch、Exist 等） */
-@property(nonatomic, readwrite) BOOL param;
 
 @end
 

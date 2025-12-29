@@ -4,7 +4,7 @@ option java_package = "com.cloud.im.common.core.protocol.message";
 option java_multiple_files = true;
 option go_package = "./;pb";
 import "google/protobuf/timestamp.proto";
-import "conv_pb.proto";
+import "system_pb.proto";
 
 // ============================================================================
 // 消息类型统一设计说明
@@ -204,7 +204,7 @@ message ImMessage {
   string conversation_id = 3;     // 会话ID（必填，内容消息；可选，状态消息。分区、路由与存储关键字段）
   int64 conversation_seq = 4;    // 会话内单调序（必填，内容消息；可选，状态消息。严格有序、去重，仅内容消息使用）
   int64 server_seq = 5;          // 服务端全局序（返回字段，系统自动生成）
-  im.conv.ConversationType conversation_type = 6; // 会话类型（必填，单聊/群聊/频道）
+  com.cloud.im.common.core.system.ConversationType conversation_type = 6; // 会话类型（必填，单聊/群聊/频道）
   int64 store_time = 7;          // 入库时间（返回字段，系统自动生成，仅内容消息使用）
   int64 deliver_time = 8;        // 首次投递时间（返回字段，系统自动生成，可选）
   
@@ -360,7 +360,7 @@ message NetCallMessage {
   string room_create_user = 3;  // 创建房间的用户ID
   string token = 4;             // 鉴权token
   NetCallType call_type = 5;    // 通话类型（使用枚举）
-  im.conv.ConversationType chat_type = 6; // 聊天类型（使用枚举）
+  com.cloud.im.common.core.system.ConversationType chat_type = 6; // 聊天类型（使用枚举）
   NetCallStatus status = 7;    // 通话状态（使用枚举）
   int32 timeout = 8;            // 超时时间（秒）
   int32 duration = 9;           // 通话时长（秒）
@@ -688,7 +688,7 @@ enum ConversationNotificationType {
 
 // 会话拉取 - 操作对象（动词+领域对象，去除Request后缀）
 message ConvPull {
-  im.conv.ConversationType conv_type = 1;  // 会话类型（必填）
+  com.cloud.im.common.core.system.ConversationType conv_type = 1;  // 会话类型（必填）
   string target_id = 2;                     // 目标ID（必填，单聊=对方用户ID，群聊=群ID）
   int64 last_conv_seq = 3;                  // 最后序号（可选，默认0）
   string conversation_id = 4;               // 会话ID（可选，优先使用此ID匹配并按该会话的最后序列号拉取）
@@ -726,4 +726,37 @@ message SendAck {
   string trace_id = 6;               // 追踪ID（用于问题排查）
   int64 persist_time = 7;            // 入库时间（毫秒）
   string conv_id = 8;                // 会话ID（必填）
+}
+
+// ========== 消息状态管理 ==========
+
+// 获取未读数和最后一条消息请求
+message GetUnreadAndLastMessage {
+  string from_user_id = 1;  // 发送者ID（对方）
+  string to_user_id = 2;    // 接收者ID（自己）
+}
+
+// 批量获取未读数和最后一条消息请求
+message BatchGetUnreadAndLastMessage {
+  repeated GetUnreadAndLastMessage items = 1;  // 查询项列表
+}
+
+// 未读数和最后一条消息响应
+message UnreadAndLastMessage {
+  int64 unread_count = 1;        // 未读数 = seq - read_seq
+  ImMessage last_message = 2;    // 最后一条消息（通过message_id查询，可选）
+  int64 seq = 3;                 // 当前最大序号
+  int64 read_seq = 4;            // 已读序号
+}
+
+// 批量未读数和最后一条消息响应
+message BatchUnreadAndLastMessage {
+  map<string, UnreadAndLastMessage> results = 1;  // key: "from_user_id:to_user_id"
+}
+
+// 标记消息状态已读请求（用于消息状态管理）
+message MarkMessageStateRead {
+  string from_user_id = 1;  // 发送者ID（对方）
+  string to_user_id = 2;    // 接收者ID（自己）
+  int64 read_seq = 3;       // 已读序号
 }

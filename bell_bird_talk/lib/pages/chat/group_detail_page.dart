@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
+import 'package:bell_bird_talk/pages/chat/group_members_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -179,22 +181,32 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   Widget build(BuildContext context) {
     final memberCount = _members.length;
     return Scaffold(
+      backgroundColor: GbsColors.lightAppBarColorB,
       appBar: AppBar(
-        title: const Text('群聊详情'),
+        title: const Text('群组设置',style: TextStyle(fontSize: 16, color: GbsColors.titleColor, fontWeight: FontWeight.w700),),
       ),
       body: RefreshIndicator(
         onRefresh: _loadMembers,
         child: ListView(
           children: [
-            const SizedBox(height: 12),
-            _buildGroupHeader(memberCount),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
             _buildMemberSection(),
-            const Divider(height: 24),
+            const SizedBox(height: 20),
             _buildSettingSection(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             _buildDangerZone(),
             const SizedBox(height: 32),
+              SwitchListTile(
+          value: _isDisturb,
+          onChanged: (v) {
+            _setGroupDisturb(v);
+          },
+          title: const Text('消息免打扰'),
+          
+        ),
+        const SizedBox(height: 12),
+            _buildGroupHeader(memberCount),
+            
           ],
         ),
       ),
@@ -287,7 +299,14 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       memberWidgets.add(_buildAddMemberButton());
     }
     
-    return Column(
+    return Container(
+      margin: EdgeInsets.only(left: 16, right: 16),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
@@ -299,13 +318,47 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: memberWidgets,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.7,
+            ),
+            itemCount: memberWidgets.length,
+            itemBuilder: (context, index) => memberWidgets[index],
           ),
         ),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GroupMembersPage(
+                  groupId: widget.groupId,
+                  groupName: _groupName,
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '更多成员',
+                  style: TextStyle(fontSize: 14, color: GbsColors.lightPrimaryButton),
+                ),
+                Icon(Icons.keyboard_arrow_down_sharp, color: GbsColors.lightPrimaryButton)
+              ],
+            ),
+          ),
+        )
       ],
+    ),
     );
   }
 
@@ -379,75 +432,73 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       }
       }
     },
-    child: SizedBox(
-      width: 64,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.grey.shade200,
-            child: avatar.isNotEmpty ? Container(
-              width: 44,
-              height: 44,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(avatar),
-                  fit: BoxFit.cover,
-                ),
-              ),child: CachedNetworkImage(imageUrl: avatar, width: 44, height: 44, fit: BoxFit.cover),
-            ) : Text(
-              nickname.isNotEmpty ? nickname : initial,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: Colors.grey.shade200,
+          child: avatar.isNotEmpty ? Container(
+            width: 44,
+            height: 44,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(avatar),
+                fit: BoxFit.cover,
+              ),
+            ),child: CachedNetworkImage(imageUrl: avatar, width: 44, height: 44, fit: BoxFit.cover),
+          ) : Text(
+            nickname.isNotEmpty ? nickname : initial,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          nickname.isNotEmpty ? nickname : name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+        if (isAdmin)
           Text(
-            nickname.isNotEmpty ? nickname : name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
+            '群主',
+            style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
           ),
-          if (isAdmin)
-            Text(
-              '群主',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
-        ],
-      ),
+      ],
     ),);
   }
   
   Widget _buildAddMemberButton() {
-    return SizedBox(
-      width: 64,
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: _showAddMemberDialog,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.blue.shade300, width: 2),
-              ),
-              child: Icon(
-                Icons.add,
-                color: Colors.blue.shade700,
-                size: 24,
-              ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: _showAddMemberDialog,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.blue.shade300, width: 2),
+            ),
+            child: Icon(
+              Icons.add,
+              color: Colors.blue.shade700,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            '添加',
-            style: TextStyle(fontSize: 12, color: Colors.blue),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '添加',
+          style: TextStyle(fontSize: 12, color: Colors.blue),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
   
@@ -573,40 +624,35 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   Widget _buildSettingSection() {
     return Column(
       children: [
-        
-        ListTile(
-          leading: const Icon(Icons.description_outlined, color: Colors.orange),
-          title: const Text('群描述'),
-          subtitle: _groupDescription != null && _groupDescription!.isNotEmpty
-              ? Text(
-                  _groupDescription!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                )
-              : const Text(
-                  '未设置',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-          onTap: _editGroupDescription,
-        ),
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(Icons.person_outline, color: Colors.green),
-          title: const Text('设置我的群昵称'),
-          onTap: _editGroupAlias,
-        ),
-        const Divider(height: 1),
-        SwitchListTile(
-          value: _isDisturb,
-          onChanged: (v) {
-            _setGroupDisturb(v);
-          },
-          title: const Text('消息免打扰'),
-        ),
+        _cardView('群名', _groupName,_editGroupName),
+        _cardView('设置我的群昵称', '', _editGroupAlias),
       ],
     );
+  }
+
+
+  Widget _cardView(String title, String desc, VoidCallback onTap){
+    return InkWell(onTap: () {
+      onTap();
+    },
+    child: Container(
+          height: 52,
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: GbsColors.lightBackgroundB,
+            borderRadius: BorderRadius.all(Radius.circular(12))
+
+          ),
+          child: Row(children: [
+            Text(title),
+            Spacer(),
+            Text(desc),
+            SizedBox(width: 8,),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],),
+        ),);
   }
 
   Widget _buildDangerZone() {
@@ -615,18 +661,19 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
                     _creatorUserId != null && 
                     currentUserId == _creatorUserId;
     
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-          SizedBox(
+    return Container(
+      height: 48,
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: GbsColors.lightBackgroundB,
+            borderRadius: BorderRadius.all(Radius.circular(12))
+
+          ),
+      child: SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-              ),
+            child: TextButton(
               onPressed: () => _handleLeaveOrDissolveGroup(isOwner),
               child: Text(
                 isOwner ? '解散群聊' : '退出群聊',
@@ -634,8 +681,6 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
               ),
             ),
           ),
-        ],
-      ),
     );
   }
   

@@ -446,6 +446,40 @@ message GroupPreview {
   bool is_banned = 9;                     // 查询人是否被禁言（可选，仅成员在群时返回）
 }
 
+// ========== 群组消息状态管理 ==========
+
+// 获取未读数和最后一条消息请求
+message GetUnreadAndLastMessage {
+  string group_id = 1;    // 群组ID
+  string member_id = 2;   // 群成员ID（自己）
+}
+
+// 批量获取未读数和最后一条消息请求
+message BatchGetUnreadAndLastMessage {
+  repeated GetUnreadAndLastMessage items = 1;  // 查询项列表
+}
+
+// 未读数和最后一条消息响应
+message UnreadAndLastMessage {
+  int64 unread_count = 1;        // 未读数 = seq - read_seq
+  im.message.ImMessage last_message = 2;    // 最后一条消息（通过message_id查询，可选）
+  im.message.ImMessage last_at_message = 3;  // 最后一条@消息（通过last_at_message_id查询，可选）
+  int64 seq = 4;                 // 当前最大序号
+  int64 read_seq = 5;            // 已读序号
+}
+
+// 批量未读数和最后一条消息响应
+message BatchUnreadAndLastMessage {
+  map<string, UnreadAndLastMessage> results = 1;  // key: "group_id:member_id"
+}
+
+// 标记消息状态已读请求（用于群组消息状态管理）
+message MarkGroupMessageStateRead {
+  string group_id = 1;    // 群组ID
+  string member_id = 2;   // 群成员ID（自己）
+  int64 read_seq = 3;     // 已读序号
+}
+
 // ============ 响应说明 ============
 // 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
 // 查询成功响应：返回具体对象（Group、GList、members、GCheckResult、GroupSearchResult 等）

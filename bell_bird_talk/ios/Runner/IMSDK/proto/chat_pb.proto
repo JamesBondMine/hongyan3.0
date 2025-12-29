@@ -4,10 +4,8 @@ package im.chat;
 
 option java_package = "com.cloud.im.common.core.protocol.chat";
 option java_multiple_files = true;
-option java_outer_classname = "ChatProtos";
 
 import "message_pb.proto";
-import "conv_pb.proto";
 import "system_pb.proto";
 
 // ============ 查询操作 ============
@@ -16,7 +14,7 @@ import "system_pb.proto";
 // 用于搜索单聊和群聊的聊天记录
 message Search {
   string keyword = 1;                     // 搜索关键词（必填）
-  im.conv.ConversationType conv_type = 2;  // 会话类型过滤（可选，单聊/群聊，使用枚举）
+  com.cloud.im.common.core.system.ConversationType conv_type = 2;  // 会话类型过滤（可选，单聊/群聊，使用枚举）
   string from_user_id = 4;                 // 按发送者用户ID过滤（可选）
   int64 start_time_ms = 5;                 // 开始时间（可选，毫秒时间戳）
   int64 end_time_ms = 6;                   // 结束时间（可选，毫秒时间戳）
