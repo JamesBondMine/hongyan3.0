@@ -6,6 +6,7 @@ import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
