@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/pages/friends/friend_search_page.dart';
 import 'package:bell_bird_talk/pages/friends/friends_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
@@ -255,6 +256,7 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           color: Colors.white,
           child: Column(
             children: [
+              _buildSearchBar(),
               _buildRequestEntryItem(
                 icon: Icons.person_add,
                 iconColor: Colors.orange,
@@ -301,6 +303,37 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           ),
         ),
       ],
+    );
+  }
+
+  /// 构建搜索栏
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.only(left: 12, right: 16, top: 12, bottom: 12),
+      color: Colors.white,
+      child: InkWell(
+        onTap: (){
+          Get.to(() => const FriendSearchPage(friends: [],));
+        },
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                '搜索',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
