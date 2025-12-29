@@ -646,6 +646,8 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           color: Colors.white,
           child: Column(
             children: [
+
+              _buildSearchBar(),
               _buildRequestEntryItem(
                 icon: Icons.person_add,
                 iconColor: Colors.orange,
