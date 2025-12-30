@@ -77,7 +77,6 @@ class GroupMoveView extends StatelessWidget {
                       Expanded(child: ListTile(
                       title: Text(group.name),
                       onTap: () {
-                        // onItemClick(group.id);
                         _selectedItem = group.id;
                         controller.updateFriendGroupRefreshId();
                         moveToGroup(() {
@@ -85,7 +84,7 @@ class GroupMoveView extends StatelessWidget {
                         });
                       },
                     ),),
-                    _selectedItem == group.id ? Icon(Icons.arrow_forward_ios) : Container(),
+                    _selectedItem == group.id ? Icon(Icons.check, color: GbsColors.darkPrimaryButton,) : Container(),
                     ],);
                   },
                 );

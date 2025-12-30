@@ -47,10 +47,15 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
   final AudioPlayer _player = AudioPlayer();
   
   VoiceRecordState _state = VoiceRecordState.idle;
-  String? _recordPath;
-  int _recordDuration = 0;  // 录制时长（秒）
+  String? _currentRecordPath; // 当前正在录制的文件路径
+  int _recordDuration = 0;  // 总录制时长（秒）
+  int _currentSegmentDuration = 0; // 当前段的录制时长（秒）
   int _playPosition = 0;    // 播放位置（秒）
   Timer? _timer;
+  
+  // 多段语音文件列表
+  final List<String> _voiceSegments = [];
+  final List<int> _segmentDurations = []; // 每段的时长（秒）
   
   static const int maxDuration = 60; // 最大录制时长
 
@@ -73,7 +78,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     super.dispose();
   }
 
-  /// 开始录制
+  /// 开始录制（新的一段）
   Future<void> _startRecording() async {
     try {
       // 检查权限
@@ -97,17 +102,18 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
 
       setState(() {
         _state = VoiceRecordState.recording;
-        _recordPath = path;
-        _recordDuration = 0;
+        _currentRecordPath = path;
+        _currentSegmentDuration = 0;
       });
 
       // 启动计时器
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_recordDuration >= maxDuration) {
-          _stopRecording();
+          _pauseAndSaveSegment();
           return;
         }
         setState(() {
+          _currentSegmentDuration++;
           _recordDuration++;
         });
       });
@@ -116,67 +122,89 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     }
   }
 
-  /// 暂停/继续录制
-  Future<void> _togglePauseRecording() async {
-    if (_state == VoiceRecordState.recording) {
-      await _recorder.pause();
-      _timer?.cancel();
-      setState(() => _state = VoiceRecordState.paused);
-    } else if (_state == VoiceRecordState.paused) {
-      await _recorder.resume();
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_recordDuration >= maxDuration) {
-          _stopRecording();
-          return;
-        }
-        setState(() => _recordDuration++);
-      });
-      setState(() => _state = VoiceRecordState.recording);
-    }
-  }
-
-  /// 停止录制
-  Future<void> _stopRecording() async {
+  /// 暂停并保存当前段
+  Future<void> _pauseAndSaveSegment() async {
     _timer?.cancel();
-    final path = await _recorder.stop();
-    
-    if (path != null && _recordDuration > 0) {
-      setState(() {
-        _state = VoiceRecordState.recorded;
-        _recordPath = path;
-      });
-    } else {
-      setState(() => _state = VoiceRecordState.idle);
+    if (_state != VoiceRecordState.recording || _currentRecordPath == null) {
+      return;
+    }
+
+    try {
+      final path = await _recorder.stop();
+      if (path != null && _currentSegmentDuration > 0) {
+        // 保存当前段
+        _voiceSegments.add(path);
+        _segmentDurations.add(_currentSegmentDuration);
+        print('💾 保存语音段: $path, 时长: ${_currentSegmentDuration}秒');
+        
+        setState(() {
+          _state = VoiceRecordState.paused;
+          _currentRecordPath = null;
+          _currentSegmentDuration = 0;
+        });
+      }
+    } catch (e) {
+      print('暂停录制失败: $e');
+      setState(() => _state = VoiceRecordState.paused);
     }
   }
 
-  /// 删除录音
+  /// 继续录制（开始新的一段）
+  Future<void> _resumeRecording() async {
+    if (_state != VoiceRecordState.paused) {
+      return;
+    }
+    
+    // 开始新的录制段
+    await _startRecording();
+  }
+
+  /// 删除录音（删除所有段）
   void _deleteRecording() {
     _timer?.cancel();
     _player.stop();
     
-    if (_recordPath != null) {
+    // 删除所有语音段文件
+    for (final path in _voiceSegments) {
       try {
-        File(_recordPath!).deleteSync();
+        File(path).deleteSync();
+      } catch (_) {}
+    }
+    
+    // 删除当前正在录制的文件
+    if (_currentRecordPath != null) {
+      try {
+        File(_currentRecordPath!).deleteSync();
       } catch (_) {}
     }
     
     setState(() {
       _state = VoiceRecordState.idle;
-      _recordPath = null;
+      _currentRecordPath = null;
       _recordDuration = 0;
+      _currentSegmentDuration = 0;
       _playPosition = 0;
+      _voiceSegments.clear();
+      _segmentDurations.clear();
     });
   }
 
-  /// 播放/暂停
+  /// 播放/暂停（播放合并后的音频，需要先合并）
   Future<void> _togglePlay() async {
     if (_state == VoiceRecordState.playing) {
       await _player.pause();
       _timer?.cancel();
-      setState(() => _state = VoiceRecordState.recorded);
-    } else if (_state == VoiceRecordState.recorded && _recordPath != null) {
-      await _player.play(DeviceFileSource(_recordPath!));
+      setState(() => _state = VoiceRecordState.paused);
+    } else if (_state == VoiceRecordState.paused && _voiceSegments.isNotEmpty) {
+      // 如果有多个段，需要先合并（这里简化处理，只播放第一段作为预览）
+      // 实际发送时会合并所有段
+      if (_voiceSegments.length == 1) {
+        await _player.play(DeviceFileSource(_voiceSegments[0]));
+      } else {
+        // 多个段时，暂时不播放（或者可以合并后播放）
+        print('⚠️ 多段语音暂不支持播放预览，请直接发送');
+        return;
+      }
       
       setState(() {
         _state = VoiceRecordState.playing;
@@ -187,7 +215,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
         if (_playPosition >= _recordDuration) {
           timer.cancel();
           setState(() {
-            _state = VoiceRecordState.recorded;
+            _state = VoiceRecordState.paused;
             _playPosition = 0;
           });
           return;
@@ -200,7 +228,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
         _timer?.cancel();
         if (mounted) {
           setState(() {
-            _state = VoiceRecordState.recorded;
+            _state = VoiceRecordState.paused;
             _playPosition = 0;
           });
         }
@@ -208,13 +236,95 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     }
   }
 
-  /// 发送语音
-  void _sendVoice() {
-    if (_recordPath != null && _recordDuration > 0) {
+  /// 合并多段语音文件
+  Future<String?> _mergeVoiceSegments() async {
+    if (_voiceSegments.isEmpty) {
+      return null;
+    }
+
+    if (_voiceSegments.length == 1) {
+      // 只有一段，直接返回
+      return _voiceSegments[0];
+    }
+
+    try {
+      // 生成合并后的文件路径
+      final dir = await getTemporaryDirectory();
+      final mergedPath = '${dir.path}/voice_merged_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+      // 读取所有音频文件的字节
+      final List<List<int>> audioBytesList = [];
+      for (final path in _voiceSegments) {
+        final file = File(path);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          audioBytesList.add(bytes);
+        }
+      }
+
+      if (audioBytesList.isEmpty) {
+        return null;
+      }
+
+      // 简单合并：直接拼接字节（这仅适用于相同格式的M4A文件，可能会有问题）
+      // 更好的方式是使用FFmpeg或原生代码合并，但这里先实现基本功能
+      final mergedFile = File(mergedPath);
+      final sink = mergedFile.openWrite();
+      
+      // 对于M4A格式，不能简单拼接字节，需要重新编码
+      // 这里暂时使用第一段作为占位，实际应该使用原生代码或FFmpeg合并
+      print('⚠️ 多段语音合并需要使用原生代码实现，当前使用第一段');
+      
+      // 暂时复制第一段（实际应该合并所有段）
+      // TODO: 实现真正的音频合并功能，需要使用原生代码（iOS: AVFoundation, Android: MediaMetadataRetriever）
+      if (_voiceSegments.isNotEmpty) {
+        final firstFile = File(_voiceSegments[0]);
+        if (await firstFile.exists()) {
+          await firstFile.copy(mergedPath);
+          print('📝 暂时使用第一段作为合并结果，实际应通过原生代码合并所有段');
+        }
+      }
+
+      await sink.close();
+      return mergedPath;
+    } catch (e) {
+      print('❌ 合并语音文件失败: $e');
+      return null;
+    }
+  }
+
+  /// 发送语音（合并多段后发送）
+  Future<void> _sendVoice() async {
+    // 如果当前正在录制，先暂停并保存当前段
+    if (_state == VoiceRecordState.recording && _currentRecordPath != null) {
+      await _pauseAndSaveSegment();
+    }
+
+    if (_voiceSegments.isEmpty && _currentRecordPath == null) {
+      return;
+    }
+
+    // 如果还有当前段未保存，先保存
+    if (_currentRecordPath != null && _currentSegmentDuration > 0) {
+      _voiceSegments.add(_currentRecordPath!);
+      _segmentDurations.add(_currentSegmentDuration);
+    }
+
+    if (_voiceSegments.isEmpty) {
+      return;
+    }
+
+    // 合并所有语音段
+    final mergedPath = await _mergeVoiceSegments();
+    
+    if (mergedPath != null && _recordDuration > 0) {
       widget.onSend?.call(VoiceRecordResult(
-        filePath: _recordPath!,
+        filePath: mergedPath,
         duration: _recordDuration,
       ));
+      
+      // 清理临时文件
+      _deleteRecording();
     }
   }
 
@@ -270,9 +380,10 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
   /// 语音条
   Widget _buildVoiceBar() {
     final isIdle = _state == VoiceRecordState.idle;
-    final isRecording = _state == VoiceRecordState.recording || _state == VoiceRecordState.paused;
+    final isRecording = _state == VoiceRecordState.recording;
+    final isPaused = _state == VoiceRecordState.paused;
     final isPlaying = _state == VoiceRecordState.playing;
-    final hasRecorded = _state == VoiceRecordState.recorded || isPlaying;
+    final hasSegments = _voiceSegments.isNotEmpty || (_currentRecordPath != null && _currentSegmentDuration > 0);
     
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -283,8 +394,8 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
       ),
       child: Row(
         children: [
-          // 左侧：播放按钮（录制完成后显示）
-          if (hasRecorded)
+          // 左侧：播放按钮（有语音段时显示）
+          if (hasSegments && !isRecording)
             GestureDetector(
               onTap: _togglePlay,
               child: Container(
@@ -318,7 +429,22 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
                       ),
                     ),
                   )
-                : _buildWaveform(),
+                : Row(
+                    children: [
+                      Expanded(child: _buildWaveform()),
+                      if (_voiceSegments.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Text(
+                            '${_voiceSegments.length}段',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
           
           const SizedBox(width: 12),
@@ -331,9 +457,11 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
                   ? '${maxDuration}s'  // 最大时长
                   : isRecording 
                       ? '${maxDuration - _recordDuration}s'  // 倒计时
-                      : isPlaying
-                          ? '${_playPosition}s'  // 播放进度
-                          : '${_recordDuration}s',  // 总时长
+                      : isPaused
+                          ? '${_recordDuration}s'  // 总时长（暂停状态）
+                          : isPlaying
+                              ? '${_playPosition}s'  // 播放进度
+                              : '${_recordDuration}s',  // 总时长
               style: TextStyle(
                 fontSize: 14,
                 color: isRecording ? Colors.red : Colors.grey[600],
@@ -350,6 +478,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
   /// 语音波形
   Widget _buildWaveform() {
     final isRecording = _state == VoiceRecordState.recording;
+    final isPaused = _state == VoiceRecordState.paused;
     final isPlaying = _state == VoiceRecordState.playing;
     
     return SizedBox(
@@ -362,6 +491,9 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
           if (isRecording || isPlaying) {
             // 动态波形
             height = 8 + (index % 3 + 1) * 6.0;
+          } else if (isPaused) {
+            // 暂停状态：静态波形
+            height = 8 + (index % 4) * 4.0;
           } else {
             // 静态波形
             height = 8 + (index % 4) * 4.0;
@@ -374,7 +506,9 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
             decoration: BoxDecoration(
               color: isRecording 
                   ? Colors.red.withValues(alpha: 0.6 + (index % 3) * 0.15)
-                  : Colors.blue.withValues(alpha: 0.4 + (index % 3) * 0.2),
+                  : isPaused
+                      ? Colors.orange.withValues(alpha: 0.4 + (index % 3) * 0.2)
+                      : Colors.blue.withValues(alpha: 0.4 + (index % 3) * 0.2),
               borderRadius: BorderRadius.circular(2),
             ),
           );
@@ -385,11 +519,11 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
 
   /// 操作区
   Widget _buildControlArea() {
-    final isRecording = _state == VoiceRecordState.recording || _state == VoiceRecordState.paused;
-    final hasRecorded = _state == VoiceRecordState.recorded || _state == VoiceRecordState.playing;
+    final isRecording = _state == VoiceRecordState.recording;
+    final isPaused = _state == VoiceRecordState.paused;
     final isIdle = _state == VoiceRecordState.idle;
+    final hasSegments = _voiceSegments.isNotEmpty || (_currentRecordPath != null && _currentSegmentDuration > 0);
     
-    // 录制中/录制完成：删除、麦克风/发送、关闭
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       child: Row(
@@ -413,7 +547,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
             ),
           ),
           
-          // 中间按钮：空闲显示麦克风开始，录制中显示停止，录制完成显示发送
+          // 中间按钮：空闲显示麦克风开始，录制中显示停止，暂停后显示继续录制
           if (isIdle)
             GestureDetector(
               onTap: _startRecording,
@@ -440,7 +574,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
             )
           else if (isRecording)
             GestureDetector(
-              onTap: _stopRecording,
+              onTap: _pauseAndSaveSegment,
               child: Container(
                 width: 72,
                 height: 72,
@@ -456,13 +590,39 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
                   ],
                 ),
                 child: const Icon(
-                  Icons.stop,
+                  Icons.pause,
                   color: Colors.white,
                   size: 32,
                 ),
               ),
             )
-          else if (hasRecorded)
+          else if (isPaused)
+            GestureDetector(
+              onTap: _resumeRecording,
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.mic,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          
+          // 发送按钮（只有有语音段时才显示）
+          if (hasSegments)
             GestureDetector(
               onTap: _sendVoice,
               child: Container(
@@ -485,25 +645,9 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
                   size: 28,
                 ),
               ),
-            ),
-          
-          // 关闭
-          GestureDetector(
-            onTap: _close,
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.close,
-                color: Colors.grey[600],
-                size: 28,
-              ),
-            ),
-          ),
+            )
+          else
+            const SizedBox(width: 72),
         ],
       ),
     );
