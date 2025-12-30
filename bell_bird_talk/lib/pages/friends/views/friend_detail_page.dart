@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/pages/friends/views/group_move_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
@@ -63,12 +65,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             onPressed: () => Get.back(result: _hasChanges),
           ),
           actions: [
-            // IconButton(
-            //   icon:  Icon(Icons.more_horiz, color: GbsColors.darkPrimaryButton,),
-            //   onPressed: _showMoreOptions,
-            // ),
             CustomPopup(
-              // contentPadding: EdgeInsets.only(right: 16),
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -103,17 +100,18 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
     ); // 关闭 PopScope
   }
 
-  Widget _buildPopItem(String title, String subtitle, VoidCallback onTap) {
+  Widget _buildPopItem(String title, String icon, VoidCallback onTap) {
     return GestureDetector(
       child: Container(
         width: 120,
         alignment: Alignment.center,
+        margin: EdgeInsets.only(left: 10),
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset(
-              'assets/img//chat/chatuseradd.png',
+              'assets/img//friend/$icon.png',
               width: 20,
               height: 20,
             ),
@@ -131,27 +129,49 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
 
   List<Widget> _buildAppBarActions() {
     return _isBlocked==null ? [
-      _buildPopItem('备注', ' ', () {
+      _buildPopItem('备注', 'edit', () {
         _showSetRemarkDialog();
       }),
-      _buildPopItem('调整分组', ' ', () {}),
-      _buildPopItem('屏蔽消息', ' ', () {}),
-      _buildPopItem('删除好友', ' ', () {
+      _buildPopItem('调整分组', 'move', () {
+        _showMoveGroupDialog();
+      }),
+      _buildPopItem('屏蔽消息', 'notifi', () {}),
+      _buildPopItem('删除好友', 'del', () {
         _confirmDeleteFriend();
       }),
     ] : [
-      _buildPopItem('备注', ' ', () {
+      _buildPopItem('备注', 'edit', () {
         _showSetRemarkDialog();
       }),
-      _buildPopItem('调整分组', ' ', () {}),
-      _buildPopItem('屏蔽消息', ' ', () {}),
-      _buildPopItem(_isBlocked! ? '取消黑名单' :  '加黑名单', ' ', () {
+      _buildPopItem('调整分组', 'move', () {
+        _showMoveGroupDialog();
+      }),
+      _buildPopItem('屏蔽消息', 'notifi', () {}),
+      _buildPopItem(_isBlocked! ? '取消黑名单' :  '加黑名单', 'notifi', () {
         _confirmBlockFriend();
       }),
-      _buildPopItem('删除好友', ' ', () {
+      _buildPopItem('删除好友', 'del', () {
         _confirmDeleteFriend();
       }),
     ];
+  }
+
+  // 调整分组
+  void _showMoveGroupDialog() async {
+    gbs.shower.showScreenViewCustom(context, 400, Container(
+      width: Get.width,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: GbsColors.lightBackgroundB,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
+        ),
+      ),
+      child: GroupMoveView(contactUserId: _friend.userId, onItemClick: (value) {
+        
+      },),
+    ));
   }
 
   /// 清理UTF-16字符串，移除无效字符
@@ -275,22 +295,20 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   /// 头部信息卡片
   Widget _buildHeaderCard() {
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16),
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 30),
       padding: EdgeInsets.only(left: 16),
       height: 92,
       alignment: Alignment.centerLeft,
       decoration: const BoxDecoration(
         color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
       child: Row(
         children: [
           Container(
             width: 62,
             height: 62,
+            margin: EdgeInsets.only(right: 10),
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(shape: BoxShape.circle),
             child: CircleAvatar(

@@ -131,6 +131,7 @@ flutter:
     - assets/img/common/
     - assets/img/msg/
     - assets/img/tab/
+    - assets/img/friend/
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
