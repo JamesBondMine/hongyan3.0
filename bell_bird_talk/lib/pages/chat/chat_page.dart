@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
@@ -32,6 +31,7 @@ import 'package:video_compress/video_compress.dart';
 import 'user_info_page.dart';
 import '../friends/views/friend_detail_page.dart';
 import '../models/friend_model.dart';
+import 'at_member_select_page.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -92,8 +92,6 @@ class _ChatPageState extends State<ChatPage> {
   
   // @功能相关
   List<Map<String, dynamic>> _atMembers = []; // 已@的成员列表
-  bool _showAtMemberPicker = false; // 是否显示@成员选择器
-  String _atKeyword = ''; // @搜索关键词
   
   // 常用表情列表
   static const List<String> _emojis = [
@@ -173,29 +171,32 @@ class _ChatPageState extends State<ChatPage> {
         // 找到@符号，检查@后面是否有空格或其他@符号
         final afterAt = beforeCursor.substring(lastAtIndex + 1);
         if (afterAt.isEmpty || (!afterAt.contains(' ') && !afterAt.contains('@'))) {
-          // @后面没有空格或其他@，显示成员选择器
-          _atKeyword = afterAt;
-          if (!_showAtMemberPicker) {
-            setState(() {
-              _showAtMemberPicker = true;
-            });
-          } else {
-            // 更新搜索关键词
-            setState(() {
-              _atKeyword = afterAt;
-            });
-          }
+          // @后面没有空格或其他@，跳转到@成员选择页面
+          _openAtMemberSelectPage();
           return;
         }
       }
     }
-    
-    // 没有找到有效的@符号，隐藏选择器
-    if (_showAtMemberPicker) {
-      setState(() {
-        _showAtMemberPicker = false;
-        _atKeyword = '';
-      });
+  }
+
+  /// 打开@成员选择页面
+  Future<void> _openAtMemberSelectPage() async {
+    if (widget.convType != 2 || widget.groupMembers == null) {
+      return; // 非群聊，不处理
+    }
+
+    final result = await Navigator.push<List<Map<String, dynamic>>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AtMemberSelectPage(
+          groupId: widget.targetUserId,
+          currentUserId: _currentUserId,
+        ),
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      _selectAtMembers(result);
     }
   }
 
@@ -1423,7 +1424,7 @@ class _ChatPageState extends State<ChatPage> {
         EasyLoading.showSuccess('已删除');
       }
       // 从数据库删除
-      if (localId !=null && localId.isNotEmpty) {
+      if (localId.isNotEmpty) {
         await _messageDatabase.deleteMessage(localId);
       }
       
@@ -1594,9 +1595,6 @@ class _ChatPageState extends State<ChatPage> {
                           onSubmitted: (_) => _sendMessage(),
                         ),
                       ),
-                      // @成员选择器
-                      if (_showAtMemberPicker && widget.groupMembers != null)
-                        _buildAtMemberPicker(),
                     ],
                   ),
                 ),
@@ -1636,132 +1634,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
 
-  /// 构建@成员选择器
-  Widget _buildAtMemberPicker() {
-    if (widget.groupMembers == null || widget.groupMembers!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    
-    // 过滤群成员（排除当前用户，并根据关键词搜索）
-    List<Map<String, dynamic>> filteredMembers = widget.groupMembers!
-        .where((member) {
-          final userId = (member['user_id'] as String?) ?? '';
-          final alias = (member['member_alias'] as String?) ?? '';
-          final nickname = alias.isNotEmpty ? alias : userId;
-          
-          // 排除当前用户
-          if (userId == _currentUserId) return false;
-          
-          // 如果有搜索关键词，进行过滤
-          if (_atKeyword.isNotEmpty) {
-            return nickname.toLowerCase().contains(_atKeyword.toLowerCase()) ||
-                   userId.toLowerCase().contains(_atKeyword.toLowerCase());
-          }
-          
-          return true;
-        })
-        .toList();
-    
-    // 限制显示数量
-    if (filteredMembers.length > 9) {
-      filteredMembers = filteredMembers.sublist(0, 9);
-    }
-    
-    // 构建成员列表项
-    final List<Widget> memberItems = [];
-    
-    // 添加"@所有人"选项（放在最前面）
-    memberItems.add(
-      ListTile(
-        dense: true,
-        leading: const CircleAvatar(
-          radius: 16,
-          backgroundColor: Colors.orange,
-          child: Icon(Icons.group, size: 18, color: Colors.white),
-        ),
-        title: const Text(
-          '所有人',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text('@所有人', style: TextStyle(fontSize: 12, color: Colors.grey)),
-        onTap: () => _selectAtMember('all', '所有人'),
-      ),
-    );
-    
-    // 添加分隔线
-    if (filteredMembers.isNotEmpty) {
-      memberItems.add(const Divider(height: 1));
-    }
-    
-    // 添加成员列表
-    for (final member in filteredMembers) {
-      final userId = (member['user_id'] as String?) ?? '';
-      final alias = (member['nickname'] as String?) ?? '';
-      final nickname = alias.isNotEmpty ? alias : userId;
-      final isAdmin = (member['is_admin'] as bool?) ?? false;
-      final avatar = (member['avatar'] as String?) ?? '';
-      memberItems.add(
-        ListTile(
-          dense: true,
-          leading: CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.blue.shade50,
-            child: avatar.isNotEmpty ? Container(
-              width: 32,
-              height: 32,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(avatar),
-                  fit: BoxFit.cover,
-                ),
-              ),child: CachedNetworkImage(imageUrl: avatar, width: 32, height: 32, fit: BoxFit.cover),
-            ): Text(
-              nickname.isNotEmpty ? nickname.characters.first : '#',
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          title: Text(
-            nickname,
-            style: const TextStyle(fontSize: 14),
-          ),
-          subtitle: isAdmin
-              ? const Text('管理员', style: TextStyle(fontSize: 12, color: Colors.orange))
-              : null,
-          onTap: () => _selectAtMember(userId, nickname),
-        ),
-      );
-    }
-    
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxHeight: 200),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: memberItems.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('未找到匹配的成员', style: TextStyle(color: Colors.grey)),
-            )
-          : ListView(
-              shrinkWrap: true,
-              children: memberItems,
-            ),
-    );
-  }
-  
-  /// 选择@成员
-  void _selectAtMember(String userId, String nickname) {
+  /// 选择@成员（支持多个成员）
+  void _selectAtMembers(List<Map<String, dynamic>> selectedMembers) {
+    if (selectedMembers.isEmpty) return;
+
     final text = _messageController.text;
     final cursorPosition = _messageController.selection.baseOffset;
     
@@ -1770,28 +1646,59 @@ class _ChatPageState extends State<ChatPage> {
     final lastAtIndex = beforeCursor.lastIndexOf('@');
     
     if (lastAtIndex != -1) {
-      // 替换@到光标位置之间的内容为@昵称
-      final beforeAt = text.substring(0, lastAtIndex + 1);
-      final afterCursor = text.substring(cursorPosition);
-      final newText = '$beforeAt$nickname $afterCursor';
+      // 检查是否是@所有人
+      final firstMember = selectedMembers[0];
+      final userId = (firstMember['user_id'] as String?) ?? '';
       
-      // 更新输入框内容
-      _messageController.text = newText;
+      if (userId == 'all') {
+        // @所有人
+        final beforeAt = text.substring(0, lastAtIndex + 1);
+        final afterCursor = text.substring(cursorPosition);
+        final newText = '${beforeAt}所有人 $afterCursor';
+        
+        _messageController.text = newText;
+        final newCursorPosition = lastAtIndex + 1 + '所有人'.length + 1;
+        _messageController.selection = TextSelection.collapsed(offset: newCursorPosition);
+        
+        // 记录@所有人
+        _atMembers.add({
+          'user_id': 'all',
+          'nickname': '所有人',
+        });
+      } else {
+        // @多个成员
+        final beforeAt = text.substring(0, lastAtIndex + 1);
+        final afterCursor = text.substring(cursorPosition);
+        
+        // 构建@多个成员的文本，用空格分隔
+        final memberNames = selectedMembers.map((member) {
+          final alias = (member['member_alias'] as String?) ?? '';
+          final nickname = (member['nickname'] as String?) ?? '';
+          final memberUserId = (member['user_id'] as String?) ?? '';
+          return alias.isNotEmpty ? alias : (nickname.isNotEmpty ? nickname : memberUserId);
+        }).join(' ');
+        
+        final newText = '$beforeAt$memberNames $afterCursor';
+        _messageController.text = newText;
+        final newCursorPosition = lastAtIndex + 1 + memberNames.length + 1;
+        _messageController.selection = TextSelection.collapsed(offset: newCursorPosition);
+        
+        // 记录@的成员信息
+        for (final member in selectedMembers) {
+          final memberUserId = (member['user_id'] as String?) ?? '';
+          final alias = (member['member_alias'] as String?) ?? '';
+          final nickname = (member['nickname'] as String?) ?? '';
+          final displayName = alias.isNotEmpty ? alias : (nickname.isNotEmpty ? nickname : memberUserId);
+          
+          _atMembers.add({
+            'user_id': memberUserId,
+            'nickname': displayName,
+          });
+        }
+      }
       
-      // 设置光标位置到@昵称后面
-      final newCursorPosition = lastAtIndex + 1 + nickname.length + 1;
-      _messageController.selection = TextSelection.collapsed(offset: newCursorPosition);
-      
-      // 记录@的成员信息（用于发送时组装AtMessage）
-      _atMembers.add({
-        'user_id': userId,
-        'nickname': nickname,
-      });
-      
-      // 隐藏选择器
       setState(() {
-        _showAtMemberPicker = false;
-        _atKeyword = '';
+        // 触发UI更新
       });
     }
   }
@@ -3203,4 +3110,5 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
+
 

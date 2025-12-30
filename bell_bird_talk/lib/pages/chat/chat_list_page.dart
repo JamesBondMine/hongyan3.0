@@ -734,11 +734,13 @@ class _ChatListPageState extends State<ChatListPage> {
           }
         },
         child: Container(
+          height: 34,
+          width: 75,
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          // padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(17),
             // border: isSelected
             //     ? Border.all(color: Colors.blue, width: 1)
             //     : null,

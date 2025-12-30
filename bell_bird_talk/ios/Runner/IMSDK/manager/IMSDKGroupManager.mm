@@ -1453,6 +1453,7 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     
     BParam * bp = [[BParam alloc] init];
     bp.param = groupId;
+    
     NSData * dataNs = [bp data];
     const char *data = (const char *)dataNs.bytes;
     int dataLen = (int)dataNs.length;

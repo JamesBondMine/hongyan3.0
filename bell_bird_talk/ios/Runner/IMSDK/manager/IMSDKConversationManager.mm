@@ -130,6 +130,7 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
                 convDict[@"created_at"] = @(conv.createdAt);
                 convDict[@"updated_at"] = @(conv.updatedAt);
                 convDict[@"extra_info"] = conv.extraInfo ?: @"";
+            
                 
                 // 添加标签信息
                 if (conv.sysTagsArray_Count > 0) {
