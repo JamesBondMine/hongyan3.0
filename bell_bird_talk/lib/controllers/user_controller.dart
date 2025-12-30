@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../services/native_bridge.dart';
 import '../services/message_database.dart';
+import '../controllers/global_controller.dart';
 import 'dart:convert';
 
 class UserController extends GetxController { 
@@ -8,9 +9,245 @@ class UserController extends GetxController {
   static UserController get to => Get.put(UserController());
 
   final IOSNativeService _nativeService = IOSNativeService();
+  final MessageDatabase _messageDatabase = MessageDatabase();
+  final GlobalController _globalCtrl = Get.find<GlobalController>();
 
   /// 获取联系人列表
+  /// 
+  /// [page] 页码，从1开始
+  /// [pageSize] 每页数量
+  /// [groupId] 分组ID（可选，null表示不按分组过滤）
+  /// [relationship] 关系类型：-1=全部, 0=好友, 1=黑名单等
+  /// [forceRefresh] 是否强制从网络获取（默认false）
+  /// [keyword] 搜索关键词，支持搜索nickname、phone、email、remark（可选）
   Future<Map<String, dynamic>> getContactList({
+    required int page,
+    required int pageSize,
+    int? groupId,
+    required int relationship,
+    bool forceRefresh = false,
+    String? keyword,
+  }) async {
+    // 获取当前用户ID
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    if (currentUserId.isEmpty) {
+      return {
+        'errorCode': -1,
+        'message': '用户未登录',
+        'data': json.encode({'contacts': [], 'total_count': 0}),
+      };
+    }
+
+    // 如果有搜索关键词或强制刷新，直接从网络获取
+    if (keyword != null && keyword.isNotEmpty) {
+      return await _fetchContactsFromNetwork(
+        currentUserId: currentUserId,
+        page: page,
+        pageSize: pageSize,
+        groupId: groupId,
+        relationship: relationship,
+        keyword: keyword,
+      );
+    }
+
+    if (forceRefresh) {
+      // 强制刷新：分页获取全部联系人
+      print('📋 强制刷新，从网络获取全部联系人');
+      if (page == 1) {
+        // 第一页时，重新获取全部联系人
+        await _fetchAllContactsInBatches(
+          currentUserId: currentUserId,
+          groupId: groupId,
+          relationship: relationship,
+        );
+        // 返回第一页数据
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: 1,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      } else {
+        // 后续页面从数据库获取
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: page,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      }
+    }
+
+    // 检查数据库中是否有联系人数据
+    final dbContacts = await _messageDatabase.getAllContacts(currentUserId);
+    final hasDbContacts = dbContacts.isNotEmpty;
+
+    if (!hasDbContacts) {
+      // 第一次加载：分页获取全部联系人
+      print('📋 数据库中没有联系人数据，从网络分页获取全部联系人');
+      if (page == 1) {
+        // 第一次调用时，循环获取所有联系人
+        await _fetchAllContactsInBatches(
+          currentUserId: currentUserId,
+          groupId: groupId,
+          relationship: relationship,
+        );
+        // 返回第一页数据
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: 1,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      } else {
+        // 后续页面从数据库获取
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: page,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      }
+    }
+
+    // 检查数据库中的联系人数据是否超过24小时
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+    
+    // 获取最早更新的联系人的更新时间
+    final oldestUpdatedContact = dbContacts
+        .map((c) => c['updated_at'] as int? ?? 0)
+        .where((t) => t > 0)
+        .fold<int?>(null, (prev, curr) => prev == null || curr < prev ? curr : prev);
+
+    final needRefresh = oldestUpdatedContact == null || oldestUpdatedContact < twentyFourHoursAgo;
+
+    if (needRefresh) {
+      // 超过24小时，从网络获取并更新
+      print('📋 联系人数据超过24小时，从网络获取并更新');
+      if (page == 1) {
+        // 第一页时，重新获取全部联系人
+        await _fetchAllContactsInBatches(
+          currentUserId: currentUserId,
+          groupId: groupId,
+          relationship: relationship,
+        );
+        // 返回第一页数据
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: 1,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      } else {
+        // 后续页面从数据库获取
+        return await _getContactsFromDatabase(
+          currentUserId: currentUserId,
+          page: page,
+          pageSize: pageSize,
+          groupId: groupId,
+          relationship: relationship,
+        );
+      }
+    } else {
+      // 从数据库获取
+      print('📋 从数据库获取联系人数据');
+      return await _getContactsFromDatabase(
+        currentUserId: currentUserId,
+        page: page,
+        pageSize: pageSize,
+        groupId: groupId,
+        relationship: relationship,
+      );
+    }
+  }
+
+  /// 循环获取所有联系人（用于第一次加载）
+  Future<void> _fetchAllContactsInBatches({
+    required String currentUserId,
+    int? groupId,
+    required int relationship,
+  }) async {
+    const pageSize = 50; // 每批获取50条
+    int currentPage = 1;
+    bool hasMore = true;
+
+    while (hasMore) {
+      final result = await _nativeService.imGetContactList(
+        page: currentPage,
+        pageSize: pageSize,
+        groupId: groupId,
+        relationship: relationship,
+      );
+
+      if (result['errorCode'] != 0) {
+        print('❌ 获取联系人失败: ${result['message']}');
+        break;
+      }
+
+      final dataStr = result['data'] as String?;
+      if (dataStr == null || dataStr.isEmpty) {
+        hasMore = false;
+        break;
+      }
+
+      final data = json.decode(dataStr);
+      final contactsJson = data['contacts'] as List? ?? [];
+
+      if (contactsJson.isEmpty) {
+        hasMore = false;
+        break;
+      }
+
+      // 存储到数据库
+      final contacts = contactsJson
+          .map((json) => json as Map<String, dynamic>)
+          .toList();
+      await _messageDatabase.saveContacts(currentUserId, contacts);
+
+      // 同时更新users表
+      final usersInfo = contactsJson.map((contact) {
+        return {
+          'user_id': contact['contact_user_id'] ?? '',
+          'nickname': contact['nickname'] ?? '',
+          'avatar': contact['avatar'] ?? '',
+          'account_id': contact['account_id'] ?? '',
+          'online_status': contact['online_status'] ?? 0,
+          'phone': contact['phone'] ?? contact['target_phone'] ?? '',
+          'email': contact['email'] ?? contact['target_email'] ?? '',
+          'sex': 0,
+          'signature': null,
+          'region': null,
+          'background_file': null,
+          'last_online_time': null,
+        };
+      }).toList();
+
+      if (usersInfo.isNotEmpty) {
+        await _messageDatabase.upsertUsers(usersInfo);
+      }
+
+      print('📋 已获取并存储第 $currentPage 页联系人，共 ${contacts.length} 条');
+
+      // 如果返回的数据少于pageSize，说明已经是最后一页
+      if (contacts.length < pageSize) {
+        hasMore = false;
+      } else {
+        currentPage++;
+      }
+    }
+
+    print('✅ 已获取并存储全部联系人，共 $currentPage 页');
+  }
+
+  /// 从网络分页获取全部联系人（用于强制刷新或超过24小时）
+  Future<Map<String, dynamic>> _fetchAllContactsFromNetwork({
+    required String currentUserId,
     required int page,
     required int pageSize,
     int? groupId,
@@ -23,14 +260,22 @@ class UserController extends GetxController {
       relationship: relationship,
     );
 
-    // 如果获取成功，更新数据库中的用户信息
     if (result['errorCode'] == 0) {
       final dataStr = result['data'] as String?;
       if (dataStr != null && dataStr.isNotEmpty) {
         final data = json.decode(dataStr);
         final contactsJson = data['contacts'] as List? ?? [];
 
-        // 提取用户信息用于更新数据库
+        // 存储联系人到数据库（contacts表）
+        if (contactsJson.isNotEmpty) {
+          final contacts = contactsJson
+              .map((json) => json as Map<String, dynamic>)
+              .toList();
+          await _messageDatabase.saveContacts(currentUserId, contacts);
+          print('💾 已存储 ${contacts.length} 个联系人到数据库');
+        }
+
+        // 同时更新users表（用于用户信息查询）
         final usersInfo = contactsJson.map((contact) {
           return {
             'user_id': contact['contact_user_id'] ?? '',
@@ -40,7 +285,6 @@ class UserController extends GetxController {
             'online_status': contact['online_status'] ?? 0,
             'phone': contact['phone'] ?? contact['target_phone'] ?? '',
             'email': contact['email'] ?? contact['target_email'] ?? '',
-            // 其他字段使用默认值或空
             'sex': 0,
             'signature': null,
             'region': null,
@@ -49,14 +293,148 @@ class UserController extends GetxController {
           };
         }).toList();
 
-        // 批量更新用户信息到数据库
         if (usersInfo.isNotEmpty) {
-          await MessageDatabase().upsertUsers(usersInfo);
+          await _messageDatabase.upsertUsers(usersInfo);
         }
       }
     }
 
     return result;
+  }
+
+  /// 从网络获取联系人（带关键词搜索）
+  Future<Map<String, dynamic>> _fetchContactsFromNetwork({
+    required String currentUserId,
+    required int page,
+    required int pageSize,
+    int? groupId,
+    required int relationship,
+    String? keyword,
+  }) async {
+    final result = await _nativeService.imGetContactList(
+      page: page,
+      pageSize: pageSize,
+      groupId: groupId,
+      relationship: relationship,
+      keyword: keyword,
+    );
+
+    // 搜索时也更新数据库（但不作为主要数据源）
+    if (result['errorCode'] == 0) {
+      final dataStr = result['data'] as String?;
+      if (dataStr != null && dataStr.isNotEmpty) {
+        final data = json.decode(dataStr);
+        final contactsJson = data['contacts'] as List? ?? [];
+
+        if (contactsJson.isNotEmpty) {
+          final contacts = contactsJson
+              .map((json) => json as Map<String, dynamic>)
+              .toList();
+          await _messageDatabase.saveContacts(currentUserId, contacts);
+          
+          // 同时更新users表
+          final usersInfo = contactsJson.map((contact) {
+            return {
+              'user_id': contact['contact_user_id'] ?? '',
+              'nickname': contact['nickname'] ?? '',
+              'avatar': contact['avatar'] ?? '',
+              'account_id': contact['account_id'] ?? '',
+              'online_status': contact['online_status'] ?? 0,
+              'phone': contact['phone'] ?? contact['target_phone'] ?? '',
+              'email': contact['email'] ?? contact['target_email'] ?? '',
+              'sex': 0,
+              'signature': null,
+              'region': null,
+              'background_file': null,
+              'last_online_time': null,
+            };
+          }).toList();
+
+          if (usersInfo.isNotEmpty) {
+            await _messageDatabase.upsertUsers(usersInfo);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// 从数据库获取联系人
+  Future<Map<String, dynamic>> _getContactsFromDatabase({
+    required String currentUserId,
+    required int page,
+    required int pageSize,
+    int? groupId,
+    required int relationship,
+  }) async {
+    try {
+      // 查询所有联系人
+      List<Map<String, dynamic>> allContacts = await _messageDatabase.getAllContacts(currentUserId);
+
+      // 按分组过滤
+      if (groupId != null && groupId > 0) {
+        allContacts = allContacts.where((contact) {
+          final contactGroupId = contact['group_id'] as int?;
+          return contactGroupId == groupId;
+        }).toList();
+      }
+
+      // 按关系类型过滤
+      if (relationship >= 0) {
+        allContacts = allContacts.where((contact) {
+          final contactRelationship = contact['relationship'] as int? ?? 0;
+          return contactRelationship == relationship;
+        }).toList();
+      }
+
+      // 分页处理
+      final totalCount = allContacts.length;
+      final startIndex = (page - 1) * pageSize;
+      final endIndex = startIndex + pageSize;
+      final paginatedContacts = allContacts.sublist(
+        startIndex < totalCount ? startIndex : totalCount,
+        endIndex < totalCount ? endIndex : totalCount,
+      );
+
+      // 转换为接口格式
+      final contactsJson = paginatedContacts.map((contact) {
+        return {
+          'contact_user_id': contact['contact_user_id'],
+          'nickname': contact['nickname'],
+          'avatar': contact['avatar'],
+          'remark': contact['remark'],
+          'phone': contact['phone'],
+          'email': contact['email'],
+          'account_id': contact['account_id'],
+          'relationship': contact['relationship'],
+          'online_status': contact['online_status'],
+          'group_id': contact['group_id'],
+          'group_name': contact['group_name'],
+        };
+      }).toList();
+
+      return {
+        'errorCode': 0,
+        'message': '获取成功',
+        'data': json.encode({
+          'contacts': contactsJson,
+          'total_count': totalCount,
+          'page': page,
+          'page_size': pageSize,
+        }),
+      };
+    } catch (e) {
+      print('❌ 从数据库获取联系人失败: $e');
+      // 如果数据库查询失败，回退到网络获取
+      return await _fetchAllContactsFromNetwork(
+        currentUserId: currentUserId,
+        page: page,
+        pageSize: pageSize,
+        groupId: groupId,
+        relationship: relationship,
+      );
+    }
   }
 
   /// 获取好友申请列表（包含申请者的公开信息）
@@ -187,7 +565,7 @@ class UserController extends GetxController {
                 .toList();
 
             if (usersToStore.isNotEmpty) {
-              await MessageDatabase().upsertUsers(usersToStore);
+              await _messageDatabase.upsertUsers(usersToStore);
               print('💾 已存储 ${usersToStore.length} 个申请者信息到数据库');
             }
 

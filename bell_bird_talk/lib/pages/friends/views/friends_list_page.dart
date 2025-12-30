@@ -81,6 +81,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
         pageSize: _pageSize,
         groupId: null,
         relationship: -1,
+        forceRefresh: refresh
       );
       
       if (result['errorCode'] == 0) {
@@ -323,14 +324,14 @@ class _FriendsListPageState extends State<FriendsListPage> {
           '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
-        subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
-            ? Text(
-                'ID: ${friend.accountId}  ${friend.displayName}',
-                style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
+        // subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
+        //     ? Text(
+        //         'ID: ${friend.accountId}  ${friend.displayName}',
+        //         style: TextStyle(color: Colors.grey[500], fontSize: 13),
+        //         maxLines: 1,
+        //         overflow: TextOverflow.ellipsis,
+        //       )
+        //     : null,
         onTap: () => _showFriendDetail(friend),
       ),
     ),);

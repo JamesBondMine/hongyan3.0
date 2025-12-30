@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/pages/friends/pages/add_friends_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_search_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friends_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
@@ -14,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../../../controllers/global_controller.dart';
 import '../../../services/native_bridge.dart';
 import '../../../services/message_database.dart';
@@ -147,19 +150,26 @@ _showGroupSettings();
 
   /// 显示分组设置
   void _showGroupSettings() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16,bottom: 30),
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
       ),
-      builder: (context) => GroupSettingsSheet(
-        groups: _groups,
-        onAddGroup: _addGroup,
-        onDeleteGroup: _deleteGroup,
-        onUpdateGroup: _updateGroup,
-      ),
-    );
+       child: AddFriendGroupPage(),));
+    // showModalBottomSheet(
+    //   context: context,
+    //   isScrollControlled: true,
+    //   shape: const RoundedRectangleBorder(
+    //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    //   ),
+    //   builder: (context) => GroupSettingsSheet(
+    //     groups: _groups,
+    //     onAddGroup: _addGroup,
+    //     onDeleteGroup: _deleteGroup,
+    //     onUpdateGroup: _updateGroup,
+    //   ),
+    // );
   }
 
   /// 添加分组

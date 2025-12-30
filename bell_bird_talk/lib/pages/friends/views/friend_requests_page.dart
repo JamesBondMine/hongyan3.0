@@ -244,8 +244,9 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
       dateLabel = '今天';
     } else {
       // 格式化日期为 "MM月dd日 星期X"
-      final weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-      dateLabel = '${requestDate.month}月${requestDate.day}日 星期${weekdays[requestDate.weekday - 1]}';
+      // final weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      // dateLabel = '${requestDate.month}月${requestDate.day}日 星期${weekdays[requestDate.weekday - 1]}';
+      dateLabel = '${requestDate.month} - ${requestDate.day}';
     }
     
     if (!groupedRequests.containsKey(dateLabel)) {
@@ -270,12 +271,12 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
       child: Scaffold(
         backgroundColor: GbsColors.lightAppBarColorB,
         appBar: AppBar(
-          title: Text(isFriend ? '好友申请' : '群组申请'),
+          title: Text(isFriend ? '好友申请' : '群组申请', style: TextStyle(color: GbsColors.titleColor,fontSize: 16, fontWeight: FontWeight.w500),),
           centerTitle: true,
           elevation: 0,
           backgroundColor: GbsColors.lightAppBarColorB,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back_ios),
             onPressed: () => Get.back(result: _hasChanges),
           ),
         ),
@@ -315,7 +316,7 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
           return false;
         },
         child: ListView.builder(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.only(bottom: 16,left: 16,right: 16),
           itemCount: allDateKeys.length * 2 + (_hasMore ? 1 : 0), // 每组包括日期头和请求列表
           itemBuilder: (context, index) {
             if (index == allDateKeys.length * 2) {
@@ -377,8 +378,8 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
   /// 日期头部
   Widget _buildDateHeader(String dateLabel) {
     return Container(
-      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      margin: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
         color: GbsColors.lightAppBarColorB,
         border: Border(

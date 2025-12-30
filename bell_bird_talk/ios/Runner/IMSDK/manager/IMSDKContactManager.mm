@@ -1055,6 +1055,7 @@ static void CreateContactGroupCallback(int errorCode, const char* data, int data
     // 创建 GroupCreate Protobuf 对象
     GroupCreate *groupCreate = [[GroupCreate alloc] init];
     groupCreate.groupName = groupName;
+    
     if (groupColor && groupColor.length > 0) {
         groupCreate.groupColor = groupColor;
     }

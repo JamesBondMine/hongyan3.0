@@ -175,9 +175,7 @@ class _HomePageState extends State<HomePage> {
     // 收到系统消息，刷新联系人列表和好友申请列表
     // 系统消息可能包括：好友申请、好友通过、好友删除等
     _globalCtrl.triggerContactRefresh();
-    
-    print('✅ 已触发联系人和好友申请列表刷新');
-    _createNotification(2, '系统消息: $message');
+    _createNotification(2, '新好友通知');
   }
   
   /// 处理命令消息

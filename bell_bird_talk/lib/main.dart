@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -12,28 +13,30 @@ import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';
 import 'config/translations.dart';
 
-void main() async {
-  // 确保 Flutter 绑定初始化
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // 设置状态栏样式
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
-  
-  // 初始化本地存储
-  await StorageUtil.init();
-  
-  // 初始化全局控制器
-  Get.put(GlobalController());
-  
-  // 配置 EasyLoading
-  _configEasyLoading();
-  
-  runApp(const MyApp());
+void main() {
+  Global.init(() async {
+    // 确保 Flutter 绑定初始化
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // 设置状态栏样式
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+
+    // 初始化本地存储
+    await StorageUtil.init();
+
+    // 初始化全局控制器
+    Get.put(GlobalController());
+
+    // 配置 EasyLoading
+    _configEasyLoading();
+
+    runApp(const MyApp());
+  });
 }
 
 /// 配置 EasyLoading
@@ -107,7 +110,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   String _statusText = '正在初始化...';
-  
+
   @override
   void initState() {
     super.initState();
@@ -118,30 +121,30 @@ class _SplashPageState extends State<SplashPage> {
     try {
       // 等待一小段时间，确保 GetX 初始化完成
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // 获取全局控制器
       final globalCtrl = Get.find<GlobalController>();
-      
+
       // 等待 SDK 初始化完成（最多等待 3 秒）
       setState(() => _statusText = '正在初始化 SDK...');
       await Future.any([
         Future.delayed(const Duration(seconds: 3)),
         Future(() async {
-          while (globalCtrl.imsdkStatus.value == '正在初始化...' || 
-                 globalCtrl.imsdkStatus.value == '正在启动网络服务...') {
+          while (globalCtrl.imsdkStatus.value == '正在初始化...' ||
+              globalCtrl.imsdkStatus.value == '正在启动网络服务...') {
             await Future.delayed(const Duration(milliseconds: 100));
           }
         }),
       ]);
-      
+
       // 检查是否需要自动登录
       if (globalCtrl.needAutoLogin()) {
         // 有保存的 Token，尝试自动登录
         setState(() => _statusText = '正在自动登录...');
         print('📱 检测到本地 Token，开始自动登录...');
-        
+
         final autoLoginSuccess = await globalCtrl.autoLoginWithToken();
-        
+
         if (autoLoginSuccess) {
           // 自动登录成功，跳转首页
           print('✅ 自动登录成功，跳转首页');
@@ -189,9 +192,9 @@ class _SplashPageState extends State<SplashPage> {
                 color: Colors.blue,
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // App 名称
             const Text(
               '铃鸟聊天',
@@ -201,22 +204,19 @@ class _SplashPageState extends State<SplashPage> {
                 color: Colors.white,
               ),
             ),
-            
+
             const SizedBox(height: 48),
-            
+
             // 加载指示器
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Text(
               _statusText,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: const TextStyle(fontSize: 14, color: Colors.white70),
             ),
           ],
         ),

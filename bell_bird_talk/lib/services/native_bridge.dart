@@ -616,7 +616,7 @@ class IOSNativeService {
 
   /// 更新昵称+用户名（便捷方法）
   Future<Map<String, dynamic>> imUpdateNickAndUsername(String nickname,String username) async {
-    return imUpdateUserInfo(nickname: nickname,username: nickname);
+    return imUpdateUserInfo(nickname: nickname,username: username);
   }
   
   /// 更新签名（便捷方法）
