@@ -1,14 +1,14 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
+import 'package:bell_bird_talk/pages/chat/group_chat/group_add_member.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-import '../../services/native_bridge.dart';
-import '../../controllers/global_controller.dart';
-import '../../controllers/group_controller.dart';
+import '../../../services/native_bridge.dart';
+import '../../../controllers/global_controller.dart';
+import '../../../controllers/group_controller.dart';
 
 class GroupMembersPage extends StatefulWidget {
   final String groupId;
@@ -176,12 +176,49 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
       ),
     );
   }
+  Widget _buildAvatar(String avatar, String avatarBG, String name){
+    String bg = avatarBG;
+
+      String bgcolorStr = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolorStr = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+        bgcolorStr = bgcolorStr.split('&').first;
+      }
+    }
+
+    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+    return CircleAvatar(
+          radius: 22,
+          backgroundColor: bgColor,
+          child: avatar.isNotEmpty ? Container(
+            width: 44,
+            height: 44,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(avatar),
+                fit: BoxFit.cover,
+              ),
+            ),child: CachedNetworkImage(imageUrl: avatar, width: 44, height: 44, fit: BoxFit.cover),
+          ) : Text(
+            name.isNotEmpty ? name.substring(0,1) : '',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: txtColor),
+          ),
+    );
+  }
 
   Widget _buildMemberItem(Map<String, dynamic> m) {
     final userId = (m['user_id'] as String?) ?? '';
     final alias = (m['member_alias'] as String?) ?? '';
     final isAdmin = (m['is_admin'] as bool?) ?? false;
     final avatar = (m['avatar'] as String?) ?? '';
+    final avatarBG = (m['avatar_bg'] as String?) ?? '';
     final nickname = (m['nickname'] as String?) ?? '';
     
     final name = alias.isNotEmpty ? alias : userId;
@@ -228,33 +265,7 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.grey.shade200,
-            child: avatar.isNotEmpty
-                ? Container(
-                    width: 44,
-                    height: 44,
-                    clipBehavior: Clip.hardEdge,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: CachedNetworkImageProvider(avatar),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: avatar,
-                      width: 44,
-                      height: 44,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Text(
-                    nickname.isNotEmpty ? nickname : initial,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-          ),
+        _buildAvatar(avatar, avatarBG, nickname),
           const SizedBox(height: 4),
           Text(
             nickname.isNotEmpty ? nickname : name,
@@ -263,11 +274,11 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
             style: const TextStyle(fontSize: 12),
             textAlign: TextAlign.center,
           ),
-          if (isAdmin)
-            Text(
-              '群主',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
+          // if (isAdmin)
+          //   Text(
+          //     '群主',
+          //     style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
+          //   ),
         ],
       ),
     );

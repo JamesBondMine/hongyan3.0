@@ -1,11 +1,12 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
 import '../services/native_bridge.dart';
-import 'friends/friends_page.dart';
+import 'friends/views/friends_page.dart';
 import 'chat/chat_list_page.dart';
 import 'profile/profile_tab_page.dart';
 import 'community/community_page.dart';
@@ -216,42 +217,70 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBottomNavigationBar() {
     return Obx(() => BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.blue,
+      selectedItemColor: GbsColors.titleColor,
+      selectedLabelStyle: TextStyle(fontSize: 12, color: GbsColors.titleColor, fontWeight: FontWeight.w500),
       unselectedItemColor: Colors.grey,
+      unselectedLabelStyle: TextStyle(fontSize: 12, color: GbsColors.des6Color, fontWeight: FontWeight.w500),
       currentIndex: _currentIndex,
       items: [
         BottomNavigationBarItem(
           icon: _buildIconWithBadge(
-            icon: Icons.chat_bubble_outline,
+            icon: 'conv_def',
             unreadCount: _globalCtrl.unreadCount.value,
           ),
           activeIcon: _buildIconWithBadge(
-            icon: Icons.chat_bubble,
+            icon: 'conv_act',
             unreadCount: _globalCtrl.unreadCount.value,
+            isSelected: _currentIndex==0
           ),
           label: '聊天',
         ),
         BottomNavigationBarItem(
           icon: _buildIconWithBadge(
-            icon: Icons.people_outline,
+            icon: 'friend_def',
             unreadCount: _globalCtrl.groupRequestCount.value,
           ),
           activeIcon: _buildIconWithBadge(
-            icon: Icons.people,
+            icon: 'friend_act',
             unreadCount: _globalCtrl.groupRequestCount.value,
+            isSelected: _currentIndex==1
           ),
           label: '好友',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.group_outlined),
-          activeIcon: Icon(Icons.group),
+        BottomNavigationBarItem(
+          icon: _buildIconWithBadge(
+            icon: 'comm_def',
+            unreadCount: 0,
+          ),
+          activeIcon: _buildIconWithBadge(
+            icon: 'comm_act',
+            unreadCount:0,
+            isSelected: _currentIndex==2
+          ),
           label: '社群',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
+        BottomNavigationBarItem(
+          icon: _buildIconWithBadge(
+            icon: 'friend_def',
+            unreadCount: 0,
+          ),
+          activeIcon: _buildIconWithBadge(
+            icon: 'friend_act',
+            unreadCount: 0,
+            isSelected: _currentIndex==3
+          ),
           label: '我的',
         ),
+        // const BottomNavigationBarItem(
+        //   icon: Icon(Icons.group_outlined),
+        //   activeIcon: Icon(Icons.group),
+        //   label: '社群',
+        // ),
+        // const BottomNavigationBarItem(
+        //   icon: Icon(Icons.person_outline),
+        //   activeIcon: Icon(Icons.person),
+        //   label: '我的',
+        // ),
       ],
       onTap: (index) {
         setState(() {
@@ -262,11 +291,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 构建带角标的图标
-  Widget _buildIconWithBadge({required IconData icon, required int unreadCount}) {
-    return Stack(
+  Widget _buildIconWithBadge({required String icon, required int unreadCount, bool isSelected = false}) {
+    return Container(width: 58, height: 28,
+    margin: EdgeInsets.only(bottom: 5),
+    alignment: Alignment.center,
+        decoration:isSelected ?  BoxDecoration(
+          color: GbsColors.lightPrimaryButton.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(15),
+        ) : null ,child:  Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(icon),
+        Image.asset('assets/img/tab/$icon.png', width: 22, height: 22,),
         if (unreadCount > 0)
           Positioned(
             right: -8,
@@ -299,7 +334,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
       ],
-    );
+    ));
   }
 
   /// 显示退出登录对话框

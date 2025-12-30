@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:bell_bird_talk/pages/chat/group_add_member.dart';
-import 'package:bell_bird_talk/pages/chat/group_members_page.dart';
+import 'package:bell_bird_talk/pages/chat/group_chat/group_add_member.dart';
+import 'package:bell_bird_talk/pages/chat/group_chat/group_members_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -11,10 +11,10 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
-import '../../services/native_bridge.dart';
-import '../../controllers/global_controller.dart';
-import '../../controllers/group_controller.dart';
-import '../friends/group_list_page.dart';
+import '../../../services/native_bridge.dart';
+import '../../../controllers/global_controller.dart';
+import '../../../controllers/group_controller.dart';
+import '../../friends/views/group_list_page.dart';
 
 class GroupDetailPage extends StatefulWidget {
   final String groupId;
@@ -385,6 +385,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final isAdmin = (m['is_admin'] as bool?) ?? false;
 
     final avatar = (m['avatar'] as String?) ?? '';
+    final avatarBG = (m['avatar_bg'] as String?) ?? '';
     final nickname = (m['nickname'] as String?) ?? '';
     
     final name = alias.isNotEmpty ? alias : userId;
@@ -435,9 +436,45 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircleAvatar(
+        _buildAvatar(avatar, avatarBG, nickname),
+        const SizedBox(height: 4),
+        Text(
+          nickname.isNotEmpty ? nickname : name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+        // if (isAdmin)
+        //   Text(
+        //     '群主',
+        //     style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
+        //   ),
+      ],
+    ),);
+  }
+
+
+  // 群成员头像
+  Widget _buildAvatar(String avatar, String avatarBG, String name){
+     String bg = avatarBG;
+
+      String bgcolorStr = '';
+    String txtcolorStr = '';
+    if (bg.isNotEmpty && bg.contains(':')) {
+      bgcolorStr = bg.split(':').first;
+      txtcolorStr = bg.split(':').last;
+      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+        bgcolorStr = bgcolorStr.split('&').first;
+      }
+    }
+
+    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+    return CircleAvatar(
           radius: 22,
-          backgroundColor: Colors.grey.shade200,
+          backgroundColor: bgColor,
           child: avatar.isNotEmpty ? Container(
             width: 44,
             height: 44,
@@ -450,25 +487,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
               ),
             ),child: CachedNetworkImage(imageUrl: avatar, width: 44, height: 44, fit: BoxFit.cover),
           ) : Text(
-            nickname.isNotEmpty ? nickname : initial,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            name.isNotEmpty ? name.substring(0,1) : '',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: txtColor),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          nickname.isNotEmpty ? nickname : name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-        if (isAdmin)
-          Text(
-            '群主',
-            style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-          ),
-      ],
-    ),);
+    );
   }
   
   Widget _buildAddMemberButton() {

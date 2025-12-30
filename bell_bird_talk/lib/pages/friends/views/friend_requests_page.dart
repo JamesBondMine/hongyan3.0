@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../../services/native_bridge.dart';
+import '../../../services/native_bridge.dart';
 
 /// 好友/群组申请列表页面
 class FriendRequestsPage extends StatefulWidget {

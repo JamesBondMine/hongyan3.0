@@ -130,6 +130,7 @@ flutter:
     - assets/img/chat/
     - assets/img/common/
     - assets/img/msg/
+    - assets/img/tab/
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

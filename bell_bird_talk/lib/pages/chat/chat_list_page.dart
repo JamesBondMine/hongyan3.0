@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
-import 'package:bell_bird_talk/pages/chat/group_chat_page.dart';
+import 'package:bell_bird_talk/pages/chat/group_chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:flutter/material.dart';

@@ -6,7 +6,7 @@ import 'pages/native_demo_page.dart';
 import 'pages/framework_test_page.dart';
 import 'pages/login/login_page.dart';
 import 'pages/home_page.dart';
-import 'pages/friends/friends_page.dart';
+import 'pages/friends/views/friends_page.dart';
 import 'pages/friends/add_friend_page.dart';
 import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../models/friend_model.dart';
+import '../../models/friend_model.dart';
 import 'friend_detail_page.dart';
-import '../../services/native_bridge.dart';
+import '../../../services/native_bridge.dart';
 
 /// 好友搜索页面
 class FriendSearchPage extends StatefulWidget {

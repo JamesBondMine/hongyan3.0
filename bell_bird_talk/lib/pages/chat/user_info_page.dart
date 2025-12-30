@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import '../../services/native_bridge.dart';
 import '../../models/user_model.dart';
 import 'chat_page.dart';
-import '../friends/friend_detail_page.dart';
+import '../friends/views/friend_detail_page.dart';
 import '../models/friend_model.dart';
 
 /// 用户信息页面（用于显示非好友的用户信息）

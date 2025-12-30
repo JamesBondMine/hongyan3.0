@@ -3,9 +3,9 @@ import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup/flutter_popup.dart';
-import '../../services/native_bridge.dart';
-import '../../services/message_database.dart';
-import 'chat_page.dart';
+import '../../../services/native_bridge.dart';
+import '../../../services/message_database.dart';
+import '../chat_page.dart';
 import 'group_detail_page.dart';
 
 /// 群聊会话页面（业务上独立于单聊）

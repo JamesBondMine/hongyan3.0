@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
-import 'package:bell_bird_talk/pages/friends/friends_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friends_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
-import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
 import '../../services/message_database.dart';
-import 'friend_requests_page.dart';
+import 'views/friend_requests_page.dart';
 
 /// 好友列表页面
 class FriendsPage extends StatefulWidget {

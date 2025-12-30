@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/pages/friends/friend_detail_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

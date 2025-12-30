@@ -1,18 +1,22 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
-import 'package:bell_bird_talk/pages/friends/friend_search_page.dart';
-import 'package:bell_bird_talk/pages/friends/friends_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_search_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friends_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
-import 'package:bell_bird_talk/pages/friends/group_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/group_list_page.dart';
+import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
-import '../../controllers/global_controller.dart';
-import '../../services/native_bridge.dart';
-import '../../services/message_database.dart';
+import '../../../controllers/global_controller.dart';
+import '../../../services/native_bridge.dart';
+import '../../../services/message_database.dart';
 import 'friend_requests_page.dart';
 
 /// 好友列表页面
@@ -35,6 +39,12 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
   late TabController _tabController;
 
   Worker? _refreshFriendRequestsWorker;
+
+  List<FriendGroup> _groups = [];
+
+  String _selectedGroupId = '';
+
+  String _friends = '';
   
   @override
   void initState() {
@@ -113,8 +123,220 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           _createGroup();
         },
       ),
+      GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          width: 120,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
+              const SizedBox(width: 8),
+              const Text('添加分组'),
+            ],
+          ),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+_showGroupSettings();
+        },
+      )
     ];
   }
+
+  /// 显示分组设置
+  void _showGroupSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => GroupSettingsSheet(
+        groups: _groups,
+        onAddGroup: _addGroup,
+        onDeleteGroup: _deleteGroup,
+        onUpdateGroup: _updateGroup,
+      ),
+    );
+  }
+
+  /// 添加分组
+  Future<void> _addGroup(String name) async {
+    if (name.isEmpty) {
+      EasyLoading.showError('分组名称不能为空');
+      return;
+    }
+    
+    // 检查是否已存在
+    if (_groups.any((g) => g.name == name)) {
+      EasyLoading.showError('分组已存在');
+      return;
+    }
+    EasyLoading.show(status: '正在创建分组...');
+    try {
+      final result = await _nativeService.imCreateContactGroup(
+        groupName: name,
+      );
+      
+      print('📁 创建联系人分组结果: $result');
+      
+      if (result['errorCode'] == 0) {
+    EasyLoading.showSuccess('分组创建成功');
+        // 刷新分组列表
+        await _loadContactGroups();
+      } else {
+        EasyLoading.showError(result['message'] ?? '创建失败');
+      }
+    } catch (e) {
+      print('创建分组错误: $e');
+      EasyLoading.showError('创建失败，请稍后重试');
+    }
+  }
+  
+  /// 删除分组
+  void _deleteGroup(FriendGroup group) {
+    if (group.isDefault) {
+      EasyLoading.showError('默认分组不能删除');
+      return;
+    }
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('删除分组'),
+        content: Text('确定要删除「${group.name}」分组吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              _confirmDeleteGroup(group);
+            },
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteGroup(FriendGroup group) async {
+    EasyLoading.show(status: '删除分组中...');
+    try {
+      final gid = int.tryParse(group.id) ?? 0;
+      final result = await _nativeService.imDeleteContactGroup(groupId: gid);
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('分组已删除');
+        await _loadContactGroups();
+        if (_selectedGroupId == group.id) {
+          _selectedGroupId = 'all';
+          // await _loadFriends(refresh: true);
+        }
+      } else {
+        EasyLoading.showError(result['message'] ?? '删除失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('删除失败，请稍后重试');
+    }
+  }
+
+  Future<void> _updateGroup(FriendGroup group) async {
+    final controller = TextEditingController(text: group.name);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('修改分组名称'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: '请输入新的分组名称'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
+          ],
+        );
+      },
+    );
+    if (newName == null) return;
+    if (newName.isEmpty) {
+      EasyLoading.showError('分组名称不能为空');
+      return;
+    }
+    if (newName == group.name) return;
+
+    EasyLoading.show(status: '更新分组中...');
+    try {
+      final gid = int.tryParse(group.id) ?? 0;
+      final result = await _nativeService.imUpdateContactGroup(
+        groupId: gid,
+        groupName: newName,
+      );
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('分组已更新');
+        await _loadContactGroups();
+      } else {
+        EasyLoading.showError(result['message'] ?? '更新失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('更新失败，请稍后重试');
+    }
+  }
+
+
+  // 以下方法已迁移到子页面，保留仅为兼容性（可删除）
+  // ignore: unused_element
+  Future<void> _loadContactGroups() async {
+    try {
+      final result = await _nativeService.imGetContactGroups(
+        page: 1,
+        pageSize: 100,
+      );
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          final data = json.decode(dataStr);
+          final groupsJson = data['groups'] as List? ?? [];
+          
+          setState(() {
+            // 保留默认分组
+            final defaultGroups = _groups.where((g) => g.isDefault).toList();
+            _groups.clear();
+            _groups.addAll(defaultGroups);
+            
+            // 更新"全部"分组的数量
+            if (_friends.isNotEmpty) {
+              final allGroup = _groups.firstWhere((g) => g.id == 'all', orElse: () => _groups.first);
+              allGroup.count = _friends.length;
+            }
+            
+            // 添加服务器返回的分组
+            for (var json in groupsJson) {
+              final group = FriendGroup.fromJson(json);
+              // 避免重复添加
+              if (!_groups.any((g) => g.id == group.id)) {
+                _groups.add(group);
+              }
+            }
+            
+            // 按 order 排序（默认分组除外）
+            final nonDefaultGroups = _groups.where((g) => !g.isDefault).toList();
+            nonDefaultGroups.sort((a, b) => a.order.compareTo(b.order));
+            _groups.removeWhere((g) => !g.isDefault);
+            _groups.addAll(nonDefaultGroups);
+          });
+          
+          print('✅ 加载了 ${groupsJson.length} 个自定义分组');
+        }
+      }
+    } catch (e) {
+      print('❌ 获取联系人分组失败: $e');
+    }
+  }
+
 
   Future<void> _createGroup() async {
     Navigator.push<bool>(
@@ -272,15 +494,17 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
               ),
               // Tab Bar
               Container(
+                
                 alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.only(right: Get.width * 0.45),
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: false,
-                  labelColor: Colors.blue,
+                  labelColor: GbsColors.lightPrimaryButton,
                   unselectedLabelColor: Colors.grey,
-                  indicatorColor: Colors.blue,
-                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorColor: GbsColors.lightPrimaryButton,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  dividerHeight: 0,
                   tabs: const [
                     Tab(text: '好友'),
                     Tab(text: '分组'),

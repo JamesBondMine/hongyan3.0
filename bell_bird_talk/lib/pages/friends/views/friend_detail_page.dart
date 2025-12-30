@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../../controllers/global_controller.dart';
-import '../../services/native_bridge.dart';
-import '../../services/message_database.dart';
-import '../chat/chat_page.dart';
-import '../chat/models/chat_model.dart';
+import '../../../controllers/global_controller.dart';
+import '../../../services/native_bridge.dart';
+import '../../../services/message_database.dart';
+import '../../chat/chat_page.dart';
+import '../../chat/models/chat_model.dart';
 
 /// 好友详情页面
 class FriendDetailPage extends StatefulWidget {

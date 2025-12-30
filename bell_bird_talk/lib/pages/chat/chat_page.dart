@@ -4,7 +4,7 @@ import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
-import 'package:bell_bird_talk/pages/chat/group_detail_page.dart';
+import 'package:bell_bird_talk/pages/chat/group_chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +30,7 @@ import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_compress/video_compress.dart';
 import 'user_info_page.dart';
-import '../friends/friend_detail_page.dart';
+import '../friends/views/friend_detail_page.dart';
 import '../models/friend_model.dart';
 
 /// 单人聊天页面

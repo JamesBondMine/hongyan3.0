@@ -4,11 +4,11 @@ import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-import '../../services/native_bridge.dart';
-import '../../services/message_database.dart';
-import '../../controllers/global_controller.dart';
-import '../chat/group_chat_page.dart';
-import '../chat/models/chat_model.dart';
+import '../../../services/native_bridge.dart';
+import '../../../services/message_database.dart';
+import '../../../controllers/global_controller.dart';
+import '../../chat/group_chat/group_chat_page.dart';
+import '../../chat/models/chat_model.dart';
 
 class GroupListPage extends StatefulWidget {
   const GroupListPage({super.key});
@@ -58,7 +58,7 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('群组')),
+      // appBar: AppBar(title: const Text('群组')),
       body: RefreshIndicator(
         onRefresh: _loadGroups,
         child: _loading
