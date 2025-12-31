@@ -344,7 +344,11 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: widget.customAppBar ?? _buildAppBar(),
-      body: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image: AssetImage('assets/img/chat/chat_bg.png'), fit: BoxFit.cover)
+        ),
+        child: Column(
         children: [
           // 消息列表
           Expanded(
@@ -378,6 +382,7 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ],
       ),
+      )
     );
   }
 
@@ -1037,7 +1042,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Text(
             widget.displayName,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: GbsColors.titleColor),
           ),
           Text(
             '会话ID: ${widget.convId}',
@@ -1048,13 +1053,17 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      centerTitle: true,
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
+      leading: InkWell(onTap: () {
+        Navigator.pop(context);
+      },
+      child: Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 20, top: 6, bottom: 6), child: Icon(Icons.arrow_back_ios,color: GbsColors.titleColor,),),),
+      centerTitle: false,
+      backgroundColor: GbsColors.lightBackgroundB,
+      foregroundColor: GbsColors.lightBackgroundB,
       elevation: 0,
       actions: [
         IconButton(
-          icon: const Icon(Icons.search),
+          icon: const Icon(Icons.search, color: GbsColors.titleColor,),
           onPressed: () {
             Navigator.push(
               context,
@@ -1071,7 +1080,7 @@ class _ChatPageState extends State<ChatPage> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.more_horiz),
+          icon: const Icon(Icons.more_horiz, color: GbsColors.titleColor,),
           onPressed: () {
             if (widget.convType == 2) {
               Navigator.push(
@@ -1365,10 +1374,7 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                         padding: isImageMessage
                             ? const EdgeInsets.all(4)
-                            : const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
+                            : const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 4),
                         decoration: BoxDecoration(
                           color: isImageMessage
                               ? Colors.transparent
@@ -1382,9 +1388,43 @@ class _ChatPageState extends State<ChatPage> {
                             bottomRight: Radius.circular(isMine ? 0 : 12),
                           ),
                         ),
-                        child: type == "at"
-                            ? _buildAtMessage(message, isMine, status)
-                            : _buildMessageContent(message, isMine),
+                        child: Stack(
+                          children: [
+                            // 消息内容
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: isImageMessage ? 0 : 18, // 为时间留出空间（图片消息不需要）
+                              ),
+                              child: type == "at"
+                                  ? _buildAtMessage(message, isMine, status)
+                                  : _buildMessageContent(message, isMine),
+                            ),
+                            // 时间显示在底部角落
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: isImageMessage
+                                    ? const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2)
+                                    : EdgeInsets.zero,
+                                decoration: isImageMessage
+                                    ? BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(4),
+                                      )
+                                    : null,
+                                child: Text(
+                                  formattedTime,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: GbsColors.des9Color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       // 绘制一个直角三角形
                       !isMine
@@ -1412,18 +1452,6 @@ class _ChatPageState extends State<ChatPage> {
 
               if (isMine) ...[const SizedBox(width: 8)],
             ],
-          ),
-          // 显示发送时间和发送人ID
-          Padding(
-            padding: EdgeInsets.only(
-              left: isMine ? 0 : 44, // 对齐头像
-              right: isMine ? 44 : 0,
-              top: 4,
-            ),
-            child: Text(
-              '$formattedTime  ${message['type']}',
-              style: TextStyle(fontSize: 11, color: Colors.grey[400]),
-            ),
           ),
         ],
       ),
@@ -1723,7 +1751,7 @@ class _ChatPageState extends State<ChatPage> {
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xffE7ECF7),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -2801,81 +2829,16 @@ class _ChatPageState extends State<ChatPage> {
 
     // 根据时长计算宽度（1-60秒对应120-220宽度）
     final width = 120.0 + (duration.clamp(1, 60) / 60.0 * 100.0);
-
-    // 声波条数量
-    final waveCount = ((width - 80) / 6).floor().clamp(4, 12);
-
     return GestureDetector(
       onTap: () => _playVoiceMessage(localPath, audioUrl),
-      child: Container(
+      child: SizedBox(
         width: width,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMine ? Colors.blue : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: isMine ? null : Border.all(color: Colors.grey.shade200),
-        ),
         child: Row(
           mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: [
-            // 播放/暂停图标（带背景圆圈）
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: isPlaying
-                    ? (isMine
-                          ? Colors.white.withOpacity(0.3)
-                          : Colors.blue.withOpacity(0.15))
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: isMine ? Colors.white : Colors.blue,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 8),
-            // 声波动画
-            Expanded(
-              child: SizedBox(
-                height: 20,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: List.generate(waveCount, (index) {
-                    // 播放时有动画效果的高度
-                    double height;
-                    if (isPlaying) {
-                      // 播放时模拟声波动画（基于索引的伪随机高度）
-                      height =
-                          6 +
-                          ((index * 3 + DateTime.now().millisecond ~/ 150) %
-                                  5) *
-                              3.0;
-                    } else {
-                      // 静止时的固定高度模式
-                      height = 4 + (index % 3) * 4.0;
-                    }
-
-                    return Container(
-                      width: 3,
-                      height: height,
-                      decoration: BoxDecoration(
-                        color: isMine
-                            ? Colors.white.withOpacity(isPlaying ? 1.0 : 0.6)
-                            : Colors.blue.withOpacity(isPlaying ? 0.9 : 0.5),
-                        borderRadius: BorderRadius.circular(1.5),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // 时长（播放时显示不同颜色）
-            Container(
+           // 时长（播放时显示不同颜色）
+            !isMine ? Container() : Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: isPlaying
                   ? BoxDecoration(
@@ -2890,7 +2853,40 @@ class _ChatPageState extends State<ChatPage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
-                  color: isMine ? Colors.white : Colors.black87,
+                  color: GbsColors.titleColor,
+                ),
+              ),
+            ),
+             // 播放/暂停图标（带背景圆圈）
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isPlaying
+                    ? (isMine
+                          ? Colors.white.withOpacity(0.3)
+                          : Colors.blue.withOpacity(0.15))
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(isMine ? 'assets/img/chat/chat_audio.png' : 'assets/img/chat/chat_audio_r.png')
+            ),
+             isMine ? Container() : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: isPlaying
+                  ? BoxDecoration(
+                      color: isMine
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    )
+                  : null,
+              child: Text(
+                '${duration}″',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
+                  color: GbsColors.titleColor,
                 ),
               ),
             ),
