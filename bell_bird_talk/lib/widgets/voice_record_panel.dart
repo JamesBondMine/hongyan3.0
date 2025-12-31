@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -51,7 +52,6 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
   VoiceRecordState _state = VoiceRecordState.idle;
   String? _currentRecordPath; // 当前正在录制的文件路径
   int _recordDuration = 0;  // 总录制时长（秒）
-  int _currentSegmentDuration = 0; // 当前段的录制时长（秒）
   int _playPosition = 0;    // 播放位置（秒）
   Timer? _timer;
   
@@ -101,11 +101,11 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
         ),
         path: path,
       );
+      _currentRecordPath = path;
 
       setState(() {
         _state = VoiceRecordState.recording;
-        _currentRecordPath = path;
-        _currentSegmentDuration = 0;
+        
       });
 
       // 启动计时器
@@ -115,7 +115,6 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
           return;
         }
         setState(() {
-          _currentSegmentDuration++;
           _recordDuration++;
         });
       });
@@ -133,16 +132,13 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
 
     try {
       final path = await _recorder.stop();
-      if (path != null && _currentSegmentDuration > 0) {
+      if (path != null) {
         // 保存当前段
         _voiceSegments.add(path);
-        _segmentDurations.add(_currentSegmentDuration);
-        print('💾 保存语音段: $path, 时长: ${_currentSegmentDuration}秒');
-        
+     
         setState(() {
           _state = VoiceRecordState.paused;
           _currentRecordPath = null;
-          _currentSegmentDuration = 0;
         });
       }
     } catch (e) {
@@ -173,22 +169,24 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
       } catch (_) {}
     }
     
-    // 删除当前正在录制的文件
-    if (_currentRecordPath != null) {
-      try {
-        File(_currentRecordPath!).deleteSync();
-      } catch (_) {}
-    }
+    // 删除当前正在录制的文件-- 不删除
+    // if (_currentRecordPath != null) {
+    //   try {
+    //     File(_currentRecordPath!).deleteSync();
+    //   } catch (_) {}
+    // }
     
     setState(() {
       _state = VoiceRecordState.idle;
       _currentRecordPath = null;
       _recordDuration = 0;
-      _currentSegmentDuration = 0;
       _playPosition = 0;
       _voiceSegments.clear();
       _segmentDurations.clear();
     });
+    
+    // 恢复文字输入面板
+    widget.onClose?.call();
   }
 
   /// 播放/暂停（播放合并后的音频，需要先合并）
@@ -245,8 +243,41 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     }
 
     if (_voiceSegments.length == 1) {
+      final file = File(_voiceSegments.first);
+      if (await file.exists()) {
+        // 将文件复制到Documents/voices/目录下
+        try {
+          final documentsDir = await getApplicationDocumentsDirectory();
+          final voicesDir = Directory('${documentsDir.path}/voices');
+          if (!voicesDir.existsSync()) {
+            voicesDir.createSync(recursive: true);
+          }
+          
+          // 生成新的文件名
+          final fileName = 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          final newPath = '${voicesDir.path}/$fileName';
+          
+          // 复制文件到新位置
+          final copiedFile = await file.copy(newPath);
+          // 删除原始缓存文件
+          if (_voiceSegments.first.startsWith(documentsDir.path) == false) {
+            // 只删除缓存目录中的文件
+            file.delete();
+          }
+          
+          return copiedFile.path;
+        } catch (e) {
+          print('❌ 复制语音文件到持久化目录失败: $e');
+          return _voiceSegments.first; // 如果复制失败，返回原始路径
+        }
+      } else {
+        print('❌ 语音文件不存在: ${_voiceSegments.first}');
+        return null;
+      }
+
+
       // 只有一段，直接返回
-      return _voiceSegments[0];
+      // return _voiceSegments.first;
     }
 
     try {
@@ -315,9 +346,8 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     }
 
     // 如果还有当前段未保存，先保存
-    if (_currentRecordPath != null && _currentSegmentDuration > 0) {
+    if (_currentRecordPath != null) {
       _voiceSegments.add(_currentRecordPath!);
-      _segmentDurations.add(_currentSegmentDuration);
     }
 
     if (_voiceSegments.isEmpty) {
@@ -336,12 +366,6 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
       // 清理临时文件
       _deleteRecording();
     }
-  }
-
-  /// 关闭面板
-  void _close() {
-    _deleteRecording();
-    widget.onClose?.call();
   }
 
   @override
@@ -375,8 +399,6 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
           // 语音条
           _buildVoiceBar(),
           
-          const SizedBox(height: 16),
-          
           // 操作区
           _buildControlArea(),
           
@@ -393,15 +415,11 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     final isRecording = _state == VoiceRecordState.recording;
     final isPaused = _state == VoiceRecordState.paused;
     final isPlaying = _state == VoiceRecordState.playing;
-    final hasSegments = _voiceSegments.isNotEmpty || (_currentRecordPath != null && _currentSegmentDuration > 0);
+    final hasSegments = _voiceSegments.isNotEmpty || (_currentRecordPath != null);
     
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      margin: const EdgeInsets.fromLTRB(0, 16, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(24),
-      ),
       child: Row(
         children: [
           // 左侧：播放按钮（有语音段时显示）
@@ -411,23 +429,28 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
               child: Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
                 child: Icon(
                   isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 20,
+                  color: GbsColors.titleColor,
+                  size: 30,
                 ),
               ),
             )
           else
-            const SizedBox(width: 36),
-          
-          const SizedBox(width: 12),
-          
-          // 中间：语音波形或提示
+            Padding(
+            padding: EdgeInsetsGeometry.only(right: 16),
+            child: Text(
+              '0:${_recordDuration < 10 ? '0$_recordDuration' : _recordDuration }',
+              style: TextStyle(
+                fontSize: 16,
+                color: GbsColors.titleColor,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+   
+          // 中间：虚线
           Expanded(
             child: isIdle 
                 ? Center(
@@ -442,39 +465,24 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
                 : Row(
                     children: [
                       Expanded(child: _buildWaveform()),
-                      if (_voiceSegments.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Text(
-                            '${_voiceSegments.length}段',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
                     ],
                   ),
           ),
-          
-          const SizedBox(width: 12),
-          
           // 右侧：时间
-          SizedBox(
-            width: 50,
-            child: Text(
-              isIdle
-                  ? '${maxDuration}s'  // 最大时长
-                  : isRecording 
-                      ? '${maxDuration - _recordDuration}s'  // 倒计时
-                      : isPaused
-                          ? '${_recordDuration}s'  // 总时长（暂停状态）
-                          : isPlaying
-                              ? '${_playPosition}s'  // 播放进度
-                              : '${_recordDuration}s',  // 总时长
+          Container(
+            margin: EdgeInsets.only(left: 16),
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              border: Border.all(color: GbsColors.titleColor, width: 1),
+              borderRadius: BorderRadius.circular(12)
+            ),
+            child: Text( '59'  // 最大时长
+                  ,  // 总时长
               style: TextStyle(
-                fontSize: 14,
-                color: isRecording ? Colors.red : Colors.grey[600],
+                fontSize: 12,
+                color: GbsColors.titleColor,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.right,
@@ -485,7 +493,7 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     );
   }
 
-  /// 语音波形
+  /// xv
   Widget _buildWaveform() {
     final isRecording = _state == VoiceRecordState.recording;
     final isPaused = _state == VoiceRecordState.paused;
@@ -532,10 +540,8 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
     final isRecording = _state == VoiceRecordState.recording;
     final isPaused = _state == VoiceRecordState.paused;
     final isIdle = _state == VoiceRecordState.idle;
-    final hasSegments = _voiceSegments.isNotEmpty || (_currentRecordPath != null && _currentSegmentDuration > 0);
-    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -543,17 +549,8 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
           GestureDetector(
             onTap: _deleteRecording,
             child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.delete_outline,
-                color: Colors.red[400],
-                size: 28,
-              ),
+              padding: EdgeInsets.all(10),
+              child: SizedBox(width: 24, height: 24,child: Image.asset('assets/img//msg/delete.png', width: 24, height: 24,),)
             ),
           ),
           
@@ -562,102 +559,38 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
             GestureDetector(
               onTap: _startRecording,
               child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                padding: EdgeInsets.all(10),
+                child: SizedBox(width: 24, height: 24,child: Image.asset('assets/img//msg/speaking.png', width: 24, height: 24,),)
               ),
             )
           else if (isRecording)
             GestureDetector(
               onTap: _pauseAndSaveSegment,
               child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.pause,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                padding: EdgeInsets.all(10),
+                child: SizedBox(width: 24, height: 24,child: Image.asset('assets/img//msg/pause.png', width: 24, height: 24,),)
               ),
             )
           else if (isPaused)
             GestureDetector(
               onTap: _resumeRecording,
               child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                padding: EdgeInsets.all(10),
+                child:SizedBox(width: 24, height: 24,child: Image.asset('assets/img//msg/speaking.png', width: 24, height: 24,),)
               ),
             ),
           
           // 发送按钮（只有有语音段时才显示）
-          if (hasSegments)
+          // if (hasSegments)
             GestureDetector(
               onTap: _sendVoice,
               child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.send,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                padding: EdgeInsets.all(10),
+                child:SizedBox(width: 40, height: 40,child: Image.asset('assets/img//msg/send.png',fit: BoxFit.fill, width: 40, height: 40,),)
               ),
             )
-          else
-            const SizedBox(width: 72),
+          // else
+          //   const SizedBox(width: 72),
         ],
       ),
     );

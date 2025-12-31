@@ -378,7 +378,7 @@ class _ChatPageState extends State<ChatPage> {
             // 表情选择器
             if (_showEmojiPicker) _buildEmojiPicker(),
             // 更多面板
-            if (_showMorePanel) _buildMorePanel(),
+            // if (_showMorePanel) _buildMorePanel(),
           ],
         ],
       ),
@@ -1774,15 +1774,23 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
             )
-          : Row(
+          : Row(children: [
+              Expanded( 
+                child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: GbsColors.lightBackgroundB
+            ),
+            child: Row(
               children: [
-                // 语音按钮
                 IconButton(
                   icon: Icon(
-                    Icons.mic,
-                    color: _showVoicePanel ? Colors.blue : Colors.grey[600],
+                    _showEmojiPicker
+                        ? Icons.keyboard
+                        : Icons.emoji_emotions_outlined,
+                    color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
                   ),
-                  onPressed: _toggleVoicePanel,
+                  onPressed: isMuted ? null : _toggleEmojiPicker,
                 ),
 
                 // 输入框
@@ -1792,10 +1800,10 @@ class _ChatPageState extends State<ChatPage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                        // decoration: BoxDecoration(
+                        //   color: Colors.grey[100],
+                        //   borderRadius: BorderRadius.circular(20),
+                        // ),
                         child: TextField(
                           controller: _messageController,
                           focusNode: _focusNode,
@@ -1813,41 +1821,42 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
 
-                // 表情按钮
-                IconButton(
-                  icon: Icon(
-                    _showEmojiPicker
-                        ? Icons.keyboard
-                        : Icons.emoji_emotions_outlined,
-                    color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
-                  ),
-                  onPressed: isMuted ? null : _toggleEmojiPicker,
-                ),
-
                 // 更多/发送按钮
-                IconButton(
-                  icon: Icon(
-                    _messageController.text.trim().isEmpty
-                        ? (_showMorePanel
-                              ? Icons.close
-                              : Icons.add_circle_outline)
-                        : Icons.send,
-                    color: _messageController.text.trim().isEmpty
-                        ? (_showMorePanel ? Colors.blue : Colors.grey[600])
-                        : Colors.blue,
-                  ),
-                  onPressed: isMuted
+                InkWell(
+                  onTap: isMuted
                       ? null
                       : () {
-                          if (_messageController.text.trim().isNotEmpty) {
-                            _sendMessage();
-                          } else {
-                            _toggleMorePanel();
-                          }
+                         _pickImageFromGallery();
                         },
+                  child: Padding(padding: EdgeInsetsGeometry.only(left: 8), child: Image.asset( 'assets/img/msg/img.png', width: 22, height: 22 , fit: BoxFit.fill,),),
                 ),
+                // 语音按钮
+                IconButton(
+                  icon: Icon(
+                    Icons.mic,
+                    color: _showVoicePanel ? Colors.blue : Colors.grey[600],
+                  ),
+                  onPressed: _toggleVoicePanel,
+                ),
+               
               ],
             ),
+          ),
+          
+              ),
+
+                // 更多/发送按钮
+                InkWell(
+                  onTap: isMuted
+                      ? null
+                      : () {
+                          _sendMessage();
+                        },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    width: 40, height: 40, child: Image.asset( 'assets/img/msg/send.png', fit: BoxFit.fill,),),
+                ),
+          ],),
     );
   }
 
@@ -2249,95 +2258,95 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  /// 构建更多面板
-  Widget _buildMorePanel() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)),
-      ),
-      child: GridView.count(
-        crossAxisCount: 4,
-        padding: const EdgeInsets.all(20),
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        children: [
-          _buildMoreItem(
-            icon: Icons.photo_library,
-            label: '相册',
-            color: Colors.orange,
-            onTap: _pickImageFromGallery,
-          ),
-          _buildMoreItem(
-            icon: Icons.camera_alt,
-            label: '拍照',
-            color: Colors.green,
-            onTap: _pickImageFromCamera,
-          ),
-          _buildMoreItem(
-            icon: Icons.videocam,
-            label: '视频',
-            color: Colors.purple,
-            onTap: () => EasyLoading.showInfo('视频功能开发中'),
-          ),
-          _buildMoreItem(
-            icon: Icons.folder,
-            label: '文件',
-            color: Colors.blue,
-            onTap: () => EasyLoading.showInfo('文件功能开发中'),
-          ),
-          _buildMoreItem(
-            icon: Icons.location_on,
-            label: '位置',
-            color: Colors.red,
-            onTap: () => EasyLoading.showInfo('位置功能开发中'),
-          ),
-          _buildMoreItem(
-            icon: Icons.contact_page,
-            label: '名片',
-            color: Colors.teal,
-            onTap: () => EasyLoading.showInfo('名片功能开发中'),
-          ),
-        ],
-      ),
-    );
-  }
+  // /// 构建更多面板
+  // Widget _buildMorePanel() {
+  //   return Container(
+  //     height: 200,
+  //     decoration: BoxDecoration(
+  //       color: Colors.grey[50],
+  //       border: Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)),
+  //     ),
+  //     child: GridView.count(
+  //       crossAxisCount: 4,
+  //       padding: const EdgeInsets.all(20),
+  //       mainAxisSpacing: 16,
+  //       crossAxisSpacing: 16,
+  //       children: [
+  //         _buildMoreItem(
+  //           icon: Icons.photo_library,
+  //           label: '相册',
+  //           color: Colors.orange,
+  //           onTap: _pickImageFromGallery,
+  //         ),
+  //         _buildMoreItem(
+  //           icon: Icons.camera_alt,
+  //           label: '拍照',
+  //           color: Colors.green,
+  //           onTap: _pickImageFromCamera,
+  //         ),
+  //         _buildMoreItem(
+  //           icon: Icons.videocam,
+  //           label: '视频',
+  //           color: Colors.purple,
+  //           onTap: () => EasyLoading.showInfo('视频功能开发中'),
+  //         ),
+  //         _buildMoreItem(
+  //           icon: Icons.folder,
+  //           label: '文件',
+  //           color: Colors.blue,
+  //           onTap: () => EasyLoading.showInfo('文件功能开发中'),
+  //         ),
+  //         _buildMoreItem(
+  //           icon: Icons.location_on,
+  //           label: '位置',
+  //           color: Colors.red,
+  //           onTap: () => EasyLoading.showInfo('位置功能开发中'),
+  //         ),
+  //         _buildMoreItem(
+  //           icon: Icons.contact_page,
+  //           label: '名片',
+  //           color: Colors.teal,
+  //           onTap: () => EasyLoading.showInfo('名片功能开发中'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  /// 构建更多面板项目
-  Widget _buildMoreItem({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-        ],
-      ),
-    );
-  }
+  // /// 构建更多面板项目
+  // Widget _buildMoreItem({
+  //   required IconData icon,
+  //   required String label,
+  //   required Color color,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return GestureDetector(
+  //     onTap: onTap,
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Container(
+  //           width: 56,
+  //           height: 56,
+  //           decoration: BoxDecoration(
+  //             color: Colors.white,
+  //             borderRadius: BorderRadius.circular(12),
+  //             boxShadow: [
+  //               BoxShadow(
+  //                 color: Colors.black.withOpacity(0.05),
+  //                 blurRadius: 8,
+  //                 offset: const Offset(0, 2),
+  //               ),
+  //             ],
+  //           ),
+  //           child: Icon(icon, color: color, size: 28),
+  //         ),
+  //         const SizedBox(height: 8),
+  //         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   /// 从相册选择图片
   Future<void> _pickImageFromGallery() async {
