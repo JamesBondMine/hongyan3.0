@@ -226,7 +226,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
     }
   }
 
-  Future<void> _createGroupWithoutFriends() async {
+  Future<void> _createGroupWithoutFriends(VoidCallback success) async {
     final groupName = _groupNameController.text.trim();
     if (groupName.isEmpty) {
       EasyLoading.showError('请输入分组名称');
@@ -249,7 +249,8 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
 
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('分组创建成功');
-        Navigator.pop(context, true);
+        success();
+        
       } else {
         EasyLoading.showError(result['message'] ?? '创建失败');
       }
@@ -263,37 +264,40 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GbsColors.lightAppBarColorA,
-      body: Column(
-        children: [
-          _buildHeader(),
-          _buildTitle('分组名称'),
-          _buildEditGroupName(),
-          _buildTitle('添加好友到分组'),
-          _buildSearch(),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => _loadFriends(refresh: true),
-              child: _filteredFriends.isEmpty && _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      controller: _scrollController,
-                      itemCount: _filteredFriends.length + (_hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= _filteredFriends.length) {
-                          // 加载更多指示器
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        return _buildFriendItem(_filteredFriends[index]);
-                      },
-                    ),
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildTitle('分组名称'),
+            _buildEditGroupName(),
+            _buildTitle('添加好友到分组'),
+            _buildSearch(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => _loadFriends(refresh: true),
+                child: _filteredFriends.isEmpty && _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: _filteredFriends.length + (_hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= _filteredFriends.length) {
+                            // 加载更多指示器
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          return _buildFriendItem(_filteredFriends[index]);
+                        },
+                      ),
+              ),
             ),
-          ),
-          _buildConfirmButton(),
-          _buildCreateButton(),
-        ],
+            _buildConfirmButton(),
+            _buildCreateButton(),
+          ],
+        ),
       ),
     );
   }
@@ -335,17 +339,29 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
         color: GbsColors.lightBackgroundA,
         borderRadius: BorderRadius.circular(4),
       ),
-      child: TextField(
-        controller: _groupNameController,
-        maxLength: 10,
-        decoration: InputDecoration(
-          hintText: '请输入分组名称（最多10个字符）',
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-          border: InputBorder.none,
-          counterText: '',
+      child: Row(children: [
+        Expanded(
+          child: TextField(
+            controller: _groupNameController,
+            decoration: InputDecoration(
+              hintText: '请输入分组名称',
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              border: InputBorder.none,
+            ),
+          ),
         ),
-        style: TextStyle(fontSize: 14, color: GbsColors.titleColor),
-      ),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () {
+            _createGroupWithoutFriends((){
+              Navigator.pop(context);
+            });
+          },
+        ),
+      ],),
     );
   }
 
@@ -374,7 +390,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: GbsColors.lightBackgroundA,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
@@ -384,7 +400,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '搜索好友',
+                hintText: '搜索',
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                 border: InputBorder.none,
                 isDense: true,
@@ -476,7 +492,11 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
       margin: const EdgeInsets.all(16),
       child: CommonButton(
         enabled: true,
-        onPressed: _groupNameController.text.trim().isNotEmpty ? _createGroup : null,
+        onPressed: (){
+          _createGroupWithoutFriends((){
+              Navigator.pop(context);
+            });
+        },
         text: count > 0 ? '创建($count)' : '创建',
       ),
     );
@@ -485,7 +505,11 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
   // 不选择好友直接创建
   Widget _buildCreateButton() {
     return InkWell(
-      onTap: _createGroupWithoutFriends,
+      onTap:(){
+        _createGroupWithoutFriends((){
+              Navigator.pop(context);
+            });
+      },
       child: Container(
         height: 48,
         alignment: Alignment.center,

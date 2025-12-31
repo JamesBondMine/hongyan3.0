@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/pages/friends/pages/add_friends_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/user_controller.dart';
@@ -62,9 +65,9 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
             _groups.removeWhere((g) => !g.isDefault);
             _groups.addAll(nonDefaultGroups);
             
-            // 初始化展开状态（默认全部展开）
+            // 初始化展开状态（默认全部折叠）
             for (var group in _groups) {
-              _expandedStates[group.id] = true;
+              _expandedStates[group.id] = false;
             }
           });
           
@@ -134,13 +137,35 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
     }
   }
 
+  /// 显示分组设置
+  void _showGroupSettings() {
+    gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16,bottom: 30),
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
+      ),
+       child: AddFriendGroupPage(),));
+  }
+
   void _toggleGroup(String groupId) {
+    final isCurrentlyExpanded = _expandedStates[groupId] ?? false;
+    
     setState(() {
-      _expandedStates[groupId] = !(_expandedStates[groupId] ?? false);
+      // 如果当前分组是展开的，则折叠它
+      if (isCurrentlyExpanded) {
+        _expandedStates[groupId] = false;
+      } else {
+        // 如果当前分组是折叠的，则先折叠所有其他分组，再展开当前分组（手风琴效果）
+        for (var group in _groups) {
+          _expandedStates[group.id] = false;
+        }
+        _expandedStates[groupId] = true;
+      }
     });
     
     // 如果展开且还没有加载好友，则加载
-    if (_expandedStates[groupId] == true && !_groupFriends.containsKey(groupId)) {
+    if (!isCurrentlyExpanded && !_groupFriends.containsKey(groupId)) {
       _loadGroupFriends(groupId);
     }
   }
@@ -151,15 +176,18 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
     final isLoading = _loadingStates[group.id] ?? false;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      // margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        // borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           // 分组头部
           InkWell(
+            onLongPress: () {
+              _showGroupSettings();
+            },
             onTap: () => _toggleGroup(group.id),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
@@ -167,7 +195,7 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
               child: Row(
                 children: [
                   Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    isExpanded ? Icons.arrow_drop_down_sharp : Icons.arrow_right,
                     color: Colors.grey[600],
                   ),
                   const SizedBox(width: 12),
@@ -249,20 +277,7 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
                     )
                   : null,
             ),
-            if (friend.isOnline)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
+      
           ],
         ),
         title: Text(
@@ -317,7 +332,7 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
       child: _groups.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              // padding: const EdgeInsets.all(16),
               itemCount: _groups.length,
               itemBuilder: (context, index) {
                 return _buildGroupItem(_groups[index]);

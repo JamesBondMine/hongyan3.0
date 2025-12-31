@@ -45,6 +45,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
   void initState() {
     super.initState();
     _loadFriends();
+    _loadContactGroups();
     
     final globalCtrl = Get.find<GlobalController>();
     _refreshFriendListWorker = ever(
@@ -444,6 +445,37 @@ class _FriendsListPageState extends State<FriendsListPage> {
           ),
       ],
     );
+  }
+
+    // 以下方法已迁移到子页面，保留仅为兼容性（可删除）
+  // ignore: unused_element
+  Future<void> _loadContactGroups() async {
+    try {
+      final result = await _nativeService.imGetContactGroups(
+        page: 1,
+        pageSize: 100,
+      );
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          final data = json.decode(dataStr);
+          final groupsJson = data['groups'] as List? ?? [];
+          
+            // 添加服务器返回的分组
+            for (var json in groupsJson) {
+              final group = FriendGroup.fromJson(json);
+              // 避免重复添加
+              if (!friendGroups.any((g) => g.id == group.id)) {
+                friendGroups.add(group);
+              }
+            }
+          
+          print('✅ 加载了 ${groupsJson.length} 个自定义分组');
+        }
+      }
+    } catch (e) {
+      print('❌ 获取联系人分组失败: $e');
+    }
   }
 
   /// 显示移动到分组弹窗

@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/models/user_model.dart';
 import 'package:get/get.dart';
 import '../services/native_bridge.dart';
 import '../services/message_database.dart';
@@ -216,6 +217,7 @@ class UserController extends GetxController {
           'user_id': contact['contact_user_id'] ?? '',
           'nickname': contact['nickname'] ?? '',
           'avatar': contact['avatar'] ?? '',
+          'groupId': contact['groupId'] ?? '',
           'account_id': contact['account_id'] ?? '',
           'online_status': contact['online_status'] ?? 0,
           'phone': contact['phone'] ?? contact['target_phone'] ?? '',
@@ -281,6 +283,7 @@ class UserController extends GetxController {
             'user_id': contact['contact_user_id'] ?? '',
             'nickname': contact['nickname'] ?? '',
             'avatar': contact['avatar'] ?? '',
+            'groupId': contact['groupId'] ?? '',
             'account_id': contact['account_id'] ?? '',
             'online_status': contact['online_status'] ?? 0,
             'phone': contact['phone'] ?? contact['target_phone'] ?? '',
@@ -338,6 +341,7 @@ class UserController extends GetxController {
               'user_id': contact['contact_user_id'] ?? '',
               'nickname': contact['nickname'] ?? '',
               'avatar': contact['avatar'] ?? '',
+              'groupId': contact['groupId'] ?? '',
               'account_id': contact['account_id'] ?? '',
               'online_status': contact['online_status'] ?? 0,
               'phone': contact['phone'] ?? contact['target_phone'] ?? '',
@@ -403,6 +407,7 @@ class UserController extends GetxController {
           'contact_user_id': contact['contact_user_id'],
           'nickname': contact['nickname'],
           'avatar': contact['avatar'],
+          'remark_name': contact['remark_name'],
           'remark': contact['remark'],
           'phone': contact['phone'],
           'email': contact['email'],
@@ -539,6 +544,7 @@ class UserController extends GetxController {
                   ...request,
                   'requester_avatar': publicInfo['avatar'] ?? request['requester_avatar'],
                   'avatar': publicInfo['avatar'],
+                  
                   'nickname': publicInfo['nickname'] ?? request['requester_name'],
                   'sex': publicInfo['sex'],
                   'signature': publicInfo['signature'],
@@ -596,6 +602,16 @@ class UserController extends GetxController {
         'message': '获取好友申请失败: $e',
       };
     }
+  }
+
+
+
+  // 获取用户信息--数据库
+  Future<List<UserModel>> getUsersInfo(List<String> targetIds) async {
+    final users = await _messageDatabase.getUsers(targetIds.toList());
+      return users.map((user) {
+        return UserModel.fromJson(user);
+      }).toList();
   }
 
 }

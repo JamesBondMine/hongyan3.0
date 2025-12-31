@@ -1,16 +1,16 @@
+import 'package:bell_bird_talk/controllers/friend_controller.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import '../models/friend_model.dart';
 
 /// 分组设置底部弹窗
 class GroupSettingsSheet extends StatefulWidget {
-  final List<FriendGroup> groups;
-  final Future<void> Function(String) onAddGroup;
+  final VoidCallback onAddGroup;
   final Function(FriendGroup) onDeleteGroup;
   final Future<void> Function(FriendGroup) onUpdateGroup;
   
   const GroupSettingsSheet({
     super.key,
-    required this.groups,
     required this.onAddGroup,
     required this.onDeleteGroup,
     required this.onUpdateGroup,
@@ -22,7 +22,14 @@ class GroupSettingsSheet extends StatefulWidget {
 
 class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isAdding = false;  // 是否正在添加分组
+  List<FriendGroup> groups = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _getGroups();
+  }
   
   @override
   void dispose() {
@@ -41,117 +48,45 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 拖动条
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            
             // 标题栏
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.only(top: 26, left: 16, right: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const Text(
-                    '分组管理',
+                    '设置分组',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _isAdding = !_isAdding;
-                        if (!_isAdding) {
-                          _nameController.clear();
-                        }
-                      });
-                    },
-                    icon: Icon(_isAdding ? Icons.close : Icons.add, size: 18),
-                    label: Text(_isAdding ? '取消' : '新建分组'),
-                  ),
+
+                  IconButton(onPressed: (){
+                    Navigator.pop(context);
+                  }, icon: Icon(Icons.close))
                 ],
               ),
             ),
-            
-            // 新建分组输入框
-            if (_isAdding)
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _nameController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: '输入分组名称',
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final name = _nameController.text.trim();
-                        if (name.isNotEmpty) {
-                          await widget.onAddGroup(name);
-                          if (mounted) {
-                            setState(() {
-                              _isAdding = false;
-                              _nameController.clear();
-                            });
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: const Text('创建'),
-                    ),
-                  ],
-                ),
-              ),
-            
-            const Divider(height: 1),
-            
             // 分组列表
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: widget.groups.length,
+                itemCount: groups.length,
                 itemBuilder: (context, index) {
-                  final group = widget.groups[index];
+                  final group = groups[index];
                   return _buildGroupItem(group);
                 },
               ),
             ),
-            
+            Padding(padding: EdgeInsetsGeometry.symmetric(horizontal: 16), child: CommonButton(
+              enabled: true,
+              onPressed: () {
+                // 新建分组
+                widget.onAddGroup();
+              },
+              text: '新增好友分组'),),
             // 底部安全区域
             SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
           ],
@@ -159,22 +94,17 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
       ),
     );
   }
+
+  // 获取好友分组
+  Future<void> _getGroups() async {
+    groups = await FriendController.to.getFriendGroups();
+    if (mounted) {
+      setState(() {});
+    }
+  }
   
   Widget _buildGroupItem(FriendGroup group) {
     return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: group.isDefault ? Colors.blue[50] : Colors.grey[100],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          group.id == 'special' ? Icons.star : Icons.folder,
-          color: group.isDefault ? Colors.blue : Colors.grey[600],
-          size: 20,
-        ),
-      ),
       title: Text(
         group.name,
         style: const TextStyle(

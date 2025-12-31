@@ -164,6 +164,7 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
                         contactDict[@"nickname"] = contact.nickname ?: @"";
                         contactDict[@"avatar"] = contact.avatar ?: @"";
                         contactDict[@"remark"] = contact.remark ?: @"";
+                        contactDict[@"groupId"] = [NSString stringWithFormat:@"%lld",contact.groupId];
                         contactDict[@"relationship"] = @(contact.relationship);
                         contactDict[@"online_status"] = @(contact.onlineStatus);
                         [contactsArray addObject:contactDict];

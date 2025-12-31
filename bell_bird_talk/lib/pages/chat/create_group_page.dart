@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -10,7 +12,9 @@ import '../chat/models/chat_model.dart';
 /// 创建群聊页面
 /// 支持多选联系人来创建群聊
 class CreateGroupPage extends StatefulWidget {
-  const CreateGroupPage({super.key});
+  CreateGroupPage({super.key, required this.onCreate});
+
+  VoidCallback onCreate;
 
   @override
   State<CreateGroupPage> createState() => _CreateGroupPageState();
@@ -329,11 +333,14 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('选择联系人'),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+      backgroundColor:GbsColors.lightBackgroundA ,
+      appBar: 
+      AppBar(
+        // title: const Text('选择联系人'),
+        // centerTitle: true,
+        leading: Text('选择联系人', style: TextStyle(color: GbsColors.titleColor, fontSize: 16, fontWeight: FontWeight.w500),),
+        backgroundColor: GbsColors.lightAppBarColorA,
+        foregroundColor: GbsColors.lightAppBarColorA,
         elevation: 0,
         actions: [
           TextButton(
@@ -352,23 +359,23 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       ),
       body: Column(
         children: [
-          // 群名称输入
-          Container(
-            padding: const EdgeInsets.all(12),
-            color: Colors.white,
-            child: TextField(
-              controller: _groupNameController,
-              decoration: InputDecoration(
-                hintText: '群名称（选填，不填则自动生成）',
-                prefixIcon: const Icon(Icons.group, color: Colors.blue),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-          ),
+          // // 群名称输入
+          // Container(
+          //   padding: const EdgeInsets.all(12),
+          //   color: Colors.white,
+          //   child: TextField(
+          //     controller: _groupNameController,
+          //     decoration: InputDecoration(
+          //       hintText: '群名称（选填，不填则自动生成）',
+          //       prefixIcon: const Icon(Icons.group, color: Colors.blue),
+          //       border: OutlineInputBorder(
+          //         borderRadius: BorderRadius.circular(8),
+          //         borderSide: BorderSide(color: Colors.grey[300]!),
+          //       ),
+          //       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          //     ),
+          //   ),
+          // ),
           
           // 搜索框
           Container(
@@ -414,10 +421,30 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                         },
                       ),
           ),
+          // 底部
+          _buildFooterView()
         ],
       ),
     );
   }
+
+  Widget _buildFooterView() {
+    // if (!_isMultiSelectMode){
+    //   return Container( );
+    // }
+  
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: CommonButton(
+        onPressed: () {
+          // _confirmSelection();
+        },
+        enabled: true,
+        text: '确定')
+    ); 
+  }
+
+
   
   /// 构建联系人项
   Widget _buildContactItem(Map<String, dynamic> contact) {

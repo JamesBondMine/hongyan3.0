@@ -74,9 +74,20 @@ class _GroupListPageState extends State<GroupListPage> {
                       final avatar = (item['group_avatar'] as String?) ?? '';
                       final gid = (item['group_id'] as String?) ?? '';
                       final type = (item['group_type'] as num?)?.toInt() ?? 0;
+                      
+                      String gidLast = '1';
+                      if (gid.isNotEmpty) {
+                        // 从后往前查找最后一个数字
+                        for (int i = gid.length - 1; i >= 0; i--) {
+                          if (gid[i].contains(RegExp(r'[0-9]'))) {
+                            gidLast = gid[i];
+                            break;
+                          }
+                        }
+                      }
                       return Container(
                         height: 52,
-                        margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
+                        // margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
                           color: GbsColors.lightBackgroundB
@@ -85,12 +96,7 @@ class _GroupListPageState extends State<GroupListPage> {
                         leading: SizedBox(width: 36, height: 36,child: CircleAvatar(
                           backgroundColor: Colors.blue.shade50,
                           backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                          child: avatar.isEmpty
-                              ? Text(
-                                  name.isNotEmpty ? name.characters.first : '#',
-                                  style: const TextStyle(color: Colors.blue),
-                                )
-                              : null,
+                          child: Image.asset('assets/img/group/groplogo$gidLast.png', fit: BoxFit.cover,),
                         ),),
                         title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
                         onTap: () => _enterGroupChat(gid: gid, name: name, avatar: avatar, type: type),
@@ -101,6 +107,8 @@ class _GroupListPageState extends State<GroupListPage> {
       ),
     );
   }
+
+  // 获取群头像-assets/img/group/
 
   Future<void> _enterGroupChat({
     required String gid,

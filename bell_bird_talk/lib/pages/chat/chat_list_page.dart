@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
@@ -1141,16 +1142,16 @@ class _ChatListPageState extends State<ChatListPage> {
                 children: [
                   Row(
                     children: [
-                      // 会话类型图标
-                      if (conversation.convType == 2)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Icon(
-                            Icons.group,
-                            size: 16,
-                            color: Colors.grey[500],
-                          ),
-                        ),
+                      // // 会话类型图标
+                      // if (conversation.convType == 2)
+                      //   Padding(
+                      //     padding: const EdgeInsets.only(right: 4),
+                      //     child: Icon(
+                      //       Icons.group,
+                      //       size: 16,
+                      //       color: Colors.grey[500],
+                      //     ),
+                      //   ),
                       // 会话名称
                       Expanded(
                         child: Row(children: [
@@ -1237,6 +1238,17 @@ class _ChatListPageState extends State<ChatListPage> {
         bgcolor = bgcolor.split('&').first;
       }
     }
+    String gid = conversation.convId;
+    String gidLast = '1';
+                      if (gid.isNotEmpty) {
+                        // 从后往前查找最后一个数字
+                        for (int i = gid.length - 1; i >= 0; i--) {
+                          if (gid[i].contains(RegExp(r'[0-9]'))) {
+                            gidLast = gid[i];
+                            break;
+                          }
+                        }
+                      }
 
     Color bgColor = Colors.grey;
     switch (convType) {
@@ -1258,10 +1270,10 @@ class _ChatListPageState extends State<ChatListPage> {
     return CircleAvatar(
                   radius: 24,
                   backgroundColor: bgColor,
-                  backgroundImage: (conversation.avatar != null && conversation.avatar!.isNotEmpty)
+                  backgroundImage: conversation.convType==2 ?  AssetImage('assets/img/group/groplogo$gidLast.png',) : (conversation.avatar != null && conversation.avatar!.isNotEmpty)
                       ? NetworkImage(conversation.avatar!)
                       : null,
-                  child: (conversation.avatar == null || conversation.avatar!.isEmpty)
+                  child: conversation.convType==2 ? Container() : (conversation.avatar == null || conversation.avatar!.isEmpty)
                       ? Text(
                           _getAvatarText(conversation),
                           style: TextStyle(
@@ -1423,16 +1435,17 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 创建群聊
   Future<void> _createGroup() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CreateGroupPage(),
+    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
       ),
-    );
-    // 如果创建成功，刷新会话列表
-    if (result == true) {
-      _refreshConversations(0);
-    }
+      child: CreateGroupPage(onCreate: () {
+        _refreshConversations(0);
+      },),
+    ));
   }
 
   /// 标记已读

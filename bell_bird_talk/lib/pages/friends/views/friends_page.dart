@@ -9,6 +9,7 @@ import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/friends/views/move_to_sheet_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -144,6 +145,25 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           Navigator.pop(context);
 _showGroupSettings();
         },
+      ),
+      GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          width: 120,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
+              const SizedBox(width: 8),
+              const Text('设置分组'),
+            ],
+          ),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+_showMoveToGroupDialog();
+        },
       )
     ];
   }
@@ -151,7 +171,7 @@ _showGroupSettings();
   /// 显示分组设置
   void _showGroupSettings() {
     gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 16,bottom: 30),
+      padding: EdgeInsets.only( top: 16,bottom: 30),
       decoration: BoxDecoration(
         color: GbsColors.lightAppBarColorA,
         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
@@ -172,38 +192,36 @@ _showGroupSettings();
     // );
   }
 
-  /// 添加分组
-  Future<void> _addGroup(String name) async {
-    if (name.isEmpty) {
-      EasyLoading.showError('分组名称不能为空');
-      return;
-    }
-    
-    // 检查是否已存在
-    if (_groups.any((g) => g.name == name)) {
-      EasyLoading.showError('分组已存在');
-      return;
-    }
-    EasyLoading.show(status: '正在创建分组...');
-    try {
-      final result = await _nativeService.imCreateContactGroup(
-        groupName: name,
-      );
-      
-      print('📁 创建联系人分组结果: $result');
-      
-      if (result['errorCode'] == 0) {
-    EasyLoading.showSuccess('分组创建成功');
-        // 刷新分组列表
-        await _loadContactGroups();
-      } else {
-        EasyLoading.showError(result['message'] ?? '创建失败');
-      }
-    } catch (e) {
-      print('创建分组错误: $e');
-      EasyLoading.showError('创建失败，请稍后重试');
-    }
+
+   /// 显示移动到分组弹窗
+  Future<void> _showMoveToGroupDialog() async {
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => GroupSettingsSheet(
+        onAddGroup: (){
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          // 弹出创建分组
+          gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
+            padding: EdgeInsets.only( top: 16,bottom: 30),
+            decoration: BoxDecoration(
+              color: GbsColors.lightAppBarColorA,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
+            ),
+             child: AddFriendGroupPage(),));
+        },
+        onDeleteGroup: _deleteGroup,
+        onUpdateGroup: _updateGroup,
+      ),
+    );
   }
+
   
   /// 删除分组
   void _deleteGroup(FriendGroup group) {
@@ -349,12 +367,17 @@ _showGroupSettings();
 
 
   Future<void> _createGroup() async {
-    Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CreateGroupPage(),
+    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
       ),
-    );
+      child: CreateGroupPage(onCreate: () {
+        // _refreshConversations(0);
+      },),
+    ));
   }
 
   PreferredSizeWidget _buildNormalAppBar() {

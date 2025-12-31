@@ -3,6 +3,7 @@ class UserModel {
   final String id;
   final String username;
   final String nickname;
+  final String groupId;
   final String? avatar;
   final String? avatarbg;
   final String? phone;
@@ -24,6 +25,7 @@ class UserModel {
     this.signature,
     this.createdAt,
     this.updatedAt,
+    this.groupId = '',
   });
   
   /// 从 JSON 创建
@@ -52,6 +54,7 @@ class UserModel {
       avatarbg: json['avatar_bg'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
+      groupId: json['groupId'] as String? ?? '',
       // 支持 gender / sex
       gender: (json['gender'] ?? json['sex']) as int?,
       signature: json['signature'] as String?,
@@ -70,6 +73,7 @@ class UserModel {
       'avatar': avatar,
       'avatar_bg': avatarbg,
       'phone': phone,
+      'groupId': groupId,
       'email': email,
       'gender': gender,
       'signature': signature,
