@@ -1058,8 +1058,8 @@ class _ChatPageState extends State<ChatPage> {
       },
       child: Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 20, top: 6, bottom: 6), child: Icon(Icons.arrow_back_ios,color: GbsColors.titleColor,),),),
       centerTitle: false,
-      backgroundColor: GbsColors.lightBackgroundB,
-      foregroundColor: GbsColors.lightBackgroundB,
+      backgroundColor: GbsColors.lightAppBarColorA,
+      foregroundColor: GbsColors.lightAppBarColorA,
       elevation: 0,
       actions: [
         IconButton(

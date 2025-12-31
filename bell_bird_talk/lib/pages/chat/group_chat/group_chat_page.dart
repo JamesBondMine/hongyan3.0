@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import '../../../services/native_bridge.dart';
@@ -185,6 +186,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       groupMembers: _groupMembers, // 传递群成员列表
       isMuted: _isMuted, // 传递禁言状态
       customAppBar: AppBar(
+        backgroundColor: GbsColors.lightAppBarColorA,
         title: Text(widget.groupName),
         actions: [
           IconButton(
