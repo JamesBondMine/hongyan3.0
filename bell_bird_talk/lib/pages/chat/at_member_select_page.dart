@@ -599,7 +599,7 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
         actions: [
           
           TextButton(
-            child: Text(_isMultiSelectMode ? '取消' : '多选'),
+            child: Text(_isMultiSelectMode ? '取消' : '多选', style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),
             onPressed: () {
               if (_isMultiSelectMode) {
                 _confirmSelection();

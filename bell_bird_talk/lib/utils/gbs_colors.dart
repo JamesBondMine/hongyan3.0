@@ -46,7 +46,10 @@ class GbsColors {
   /// 文字主要颜色
   static const Color titleColor = Color(0xFF000000);
   /// 文字描述颜色
+  static const Color des1Color = Color(0xFF111111);
+  /// 文字描述颜色
   static const Color des6Color = Color(0xFF666666);
+
   /// 文字描述颜色
   static const Color des9Color = Color(0xFF999999);
 
