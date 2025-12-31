@@ -162,6 +162,31 @@ class IOSNativeService {
     });
   }
 
+  /// 合并多个音频文件
+  /// @param filePaths 音频文件路径数组
+  /// @param outputPath 输出文件路径
+  /// @return 合并结果，包含success和output_path
+  Future<Map<String, dynamic>> mergeAudioFiles({
+    required List<String> filePaths,
+    required String outputPath,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('mergeAudioFiles', {
+        'file_paths': filePaths,
+        'output_path': outputPath,
+      });
+      return result?.cast<String, dynamic>() ?? {
+        'success': false,
+        'error': '未知错误'
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': e.toString()
+      };
+    }
+  }
+
   // ---------- iOS 原生 UI 交互 ----------
   
   /// 打开 iOS 原生页面

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +10,13 @@ class AtMemberSelectPage extends StatefulWidget {
   final String groupId;
   final String currentUserId; // 当前用户ID，用于排除自己
 
-  const AtMemberSelectPage({
+  ValueChanged<List<Map<String, dynamic>>> onMembersSelected;
+
+  AtMemberSelectPage({
     super.key,
     required this.groupId,
     required this.currentUserId,
+    required this.onMembersSelected,
   });
 
   @override
@@ -335,20 +339,20 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
     });
   }
 
-  void _selectAllMembers() {
-    if (!_isMultiSelectMode) {
-      _toggleMultiSelectMode();
-    }
-    setState(() {
-      _selectedMemberIds.clear();
-      for (final member in _filteredMembers) {
-        final userId = (member['user_id'] as String?) ?? '';
-        if (userId.isNotEmpty) {
-          _selectedMemberIds.add(userId);
-        }
-      }
-    });
-  }
+  // void _selectAllMembers() {
+  //   if (!_isMultiSelectMode) {
+  //     _toggleMultiSelectMode();
+  //   }
+  //   setState(() {
+  //     _selectedMemberIds.clear();
+  //     for (final member in _filteredMembers) {
+  //       final userId = (member['user_id'] as String?) ?? '';
+  //       if (userId.isNotEmpty) {
+  //         _selectedMemberIds.add(userId);
+  //       }
+  //     }
+  //   });
+  // }
 
   void _confirmSelection() {
     if (_selectedMemberIds.isEmpty) {
@@ -361,9 +365,9 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
       final userId = (member['user_id'] as String?) ?? '';
       return _selectedMemberIds.contains(userId);
     }).toList();
-
+    widget.onMembersSelected(selectedMembers);
     // 返回选中的成员列表
-    Navigator.pop(context, selectedMembers);
+    Navigator.pop(context);
   }
 
   Widget _buildSearchBar() {
@@ -570,8 +574,9 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
           if (_isMultiSelectMode) {
             _toggleMemberSelection(userId);
           } else {
+            widget.onMembersSelected([member]);
             // 单选模式，直接返回
-            Navigator.pop(context, [member]);
+            Navigator.pop(context);
           }
         },
       ),
@@ -592,22 +597,9 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         actions: [
-          if (_isMultiSelectMode)
-            TextButton(
-              onPressed: _selectedMemberIds.length == _filteredMembers.length
-                  ? null
-                  : _selectAllMembers,
-              child: Text(
-                '全选',
-                style: TextStyle(
-                  color: _selectedMemberIds.length == _filteredMembers.length
-                      ? Colors.grey
-                      : Colors.blue,
-                ),
-              ),
-            ),
-          IconButton(
-            icon: Icon(_isMultiSelectMode ? Icons.done : Icons.checklist),
+          
+          TextButton(
+            child: Text(_isMultiSelectMode ? '取消' : '多选'),
             onPressed: () {
               if (_isMultiSelectMode) {
                 _confirmSelection();
@@ -615,7 +607,6 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
                 _toggleMultiSelectMode();
               }
             },
-            tooltip: _isMultiSelectMode ? '完成' : '多选',
           ),
         ],
       ),
@@ -639,6 +630,8 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
                         ),
                 ),
               ),
+              // footer
+              _buildFooterView()
             ],
           ),
           // 右侧字母索引条
@@ -652,5 +645,21 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildFooterView() {
+    if (!_isMultiSelectMode){
+      return Container( );
+    }
+  
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: CommonButton(
+        onPressed: () {
+          _confirmSelection();
+        },
+        enabled: true,
+        text: '确定')
+    ); 
   }
 }

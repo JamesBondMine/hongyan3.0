@@ -43,7 +43,7 @@ class ChatPage extends StatefulWidget {
   final PreferredSizeWidget? customAppBar;
   final List<Map<String, dynamic>>? groupMembers; // 群成员列表（群聊时使用）
   final bool? isMuted; // 是否禁言（群聊时使用）
-  
+
   const ChatPage({
     super.key,
     required this.convId,
@@ -65,71 +65,197 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  
+
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
   bool _showEmojiPicker = false;
   bool _showMorePanel = false;
   bool _showVoicePanel = false;
-  
+
   final ImagePicker _imagePicker = ImagePicker();
   final MessageQueueManager _messageQueue = MessageQueueManager();
   final MessageDatabase _messageDatabase = MessageDatabase();
   final GlobalController _globalCtrl = Get.find<GlobalController>();
   final Map<String, String> _voiceCache = {}; // 缓存远程语音的本地路径（key=url）
-  
+
   // 语音播放器
   final AudioPlayer _audioPlayer = AudioPlayer();
   String? _playingVoiceId; // 当前正在播放的语音消息ID
   bool _isDownloading = false;
-  
+
   /// 新消息监听器
   Worker? _newMessageWorker;
-  
+
   /// 当前用户ID
   String get _currentUserId => _globalCtrl.currentUser.value?.id ?? '';
-  
+
   // @功能相关
   List<Map<String, dynamic>> _atMembers = []; // 已@的成员列表
-  
+
   // 常用表情列表
   static const List<String> _emojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-    '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
-    '😘', '😗', '😚', '😙', '🥲', '😋', '😛', '😜',
-    '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐',
-    '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬',
-    '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒',
-    '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵',
-    '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕',
-    '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺',
-    '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱',
-    '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤',
-    '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩',
-    '👍', '👎', '👏', '🙌', '👐', '🤲', '🤝', '🙏',
-    '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆',
-    '👇', '☝️', '👋', '🤚', '🖐️', '✋', '🖖', '👌',
-    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
-    '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘',
-    '💝', '💟', '🔥', '✨', '🎉', '🎊', '🎁', '🎈',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😆',
+    '😅',
+    '🤣',
+    '😂',
+    '🙂',
+    '🙃',
+    '😉',
+    '😊',
+    '😇',
+    '🥰',
+    '😍',
+    '🤩',
+    '😘',
+    '😗',
+    '😚',
+    '😙',
+    '🥲',
+    '😋',
+    '😛',
+    '😜',
+    '🤪',
+    '😝',
+    '🤑',
+    '🤗',
+    '🤭',
+    '🤫',
+    '🤔',
+    '🤐',
+    '🤨',
+    '😐',
+    '😑',
+    '😶',
+    '😏',
+    '😒',
+    '🙄',
+    '😬',
+    '🤥',
+    '😌',
+    '😔',
+    '😪',
+    '🤤',
+    '😴',
+    '😷',
+    '🤒',
+    '🤕',
+    '🤢',
+    '🤮',
+    '🤧',
+    '🥵',
+    '🥶',
+    '🥴',
+    '😵',
+    '🤯',
+    '🤠',
+    '🥳',
+    '🥸',
+    '😎',
+    '🤓',
+    '🧐',
+    '😕',
+    '😟',
+    '🙁',
+    '☹️',
+    '😮',
+    '😯',
+    '😲',
+    '😳',
+    '🥺',
+    '😦',
+    '😧',
+    '😨',
+    '😰',
+    '😥',
+    '😢',
+    '😭',
+    '😱',
+    '😖',
+    '😣',
+    '😞',
+    '😓',
+    '😩',
+    '😫',
+    '🥱',
+    '😤',
+    '😡',
+    '😠',
+    '🤬',
+    '😈',
+    '👿',
+    '💀',
+    '☠️',
+    '💩',
+    '👍',
+    '👎',
+    '👏',
+    '🙌',
+    '👐',
+    '🤲',
+    '🤝',
+    '🙏',
+    '✌️',
+    '🤞',
+    '🤟',
+    '🤘',
+    '🤙',
+    '👈',
+    '👉',
+    '👆',
+    '👇',
+    '☝️',
+    '👋',
+    '🤚',
+    '🖐️',
+    '✋',
+    '🖖',
+    '👌',
+    '❤️',
+    '🧡',
+    '💛',
+    '💚',
+    '💙',
+    '💜',
+    '🖤',
+    '🤍',
+    '💔',
+    '❣️',
+    '💕',
+    '💞',
+    '💓',
+    '💗',
+    '💖',
+    '💘',
+    '💝',
+    '💟',
+    '🔥',
+    '✨',
+    '🎉',
+    '🎊',
+    '🎁',
+    '🎈',
   ];
 
   @override
   void initState() {
     super.initState();
-    
+
     // 初始化文件路径助手（解决iOS沙盒路径变化问题）
     FilePathHelper.instance.init();
-    
+
     _loadMessages();
-    
+
     // 监听消息状态变化
     _messageQueue.addStatusListener(_onMessageStatusChanged);
-    
+
     // 监听 GlobalController 的新消息通知
     _newMessageWorker = ever(_globalCtrl.newMessage, _onNewMessageFromCallback);
-    
+
     // 监听输入框内容变化，检测@符号
     _messageController.addListener(_onTextChanged);
 
@@ -141,36 +267,46 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // 标记会话已读
-  void _markConversationRead() async{
+  void _markConversationRead() async {
     await Future.delayed(const Duration(milliseconds: 500));
     if (_messages.isNotEmpty) {
-      List<Map<String, dynamic>> unreadMessages = _messages.where((msg) => msg['isMine'] == false).toList();
+      List<Map<String, dynamic>> unreadMessages = _messages
+          .where((msg) => msg['isMine'] == false)
+          .toList();
       if (unreadMessages.isNotEmpty) {
-        List<String> unreadMsgIds = unreadMessages.map((msg) => msg['id'].toString()).toList();
+        List<String> unreadMsgIds = unreadMessages
+            .map((msg) => msg['id'].toString())
+            .toList();
         print('会话页面组装。标记已读消息: ${unreadMsgIds.join(',')}');
-        _nativeService.imMarkConversationRead(convId: widget.convId, msgIds: unreadMsgIds.join(','));
+        _nativeService.imMarkConversationRead(
+          convId: widget.convId,
+          msgIds: unreadMsgIds.join(','),
+        );
       }
     }
   }
-  
+
   /// 监听输入框内容变化，检测@符号
   void _onTextChanged() {
-    if (widget.convType != 2 || widget.groupMembers == null || widget.groupMembers!.isEmpty) {
+    if (widget.convType != 2 ||
+        widget.groupMembers == null ||
+        widget.groupMembers!.isEmpty) {
       return; // 非群聊或没有群成员列表，不处理@功能
     }
-    
+
     final text = _messageController.text;
     final cursorPosition = _messageController.selection.baseOffset;
-    
+
     // 检查光标位置前是否有@符号
     if (cursorPosition > 0) {
       final beforeCursor = text.substring(0, cursorPosition);
       final lastAtIndex = beforeCursor.lastIndexOf('@');
-      
+
       if (lastAtIndex != -1) {
         // 找到@符号，检查@后面是否有空格或其他@符号
         final afterAt = beforeCursor.substring(lastAtIndex + 1);
-        if (afterAt.isEmpty || (!afterAt.contains(' ') && !afterAt.contains('@'))) {
+        if (afterAt.isEmpty ||
+            (!afterAt.contains(' ') && !afterAt.contains('@'))) {
           // @后面没有空格或其他@，跳转到@成员选择页面
           _openAtMemberSelectPage();
           return;
@@ -185,21 +321,21 @@ class _ChatPageState extends State<ChatPage> {
       return; // 非群聊，不处理
     }
 
-    final result = await Navigator.push<List<Map<String, dynamic>>>(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AtMemberSelectPage(
           groupId: widget.targetUserId,
           currentUserId: _currentUserId,
+          onMembersSelected: (value) {
+            if (value.isNotEmpty) {
+              _selectAtMembers(value);
+            }
+          },
         ),
       ),
     );
-
-    if (result != null && result.isNotEmpty) {
-      _selectAtMembers(result);
-    }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -243,15 +379,14 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-
   /// 加载消息（对方消息只从网络获取；自己发送的消息合并本地+网络）
   Future<void> _loadMessages() async {
     // 1. 先加载本地仅自己发送的消息（用于发送中/失败的展示与重发）
     await _loadLocalMyMessages();
-    
+
     // 2. 再从 API 拉取最新消息，确保对方消息来自网络
     await _loadHistory();
-    
+
     // 按时间排序
     _sortMessagesByTime();
   }
@@ -273,16 +408,18 @@ class _ChatPageState extends State<ChatPage> {
     final localMessages = await _messageDatabase.getMessages(widget.convId);
     if (localMessages.isEmpty) return;
 
-    final myMessages = localMessages.where((msg) => msg.senderId == _currentUserId).toList();
+    final myMessages = localMessages
+        .where((msg) => msg.senderId == _currentUserId)
+        .toList();
     if (myMessages.isEmpty) return;
 
     print('📦 加载本地我发送的消息: ${myMessages.length} 条');
     for (final msg in myMessages) {
-        _addChatLocalMessageToList(msg);
-      }
-      _sortMessagesByTime();
-      setState(() {});
-      _scrollToBottom();
+      _addChatLocalMessageToList(msg);
+    }
+    _sortMessagesByTime();
+    setState(() {});
+    _scrollToBottom();
   }
 
   /// 按时间排序消息列表
@@ -297,9 +434,11 @@ class _ChatPageState extends State<ChatPage> {
   /// 消息状态变化回调
   void _onMessageStatusChanged(ChatMessage message) {
     if (message.convId != widget.convId) return;
-    
+
     setState(() {
-      final index = _messages.indexWhere((m) => m['localId'] == message.localId);
+      final index = _messages.indexWhere(
+        (m) => m['localId'] == message.localId,
+      );
       if (index != -1) {
         _messages[index]['status'] = message.status.name;
         _messages[index]['errorMessage'] = message.errorMessage;
@@ -309,36 +448,44 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
-  
+
   /// 处理从 GlobalController 收到的新消息回调
   void _onNewMessageFromCallback(Map<String, dynamic>? message) {
     if (message == null) return;
-    
+
     // 解析消息数据
     final convId = message['conv_id'] as String? ?? '';
-    final senderId = message['from'] as String? ?? message['sender_id'] as String? ?? '';
-    
+    final senderId =
+        message['from'] as String? ?? message['sender_id'] as String? ?? '';
+
     // 只处理当前会话的消息
     if (convId != widget.convId && senderId != widget.targetUserId) {
       print('📨 聊天页忽略非当前会话消息: convId=$convId, targetId=${widget.targetUserId}');
       return;
     }
-    
+
     // 如果是自己发的消息，忽略（已通过发送流程处理）
     if (senderId == _currentUserId) {
       print('📨 聊天页忽略自己发送的消息');
       return;
     }
-    
+
     print('📨 聊天页收到新消息: $message');
-    
+
     // 解析消息内容
-    final msgId = message['msg_id'] as String? ?? message['message_id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final content = message['content'] as String? ?? message['text'] as String? ?? '';
-    final timestamp = message['send_time'] as int? ?? message['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+    final msgId =
+        message['msg_id'] as String? ??
+        message['message_id'] as String? ??
+        DateTime.now().millisecondsSinceEpoch.toString();
+    final content =
+        message['content'] as String? ?? message['text'] as String? ?? '';
+    final timestamp =
+        message['send_time'] as int? ??
+        message['timestamp'] as int? ??
+        DateTime.now().millisecondsSinceEpoch;
     final mType = message['m_type'] as int? ?? 0;
     final imageUrl = message['image_url'] as String?;
-    
+
     // 创建 ChatMessage 对象
     final messageType = MessageType.fromValue(mType);
     final chatMessage = ChatMessage(
@@ -355,40 +502,44 @@ class _ChatPageState extends State<ChatPage> {
       createdAt: timestamp,
       status: MessageStatus.sent,
     );
-    
+
     // 检查是否已存在（避免重复）
-    final existIndex = _messages.indexWhere((m) => 
-        m['id'] == msgId || m['localId'] == msgId
+    final existIndex = _messages.indexWhere(
+      (m) => m['id'] == msgId || m['localId'] == msgId,
     );
-    
+
     if (existIndex != -1) {
       print('📨 消息已存在，跳过: $msgId');
       return;
     }
-    
+
     // 添加到消息列表
     setState(() {
       _addChatLocalMessageToList(chatMessage);
       _sortMessagesByTime();
     });
     _scrollToBottom();
-    
+
     // 保存到本地数据库
-    _messageDatabase.insertMessage(chatMessage).then((msg) {
-      print('💾 新消息已保存到本地数据库: $msgId.  ${msg.localId}');
-    }).catchError((e) {
-      print('❌ 保存消息到数据库失败: $e');
-    });
+    _messageDatabase
+        .insertMessage(chatMessage)
+        .then((msg) {
+          print('💾 新消息已保存到本地数据库: $msgId.  ${msg.localId}');
+        })
+        .catchError((e) {
+          print('❌ 保存消息到数据库失败: $e');
+        });
   }
 
   /// 将 ChatMessage 添加到消息列表
   void _addChatLocalMessageToList(ChatMessage message) {
-    
     final msgMap = {
       'id': message.localId,
       'serverId': message.serverId,
       'localId': message.localId,
-      'content': message.type == MessageType.at ? message.textContent : message.displayContent,
+      'content': message.type == MessageType.at
+          ? message.textContent
+          : message.displayContent,
       'type': message.type.name,
       'isMine': message.isMine,
       'timestamp': message.createdAt,
@@ -403,7 +554,9 @@ class _ChatPageState extends State<ChatPage> {
       'isAll': message.isAll,
     };
     // 检查是否已存在
-    final existIndex = _messages.indexWhere((m) => m['localId'] == message.localId);
+    final existIndex = _messages.indexWhere(
+      (m) => m['localId'] == message.localId,
+    );
     if (existIndex != -1) {
       _messages[existIndex] = msgMap;
     } else {
@@ -415,35 +568,36 @@ class _ChatPageState extends State<ChatPage> {
   /// 加载历史消息
   Future<void> _loadHistory() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // 根据会话类型选择不同的拉取方法
-      final result = widget.convType == 2  // 群聊
+      final result =
+          widget.convType ==
+              2 // 群聊
           ? await GroupController.to.getGroupMessages(
               widget.convId,
               widget.targetUserId,
-              lastSeq: 0,   // 0 表示从最新开始
+              lastSeq: 0, // 0 表示从最新开始
               limit: 50,
             )
           : await _nativeService.imPullMessages(
               conversationId: widget.convId,
               convType: widget.convType,
               targetId: widget.targetUserId,
-              lastSeq: 0,   // 0 表示从最新开始
+              lastSeq: 0, // 0 表示从最新开始
               limit: 50,
             );
-      
+
       print('📥 拉取网络🛜历史消息结果: $result');
-      
+
       if (result['errorCode'] == 0) {
         final data = result['data'];
         if (data != null && data is String && data.isNotEmpty) {
           try {
             final dataMap = json.decode(data) as Map<String, dynamic>;
 
-                print("组装消息: $dataMap");
-    
-            
+            print("组装消息: $dataMap");
+
             // 解析消息列表
             final messages = dataMap['messages'] as List<dynamic>?;
             if (messages != null && messages.isNotEmpty) {
@@ -452,12 +606,11 @@ class _ChatPageState extends State<ChatPage> {
             } else {
               print('📥 暂无历史消息');
             }
-            
+
             // 打印统计信息
             final totalCount = dataMap['total_count'];
             final hasMore = dataMap['has_more'];
             print('📥 总数: $totalCount, 还有更多: $hasMore');
-            
           } catch (e) {
             print('❌ 解析历史消息失败: $e');
           }
@@ -475,10 +628,12 @@ class _ChatPageState extends State<ChatPage> {
   /// 解析并显示历史消息
   Future<void> _parseAndDisplayMessages(List<dynamic> messages) async {
     // 判断会话在本地是否已有消息
-    final bool convHasLocal =
-        (await _messageDatabase.getMessages(widget.convId, limit: 1)).isNotEmpty;
+    final bool convHasLocal = (await _messageDatabase.getMessages(
+      widget.convId,
+      limit: 1,
+    )).isNotEmpty;
     final List<ChatMessage> toInsertBatch = [];
-    
+
     for (final msg in messages) {
       // print("\n\n\n解析并显示历史消息:\n $msg \n\n\n\n");
       if (msg is Map<String, dynamic>) {
@@ -486,21 +641,23 @@ class _ChatPageState extends State<ChatPage> {
         final msgId = msg['msg_id'] ?? msg['message_id'] ?? msg['id'] ?? '';
         final serverId = msg['server_msg_id'] ?? '';
         final content = msg['content'] ?? msg['text'] ?? msg['body'] ?? '';
-        final senderId = msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
-        final timestamp = msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
+        final senderId =
+            msg['sender_id'] ?? msg['from'] ?? msg['from_id'] ?? '';
+        final timestamp =
+            msg['send_time'] ?? msg['timestamp'] ?? msg['created_at'] ?? 0;
         final mType = msg['m_type'] as int? ?? 0;
         final type = msg['type'] as String? ?? 'text';
         final imageUrl = msg['image_url'] as String?;
         final fileUrl = msg['file_url'] as String?;
         final ext = msg['ext'] as String?;
         final audioUrl = msg['audio_url'] as String?;
-        final voiceDuration = msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
+        final voiceDuration =
+            msg['voice_duration'] as int? ?? msg['duration'] as int? ?? 0;
         final videoUrl = msg['video_url'] as String?;
         final thumbnailUrl = msg['thumbnail_url'] as String?;
         final videoDuration = msg['duration'] as int? ?? 0;
         final timestampInt = timestamp is int ? timestamp : 0;
 
-        
         final isAll = false;
         List<Map<String, dynamic>> atInfoList = [];
 
@@ -516,18 +673,26 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         // 发送者昵称和头像（如果有，主要用于群聊展示）
-        final dynamic rawSenderName = msg['sender_name'] ??
+        final dynamic rawSenderName =
+            msg['sender_name'] ??
             msg['nickname'] ??
             msg['from_nick'] ??
             msg['from_name'];
-        final String? senderName = rawSenderName != null ? rawSenderName.toString() : null;
+        final String? senderName = rawSenderName != null
+            ? rawSenderName.toString()
+            : null;
         final dynamic rawSenderAvatar =
-            msg['sender_avatar'] ?? msg['avatar'] ?? msg['face_url'] ?? msg['faceURL'];
-        final String? senderAvatar = rawSenderAvatar != null ? rawSenderAvatar.toString() : null;
-        
+            msg['sender_avatar'] ??
+            msg['avatar'] ??
+            msg['face_url'] ??
+            msg['faceURL'];
+        final String? senderAvatar = rawSenderAvatar != null
+            ? rawSenderAvatar.toString()
+            : null;
+
         // 判断是否是自己发的消息（根据发送者ID判断）
         final isMine = senderId == _currentUserId;
-        
+
         // 解析消息类型
         String msgType = 'text';
         if (mType == 16) {
@@ -543,7 +708,7 @@ class _ChatPageState extends State<ChatPage> {
         } else if (mType == 3 || (fileUrl != null && voiceDuration > 0)) {
           msgType = 'voice';
         }
-        
+
         final msgMap = {
           'id': msgId.toString(),
           'serverId': serverId.toString(),
@@ -571,10 +736,10 @@ class _ChatPageState extends State<ChatPage> {
           msgMap['isAll'] = isAll;
         }
 
-        
-        
         // 检查是否已存在（通过 id 去重）
-        final existIndex = _messages.indexWhere((m) => m['serverId'] == serverId.toString());
+        final existIndex = _messages.indexWhere(
+          (m) => m['serverId'] == serverId.toString(),
+        );
         if (existIndex == -1) {
           print("组装消息aa. 是否已经添加过?   未添加: $msgMap");
           _messages.add(msgMap);
@@ -583,15 +748,15 @@ class _ChatPageState extends State<ChatPage> {
           // 更新已有消息
           _messages[existIndex] = msgMap;
         }
-        
+
         // 组装数据库实体
         final msgTypeEnum = msgType == 'image'
             ? MessageType.image
             : msgType == 'voice'
-                ? MessageType.voice
-                : msgType == 'video'
-                    ? MessageType.video
-                    : MessageType.text;
+            ? MessageType.voice
+            : msgType == 'video'
+            ? MessageType.video
+            : MessageType.text;
         final chatMessage = ChatMessage(
           localId: msgId.toString(),
           msgId: msgId.toString(),
@@ -606,33 +771,42 @@ class _ChatPageState extends State<ChatPage> {
           createdAt: timestampInt,
           sentAt: timestampInt,
           isRead: isMine ? true : false,
-          textContent: msgTypeEnum == MessageType.text ? content.toString() : null,
+          textContent: msgTypeEnum == MessageType.text
+              ? content.toString()
+              : null,
           imageUrl: msgTypeEnum == MessageType.image
               ? imageUrl
               : msgTypeEnum == MessageType.video
-                  ? (thumbnailUrl ?? imageUrl)
-                  : null,
+              ? (thumbnailUrl ?? imageUrl)
+              : null,
           fileUrl: msgTypeEnum == MessageType.voice
               ? (audioUrl ?? fileUrl)
               : msgTypeEnum == MessageType.video
-                  ? videoUrl ?? fileUrl
-                  : fileUrl,
-          voiceDuration: msgTypeEnum == MessageType.voice ? voiceDuration : null,
-          videoDuration: msgTypeEnum == MessageType.video ? videoDuration : null,
+              ? videoUrl ?? fileUrl
+              : fileUrl,
+          voiceDuration: msgTypeEnum == MessageType.voice
+              ? voiceDuration
+              : null,
+          videoDuration: msgTypeEnum == MessageType.video
+              ? videoDuration
+              : null,
         );
         if (convHasLocal) {
           // 会话已有消息，逐条插入（replace）
           ChatMessage res = await _messageDatabase.insertMessage(chatMessage);
           print("插入消息: $res");
-
         } else {
           toInsertBatch.add(chatMessage);
         }
-        
+
         // 格式化时间戳用于日志
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
-        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
-        print('\n*****************\n 🛜 网络消息:  content=$content, msgId=$msgId, senderId=$senderId, fileUrl=$fileUrl,audioUrl=$audioUrl time=$formattedTime\n*****************\n');
+        final formattedTime = DateFormat(
+          'yyyy-MM-dd HH:mm:ss',
+        ).format(dateTime);
+        print(
+          '\n*****************\n 🛜 网络消息:  content=$content, msgId=$msgId, senderId=$senderId, fileUrl=$fileUrl,audioUrl=$audioUrl time=$formattedTime\n*****************\n',
+        );
       }
     }
 
@@ -640,7 +814,7 @@ class _ChatPageState extends State<ChatPage> {
     if (!convHasLocal && toInsertBatch.isNotEmpty) {
       await _messageDatabase.insertMessages(toInsertBatch);
     }
-    
+
     // 排序并更新UI
     _sortMessagesByTime();
     setState(() {});
@@ -654,20 +828,21 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     final text = _messageController.text.trim();
     if (text.isEmpty || _isSending) return;
-    
+
     setState(() {
       _isSending = true;
     });
-    
+
     try {
       // 检查是否有@成员（群聊且已@成员列表不为空）
-      final hasAtMembers = widget.convType == 2 && 
-                           widget.groupMembers != null && 
-                           _atMembers.isNotEmpty;
-      
+      final hasAtMembers =
+          widget.convType == 2 &&
+          widget.groupMembers != null &&
+          _atMembers.isNotEmpty;
+
       if (hasAtMembers) {
         // 直接使用已存储的@成员信息发送@消息
         await _sendAtMessage(text, _atMembers);
@@ -684,7 +859,7 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
   }
-  
+
   /// 发送普通文本消息
   Future<void> _sendNormalTextMessage(String text) async {
     final message = ChatMessage.text(
@@ -693,7 +868,7 @@ class _ChatPageState extends State<ChatPage> {
       receiverId: widget.targetUserId,
       content: text,
     );
-    
+
     setState(() {
       _addChatLocalMessageToList(message);
     });
@@ -704,26 +879,29 @@ class _ChatPageState extends State<ChatPage> {
     // 通过队列发送（持久化 + 状态统一处理）
     await _messageQueue.sendMessage(message);
   }
-  
+
   /// 发送@消息
-  Future<void> _sendAtMessage(String text, List<Map<String, dynamic>> atInfoList) async {
+  Future<void> _sendAtMessage(
+    String text,
+    List<Map<String, dynamic>> atInfoList,
+  ) async {
     try {
       // 检查是否是@所有人
       bool isAll = false;
       final filteredAtInfoList = <Map<String, dynamic>>[];
-      
+
       for (final atInfo in atInfoList) {
         final nickname = atInfo['nickname'] as String? ?? '';
-        
+
         // 检查是否是@所有人
         if (nickname == '所有人' || nickname == '@所有人') {
           isAll = true;
           break;
         }
-        
+
         filteredAtInfoList.add(atInfo);
       }
-      
+
       // 调用原生方法发送@消息
       // final result = await _nativeService.imSendGroupAtMessage(
       //   content: text,
@@ -732,23 +910,23 @@ class _ChatPageState extends State<ChatPage> {
       //   atInfoList: isAll ? [] : filteredAtInfoList,
       //   isAll: isAll,
       // );
-      
+
       // 创建消息对象（用于本地显示）
-        final message = ChatMessage.at(
-          convId: widget.convId,
-          senderId: _currentUserId,
-          receiverId: widget.targetUserId,
-          content: text,
-          atInfoList: isAll ? [] : filteredAtInfoList,
-          isAll: isAll,
-        );
-        setState(() {
-          _addChatLocalMessageToList(message);
-        });
-        _scrollToBottom();
-        _messageController.clear();
-        _atMembers.clear(); // 清空@成员列表
-        await _messageQueue.sendMessage(message);
+      final message = ChatMessage.at(
+        convId: widget.convId,
+        senderId: _currentUserId,
+        receiverId: widget.targetUserId,
+        content: text,
+        atInfoList: isAll ? [] : filteredAtInfoList,
+        isAll: isAll,
+      );
+      setState(() {
+        _addChatLocalMessageToList(message);
+      });
+      _scrollToBottom();
+      _messageController.clear();
+      _atMembers.clear(); // 清空@成员列表
+      await _messageQueue.sendMessage(message);
     } catch (e) {
       print('发送@消息异常: $e');
       EasyLoading.showError('发送失败: $e');
@@ -768,10 +946,10 @@ class _ChatPageState extends State<ChatPage> {
         pageSize: 1000,
         relationship: 0, // 只获取好友关系
       );
-      
+
       bool isFriend = false;
       FriendModel? friendInfo;
-      
+
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -781,7 +959,8 @@ class _ChatPageState extends State<ChatPage> {
 
             // 查找是否是该用户的好友
             for (final contact in contacts) {
-              final contactUserId = contact['contact_user_id']?.toString() ?? '';
+              final contactUserId =
+                  contact['contact_user_id']?.toString() ?? '';
               if (contactUserId == userId) {
                 isFriend = true;
                 friendInfo = FriendModel.fromJson(contact);
@@ -793,7 +972,7 @@ class _ChatPageState extends State<ChatPage> {
           }
         }
       }
-      
+
       // 根据是否是好友跳转到不同页面
       if (isFriend && friendInfo != null) {
         // 是好友，跳转到好友详情页面
@@ -850,7 +1029,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: Column(
@@ -861,7 +1039,10 @@ class _ChatPageState extends State<ChatPage> {
           ),
           Text(
             '会话ID: ${widget.convId}',
-            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.white.withOpacity(0.7),
+            ),
           ),
         ],
       ),
@@ -901,21 +1082,20 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               );
-            }  else {
+            } else {
               Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatDetailPage(
-                  convId: widget.convId,
-                  targetId: widget.targetUserId,
-                  displayName: widget.displayName,
-                  avatarUrl: widget.avatar ?? '',
-                  convType: widget.convType,
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatDetailPage(
+                    convId: widget.convId,
+                    targetId: widget.targetUserId,
+                    displayName: widget.displayName,
+                    avatarUrl: widget.avatar ?? '',
+                    convType: widget.convType,
+                  ),
                 ),
-              ),
-            );
+              );
             }
-            
           },
         ),
       ],
@@ -924,42 +1104,30 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageList() {
     if (_isLoading && _messages.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_messages.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 80,
-              color: Colors.grey[300],
-            ),
+            Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
               '暂无消息',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
             ),
             const SizedBox(height: 8),
             Text(
               '发送一条消息开始聊天吧',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
             ),
           ],
         ),
       );
     }
-    
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -997,9 +1165,12 @@ class _ChatPageState extends State<ChatPage> {
     final now = DateTime.now();
     String formatted;
     final isSameDay =
-        dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day;
+        dateTime.year == now.year &&
+        dateTime.month == now.month &&
+        dateTime.day == now.day;
     final yesterday = now.subtract(const Duration(days: 1));
-    final isYesterday = dateTime.year == yesterday.year &&
+    final isYesterday =
+        dateTime.year == yesterday.year &&
         dateTime.month == yesterday.month &&
         dateTime.day == yesterday.day;
 
@@ -1024,10 +1195,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       child: Text(
         formatted,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[700],
-        ),
+        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
       ),
     );
   }
@@ -1046,39 +1214,39 @@ class _ChatPageState extends State<ChatPage> {
     final String messageSenderId = senderId;
     final String senderName =
         ((message['senderName'] as String?)?.trim().isNotEmpty ?? false)
-            ? (message['senderName'] as String)
-            : messageSenderId;
+        ? (message['senderName'] as String)
+        : messageSenderId;
     final String? senderAvatar = message['senderAvatar'] as String?;
-    
+
     // 用 senderId 判断是否是自己发的消息（更可靠）
     final isMine = messageSenderId.isNotEmpty
         ? messageSenderId == _currentUserId
         : (message['isMine'] as bool? ?? false);
-    
+
     // 判断是否是通知消息
     final isNotification = type == 'notification';
-    
+
     // 通知消息使用特殊布局（居中，不显示头像）
     if (isNotification) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Center(
-          child: _buildMessageContent(message, false),
-        ),
+        child: Center(child: _buildMessageContent(message, false)),
       );
     }
-    
+
     // 对方发的消息如果是发送失败状态，则不显示（不合逻辑的数据）
     if (!isMine && status == 'failed') {
       return const SizedBox.shrink();
     }
-    
+
     // 格式化时间
     String formattedTime = '';
     if (timestamp > 0) {
       final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
       final now = DateTime.now();
-      if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
+      if (dateTime.year == now.year &&
+          dateTime.month == now.month &&
+          dateTime.day == now.day) {
         // 今天只显示时间
         formattedTime = DateFormat('HH:mm').format(dateTime);
       } else if (dateTime.year == now.year) {
@@ -1089,14 +1257,18 @@ class _ChatPageState extends State<ChatPage> {
         formattedTime = DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
       }
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
-        crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isMine
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment: isMine
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMine) ...[
@@ -1104,10 +1276,12 @@ class _ChatPageState extends State<ChatPage> {
                 Builder(
                   builder: (context) {
                     // 单聊：使用会话级头像；群聊：使用每条消息发送人的头像/昵称
-                    final String? avatarUrlToUse =
-                        isGroupChat ? senderAvatar : widget.avatar;
-                    final String displayNameForInitial =
-                        isGroupChat ? senderName : widget.displayName;
+                    final String? avatarUrlToUse = isGroupChat
+                        ? senderAvatar
+                        : widget.avatar;
+                    final String displayNameForInitial = isGroupChat
+                        ? senderName
+                        : widget.displayName;
 
                     return GestureDetector(
                       onTap: () => _onAvatarTap(
@@ -1118,12 +1292,12 @@ class _ChatPageState extends State<ChatPage> {
                       child: CircleAvatar(
                         radius: 18,
                         backgroundColor: Colors.grey[300],
-                        backgroundImage: avatarUrlToUse != null &&
-                                avatarUrlToUse.isNotEmpty
+                        backgroundImage:
+                            avatarUrlToUse != null && avatarUrlToUse.isNotEmpty
                             ? NetworkImage(avatarUrlToUse)
                             : null,
-                        child: (avatarUrlToUse == null ||
-                                avatarUrlToUse.isEmpty)
+                        child:
+                            (avatarUrlToUse == null || avatarUrlToUse.isEmpty)
                             ? Text(
                                 displayNameForInitial.isNotEmpty
                                     ? displayNameForInitial[0]
@@ -1140,13 +1314,13 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 const SizedBox(width: 8),
               ],
-              
+
               // 发送状态（我的消息显示在左侧，非图片消息）
               if (isMine && !isImageMessage) ...[
                 _buildMessageStatus(status, localId: localId),
                 const SizedBox(width: 4),
               ],
-              
+
               // 消息气泡
               Flexible(
                 child: GestureDetector(
@@ -1165,47 +1339,54 @@ class _ChatPageState extends State<ChatPage> {
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.65,
                     ),
-                    padding: isImageMessage 
-                        ? const EdgeInsets.all(4) 
-                        : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: isImageMessage
+                        ? const EdgeInsets.all(4)
+                        : const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                     decoration: BoxDecoration(
-                      color: isImageMessage ? Colors.transparent : (isMine ? Colors.blue : Colors.white),
+                      color: isImageMessage
+                          ? Colors.transparent
+                          : (isMine ? Colors.blue : Colors.white),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
                         bottomLeft: Radius.circular(isMine ? 16 : 4),
                         bottomRight: Radius.circular(isMine ? 4 : 16),
                       ),
-                      boxShadow: isImageMessage ? null : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: isImageMessage
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                     ),
-                    child: type == "at" ? _buildAtMessage(message, isMine, status) : _buildMessageContent(message, isMine),
+                    child: type == "at"
+                        ? _buildAtMessage(message, isMine, status)
+                        : _buildMessageContent(message, isMine),
                   ),
                 ),
               ),
-              
+
               if (isMine) ...[
                 const SizedBox(width: 8),
                 // 我的头像
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.blue[100],
-                  backgroundImage: _globalCtrl.currentUser.value?.avatar != null && 
-                      _globalCtrl.currentUser.value!.avatar!.isNotEmpty
+                  backgroundImage:
+                      _globalCtrl.currentUser.value?.avatar != null &&
+                          _globalCtrl.currentUser.value!.avatar!.isNotEmpty
                       ? NetworkImage(_globalCtrl.currentUser.value!.avatar!)
                       : null,
-                  child: _globalCtrl.currentUser.value?.avatar == null || 
-                      _globalCtrl.currentUser.value!.avatar!.isEmpty
-                      ? Icon(
-                          Icons.person,
-                          size: 20,
-                          color: Colors.blue[400],
-                        )
+                  child:
+                      _globalCtrl.currentUser.value?.avatar == null ||
+                          _globalCtrl.currentUser.value!.avatar!.isEmpty
+                      ? Icon(Icons.person, size: 20, color: Colors.blue[400])
                       : null,
                 ),
               ],
@@ -1220,10 +1401,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             child: Text(
               '$formattedTime  ${message['type']}',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[400],
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey[400]),
             ),
           ),
         ],
@@ -1241,7 +1419,7 @@ class _ChatPageState extends State<ChatPage> {
     final imageUrl = message['imageUrl'] as String?;
     final fileLocalPath = message['fileLocalPath'] as String?;
     final fileUrl = message['fileUrl'] as String?;
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1265,7 +1443,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // 复制（文本消息）
               if (type == 'text' && content.isNotEmpty)
                 ListTile(
@@ -1277,17 +1455,24 @@ class _ChatPageState extends State<ChatPage> {
                     EasyLoading.showSuccess('已复制');
                   },
                 ),
-              
+
               // 分享
               ListTile(
                 leading: const Icon(Icons.share, color: Colors.green),
                 title: const Text('分享'),
                 onTap: () async {
                   Navigator.pop(context);
-                  await _shareMessage(type, content, imageLocalPath, imageUrl, fileLocalPath, fileUrl);
+                  await _shareMessage(
+                    type,
+                    content,
+                    imageLocalPath,
+                    imageUrl,
+                    fileLocalPath,
+                    fileUrl,
+                  );
                 },
               ),
-              
+
               // 转发
               ListTile(
                 leading: const Icon(Icons.forward, color: Colors.orange),
@@ -1297,7 +1482,7 @@ class _ChatPageState extends State<ChatPage> {
                   EasyLoading.showInfo('转发功能开发中');
                 },
               ),
-              
+
               // 收藏
               ListTile(
                 leading: const Icon(Icons.star_border, color: Colors.amber),
@@ -1307,18 +1492,18 @@ class _ChatPageState extends State<ChatPage> {
                   EasyLoading.showInfo('收藏功能开发中');
                 },
               ),
-              
+
               // 删除（自己的消息）
-              if ( message['id'] != null)
+              if (message['id'] != null)
                 ListTile(
                   leading: Icon(Icons.delete_outline, color: Colors.red[400]),
                   title: const Text('删除'),
                   onTap: () {
                     Navigator.pop(context);
-                    _showDeleteMessageDialog(localId ?? '',message['id']);
+                    _showDeleteMessageDialog(localId ?? '', message['id']);
                   },
                 ),
-              
+
               // 撤回（自己的消息，2分钟内）
               if (isMine && localId != null)
                 ListTile(
@@ -1329,7 +1514,7 @@ class _ChatPageState extends State<ChatPage> {
                     EasyLoading.showInfo('撤回功能开发中');
                   },
                 ),
-              
+
               const SizedBox(height: 8),
             ],
           ),
@@ -1337,19 +1522,19 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-  
+
   /// 分享消息
   Future<void> _shareMessage(
-    String type, 
-    String content, 
-    String? imageLocalPath, 
+    String type,
+    String content,
+    String? imageLocalPath,
     String? imageUrl,
     String? fileLocalPath,
     String? fileUrl,
   ) async {
     try {
       final pathHelper = FilePathHelper.instance;
-      
+
       if (type == 'text') {
         // 分享文本
         await Share.share(content);
@@ -1359,7 +1544,7 @@ class _ChatPageState extends State<ChatPage> {
         if (imageLocalPath != null) {
           filePath = await pathHelper.toFullPath(imageLocalPath);
         }
-        
+
         if (filePath != null && File(filePath).existsSync()) {
           await Share.shareXFiles([XFile(filePath)]);
         } else if (imageUrl != null) {
@@ -1374,7 +1559,7 @@ class _ChatPageState extends State<ChatPage> {
         if (fileLocalPath != null) {
           filePath = await pathHelper.toFullPath(fileLocalPath);
         }
-        
+
         if (filePath != null && File(filePath).existsSync()) {
           await Share.shareXFiles([XFile(filePath)]);
         } else if (fileUrl != null) {
@@ -1390,7 +1575,7 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showError('分享失败');
     }
   }
-  
+
   /// 显示删除消息确认对话框
   void _showDeleteMessageDialog(String localId, String msgId) {
     showDialog(
@@ -1414,11 +1599,10 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-  
+
   /// 删除消息
   Future<void> _deleteMessage(String localId, String msgId) async {
     try {
-
       bool res = await ChatController.to.deleteMessage(localId, widget.convId);
       if (res) {
         EasyLoading.showSuccess('已删除');
@@ -1427,12 +1611,12 @@ class _ChatPageState extends State<ChatPage> {
       if (localId.isNotEmpty) {
         await _messageDatabase.deleteMessage(localId);
       }
-      
+
       // 从列表中移除
       setState(() {
         _messages.removeWhere((msg) => msg['localId'] == localId);
       });
-      
+
       EasyLoading.showSuccess('已删除');
     } catch (e) {
       print('删除消息失败: $e');
@@ -1494,38 +1678,22 @@ class _ChatPageState extends State<ChatPage> {
               _showResendDialog(localId, 'text');
             }
           },
-          child: Icon(
-            Icons.error_outline,
-            size: 16,
-            color: Colors.red[400],
-          ),
+          child: Icon(Icons.error_outline, size: 16, color: Colors.red[400]),
         );
       case 'sent':
       case 'delivered':
-        return Icon(
-          Icons.done,
-          size: 14,
-          color: Colors.grey[400],
-        );
+        return Icon(Icons.done, size: 14, color: Colors.grey[400]);
       case 'read':
-        return Icon(
-          Icons.done_all,
-          size: 14,
-          color: Colors.blue[400],
-        );
+        return Icon(Icons.done_all, size: 14, color: Colors.blue[400]);
       default:
-        return Icon(
-          Icons.done,
-          size: 14,
-          color: Colors.grey[400],
-        );
+        return Icon(Icons.done, size: 14, color: Colors.grey[400]);
     }
   }
 
   Widget _buildInputBar() {
     // 检查是否禁言（群聊时）
     final bool isMuted = widget.convType == 2 && (widget.isMuted == true);
-    
+
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -1552,10 +1720,7 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(width: 8),
                   Text(
                     '该群已禁言',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
                 ],
               ),
@@ -1570,7 +1735,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   onPressed: _toggleVoicePanel,
                 ),
-                
+
                 // 输入框
                 Expanded(
                   child: Column(
@@ -1598,23 +1763,27 @@ class _ChatPageState extends State<ChatPage> {
                     ],
                   ),
                 ),
-                
+
                 // 表情按钮
                 IconButton(
                   icon: Icon(
-                    _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                    _showEmojiPicker
+                        ? Icons.keyboard
+                        : Icons.emoji_emotions_outlined,
                     color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
                   ),
                   onPressed: isMuted ? null : _toggleEmojiPicker,
                 ),
-                
+
                 // 更多/发送按钮
                 IconButton(
                   icon: Icon(
-                    _messageController.text.trim().isEmpty 
-                        ? (_showMorePanel ? Icons.close : Icons.add_circle_outline)
+                    _messageController.text.trim().isEmpty
+                        ? (_showMorePanel
+                              ? Icons.close
+                              : Icons.add_circle_outline)
                         : Icons.send,
-                    color: _messageController.text.trim().isEmpty 
+                    color: _messageController.text.trim().isEmpty
                         ? (_showMorePanel ? Colors.blue : Colors.grey[600])
                         : Colors.blue,
                   ),
@@ -1633,96 +1802,98 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-
   /// 选择@成员（支持多个成员）
   void _selectAtMembers(List<Map<String, dynamic>> selectedMembers) {
     if (selectedMembers.isEmpty) return;
 
     final text = _messageController.text;
     final cursorPosition = _messageController.selection.baseOffset;
-    
+
     // 找到最后一个@符号的位置
     final beforeCursor = text.substring(0, cursorPosition);
     final lastAtIndex = beforeCursor.lastIndexOf('@');
-    
+
     if (lastAtIndex != -1) {
       // 检查是否是@所有人
       final firstMember = selectedMembers[0];
       final userId = (firstMember['user_id'] as String?) ?? '';
-      
+
       if (userId == 'all') {
         // @所有人
         final beforeAt = text.substring(0, lastAtIndex + 1);
         final afterCursor = text.substring(cursorPosition);
         final newText = '${beforeAt}所有人 $afterCursor';
-        
+
         _messageController.text = newText;
         final newCursorPosition = lastAtIndex + 1 + '所有人'.length + 1;
-        _messageController.selection = TextSelection.collapsed(offset: newCursorPosition);
-        
+        _messageController.selection = TextSelection.collapsed(
+          offset: newCursorPosition,
+        );
+
         // 记录@所有人
-        _atMembers.add({
-          'user_id': 'all',
-          'nickname': '所有人',
-        });
+        _atMembers.add({'user_id': 'all', 'nickname': '所有人'});
       } else {
         // @多个成员
         final beforeAt = text.substring(0, lastAtIndex + 1);
         final afterCursor = text.substring(cursorPosition);
-        
+
         // 构建@多个成员的文本，用空格分隔
-        final memberNames = selectedMembers.map((member) {
-          final alias = (member['member_alias'] as String?) ?? '';
-          final nickname = (member['nickname'] as String?) ?? '';
-          final memberUserId = (member['user_id'] as String?) ?? '';
-          return alias.isNotEmpty ? alias : (nickname.isNotEmpty ? nickname : memberUserId);
-        }).join(' ');
-        
+        final memberNames = selectedMembers
+            .map((member) {
+              final alias = (member['member_alias'] as String?) ?? '';
+              final nickname = (member['nickname'] as String?) ?? '';
+              final memberUserId = (member['user_id'] as String?) ?? '';
+              return alias.isNotEmpty
+                  ? alias
+                  : (nickname.isNotEmpty ? nickname : memberUserId);
+            })
+            .join(' ');
+
         final newText = '$beforeAt$memberNames $afterCursor';
         _messageController.text = newText;
         final newCursorPosition = lastAtIndex + 1 + memberNames.length + 1;
-        _messageController.selection = TextSelection.collapsed(offset: newCursorPosition);
-        
+        _messageController.selection = TextSelection.collapsed(
+          offset: newCursorPosition,
+        );
+
         // 记录@的成员信息
         for (final member in selectedMembers) {
           final memberUserId = (member['user_id'] as String?) ?? '';
           final alias = (member['member_alias'] as String?) ?? '';
           final nickname = (member['nickname'] as String?) ?? '';
-          final displayName = alias.isNotEmpty ? alias : (nickname.isNotEmpty ? nickname : memberUserId);
-          
-          _atMembers.add({
-            'user_id': memberUserId,
-            'nickname': displayName,
-          });
+          final displayName = alias.isNotEmpty
+              ? alias
+              : (nickname.isNotEmpty ? nickname : memberUserId);
+
+          _atMembers.add({'user_id': memberUserId, 'nickname': displayName});
         }
       }
-      
+
       setState(() {
         // 触发UI更新
       });
     }
   }
-  
+
   // /// 从输入框文本中解析@成员信息
   // List<Map<String, dynamic>> _parseAtMembersFromText(String text) {
-
 
   //   print(_atMembers);
 
   //   final atMembers = <Map<String, dynamic>>[];
-    
+
   //   if (widget.groupMembers == null || widget.groupMembers!.isEmpty) {
   //     return atMembers;
   //   }
-    
+
   //   // 使用正则表达式匹配@昵称（匹配@后面直到空格或@符号的内容）
   //   final regex = RegExp(r'@([^\s@]+)');
   //   final matches = regex.allMatches(text);
-    
+
   //   for (final match in matches) {
   //     final atNickname = match.group(1) ?? '';
   //     if (atNickname.isEmpty) continue;
-      
+
   //     // 检查是否是@所有人
   //     if (atNickname == '所有人') {
   //       // 检查是否已添加（避免重复）
@@ -1735,13 +1906,13 @@ class _ChatPageState extends State<ChatPage> {
   //       }
   //       continue;
   //     }
-      
+
   //     // 在群成员列表中查找匹配的成员
   //     for (final member in widget.groupMembers!) {
   //       final userId = (member['user_id'] as String?) ?? '';
   //       final alias = (member['member_alias'] as String?) ?? '';
   //       final nickname = alias.isNotEmpty ? alias : userId;
-        
+
   //       if (nickname == atNickname) {
   //         // 检查是否已添加（避免重复）
   //         final exists = atMembers.any((m) => m['user_id'] == userId);
@@ -1755,7 +1926,7 @@ class _ChatPageState extends State<ChatPage> {
   //       }
   //     }
   //   }
-    
+
   //   return atMembers;
   // }
 
@@ -1765,10 +1936,10 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     // 关闭键盘
     _focusNode.unfocus();
-    
+
     setState(() {
       _showVoicePanel = !_showVoicePanel;
       // 关闭其他面板
@@ -1778,16 +1949,16 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
-  
+
   /// 处理语音发送
   void _handleVoiceSend(VoiceRecordResult result) {
     // 关闭面板
     setState(() => _showVoicePanel = false);
-    
+
     // 发送语音消息
     _sendVoiceMessage(result.filePath, result.duration);
   }
-  
+
   /// 发送语音消息
   Future<void> _sendVoiceMessage(String voicePath, int duration) async {
     // 检查是否禁言（群聊时）
@@ -1795,14 +1966,17 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     try {
       // 将语音复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
-      final relativePath = await pathHelper.copyToPermanentStorage(voicePath, 'voices');
-      
+      final relativePath = await pathHelper.copyToPermanentStorage(
+        voicePath,
+        'voices',
+      );
+
       print('🎤 语音已保存: $relativePath');
-      
+
       // 创建语音消息（存储相对路径）
       final message = ChatMessage.voice(
         convId: widget.convId,
@@ -1811,13 +1985,13 @@ class _ChatPageState extends State<ChatPage> {
         localPath: relativePath,
         duration: duration,
       );
-      
+
       // 添加到消息列表
       setState(() {
         _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
-      
+
       // 通过队列发送（队列中会用完整路径读取文件）
       _messageQueue.sendMessage(message);
     } catch (e) {
@@ -1836,12 +2010,12 @@ class _ChatPageState extends State<ChatPage> {
         EasyLoading.showInfo('该群已禁言，无法发送消息');
         return;
       }
-      
+
       // 关闭键盘，打开表情面板
       _focusNode.unfocus();
       setState(() {
         _showEmojiPicker = true;
-        _showVoicePanel = false;  // 关闭语音面板
+        _showVoicePanel = false; // 关闭语音面板
       });
     }
   }
@@ -1850,17 +2024,22 @@ class _ChatPageState extends State<ChatPage> {
   void _insertEmoji(String emoji) {
     final text = _messageController.text;
     final selection = _messageController.selection;
-    
+
     // 获取光标位置
-    final cursorPos = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
-    
+    final cursorPos = selection.baseOffset >= 0
+        ? selection.baseOffset
+        : text.length;
+
     // 在光标位置插入表情
-    final newText = text.substring(0, cursorPos) + emoji + text.substring(cursorPos);
+    final newText =
+        text.substring(0, cursorPos) + emoji + text.substring(cursorPos);
     _messageController.text = newText;
-    
+
     // 移动光标到表情后面
-    _messageController.selection = TextSelection.collapsed(offset: cursorPos + emoji.length);
-    
+    _messageController.selection = TextSelection.collapsed(
+      offset: cursorPos + emoji.length,
+    );
+
     // 触发重建以更新发送按钮状态
     setState(() {});
   }
@@ -1871,9 +2050,7 @@ class _ChatPageState extends State<ChatPage> {
       height: 280,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[200]!, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)),
       ),
       child: Column(
         children: [
@@ -1902,8 +2079,15 @@ class _ChatPageState extends State<ChatPage> {
                     setState(() {});
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Icon(Icons.backspace_outlined, color: Colors.grey[600], size: 22),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Icon(
+                      Icons.backspace_outlined,
+                      color: Colors.grey[600],
+                      size: 22,
+                    ),
                   ),
                 ),
               ],
@@ -1962,13 +2146,8 @@ class _ChatPageState extends State<ChatPage> {
       onTap: () => _insertEmoji(emoji),
       child: Container(
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 26),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+        child: Text(emoji, style: const TextStyle(fontSize: 26)),
       ),
     );
   }
@@ -1977,21 +2156,25 @@ class _ChatPageState extends State<ChatPage> {
   void _deleteLastChar() {
     final text = _messageController.text;
     if (text.isEmpty) return;
-    
+
     final selection = _messageController.selection;
-    final cursorPos = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
-    
+    final cursorPos = selection.baseOffset >= 0
+        ? selection.baseOffset
+        : text.length;
+
     if (cursorPos > 0) {
       // 处理 emoji（可能占用多个字符）
       final beforeCursor = text.substring(0, cursorPos);
       final beforeChars = beforeCursor.characters.toList();
-      
+
       if (beforeChars.isNotEmpty) {
         beforeChars.removeLast();
         final newBefore = beforeChars.join();
         final newText = newBefore + text.substring(cursorPos);
         _messageController.text = newText;
-        _messageController.selection = TextSelection.collapsed(offset: newBefore.length);
+        _messageController.selection = TextSelection.collapsed(
+          offset: newBefore.length,
+        );
         setState(() {});
       }
     }
@@ -2004,7 +2187,7 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     if (_showMorePanel) {
       setState(() => _showMorePanel = false);
       _focusNode.requestFocus();
@@ -2023,9 +2206,7 @@ class _ChatPageState extends State<ChatPage> {
       height: 200,
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        border: Border(
-          top: BorderSide(color: Colors.grey[200]!, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[200]!, width: 0.5)),
       ),
       child: GridView.count(
         crossAxisCount: 4,
@@ -2103,13 +2284,7 @@ class _ChatPageState extends State<ChatPage> {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
         ],
       ),
     );
@@ -2123,13 +2298,20 @@ class _ChatPageState extends State<ChatPage> {
         maxHeight: 1920,
         imageQuality: 85,
         limit: 9,
-        requestFullMetadata: false
+        requestFullMetadata: false,
       );
       if (images != null) {
         for (var media in images) {
           final path = media.path;
           final ext = path.split('.').last.toLowerCase();
-          final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(ext);
+          final isImage = [
+            'jpg',
+            'jpeg',
+            'png',
+            'gif',
+            'webp',
+            'heic',
+          ].contains(ext);
           if (isImage) {
             await _sendImageMessage(path);
           } else {
@@ -2152,7 +2334,7 @@ class _ChatPageState extends State<ChatPage> {
         maxHeight: 1920,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
         await _sendImageMessage(image.path);
       }
@@ -2169,15 +2351,15 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     // 收起面板
     setState(() => _showMorePanel = false);
-    
+
     try {
       // 先压缩图片
       final compressedPath = await _compressImage(imagePath);
       final pathToUse = compressedPath ?? imagePath;
-      
+
       // 获取图片尺寸
       final file = File(pathToUse);
       if (!await file.exists()) {
@@ -2185,13 +2367,16 @@ class _ChatPageState extends State<ChatPage> {
         return;
       }
       final decodedImage = await decodeImageFromList(await file.readAsBytes());
-      
+
       // 将图片复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
-      final relativePath = await pathHelper.copyToPermanentStorage(pathToUse, 'images');
-      
+      final relativePath = await pathHelper.copyToPermanentStorage(
+        pathToUse,
+        'images',
+      );
+
       print('📷 图片已保存: $relativePath');
-      
+
       // 创建图片消息（存储相对路径）
       final message = ChatMessage.image(
         convId: widget.convId,
@@ -2201,13 +2386,13 @@ class _ChatPageState extends State<ChatPage> {
         width: decodedImage.width,
         height: decodedImage.height,
       );
-      
+
       // 添加到消息列表
       setState(() {
         _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
-      
+
       // 通过队列发送（队列中会用完整路径读取文件）
       _messageQueue.sendMessage(message);
     } catch (e) {
@@ -2220,7 +2405,7 @@ class _ChatPageState extends State<ChatPage> {
     try {
       print('🎬 开始压缩视频: $sourcePath');
       EasyLoading.show(status: '正在压缩视频...');
-      
+
       // 压缩视频
       final mediaInfo = await VideoCompress.compressVideo(
         sourcePath,
@@ -2228,12 +2413,17 @@ class _ChatPageState extends State<ChatPage> {
         deleteOrigin: false,
         includeAudio: true,
       );
-      
-      if (mediaInfo != null && mediaInfo.path != null && File(mediaInfo.path!).existsSync()) {
+
+      if (mediaInfo != null &&
+          mediaInfo.path != null &&
+          File(mediaInfo.path!).existsSync()) {
         final originalSize = await File(sourcePath).length();
-        final compressedSize = mediaInfo.filesize ?? await File(mediaInfo.path!).length();
+        final compressedSize =
+            mediaInfo.filesize ?? await File(mediaInfo.path!).length();
         final ratio = (compressedSize / originalSize * 100).toStringAsFixed(1);
-        print('✅ 视频压缩成功: ${originalSize / 1024 / 1024}MB -> ${compressedSize / 1024 / 1024}MB (${ratio}%)');
+        print(
+          '✅ 视频压缩成功: ${originalSize / 1024 / 1024}MB -> ${compressedSize / 1024 / 1024}MB (${ratio}%)',
+        );
         EasyLoading.dismiss();
         return mediaInfo.path;
       } else {
@@ -2255,10 +2445,10 @@ class _ChatPageState extends State<ChatPage> {
       EasyLoading.showInfo('该群已禁言，无法发送消息');
       return;
     }
-    
+
     // 收起面板
     setState(() => _showMorePanel = false);
-    
+
     try {
       // 尝试压缩视频
       String finalVideoPath = videoPath;
@@ -2269,7 +2459,7 @@ class _ChatPageState extends State<ChatPage> {
       } else {
         print('⚠️ 压缩失败，使用原视频: $videoPath');
       }
-      
+
       // 获取视频时长
       int? durationSeconds;
       try {
@@ -2302,14 +2492,20 @@ class _ChatPageState extends State<ChatPage> {
 
       // 将视频复制到永久存储目录（避免临时缓存被清理）
       final pathHelper = FilePathHelper.instance;
-      final relativePath = await pathHelper.copyToPermanentStorage(finalVideoPath, 'videos');
+      final relativePath = await pathHelper.copyToPermanentStorage(
+        finalVideoPath,
+        'videos',
+      );
       String? thumbRelativePath;
       if (thumbTemp != null) {
-        thumbRelativePath = await pathHelper.copyToPermanentStorage(thumbTemp, 'images');
+        thumbRelativePath = await pathHelper.copyToPermanentStorage(
+          thumbTemp,
+          'images',
+        );
       }
-      
+
       print('🎬 视频已保存: $relativePath');
-      
+
       // 创建视频消息（存储相对路径）
       final message = ChatMessage.video(
         convId: widget.convId,
@@ -2321,13 +2517,13 @@ class _ChatPageState extends State<ChatPage> {
         coverWidth: thumbWidth,
         coverHeight: thumbHeight,
       );
-      
+
       // 添加到消息列表
       setState(() {
         _addChatLocalMessageToList(message);
       });
       _scrollToBottom();
-      
+
       // 通过队列发送（队列中会用完整路径读取文件）
       _messageQueue.sendMessage(message);
     } catch (e) {
@@ -2401,11 +2597,11 @@ class _ChatPageState extends State<ChatPage> {
     final type = message['type'] as String? ?? 'text';
     final content = message['content'] as String? ?? '';
     final status = message['status'] as String? ?? 'sent';
-    
+
     if (type == 'image') {
       return _buildImageMessage(message, isMine, status);
     }
-    
+
     if (type == 'voice') {
       return _buildVoiceMessage(message, isMine, status);
     }
@@ -2413,14 +2609,14 @@ class _ChatPageState extends State<ChatPage> {
     if (type == 'video') {
       return _buildVideoMessage(message, isMine, status);
     }
-    
+
     if (type == 'notification') {
       return _buildNotificationMessage(message);
     }
     if (type == 'at') {
       return _buildAtMessage(message, isMine, status);
     }
-    
+
     // 默认文本消息
     return Text(
       content,
@@ -2432,9 +2628,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 构建@消息
-  Widget _buildAtMessage(Map<String, dynamic> message, bool isMine, String status) {
+  Widget _buildAtMessage(
+    Map<String, dynamic> message,
+    bool isMine,
+    String status,
+  ) {
     List<Map<String, dynamic>> atInfoList = [];
-    if (message['atInfoList'] != null && message['atInfoList'] is List<Map<String, dynamic>>) {
+    if (message['atInfoList'] != null &&
+        message['atInfoList'] is List<Map<String, dynamic>>) {
       atInfoList = message['atInfoList'];
     }
     final isAll = message['isAll'] as bool? ?? false;
@@ -2445,7 +2646,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 构建@消息内容（支持高亮和点击）
-  Widget _buildAtMessageContent(String content, List<Map<String, dynamic>> atInfoList, bool isAll, bool isMine) {
+  Widget _buildAtMessageContent(
+    String content,
+    List<Map<String, dynamic>> atInfoList,
+    bool isAll,
+    bool isMine,
+  ) {
     if (atInfoList.isEmpty && !isAll) {
       // 普通文本消息
       return Text(
@@ -2500,38 +2706,38 @@ class _ChatPageState extends State<ChatPage> {
       if (foundAtText != null && earliestIndex < content.length) {
         // 添加@之前的普通文本
         if (earliestIndex > currentIndex) {
-          spans.add(TextSpan(text: content.substring(currentIndex, earliestIndex)));
+          spans.add(
+            TextSpan(text: content.substring(currentIndex, earliestIndex)),
+          );
         }
 
         // 添加高亮的@部分
         if (foundAtText == '@所有人') {
-          spans.add(TextSpan(
-            text: foundAtText,
-            style: TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
+          spans.add(
+            TextSpan(
+              text: foundAtText,
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  print('点击了@所有人');
+                  // TODO: 可以滚动到消息位置或执行其他操作
+                },
             ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                print('点击了@所有人');
-                // TODO: 可以滚动到消息位置或执行其他操作
-              },
-          ));
+          );
         } else if (foundAtInfo != null) {
           final userId = foundAtInfo['user_id'] as String;
           final nickname = foundAtInfo['nickname'] as String;
 
-          spans.add(TextSpan(
-            text: foundAtText,
-            style: TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
+          spans.add(
+            TextSpan(
+              text: foundAtText,
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  _onAtUserTapped(userId, nickname);
+                },
             ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                _onAtUserTapped(userId, nickname);
-              },
-          ));
+          );
         }
 
         currentIndex = earliestIndex + foundAtText.length;
@@ -2560,23 +2766,27 @@ class _ChatPageState extends State<ChatPage> {
     // 例如：跳转到用户资料页
     // Get.to(() => UserProfilePage(userId: userId));
   }
-  
+
   /// 构建语音消息
-  Widget _buildVoiceMessage(Map<String, dynamic> message, bool isMine, String status) {
+  Widget _buildVoiceMessage(
+    Map<String, dynamic> message,
+    bool isMine,
+    String status,
+  ) {
     final duration = message['voiceDuration'] as int? ?? 0;
     final localPath = message['fileLocalPath'] as String?;
     final audioUrl = message['audioUrl'] as String?;
-    
+
     // 生成唯一标识用于判断播放状态
     final voiceId = localPath ?? audioUrl ?? '';
     final isPlaying = _playingVoiceId == voiceId && voiceId.isNotEmpty;
-    
+
     // 根据时长计算宽度（1-60秒对应120-220宽度）
     final width = 120.0 + (duration.clamp(1, 60) / 60.0 * 100.0);
-    
+
     // 声波条数量
     final waveCount = ((width - 80) / 6).floor().clamp(4, 12);
-    
+
     return GestureDetector(
       onTap: () => _playVoiceMessage(localPath, audioUrl),
       child: Container(
@@ -2595,8 +2805,10 @@ class _ChatPageState extends State<ChatPage> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: isPlaying 
-                    ? (isMine ? Colors.white.withOpacity(0.3) : Colors.blue.withOpacity(0.15))
+                color: isPlaying
+                    ? (isMine
+                          ? Colors.white.withOpacity(0.3)
+                          : Colors.blue.withOpacity(0.15))
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
@@ -2614,31 +2826,32 @@ class _ChatPageState extends State<ChatPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: List.generate(
-                    waveCount,
-                    (index) {
-                      // 播放时有动画效果的高度
-                      double height;
-                      if (isPlaying) {
-                        // 播放时模拟声波动画（基于索引的伪随机高度）
-                        height = 6 + ((index * 3 + DateTime.now().millisecond ~/ 150) % 5) * 3.0;
-                      } else {
-                        // 静止时的固定高度模式
-                        height = 4 + (index % 3) * 4.0;
-                      }
-                      
-                      return Container(
-                        width: 3,
-                        height: height,
-                        decoration: BoxDecoration(
-                          color: isMine 
-                              ? Colors.white.withOpacity(isPlaying ? 1.0 : 0.6)
-                              : Colors.blue.withOpacity(isPlaying ? 0.9 : 0.5),
-                          borderRadius: BorderRadius.circular(1.5),
-                        ),
-                      );
-                    },
-                  ),
+                  children: List.generate(waveCount, (index) {
+                    // 播放时有动画效果的高度
+                    double height;
+                    if (isPlaying) {
+                      // 播放时模拟声波动画（基于索引的伪随机高度）
+                      height =
+                          6 +
+                          ((index * 3 + DateTime.now().millisecond ~/ 150) %
+                                  5) *
+                              3.0;
+                    } else {
+                      // 静止时的固定高度模式
+                      height = 4 + (index % 3) * 4.0;
+                    }
+
+                    return Container(
+                      width: 3,
+                      height: height,
+                      decoration: BoxDecoration(
+                        color: isMine
+                            ? Colors.white.withOpacity(isPlaying ? 1.0 : 0.6)
+                            : Colors.blue.withOpacity(isPlaying ? 0.9 : 0.5),
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),
@@ -2646,10 +2859,14 @@ class _ChatPageState extends State<ChatPage> {
             // 时长（播放时显示不同颜色）
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: isPlaying ? BoxDecoration(
-                color: isMine ? Colors.white.withOpacity(0.2) : Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ) : null,
+              decoration: isPlaying
+                  ? BoxDecoration(
+                      color: isMine
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    )
+                  : null,
               child: Text(
                 '${duration}″',
                 style: TextStyle(
@@ -2664,11 +2881,11 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-  
+
   /// 播放语音消息
   Future<void> _playVoiceMessage(String? localPath, String? audioUrl) async {
     print('🔊 播放语音: localPath=$localPath, fileUrl=$audioUrl');
-    
+
     // 生成唯一标识
     final voiceId = localPath ?? audioUrl ?? '';
     if (voiceId.isEmpty || (audioUrl != null && audioUrl.isEmpty)) {
@@ -2676,16 +2893,16 @@ class _ChatPageState extends State<ChatPage> {
       _loadHistory();
       return;
     }
-    
+
     // 如果正在播放同一个文件，则暂停
     if (_playingVoiceId == voiceId) {
       await _audioPlayer.stop();
       setState(() => _playingVoiceId = null);
       return;
     }
-    
+
     final pathHelper = FilePathHelper.instance;
-    
+
     // 1. 检查本地文件是否存在（支持相对路径）
     if (localPath != null && localPath.isNotEmpty) {
       // 将相对路径转换为完整路径
@@ -2696,66 +2913,67 @@ class _ChatPageState extends State<ChatPage> {
         return;
       }
     }
-    
+
     // 2. 检查已缓存的远程语音
-    if (audioUrl != null && audioUrl.isNotEmpty && _voiceCache.containsKey(audioUrl)) {
+    if (audioUrl != null &&
+        audioUrl.isNotEmpty &&
+        _voiceCache.containsKey(audioUrl)) {
       final cachedPath = _voiceCache[audioUrl]!;
       if (File(cachedPath).existsSync()) {
         await _playLocalVoice(cachedPath, voiceId);
-      return;
+        return;
       } else {
         _voiceCache.remove(audioUrl);
       }
     }
-    
+
     // 3. 尝试从网络下载
     if (audioUrl != null && audioUrl.isNotEmpty) {
       await _downloadAndPlayVoice(audioUrl, voiceId);
       return;
     }
-    
+
     // 4. 都没有，尝试刷新历史消息以补齐资源
     _loadHistory();
   }
-  
+
   /// 播放本地语音文件
   Future<void> _playLocalVoice(String path, String voiceId) async {
     try {
       // 停止之前的播放
       await _audioPlayer.stop();
-      
+
       // 开始播放
       await _audioPlayer.play(DeviceFileSource(path));
       setState(() => _playingVoiceId = voiceId);
-      
+
       // 监听播放完成
       _audioPlayer.onPlayerComplete.listen((_) {
         if (mounted) {
           setState(() => _playingVoiceId = null);
         }
       });
-      
     } catch (e) {
       print('❌ 播放语音失败: $e');
       setState(() => _playingVoiceId = null);
       EasyLoading.showError('播放失败');
     }
   }
-  
+
   /// 下载并播放语音
   Future<void> _downloadAndPlayVoice(String url, String voiceId) async {
     if (_isDownloading) {
       return;
     }
-    
+
     try {
       setState(() => _isDownloading = true);
-      
+
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) {
         throw Exception('下载失败: ${response.statusCode}');
       }
-      
+
       // 保存到本地持久目录（voices_cache）
       final docDir = await getApplicationDocumentsDirectory();
       final voicesDir = Directory('${docDir.path}/voices_cache');
@@ -2765,7 +2983,9 @@ class _ChatPageState extends State<ChatPage> {
       String fileName;
       try {
         final parsed = Uri.parse(url);
-        fileName = parsed.pathSegments.isNotEmpty ? parsed.pathSegments.last : '';
+        fileName = parsed.pathSegments.isNotEmpty
+            ? parsed.pathSegments.last
+            : '';
       } catch (_) {
         fileName = '';
       }
@@ -2775,13 +2995,12 @@ class _ChatPageState extends State<ChatPage> {
       final filePath = '${voicesDir.path}/$fileName';
       final file = File(filePath);
       await file.writeAsBytes(response.bodyBytes, flush: true);
-      
+
       // 缓存路径用于下次直接播放
       _voiceCache[url] = filePath;
-      
+
       // 播放
       await _playLocalVoice(file.path, voiceId);
-      
     } catch (e) {
       print('❌ 下载语音失败: $e');
       setState(() => _playingVoiceId = null);
@@ -2791,16 +3010,22 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 构建图片消息
-  Widget _buildImageMessage(Map<String, dynamic> message, bool isMine, String status) {
+  Widget _buildImageMessage(
+    Map<String, dynamic> message,
+    bool isMine,
+    String status,
+  ) {
     final localPath = message['imageLocalPath'] as String?;
     final imageUrl = message['imageUrl'] as String?;
     print("localPath: $localPath");
     print("imageUrl: $imageUrl");
     Widget imageWidget;
-    
+
     // 将相对路径转换为完整路径
     final pathHelper = FilePathHelper.instance;
-    final fullPath = localPath != null ? pathHelper.toFullPathSync(localPath) : null;
+    final fullPath = localPath != null
+        ? pathHelper.toFullPathSync(localPath)
+        : null;
     print("fullPath: $fullPath");
 
     if (fullPath != null && File(fullPath).existsSync()) {
@@ -2826,7 +3051,8 @@ class _ChatPageState extends State<ChatPage> {
             child: Center(
               child: CircularProgressIndicator(
                 value: progress.expectedTotalBytes != null
-                    ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                    ? progress.cumulativeBytesLoaded /
+                          progress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -2858,17 +3084,20 @@ class _ChatPageState extends State<ChatPage> {
           final msgType = m['type'] as String? ?? '';
           final msgLocalPath = m['imageLocalPath'] as String?;
           final msgImageUrl = m['imageUrl'] as String?;
-          return msgType == 'image' && (msgLocalPath != null || msgImageUrl != null);
+          return msgType == 'image' &&
+              (msgLocalPath != null || msgImageUrl != null);
         }).toList();
-        
+
         if (imageMessages.isEmpty) {
           return;
         }
-        
+
         // 找到当前图片的索引
-        final currentIndex = imageMessages.indexWhere((m) => m['id'] == message['id']);
+        final currentIndex = imageMessages.indexWhere(
+          (m) => m['id'] == message['id'],
+        );
         final initialIndex = currentIndex >= 0 ? currentIndex : 0;
-        
+
         // 跳转到预览页面
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -2880,45 +3109,38 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
       child: Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: imageWidget,
-        ),
-        // 发送中遮罩
-        if (status == 'sending' || status == 'pending')
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
+        children: [
+          ClipRRect(borderRadius: BorderRadius.circular(8), child: imageWidget),
+          // 发送中遮罩
+          if (status == 'sending' || status == 'pending')
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
                 ),
               ),
             ),
-          ),
-        // 发送失败遮罩
-        if (status == 'failed')
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black38,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
-                  size: 36,
+          // 发送失败遮罩
+          if (status == 'failed')
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(Icons.error_outline, color: Colors.red, size: 36),
                 ),
               ),
             ),
-          ),
-      ],
+        ],
       ),
     );
   }
@@ -2926,10 +3148,10 @@ class _ChatPageState extends State<ChatPage> {
   /// 构建通知消息
   Widget _buildNotificationMessage(Map<String, dynamic> message) {
     final content = message['content'] as String? ?? '';
-    
+
     // 如果内容为空，显示默认提示
     final displayContent = content.isEmpty ? '系统通知' : content;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -2938,27 +3160,31 @@ class _ChatPageState extends State<ChatPage> {
       ),
       child: Text(
         displayContent,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.grey[700],
-        ),
+        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
         textAlign: TextAlign.center,
       ),
     );
   }
 
   /// 构建视频消息（显示缩略图并可点击播放/预览）
-  Widget _buildVideoMessage(Map<String, dynamic> message, bool isMine, String status) {
+  Widget _buildVideoMessage(
+    Map<String, dynamic> message,
+    bool isMine,
+    String status,
+  ) {
     print("message视频: $message");
     final localThumbPath = message['imageLocalPath'] as String?;
     final thumbUrl = message['imageUrl'] as String?;
-    final videoUrl = message['videoUrl'] as String? ?? message['fileUrl'] as String?;
+    final videoUrl =
+        message['videoUrl'] as String? ?? message['fileUrl'] as String?;
     final duration = message['videoDuration'] as int? ?? 0;
     Widget thumbWidget;
 
     // 将相对路径转换为完整路径
     final pathHelper = FilePathHelper.instance;
-    final fullThumbPath = localThumbPath != null ? pathHelper.toFullPathSync(localThumbPath) : null;
+    final fullThumbPath = localThumbPath != null
+        ? pathHelper.toFullPathSync(localThumbPath)
+        : null;
 
     if (fullThumbPath != null && File(fullThumbPath).existsSync()) {
       thumbWidget = Image.file(
@@ -2981,7 +3207,8 @@ class _ChatPageState extends State<ChatPage> {
             child: Center(
               child: CircularProgressIndicator(
                 value: progress.expectedTotalBytes != null
-                    ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                    ? progress.cumulativeBytesLoaded /
+                          progress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -3030,7 +3257,7 @@ class _ChatPageState extends State<ChatPage> {
                   'videoLocalPath': message['fileLocalPath'],
                   'fileLocalPath': message['fileLocalPath'],
                   'id': message['id'],
-                }
+                },
               ],
               initialIndex: 0,
             ),
@@ -3039,10 +3266,7 @@ class _ChatPageState extends State<ChatPage> {
       },
       child: Stack(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: thumbWidget,
-          ),
+          ClipRRect(borderRadius: BorderRadius.circular(8), child: thumbWidget),
           // 播放按钮
           Positioned.fill(
             child: Container(
@@ -3051,7 +3275,11 @@ class _ChatPageState extends State<ChatPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
-                child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+                child: Icon(
+                  Icons.play_circle_fill,
+                  color: Colors.white,
+                  size: 48,
+                ),
               ),
             ),
           ),
@@ -3097,11 +3325,7 @@ class _ChatPageState extends State<ChatPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
-                  child: Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 36,
-                  ),
+                  child: Icon(Icons.error_outline, color: Colors.red, size: 36),
                 ),
               ),
             ),
@@ -3110,5 +3334,3 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-
-

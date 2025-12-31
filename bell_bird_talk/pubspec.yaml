@@ -100,6 +100,9 @@ dependencies:
 
   pinput: ^6.0.1
 
+  # 音频拼接 - 使用iOS原生AVFoundation实现，无需FFmpeg
+  # ffmpeg_kit_flutter_full: ^6.0.3 (已移除，ffmpeg-kit项目已归档)
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

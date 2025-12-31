@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
+import '../services/native_bridge.dart';
 
 /// 语音录制状态
 enum VoiceRecordState {
@@ -45,6 +46,7 @@ class VoiceRecordPanel extends StatefulWidget {
 class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
+  final IOSNativeService _nativeService = IOSNativeService();
   
   VoiceRecordState _state = VoiceRecordState.idle;
   String? _currentRecordPath; // 当前正在录制的文件路径
@@ -252,43 +254,51 @@ class _VoiceRecordPanelState extends State<VoiceRecordPanel> {
       final dir = await getTemporaryDirectory();
       final mergedPath = '${dir.path}/voice_merged_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-      // 读取所有音频文件的字节
-      final List<List<int>> audioBytesList = [];
+      // 检查所有文件是否存在
+      final List<String> validPaths = [];
       for (final path in _voiceSegments) {
         final file = File(path);
         if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          audioBytesList.add(bytes);
+          validPaths.add(path);
         }
       }
 
-      if (audioBytesList.isEmpty) {
+      if (validPaths.isEmpty) {
+        print('❌ 没有有效的语音文件');
         return null;
       }
 
-      // 简单合并：直接拼接字节（这仅适用于相同格式的M4A文件，可能会有问题）
-      // 更好的方式是使用FFmpeg或原生代码合并，但这里先实现基本功能
-      final mergedFile = File(mergedPath);
-      final sink = mergedFile.openWrite();
-      
-      // 对于M4A格式，不能简单拼接字节，需要重新编码
-      // 这里暂时使用第一段作为占位，实际应该使用原生代码或FFmpeg合并
-      print('⚠️ 多段语音合并需要使用原生代码实现，当前使用第一段');
-      
-      // 暂时复制第一段（实际应该合并所有段）
-      // TODO: 实现真正的音频合并功能，需要使用原生代码（iOS: AVFoundation, Android: MediaMetadataRetriever）
-      if (_voiceSegments.isNotEmpty) {
-        final firstFile = File(_voiceSegments[0]);
-        if (await firstFile.exists()) {
-          await firstFile.copy(mergedPath);
-          print('📝 暂时使用第一段作为合并结果，实际应通过原生代码合并所有段');
-        }
+      if (validPaths.length == 1) {
+        // 只有一个有效文件，直接返回
+        return validPaths[0];
       }
 
-      await sink.close();
-      return mergedPath;
+      print('📝 开始合并 ${validPaths.length} 段语音...');
+      print('📝 文件列表: ${validPaths.join(", ")}');
+
+      // 使用iOS原生方法合并音频文件
+      final result = await _nativeService.mergeAudioFiles(
+        filePaths: validPaths,
+        outputPath: mergedPath,
+      );
+
+      if (result['success'] == true) {
+        // 检查合并后的文件是否存在
+        final mergedFile = File(mergedPath);
+        if (await mergedFile.exists()) {
+          print('✅ 语音合并成功: $mergedPath');
+          return mergedPath;
+        } else {
+          print('❌ 合并后的文件不存在');
+          return null;
+        }
+      } else {
+        final error = result['error'] ?? '合并失败';
+        print('❌ 合并语音失败: $error');
+        return null;
+      }
     } catch (e) {
-      print('❌ 合并语音文件失败: $e');
+      print('❌ 合并语音文件异常: $e');
       return null;
     }
   }

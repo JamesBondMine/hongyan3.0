@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import Contacts
 import UserNotifications
+import AVFoundation
 
 // IMSDK
 import netinet_in
@@ -342,6 +343,10 @@ class NativeBridgeHandler: NSObject {
              "uploadToAliyun", "uploadToTencent", "uploadToAWS",
              "downloadFile":
             CloudStorageManager.shared.handleMethodCall(call, result: result)
+        
+        // ---------- 音频处理 ----------
+        case "mergeAudioFiles":
+            mergeAudioFiles(call: call, result: result)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -3474,6 +3479,132 @@ class NativeBridgeHandler: NSObject {
                     "url": NSNull(),
                     "error": uploadResult.error ?? "上传失败"
                 ])
+            }
+        }
+    }
+    
+    // MARK: - 音频处理
+    
+    /// 合并多个音频文件
+    /// 参数:
+    ///   - file_paths: 音频文件路径数组（必填）
+    ///   - output_path: 输出文件路径（必填）
+    private func mergeAudioFiles(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        guard let filePaths = args["file_paths"] as? [String], !filePaths.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "音频文件路径数组不能为空", details: nil))
+            return
+        }
+        
+        guard let outputPath = args["output_path"] as? String, !outputPath.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "输出文件路径不能为空", details: nil))
+            return
+        }
+        
+        print("🎵 开始合并 \(filePaths.count) 个音频文件到: \(outputPath)")
+        
+        // 使用 AVFoundation 合并音频（异步处理）
+        Task {
+            let composition = AVMutableComposition()
+            guard let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+                await MainActor.run {
+                    result(FlutterError(code: "MERGE_ERROR", message: "无法创建音频轨道", details: nil))
+                }
+                return
+            }
+            
+            var currentTime = CMTime.zero
+            var hasError = false
+            var errorMessage = ""
+            
+            for filePath in filePaths {
+                let url = URL(fileURLWithPath: filePath)
+                
+                // 检查文件是否存在
+                guard FileManager.default.fileExists(atPath: filePath) else {
+                    print("⚠️ 文件不存在: \(filePath)")
+                    continue
+                }
+                
+                let asset = AVAsset(url: url)
+                
+                do {
+                    // 获取音频轨道
+                    let tracks = try await asset.loadTracks(withMediaType: .audio)
+                    guard let assetTrack = tracks.first else {
+                        print("⚠️ 无法加载音频轨道: \(filePath)")
+                        continue
+                    }
+                    
+                    // 获取时长
+                    let trackDuration = try await asset.load(.duration)
+                    
+                    // 将音频轨道插入到合成中
+                    try audioTrack.insertTimeRange(
+                        CMTimeRange(start: .zero, duration: trackDuration),
+                        of: assetTrack,
+                        at: currentTime
+                    )
+                    
+                    // 更新当前时间
+                    currentTime = CMTimeAdd(currentTime, trackDuration)
+                    print("✅ 已添加音频段: \(filePath), 时长: \(CMTimeGetSeconds(trackDuration))秒")
+                } catch {
+                    print("❌ 处理音频文件失败: \(filePath), 错误: \(error.localizedDescription)")
+                    hasError = true
+                    errorMessage = error.localizedDescription
+                    break
+                }
+            }
+            
+            if hasError {
+                await MainActor.run {
+                    result(FlutterError(code: "MERGE_ERROR", message: "合并音频失败: \(errorMessage)", details: nil))
+                }
+                return
+            }
+            
+            // 导出合并后的音频
+            guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetAppleM4A) else {
+                await MainActor.run {
+                    result(FlutterError(code: "EXPORT_ERROR", message: "无法创建导出会话", details: nil))
+                }
+                return
+            }
+            
+            let outputURL = URL(fileURLWithPath: outputPath)
+            exportSession.outputURL = outputURL
+            exportSession.outputFileType = .m4a
+            
+            // 删除已存在的输出文件
+            if FileManager.default.fileExists(atPath: outputPath) {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
+            
+            exportSession.exportAsynchronously {
+                Task { @MainActor in
+                    switch exportSession.status {
+                    case .completed:
+                        print("✅ 音频合并成功: \(outputPath)")
+                        result([
+                            "success": true,
+                            "output_path": outputPath,
+                            "error": NSNull()
+                        ])
+                    case .failed:
+                        let error = exportSession.error?.localizedDescription ?? "导出失败"
+                        print("❌ 音频合并失败: \(error)")
+                        result(FlutterError(code: "EXPORT_ERROR", message: error, details: nil))
+                    case .cancelled:
+                        result(FlutterError(code: "EXPORT_CANCELLED", message: "导出已取消", details: nil))
+                    default:
+                        result(FlutterError(code: "EXPORT_ERROR", message: "导出状态未知", details: nil))
+                    }
+                }
             }
         }
     }
