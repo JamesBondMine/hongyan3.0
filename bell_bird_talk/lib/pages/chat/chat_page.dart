@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
+import 'package:bell_bird_talk/pages/chat/views/chat_gas_arrow.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
@@ -1316,10 +1318,10 @@ class _ChatPageState extends State<ChatPage> {
               ],
 
               // 发送状态（我的消息显示在左侧，非图片消息）
-              if (isMine && !isImageMessage) ...[
-                _buildMessageStatus(status, localId: localId),
-                const SizedBox(width: 4),
-              ],
+              // if (isMine && !isImageMessage) ...[
+              //   _buildMessageStatus(status, localId: localId),
+              //   const SizedBox(width: 4),
+              // ],
 
               // 消息气泡
               Flexible(
@@ -1335,61 +1337,80 @@ class _ChatPageState extends State<ChatPage> {
                     }
                   },
                   onLongPress: () => _showMessageMenu(message, isMine),
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.65,
-                    ),
-                    padding: isImageMessage
-                        ? const EdgeInsets.all(4)
-                        : const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                    decoration: BoxDecoration(
-                      color: isImageMessage
-                          ? Colors.transparent
-                          : (isMine ? Colors.blue : Colors.white),
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isMine ? 16 : 4),
-                        bottomRight: Radius.circular(isMine ? 4 : 16),
-                      ),
-                      boxShadow: isImageMessage
-                          ? null
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: isMine
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    children: [
+                      // 绘制一个直角三角形
+                      isMine
+                          ? Container()
+                          : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              CustomPaint(
+                                painter: VideoTrianglePainter(
+                                  Colors.white,
+                                  false,
+                                ), // 提供必需的颜色参数
+                                size: Size(10, 8), // 根据需要调整大小
                               ),
                             ],
-                    ),
-                    child: type == "at"
-                        ? _buildAtMessage(message, isMine, status)
-                        : _buildMessageContent(message, isMine),
+                          ),
+                      Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.65,
+                        ),
+                        padding: isImageMessage
+                            ? const EdgeInsets.all(4)
+                            : const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                        decoration: BoxDecoration(
+                          color: isImageMessage
+                              ? Colors.transparent
+                              : (isMine
+                                    ? Color.fromARGB(255, 182, 203, 254)
+                                    : Colors.white),
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(12),
+                            topRight: const Radius.circular(12),
+                            bottomLeft: Radius.circular(isMine ? 12 : 0),
+                            bottomRight: Radius.circular(isMine ? 0 : 12),
+                          ),
+                        ),
+                        child: type == "at"
+                            ? _buildAtMessage(message, isMine, status)
+                            : _buildMessageContent(message, isMine),
+                      ),
+                      // 绘制一个直角三角形
+                      !isMine
+                          ? Container()
+                          : Container(
+                              // color: Colors.red,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  CustomPaint(
+                                    painter: VideoTrianglePainter(
+                                      Color.fromARGB(255, 182, 203, 254),
+                                      true,
+                                    ), // 提供必需的颜色参数
+                                    size: Size(10, 8), // 根据需要调整大小
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ],
                   ),
                 ),
               ),
 
-              if (isMine) ...[
-                const SizedBox(width: 8),
-                // 我的头像
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.blue[100],
-                  backgroundImage:
-                      _globalCtrl.currentUser.value?.avatar != null &&
-                          _globalCtrl.currentUser.value!.avatar!.isNotEmpty
-                      ? NetworkImage(_globalCtrl.currentUser.value!.avatar!)
-                      : null,
-                  child:
-                      _globalCtrl.currentUser.value?.avatar == null ||
-                          _globalCtrl.currentUser.value!.avatar!.isEmpty
-                      ? Icon(Icons.person, size: 20, color: Colors.blue[400])
-                      : null,
-                ),
-              ],
+              if (isMine) ...[const SizedBox(width: 8)],
             ],
           ),
           // 显示发送时间和发送人ID
@@ -2620,10 +2641,7 @@ class _ChatPageState extends State<ChatPage> {
     // 默认文本消息
     return Text(
       content,
-      style: TextStyle(
-        fontSize: 15,
-        color: isMine ? Colors.white : Colors.black87,
-      ),
+      style: TextStyle(fontSize: 15, color: GbsColors.titleColor),
     );
   }
 
