@@ -127,69 +127,20 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           _createGroup();
         },
       ),
-      GestureDetector(
-        child: Container(
-          alignment: Alignment.center,
-          width: 120,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
-              const SizedBox(width: 8),
-              const Text('添加分组'),
-            ],
-          ),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-_showGroupSettings();
-        },
-      ),
-      GestureDetector(
-        child: Container(
-          alignment: Alignment.center,
-          width: 120,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
-              const SizedBox(width: 8),
-              const Text('设置分组'),
-            ],
-          ),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-_showMoveToGroupDialog();
-        },
-      )
+  
     ];
   }
 
   /// 显示分组设置
   void _showGroupSettings() {
     gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
-      padding: EdgeInsets.only( top: 16,bottom: 30),
+      padding: EdgeInsets.only( top: 0,bottom: 16),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: GbsColors.lightAppBarColorA,
         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
       ),
        child: AddFriendGroupPage(),));
-    // showModalBottomSheet(
-    //   context: context,
-    //   isScrollControlled: true,
-    //   shape: const RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    //   ),
-    //   builder: (context) => GroupSettingsSheet(
-    //     groups: _groups,
-    //     onAddGroup: _addGroup,
-    //     onDeleteGroup: _deleteGroup,
-    //     onUpdateGroup: _updateGroup,
-    //   ),
-    // );
   }
 
 
@@ -208,13 +159,7 @@ _showMoveToGroupDialog();
             Navigator.pop(context);
           }
           // 弹出创建分组
-          gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
-            padding: EdgeInsets.only( top: 16,bottom: 30),
-            decoration: BoxDecoration(
-              color: GbsColors.lightAppBarColorA,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
-            ),
-             child: AddFriendGroupPage(),));
+          _showGroupSettings();
         },
         onDeleteGroup: _deleteGroup,
         onUpdateGroup: _updateGroup,
@@ -552,9 +497,11 @@ _showMoveToGroupDialog();
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
+            children: [
               FriendsListPage(),
-              FriendGroupsPage(),
+              FriendGroupsPage(onSettingGroup: (){
+                _showMoveToGroupDialog();
+              }),
               GroupListPage(),
             ],
           ),

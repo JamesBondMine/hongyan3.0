@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/pages/friends/pages/add_friends_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
@@ -11,7 +12,8 @@ import '../../services/native_bridge.dart';
 
 /// 分组列表子页面（折叠的分组列表）
 class FriendGroupsPage extends StatefulWidget {
-  const FriendGroupsPage({super.key});
+  FriendGroupsPage({super.key, required this.onSettingGroup});
+  VoidCallback onSettingGroup;
 
   @override
   State<FriendGroupsPage> createState() => _FriendGroupsPageState();
@@ -33,10 +35,23 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
   // 跟踪加载状态
   final Map<String, bool> _loadingStates = {};
 
+  final FriendController _friendController = FriendController();
+
   @override
   void initState() {
     super.initState();
     _loadContactGroups();
+    _registerNotification();
+  }
+
+  // 注册通知
+  void _registerNotification() {
+    _friendController.addListenerId(_friendController.friendGropRefreshId, () {
+      print('监听到创建了新的好友分组，需要 刷新好友分组列表');
+      setState(() {
+        _loadContactGroups();
+      });
+    });
   }
 
   Future<void> _loadContactGroups() async {
@@ -137,17 +152,6 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
     }
   }
 
-  /// 显示分组设置
-  void _showGroupSettings() {
-    gbs.shower.showScreenViewCustom(context, Get.height-160, Container(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 16,bottom: 30),
-      decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
-      ),
-       child: AddFriendGroupPage(),));
-  }
-
   void _toggleGroup(String groupId) {
     final isCurrentlyExpanded = _expandedStates[groupId] ?? false;
     
@@ -186,7 +190,7 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
           // 分组头部
           InkWell(
             onLongPress: () {
-              _showGroupSettings();
+              widget.onSettingGroup();
             },
             onTap: () => _toggleGroup(group.id),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
@@ -332,7 +336,6 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
       child: _groups.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              // padding: const EdgeInsets.all(16),
               itemCount: _groups.length,
               itemBuilder: (context, index) {
                 return _buildGroupItem(_groups[index]);

@@ -14,7 +14,7 @@ class FriendController extends GetxController {
   final IOSNativeService _nativeService = IOSNativeService();
   
 
-  String friendGropRefreshId = '';
+  String friendGropRefreshId = 'friendGropRefreshId';
   void updateFriendGroupRefreshId() {
     update([friendGropRefreshId]);
   }

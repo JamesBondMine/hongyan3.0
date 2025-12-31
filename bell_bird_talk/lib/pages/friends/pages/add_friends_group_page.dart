@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
+import 'package:bell_bird_talk/pages/friends/views/friends_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -248,9 +250,11 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
       print('📁 创建联系人分组结果: $result');
 
       if (result['errorCode'] == 0) {
+        print('📁 创建联系人分组结果****123');
         EasyLoading.showSuccess('分组创建成功');
+        // 通知好友分组页刷新页面
+        FriendController.to.updateFriendGroupRefreshId();
         success();
-        
       } else {
         EasyLoading.showError(result['message'] ?? '创建失败');
       }
