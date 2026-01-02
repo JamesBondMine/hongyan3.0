@@ -33,7 +33,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
 
   Future<void> _loadNotificationUnread() async {
     if (_fetchingUnread) return;
-    setState(() => _fetchingUnread = true);
+    if (mounted) setState(() => _fetchingUnread = true);
     final result = await _nativeService.imGetNotificationUnreadCount(types: ['0']);
     if (!mounted) return;
     if (result['errorCode'] == 0) {

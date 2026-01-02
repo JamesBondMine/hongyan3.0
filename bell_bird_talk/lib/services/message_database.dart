@@ -928,6 +928,45 @@ class MessageDatabase {
     );
   }
   
+  /// 根据分组筛选联系人
+  /// 返回格式: {groupName: [contacts...]}
+  /// 如果没有分组(group_id为null或group_name为空)，则归入"未分组"
+  Future<Map<String, List<Map<String, dynamic>>>> getContactsByGroup(String userId) async {
+    final db = await database;
+    final allContacts = await db.query(
+      'contacts',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'remark ASC, nickname ASC',
+    );
+    
+    final Map<String, List<Map<String, dynamic>>> groupedContacts = {};
+    
+    for (final contact in allContacts) {
+      // 获取分组名，如果为空或null，则使用"未分组"
+      final groupId = contact['group_id'];
+      String groupName = contact['group_name'] as String? ?? '';
+      
+      // 如果group_name为空且group_id也为null或0，则归入"未分组"
+      if (groupName.isEmpty && (groupId == null || groupId == 0)) {
+        groupName = '未分组';
+      } else if (groupName.isEmpty) {
+        // 如果group_name为空但group_id有值，使用group_id作为分组名
+        groupName = groupId?.toString() ?? '未分组';
+      }
+      
+      // 如果该分组还没有在Map中，创建一个空列表
+      if (!groupedContacts.containsKey(groupName)) {
+        groupedContacts[groupName] = [];
+      }
+      
+      // 将联系人添加到对应的分组
+      groupedContacts[groupName]!.add(contact);
+    }
+    
+    return groupedContacts;
+  }
+  
   /// 更新好友备注
   Future<void> updateContactRemark(String userId, String contactUserId, String remark) async {
     final db = await database;

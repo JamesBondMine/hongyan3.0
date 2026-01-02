@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_line.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -8,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../controllers/global_controller.dart';
 import '../../services/native_bridge.dart';
-import '../friends/blacklist_page.dart';
 
 /// 个人资料页面
 class ProfilePage extends StatefulWidget {
@@ -28,19 +30,14 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: GbsColors.lightBackgroundA,
       appBar: AppBar(
-        title: const Text('个人资料'),
+        title: const Text('基本信息', style: TextStyle(fontSize: 16, color: GbsColors.titleColor, fontWeight: FontWeight.w500)),
         centerTitle: true,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: GbsColors.lightAppBarColorB,
+        foregroundColor: GbsColors.titleColor,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code),
-            onPressed: () => EasyLoading.showInfo('我的二维码'),
-          ),
-        ],
+        // 
       ),
       body: Obx(() {
         final user = _globalCtrl.currentUser.value;
@@ -48,30 +45,9 @@ class _ProfilePageState extends State<ProfilePage> {
         return SingleChildScrollView(
           child: Column(
             children: [
-              // 头部信息卡片
-              _buildHeaderCard(user),
-              
-              const SizedBox(height: 12),
-              
-              // 基本信息
-              _buildBasicInfoSection(user),
-              
-              const SizedBox(height: 12),
               
               // 账号安全
               _buildAccountSecuritySection(user),
-              
-              const SizedBox(height: 12),
-              
-              // 更多设置
-              _buildSettingsSection(),
-              
-              const SizedBox(height: 24),
-              
-              // 退出登录按钮
-              _buildLogoutButton(),
-              
-              const SizedBox(height: 32),
             ],
           ),
         );
@@ -79,235 +55,71 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
   
-  /// 头部信息卡片
-  Widget _buildHeaderCard(user) {
+
+
+  /// 账号安全区域
+  Widget _buildAccountSecuritySection(user) {
     return Container(
-      color: Colors.blue,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            
-            // 头像（可点击更换）
-            GestureDetector(
-              onTap: () => _showAvatarOptions(),
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+           _buildInfoItem(
+            icon: Icons.phone_android,
+            label: '头像',
+            value: '',
+            trailing: SizedBox(width: 32,height: 32,child: CircleAvatar(
+                    radius: 16,
+                    
                     backgroundColor: Colors.blue[100],
                     backgroundImage: (user?.avatar != null && user!.avatar!.isNotEmpty)
-                        ? NetworkImage(user!.avatar!)
+                        ? CachedNetworkImageProvider(user!.avatar!, maxWidth: 32, maxHeight: 32)
                         : null,
                     child: (user?.avatar == null || user!.avatar!.isEmpty)
                         ? const Icon(Icons.person, size: 50, color: Colors.blue)
                         : null,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // 昵称（可点击编辑）
-            GestureDetector(
-              onTap: () => _showEditNicknameDialog(user?.nickname),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    user?.nickname ?? '未设置昵称',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.edit, size: 18, color: Colors.grey[400]),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // 账号ID
-            GestureDetector(
-              onTap: () => _copyToClipboard(user?.username ?? ''),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '账号: ${user?.username ?? '未知'}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.copy, size: 14, color: Colors.grey[400]),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  /// 基本信息区域
-  Widget _buildBasicInfoSection(user) {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle('基本信息'),
-          
-          _buildInfoItem(
-            icon: Icons.fingerprint,
-            label: '用户ID',
-            value: user?.id ?? '未知',
-            canCopy: true,
+                  ),),
+            onTap: () => _showAvatarOptions()
           ),
-          
-          _buildInfoItem(
-            icon: Icons.badge,
-            label: '账号ID',
-            value: user?.username ?? '未设置',
-            canCopy: true,
+          CommonLineView(),
+                     _buildInfoItem(
+            icon: Icons.phone_android,
+            label: '用户名',
+            value: _maskPhone(user?.username),
+            onTap: () => _showPhoneBindDialog(user?.phone),
           ),
-          
-          _buildInfoItem(
-            icon: Icons.cake,
-            label: '注册时间',
-            value: user?.createdAt?.toString().substring(0, 10) ?? '未知',
+          CommonLineView(),
+           _buildInfoItem(
+            icon: Icons.phone_android,
+            label: '昵称',
+            value: _maskPhone(user?.nickname),
+            onTap: () => _showEditNicknameDialog(user?.nickname),
           ),
-          
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-  
-  /// 账号安全区域
-  Widget _buildAccountSecuritySection(user) {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle('账号安全'),
-          
+          CommonLineView(),
           _buildInfoItem(
             icon: Icons.phone_android,
             label: '手机号',
             value: _maskPhone(user?.phone),
-            trailing: user?.phone != null && user!.phone!.isNotEmpty
-                ? _buildBindBadge('已绑定', Colors.green)
-                : _buildBindBadge('未绑定', Colors.orange),
             onTap: () => _showPhoneBindDialog(user?.phone),
           ),
-          
+          CommonLineView(),
           _buildInfoItem(
             icon: Icons.email,
             label: '邮箱',
             value: _maskEmail(user?.email),
-            trailing: user?.email != null && user!.email!.isNotEmpty
-                ? _buildBindBadge('已绑定', Colors.green)
-                : _buildBindBadge('未绑定', Colors.orange),
             onTap: () => _showEmailBindDialog(user?.email),
           ),
-          
-          _buildInfoItem(
-            icon: Icons.lock,
-            label: '修改密码',
-            value: '',
-            onTap: () => EasyLoading.showInfo('修改密码功能开发中'),
-          ),
-          
-          const SizedBox(height: 8),
         ],
       ),
     );
   }
   
-  /// 更多设置区域
-  Widget _buildSettingsSection() {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle('更多设置'),
-          
-          _buildInfoItem(
-            icon: Icons.notifications,
-            label: '消息通知',
-            value: '',
-            onTap: () => EasyLoading.showInfo('消息通知设置'),
-          ),
-   
-          
-          _buildInfoItem(
-            icon: Icons.info_outline,
-            label: '关于我们',
-            value: '',
-            onTap: () => EasyLoading.showInfo('铃鸟聊天 v1.0.0'),
-          ),
-          
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-  
-  /// 区块标题
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Colors.grey[600],
-        ),
-      ),
-    );
-  }
+
+
   
   /// 信息项
   Widget _buildInfoItem({
@@ -322,12 +134,13 @@ class _ProfilePageState extends State<ProfilePage> {
       onTap: onTap ?? (canCopy && value.isNotEmpty && !value.contains('未') 
           ? () => _copyToClipboard(value) 
           : null),
-      child: Padding(
+      child: Container(
+        height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, color: Colors.grey[500], size: 22),
-            const SizedBox(width: 12),
+            // Icon(icon, color: Colors.grey[500], size: 22),
+            // const SizedBox(width: 12),
             Text(
               label,
               style: TextStyle(
@@ -361,64 +174,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
   
-  /// 绑定状态徽章
-  Widget _buildBindBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
+
   
-  /// 退出登录按钮
-  Widget _buildLogoutButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: SizedBox(
-        width: double.infinity,
-        height: 50,
-        child: ElevatedButton(
-          onPressed: () => _confirmLogout(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25),
-            ),
-            elevation: 0,
-          ),
-          child: const Text(
-            '退出登录',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  // ==================== 工具方法 ====================
-  
-  String _getGenderText(int? gender) {
-    switch (gender) {
-      case 1: return '男';
-      case 2: return '女';
-      default: return '未设置';
-    }
-  }
-  
+
   String _maskPhone(String? phone) {
     if (phone == null || phone.isEmpty) return '未绑定';
     if (phone.length >= 11) {
@@ -745,40 +503,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // /// 获取上传凭证
-  // Future<void> _prepareUpload() async {
-  //   try {
-  //     print('📤 首页初始化: 获取上传凭证...');
-  //     final nativeService = IOSNativeService();
-      
-  //     // 获取头像上传凭证（作为默认凭证）
-  //     final result = await nativeService.imPrepareUpload(
-  //       businessModule: 'avatar',
-  //       fileName: 'avatar.jpg',
-  //     );
-      
-  //     print('📋 上传凭证结果: $result');
-      
-  //     final errorCode = result['errorCode'] as int? ?? -1;
-  //     if (errorCode == 0) {
-  //       setState(() {
-  //         _uploadToken = result;
-  //       });
-  //       print('✅ 上传凭证获取成功');
-        
-  //       // 可以在这里解析并打印详细信息
-  //       final dataStr = result['data'] as String?;
-  //       if (dataStr != null) {
-  //         print('📦 凭证详情: $dataStr');
-  //       }
-  //     } else {
-  //       print('❌ 上传凭证获取失败: ${result['message']}');
-  //     }
-  //   } catch (e) {
-  //     print('❌ 获取上传凭证异常: $e');
-  //   }
-  // }
-  
   void _showEditNicknameDialog(String? currentNickname) {
     final controller = TextEditingController(text: currentNickname);
     
@@ -826,110 +550,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-  
-  void _showEditSignatureDialog(String? currentSignature) {
-    final controller = TextEditingController(text: currentSignature);
-    
-    Get.dialog(
-      AlertDialog(
-        title: const Text('修改签名'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 50,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: '请输入个性签名',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final newSignature = controller.text.trim();
-              
-              Get.back();
-              EasyLoading.show(status: '修改中...');
-              
-              final result = await _nativeBridge.imUpdateSignature(newSignature);
-              
-              if (result['errorCode'] == 0) {
-                // 更新本地用户信息
-                _globalCtrl.updateUserSignature(newSignature);
-                EasyLoading.showSuccess('签名修改成功');
-              } else {
-                EasyLoading.showError(result['message'] ?? '修改失败');
-              }
-            },
-            child: const Text('保存'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showGenderPicker(int? currentGender) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                '选择性别',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.male, color: Colors.blue),
-              title: const Text('男'),
-              trailing: currentGender == 1 
-                  ? const Icon(Icons.check, color: Colors.blue) 
-                  : null,
-              onTap: () async {
-                Get.back();
-                await _updateGender(0); // 0=男
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.female, color: Colors.pink),
-              title: const Text('女'),
-              trailing: currentGender == 2 
-                  ? const Icon(Icons.check, color: Colors.blue) 
-                  : null,
-              onTap: () async {
-                Get.back();
-                await _updateGender(1); // 1=女
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-  
+
   void _showPhoneBindDialog(String? currentPhone) {
     if (currentPhone != null && currentPhone.isNotEmpty) {
       // 已绑定，显示换绑选项
@@ -1030,32 +651,6 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       EasyLoading.showInfo('绑定邮箱功能开发中');
     }
-  }
-  
-  void _confirmLogout() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出登录吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Get.back();
-              _globalCtrl.logout();
-              EasyLoading.dismiss();
-              EasyLoading.showSuccess('已退出登录');
-              await Future.delayed(const Duration(seconds: 1));
-              Get.offAllNamed('/login');
-            },
-            child: const Text('退出', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 }
 

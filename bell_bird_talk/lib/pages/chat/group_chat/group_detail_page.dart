@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_add_member.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_members_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
+import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -406,7 +409,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       onTap: () async{
       //如果是我自己。跳转个人中心
       if (userId == _globalCtrl.currentUser.value?.id) {
-        Get.toNamed('/profile');
+        Get.to(ProfilePage());
         return;
       } else {
         final result = await _nativeService.imSearchUser(
@@ -492,13 +495,31 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           ),
     );
   }
+
+  void _showAddMemberView(){
+    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
+      width: Get.width,
+      padding: EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: SelectFriendWithGroupPage(onConfirm: (value) {
+        if (value.isNotEmpty) {
+          // 添加群成员
+          _showAddMemberDialog(value);
+        }
+        
+      },),
+    ));
+  }
   
   Widget _buildAddMemberButton() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          onTap: _showAddMemberDialog,
+          onTap: _showAddMemberView,
           child: Container(
             width: 44,
             height: 44,
@@ -524,66 +545,17 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     );
   }
   
-  Future<void> _showAddMemberDialog() async {
+  Future<void> _showAddMemberDialog(List<String> selectedUserIds) async {
     // 加载联系人列表
     EasyLoading.show(status: '加载联系人...');
-    
     try {
-      final result = await _nativeService.imGetContactList(
-        page: 1,
-        pageSize: 200,
-      );
-      
       if (!mounted) return;
       EasyLoading.dismiss();
-      
-      if (result['errorCode'] != 0) {
-        EasyLoading.showError('获取联系人失败');
-        return;
-      }
-      
-      final dataStr = result['data'] as String? ?? '';
-      if (dataStr.isEmpty) {
-        EasyLoading.showInfo('暂无联系人可添加');
-        return;
-      }
-      
-      final map = json.decode(dataStr) as Map<String, dynamic>;
-      final contacts = (map['contacts'] as List?) ?? [];
-      
-      if (contacts.isEmpty) {
-        EasyLoading.showInfo('暂无联系人可添加');
-        return;
-      }
-      
-      // 过滤掉已经是群成员的联系人
-      final memberUserIds = _members.map((m) => (m['user_id'] as String?) ?? '').toSet();
-      final availableContacts = contacts.where((contact) {
-        final userId = (contact['contact_user_id'] as String?) ?? '';
-        return userId.isNotEmpty && !memberUserIds.contains(userId);
-      }).toList();
-      
-      if (availableContacts.isEmpty) {
-        EasyLoading.showInfo('所有联系人已在群中');
-        return;
-      }
-      
-      // 显示选择对话框
-      if (!mounted) return;
-      final selectedUserIds = await showDialog<Set<String>>(
-        context: context,
-        builder: (context) => AddMemberDialog(contacts: availableContacts),
-      );
-      
-      if (selectedUserIds == null || selectedUserIds.isEmpty) {
-        return;
-      }
-      
       // 调用添加群成员接口
       EasyLoading.show(status: '添加群成员...');
       final addResult = await _nativeService.imAddGroupMembers(
         groupId: widget.groupId,
-        userIds: selectedUserIds.toList(),
+        userIds: selectedUserIds,
       );
       
       if (!mounted) return;

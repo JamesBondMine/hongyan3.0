@@ -1,5 +1,10 @@
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
+import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_popup/flutter_popup.dart';
+import 'package:get/get.dart';
 import 'models/community_model.dart';
 import 'community_detail_page.dart';
 
@@ -16,6 +21,8 @@ class _CommunityPageState extends State<CommunityPage> {
   final List<CommunityModel> _filteredCommunities = [];
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = '全部';
+
+  final MessageDatabase _messageDatabase = MessageDatabase();
   
   // 默认社群数据
   final List<String> _categories = ['全部', '技术', '生活', '娱乐', '学习', '其他'];
@@ -210,20 +217,7 @@ class _CommunityPageState extends State<CommunityPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('社群'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _loadDefaultCommunities();
-              EasyLoading.showSuccess('已刷新');
-            },
-            tooltip: '刷新',
-          ),
-        ],
-      ),
+      appBar: _buildNormalAppBar(),
       body: Column(
         children: [
           // 搜索栏
@@ -233,7 +227,7 @@ class _CommunityPageState extends State<CommunityPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '搜索社群',
+                hintText: '搜索',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -244,7 +238,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(26),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
@@ -326,6 +320,127 @@ class _CommunityPageState extends State<CommunityPage> {
       ),
     );
   }
+
+
+  PreferredSizeWidget _buildNormalAppBar() {
+    final globalController = Get.find<GlobalController>();
+    final user = globalController.currentUser.value;
+    final avatar = user?.avatar;
+    final nickname = user?.nickname ?? '我';
+    String userId = user?.id ?? '';
+
+    return AppBar(
+      leadingWidth: 56,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: GestureDetector(
+          onTap: () {
+            showSideMenu(context);
+          },
+          child: _userHeadImgView(avatar ?? '', nickname, userId),
+        ),
+      ),
+      title: const Text('社群'),
+      centerTitle: false,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+     
+    );
+  }
+
+  Future<String> _fetchUserAvatarUrl(String userId) async {
+    await Future.delayed(const Duration(seconds: 2));
+    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
+    String bg = res?['avatar_bg'] ?? '';
+    return bg;
+  }
+
+  Widget _userHeadImgView(String avatar, String nickname, String userId) {
+    return FutureBuilder(
+      future: _fetchUserAvatarUrl(userId),
+      builder: (context, AsyncSnapshot<String> snapshot) {
+        String bg = '';
+        if (snapshot.hasData && snapshot.data != null) {
+          bg = snapshot.data as String;
+        }
+        String bgcolorStr = '';
+        String txtcolorStr = '';
+        if (bg.isNotEmpty && bg.contains(':')) {
+          bgcolorStr = bg.split(':').first;
+          txtcolorStr = bg.split(':').last;
+          if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+            bgcolorStr = bgcolorStr.split('&').first;
+          }
+        }
+
+        Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+        Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+
+        return CircleAvatar(
+          radius: 18,
+          backgroundColor: bgColor,
+          backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+          child: avatar.isEmpty
+              ? Text(
+                  nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                  style: TextStyle(
+                    color: txtColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        );
+      },
+    );
+  }
+
+  // 显示侧边栏菜单
+void showSideMenu(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final menuWidth = screenWidth * 0.85; // 3/4 屏幕宽度
+  
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'SideMenu',
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: menuWidth,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: const SideMenuContent(),
+          ),
+        ),
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        )),
+        child: child,
+      );
+    },
+  );
+}
   
   /// 构建社群卡片
   Widget _buildCommunityCard(CommunityModel community) {
