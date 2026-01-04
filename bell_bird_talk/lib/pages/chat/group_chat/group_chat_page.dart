@@ -45,30 +45,33 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Future<void> _loadGroupMembers() async {
     try {
       final result = await GroupController.to.getGroupMembersFullInfo(
-      widget.groupId,
-      page: 1,
-      pageSize: 200,
-    );
+        widget.groupId,
+        page: 1,
+        pageSize: 200,
+      );
       if (!mounted) return;
       if (result['errorCode'] == 0) {
         final dataStr = result as Map<String, dynamic>? ?? {};
         if (dataStr.isNotEmpty) {
           try {
-            final map = json.decode(json.encode(dataStr)) as Map<String, dynamic>;
+            final map =
+                json.decode(json.encode(dataStr)) as Map<String, dynamic>;
             final list = (map['members'] as List?) ?? [];
-            final members = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
-            
+            final members = list
+                .map((e) => (e as Map).cast<String, dynamic>())
+                .toList();
+
             // 提取用户ID列表
             final userIds = members
                 .map((member) => member['user_id'] as String?)
                 .where((id) => id != null && id.isNotEmpty)
                 .cast<String>()
                 .toList();
-            
+
             setState(() {
               _groupMembers = members;
             });
-            
+
             // 如果有用户ID，批量获取公开信息
             if (userIds.isNotEmpty) {
               await _loadGroupMembersPublicInfo(userIds);
@@ -86,7 +89,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
   /// 批量获取群成员的公开信息
   Future<void> _loadGroupMembersPublicInfo(List<String> userIds) async {
     try {
-      final result = await _nativeService.imBatchGetUserPublicInfo(userIds: userIds);
+      final result = await _nativeService.imBatchGetUserPublicInfo(
+        userIds: userIds,
+      );
       if (!mounted) return;
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String? ?? '';
@@ -94,7 +99,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
           try {
             final publicInfoList = json.decode(dataStr) as List<dynamic>;
             final publicInfoMap = <String, Map<String, dynamic>>{};
-            
+
             // 将公开信息按用户ID索引
             for (final info in publicInfoList) {
               if (info is Map<String, dynamic>) {
@@ -104,13 +109,19 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 }
               }
             }
-            
+
             // 获取需要更新的用户ID列表（超过8小时未更新）
-            final usersNeedUpdate = await _messageDatabase.getUsersNeedUpdate(8);
-            final usersToUpdate = userIds.where((userId) => 
-              !usersNeedUpdate.contains(userId) || usersNeedUpdate.contains(userId)
-            ).toList();
-            
+            final usersNeedUpdate = await _messageDatabase.getUsersNeedUpdate(
+              8,
+            );
+            final usersToUpdate = userIds
+                .where(
+                  (userId) =>
+                      !usersNeedUpdate.contains(userId) ||
+                      usersNeedUpdate.contains(userId),
+                )
+                .toList();
+
             // 过滤出需要存储的用户信息
             final usersToStore = publicInfoList
                 .where((info) => info is Map<String, dynamic>)
@@ -120,13 +131,13 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   return userId != null && usersToUpdate.contains(userId);
                 })
                 .toList();
-            
+
             // 批量存储用户信息到数据库
             if (usersToStore.isNotEmpty) {
               await _messageDatabase.upsertUsers(usersToStore);
               print('💾 已存储 ${usersToStore.length} 个用户信息到数据库');
             }
-            
+
             // 更新群成员信息，合并公开信息
             setState(() {
               _groupMembers = _groupMembers.map((member) {
@@ -137,7 +148,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 return member;
               }).toList();
             });
-            
+
             print('✅ 已更新 ${publicInfoMap.length} 个群成员的公开信息');
           } catch (e) {
             print('解析群成员公开信息失败: $e');
@@ -153,7 +164,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   Future<void> _loadGroupInfo() async {
     try {
-      final result = await _nativeService.imGetGroupInfo(groupId: widget.groupId);
+      final result = await _nativeService.imGetGroupInfo(
+        groupId: widget.groupId,
+      );
       if (!mounted) return;
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String? ?? '';
@@ -189,28 +202,18 @@ class _GroupChatPageState extends State<GroupChatPage> {
         backgroundColor: GbsColors.lightAppBarColorA,
         title: Text(widget.groupName),
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.more_horiz),
-          //   onPressed: () {
-          //     Navigator.of(context).push(
-          //       MaterialPageRoute(
-          //         builder: (_) => GroupDetailPage(
-          //           groupId: widget.groupId,
-          //           groupName: widget.groupName,
-          //           groupAvatar: widget.groupAvatar,
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
           CustomPopup(
-          // contentPadding: EdgeInsets.only(right: 16),
-  content: Column(
-  mainAxisSize: MainAxisSize.min,
-    children: _buildAppBarActions()
-  ),
-  child: Image.asset('assets/img/msg/msgmore.png', width: 24, height: 24),
-),SizedBox(width: 16,)
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildAppBarActions(),
+            ),
+            child: Image.asset(
+              'assets/img/msg/msgmore.png',
+              width: 24,
+              height: 24,
+            ),
+          ),
+          SizedBox(width: 16),
         ],
       ),
     );
@@ -219,57 +222,64 @@ class _GroupChatPageState extends State<GroupChatPage> {
   List<Widget> _buildAppBarActions() {
     return [
       popviewItem(context, '语音聊天', 'msgitemphone', () {
-        print('发起群聊'); }),
-        popviewItem(context, '添加好友', 'msgitemadd', () {
+        print('发起群聊');
+      }),
+      popviewItem(context, '添加好友', 'msgitemadd', () {
         Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddFriendPage (),
-      ),
-    );
-     }),
-        popviewItem(context, '搜索聊天', 'msgitemchat', () {
-        print('发起群聊'); }),
-        popviewItem(context, '免打扰', 'msgitemdistunb', () {
-          GroupController.to.setGroupDisturb(widget.groupId, !(_isMuted ?? false));
-        print('发起群聊'); }),
-        popviewItem(context, '更多设置', 'msgitemmore', () {
-          Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => GroupDetailPage(
-                    groupId: widget.groupId,
-                    groupName: widget.groupName,
-                    groupAvatar: widget.groupAvatar,
-                  ),
-                ),
-              );
-        print('发起群聊'); })
+          context,
+          MaterialPageRoute(builder: (context) => const AddFriendPage()),
+        );
+      }),
+      popviewItem(context, '搜索聊天', 'msgitemchat', () {
+        print('发起群聊');
+      }),
+      popviewItem(context, '免打扰', 'msgitemdistunb', () {
+        GroupController.to.setGroupDisturb(
+          widget.groupId,
+          !(_isMuted ?? false),
+        );
+        print('发起群聊');
+      }),
+      popviewItem(context, '更多设置', 'msgitemmore', () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => GroupDetailPage(
+              groupId: widget.groupId,
+              groupName: widget.groupName,
+              groupAvatar: widget.groupAvatar,
+            ),
+          ),
+        );
+        print('发起群聊');
+      }),
     ];
   }
 
-
-  Widget popviewItem(BuildContext context, String title, String img, VoidCallback onTap) { 
-    return
-        GestureDetector(
-        child: Container(
-          alignment: Alignment.center,
-          width: 120,
-          padding: const EdgeInsets.only(top: 10, bottom: 6, left: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Image.asset('assets/img//msg/$img.png', width: 20, height: 20),
-                const SizedBox(width: 8),
-                Text(title),
-              ],
-            ),
+  Widget popviewItem(
+    BuildContext context,
+    String title,
+    String img,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      child: Container(
+        alignment: Alignment.center,
+        width: 120,
+        padding: const EdgeInsets.only(top: 10, bottom: 6, left: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset('assets/img//msg/$img.png', width: 20, height: 20),
+            const SizedBox(width: 8),
+            Text(title),
+          ],
         ),
-        onTap: () {
-          Navigator.pop(  context); // 先关闭弹出菜单
-          onTap();
-          // _createGroup();
-        });
+      ),
+      onTap: () {
+        Navigator.pop(context); // 先关闭弹出菜单
+        onTap();
+        // _createGroup();
+      },
+    );
   }
 }
-
-
