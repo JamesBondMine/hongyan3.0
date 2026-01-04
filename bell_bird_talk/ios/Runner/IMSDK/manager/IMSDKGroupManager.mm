@@ -513,6 +513,7 @@ static void DisturbGroupCallback(int errorCode, const char* data, int dataLen, u
 static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📬 查询群组免打扰状态回调: errorCode=%d, reqId=%llu", errorCode, reqId);
     
+    
     NSData *responseData = nil;
     if (data && dataLen > 0) {
         responseData = [NSData dataWithBytes:data length:dataLen];
@@ -528,6 +529,8 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
             if (responseData && responseData.length > 0) {
                 dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             }
+            
+//            DisturbStatus st = [DisturbStatus p];
             completion(errorCode, reqId, dataStr);
             [manager.groupCallbacks removeObjectForKey:key];
         }
@@ -1442,6 +1445,7 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
 }
 
 - (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
+userId:(NSString *)userId
                              completion:(IMSDKGroupCompletion)completion {
     NSLog(@"📁 查询群组免打扰状态: groupId=%@", groupId);
     
@@ -1451,12 +1455,14 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
     }
     
     
-    BParam * bp = [[BParam alloc] init];
-    bp.param = groupId;
+    disturbStatusQuery * bp = [[disturbStatusQuery alloc] init];
+    bp.groupId = groupId;
+    bp.userId = userId;
     
     NSData * dataNs = [bp data];
     const char *data = (const char *)dataNs.bytes;
     int dataLen = (int)dataNs.length;
+    
     uint64_t reqId = 0;
     const char *targetId = [groupId UTF8String];
     

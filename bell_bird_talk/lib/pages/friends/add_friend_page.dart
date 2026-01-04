@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/friends/views/group_move_view.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import '../../utils/gbs_colors.dart';
-
 
 /// 添加好友页面
 class AddFriendPage extends StatefulWidget {
@@ -20,80 +23,85 @@ class _AddFriendPageState extends State<AddFriendPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
+
   List<SearchUserModel> _searchResults = [];
   bool _isSearching = false;
   bool _hasSearched = false;
-  String? _lastSearchType;  // 记住最后一次搜索的类型，用于发送请求
-  
-  // 好友分组
-  final List<FriendGroup> _groups = [];
-  String? _selectedGroupId;  // 选中的分组ID（null表示不选择分组）
-  
+  String? _lastSearchType; // 记住最后一次搜索的类型，用于发送请求
+
+  FriendGroup? _selectedGroup;
+
+  // 黑名单状态mini app
+  bool? _isBlocked ;
+
   @override
   void initState() {
     super.initState();
-    // 加载分组列表
-    _loadContactGroups();
     // 自动聚焦搜索框
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GbsColors.lightBackgroundB,
+      backgroundColor: _searchResults.isEmpty  ? GbsColors.lightBackgroundB : GbsColors.lightBackgroundA,
       appBar: AppBar(
-        title: const Text('添加好友'),
+        
+        title: const Text(
+          '添加好友',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: GbsColors.des1Color,
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: GbsColors.lightAppBarColorA,
-        foregroundColor: GbsColors.lightAppBarTitle,
+              backgroundColor: _searchResults.isEmpty  ? GbsColors.lightBackgroundB : GbsColors.lightBackgroundA,
+
+        foregroundColor: GbsColors.titleColor,
         elevation: 0,
       ),
       body: Column(
         children: [
           // 搜索区域
           _buildSearchSection(),
-          
+
           // 搜索结果
-          Expanded(
-            child: _buildSearchResults(),
-          ),
+          Expanded(child: _buildSearchResults()),
         ],
       ),
     );
   }
-  
-  /// 加载联系人分组列表
-  Future<void> _loadContactGroups() async {
+
+  /// 加载黑名单状态
+  Future<void> _loadBlackStatus(String friendId) async {
     try {
-      final result = await _nativeService.imGetContactGroups(
-        page: 1,
-        pageSize: 100,
+      final result = await _nativeService.imGetBlackStatus(
+        userId: friendId,
       );
-      
+      if (!mounted) return;
+
       if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          final data = json.decode(dataStr);
-          final groupsJson = data['groups'] as List? ?? [];
-          
-          setState(() {
-            _groups.clear();
-            _groups.addAll(
-              groupsJson.map((json) => FriendGroup.fromJson(json)).toList(),
-            );
-          });
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr) as Map<String, dynamic>;
+            final isBlocked = data['is_blocked'] as bool? ?? false;
+            setState(() {
+              _isBlocked = isBlocked;
+            });
+          } catch (e) {
+            print('解析黑名单状态失败: $e');
+          }
         }
       }
     } catch (e) {
-      print('❌ 获取联系人分组失败: $e');
+      print('获取黑名单状态失败: $e');
     }
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -108,17 +116,17 @@ class _AddFriendPageState extends State<AddFriendPage> {
       EasyLoading.showError('请输入搜索内容');
       return;
     }
-    
+
     setState(() {
       _isSearching = true;
       _hasSearched = true;
       _searchResults = [];
     });
-    
+
     try {
       String? userId;
       String? accountId;
-      
+
       // 自动判断搜索类型
       if (query.contains('@')) {
         accountId = query;
@@ -130,28 +138,32 @@ class _AddFriendPageState extends State<AddFriendPage> {
         userId = query;
         _lastSearchType = 'id';
       }
-      
-      print('🔍 搜索用户: userId=$userId, accountId=$accountId, type=$_lastSearchType');
-      
+
+      print(
+        '🔍 搜索用户: userId=$userId, accountId=$accountId, type=$_lastSearchType',
+      );
+
       final result = await _nativeService.imSearchUser(
         userId: userId,
         accountId: accountId,
       );
-      
+
       print('📊 搜索结果: $result');
-      
+
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           try {
             final data = json.decode(dataStr);
-            
+
             // 检查是否有用户数据
             if (data is Map) {
               // 单个用户
               if (data['user_id'] != null || data['id'] != null) {
                 setState(() {
-                  _searchResults = [SearchUserModel.fromJson(data.cast<String, dynamic>())];
+                  _searchResults = [
+                    SearchUserModel.fromJson(data.cast<String, dynamic>()),
+                  ];
                 });
               } else if (data['user'] != null) {
                 final userData = data['user'] as Map<String, dynamic>;
@@ -163,22 +175,30 @@ class _AddFriendPageState extends State<AddFriendPage> {
                 final users = data['users'] as List;
                 setState(() {
                   _searchResults = users
-                      .map((u) => SearchUserModel.fromJson(u as Map<String, dynamic>))
+                      .map(
+                        (u) =>
+                            SearchUserModel.fromJson(u as Map<String, dynamic>),
+                      )
                       .toList();
                 });
               }
+              _loadBlackStatus(_searchResults.first.id);
             } else if (data is List) {
               setState(() {
                 _searchResults = data
-                    .map((u) => SearchUserModel.fromJson(u as Map<String, dynamic>))
+                    .map(
+                      (u) =>
+                          SearchUserModel.fromJson(u as Map<String, dynamic>),
+                    )
                     .toList();
               });
+              _loadBlackStatus(_searchResults.first.id);
             }
           } catch (e) {
             print('解析搜索结果失败: $e');
           }
         }
-        
+
         if (_searchResults.isEmpty) {
           EasyLoading.showInfo('未找到用户');
         }
@@ -192,24 +212,28 @@ class _AddFriendPageState extends State<AddFriendPage> {
       setState(() => _isSearching = false);
     }
   }
-  
+
   /// 发送好友申请
-  Future<void> _sendFriendRequest(SearchUserModel user, String message, {int? groupId}) async {
+  Future<void> _sendFriendRequest(
+    SearchUserModel user,
+    String message, {
+    int? groupId,
+  }) async {
     EasyLoading.show(status: '发送中...');
-    
+
     try {
       // 确定添加渠道
-      int channel = 0;  // 默认用户ID
+      int channel = 0; // 默认用户ID
       String? targetValue = user.id;
-      
+
       if (_lastSearchType == 'phone' && user.phone != null) {
-        channel = 2;  // 手机号
+        channel = 2; // 手机号
         targetValue = user.phone;
       } else if (_lastSearchType == 'email' && user.email != null) {
-        channel = 3;  // 邮箱
+        channel = 3; // 邮箱
         targetValue = user.email;
       }
-      
+
       final result = await _nativeService.imAddContact(
         targetUserId: user.id,
         channel: channel,
@@ -219,9 +243,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
         targetEmail: user.email,
         groupId: groupId,
       );
-      
+
       print('📊 添加好友结果: $result');
-      
+
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('申请已发送');
         Get.back();
@@ -233,175 +257,28 @@ class _AddFriendPageState extends State<AddFriendPage> {
       EasyLoading.showError('发送失败');
     }
   }
-  
+
   /// 显示添加好友对话框
   void _showAddFriendDialog(SearchUserModel user) {
-    final messageController = TextEditingController(text: '你好，我想加你为好友');
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 标题
-              Row(
-                children: [
-                  const Text(
-                    '添加好友',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(),
-              
-              // 用户信息
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.blue[100],
-                    backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
-                        ? NetworkImage(user.avatar!)
-                        : null,
-                    child: (user.avatar == null || user.avatar!.isEmpty)
-                        ? Text(
-                            user.nickname.isNotEmpty
-                                ? user.nickname[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.nickname,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (user.accountId != null && user.accountId!.isNotEmpty)
-                          Text(
-                            'ID: ${user.accountId}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-                
-              const SizedBox(height: 20),
-              
-              // 验证消息
-              const Text(
-                '验证消息',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: messageController,
-                maxLines: 3,
-                maxLength: 100,
-                decoration: InputDecoration(
-                  hintText: '请输入验证消息',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 发送按钮
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    int? groupIdInt;
-                    if (_selectedGroupId != null && _selectedGroupId!.isNotEmpty) {
-                      groupIdInt = int.tryParse(_selectedGroupId!);
-                    }
-                    _sendFriendRequest(
-                      user, 
-                      messageController.text.trim(),
-                      groupId: groupIdInt,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    '发送申请',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-    );
+    int? groupIdInt;
+    if (_selectedGroup != null && _selectedGroup!.id.isNotEmpty) {
+      groupIdInt = int.tryParse(_selectedGroup!.id);
+    }
+    _sendFriendRequest(user, '你好，我想添加你为好友。', groupId: groupIdInt);
   }
 
-  
-  
   /// 搜索区域
   Widget _buildSearchSection() {
+    if (_searchResults.isNotEmpty) {
+      return Container();
+    }
     return Container(
-      margin: const EdgeInsets.only(top: 16),
+      // margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: GbsColors.lightBackgroundA,
           borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
@@ -439,31 +316,29 @@ class _AddFriendPageState extends State<AddFriendPage> {
       ),
     );
   }
-  
+
   /// 获取搜索提示文本
   String _getSearchHint() {
     return '输入用户ID、手机号或邮箱';
   }
-  
+
   /// 搜索结果区域
   Widget _buildSearchResults() {
     if (_isSearching) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (!_hasSearched) {
       return _buildSearchTips();
     }
-    
+
     if (_searchResults.isEmpty) {
-      return _buildNoResults();
+      return EmptyView(message: '该用户不存在');
     }
-    
+
     // 只显示第一个搜索结果
     final user = _searchResults.first;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -471,176 +346,76 @@ class _AddFriendPageState extends State<AddFriendPage> {
           // 用户卡片
           _buildUserCard(user),
           const SizedBox(height: 16),
-          
+
           // 好友分组选择卡片
           _buildGroupSelectionCard(),
-          const SizedBox(height: 16),
-          
+          const SizedBox(height: 36),
+
           // 添加好友按钮
           _buildAddFriendButton(user),
           const SizedBox(height: 16),
-          
+
           // 移出黑名单按钮
           _buildBlacklistButton(user),
         ],
       ),
     );
   }
-  
+
   /// 搜索提示
   Widget _buildSearchTips() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_search,
-              size: 80,
-              color: Colors.grey[300],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '搜索用户',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '输入用户ID、手机号或邮箱\n即可搜索添加好友',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-                height: 1.5,
-              ),
-            ),
-    
-          ],
-        ),
-      ),
-    );
+    return Center(child: Padding(padding: const EdgeInsets.all(32)));
   }
-  
 
-  
-  /// 无结果视图
-  Widget _buildNoResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '未找到相关用户',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[500],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '请检查输入是否正确',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[400],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
   /// 好友分组选择卡片
   Widget _buildGroupSelectionCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () {
+        _showMoveGroupDialog();
+      },
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String?>(
-                  value: _selectedGroupId,
-                  isExpanded: true,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  hint: const Text('好友分组'),
-                  items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('好友分组'),
-                    ),
-                    ..._groups.map((group) {
-                      final groupIdInt = int.tryParse(group.id);
-                      if (groupIdInt != null && groupIdInt > 0) {
-                        return DropdownMenuItem<String?>(
-                          value: group.id,
-                          child: Text(group.name),
-                        );
-                      }
-                      return null;
-                    }).where((item) => item != null).cast<DropdownMenuItem<String?>>(),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGroupId = value;
-                    });
-                  },
-                ),
-              ),
+            Text(
+              '好友分组',
+              style: TextStyle(fontSize: 16, color: GbsColors.des1Color),
+            ),
+            Spacer(),
+            Text(
+              _selectedGroup != null ? _selectedGroup!.name : '',
+              style: TextStyle(fontSize: 14, color: GbsColors.des6Color),
+            ),
+            SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios_sharp,
+              size: 12,
+              color: GbsColors.des6Color,
             ),
           ],
-        
+        ),
       ),
     );
   }
-  
+
   /// 添加好友按钮
   Widget _buildAddFriendButton(SearchUserModel user) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: () => _showAddFriendDialog(user),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          '添加好友',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+    return CommonButton(
+      enabled: true,
+      text: '添加好友',
+      onPressed: () {
+        _showAddFriendDialog(user);
+      },
     );
   }
-  
+
   /// 移出黑名单按钮
   Widget _buildBlacklistButton(SearchUserModel user) {
     return SizedBox(
@@ -655,48 +430,69 @@ class _AddFriendPageState extends State<AddFriendPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Text(
-             '已添加至黑名单,',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
+            Text(
+              '已添加至黑名单,',
+              style: TextStyle(fontSize: 16, color: GbsColors.des6Color),
             ),
-          ),
-          SizedBox(width: 8),
-          Text(
-           '移出黑名单',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue 
-          ),
+            SizedBox(width: 8),
+            Text(
+              '移出黑名单',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: GbsColors.darkPrimaryButton,
+              ),
+            ),
+          ],
         ),
-        ],)
       ),
     );
   }
-  
+
+  // 调整分组
+  void _showMoveGroupDialog() async {
+    gbs.shower.showScreenViewCustom(
+      context,
+      400,
+      Container(
+        width: Get.width,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: GbsColors.lightBackgroundB,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: FriendGroupSelectView(
+          onItemClick: (value) {
+            if (mounted) {
+              setState(() {
+                _selectedGroup = value;
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   /// 用户卡片
   Widget _buildUserCard(SearchUserModel user) {
     return Container(
+      height: 70,
+      padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // 头像
-            CircleAvatar(
+      child: Row(
+        children: [
+          // 头像
+          SizedBox(
+            width: 40,
+            height: 40,
+            child: CircleAvatar(
               radius: 28,
               backgroundColor: Colors.blue[100],
               backgroundImage: (user.avatar != null && user.avatar!.isNotEmpty)
@@ -715,62 +511,48 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
-            
-            // 用户信息
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          user.nickname,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 8),
+          // 用户信息
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        user.nickname,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (user.gender != null) ...[
-                        const SizedBox(width: 6),
-                        Icon(
-                          user.gender == 1 ? Icons.male : Icons.female,
-                          size: 16,
-                          color: user.gender == 1 ? Colors.blue : Colors.pink,
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  if (user.accountId != null && user.accountId!.isNotEmpty)
-                    Text(
-                      'ID: ${user.accountId}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 13,
-                      ),
-                    ),
-                  if (user.signature != null && user.signature!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      user.signature!,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
+                ),
+                const SizedBox(height: 4),
+                if (user.accountId != null && user.accountId!.isNotEmpty)
+                  Text(
+                    'ID: ${user.accountId}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                if (user.signature != null && user.signature!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    user.signature!,
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

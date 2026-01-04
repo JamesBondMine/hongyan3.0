@@ -34,12 +34,14 @@ class _GroupChatPageState extends State<GroupChatPage> {
   final MessageDatabase _messageDatabase = MessageDatabase();
   List<Map<String, dynamic>> _groupMembers = [];
   bool? _isMuted; // 是否禁言
+  bool _isDisturb = false; // 是否免打扰
 
   @override
   void initState() {
     super.initState();
     _loadGroupMembers();
     _loadGroupInfo();
+    _loadGroupDisturbStatus();
   }
 
   Future<void> _loadGroupMembers() async {
@@ -187,6 +189,20 @@ class _GroupChatPageState extends State<GroupChatPage> {
     }
   }
 
+  // 获取免打扰状态
+  Future<void> _loadGroupDisturbStatus() async {
+    try {
+      GroupController.to.loadDisturbStatus(widget.groupId, (disturb) {
+      // 获取到的免打扰状态
+      if (mounted) {
+        setState(() => _isDisturb = disturb);
+      }
+    });
+    } catch (e) {
+      
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 直接使用 ChatPage，传入自定义导航栏以避免双 AppBar
@@ -233,12 +249,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
       popviewItem(context, '搜索聊天', 'msgitemchat', () {
         print('发起群聊');
       }),
-      popviewItem(context, '免打扰', 'msgitemdistunb', () {
-        GroupController.to.setGroupDisturb(
+      popviewItem(context, _isDisturb ? '取消免打扰' : '免打扰', 'msgitemdistunb', () async{
+        await GroupController.to.setGroupDisturb(
           widget.groupId,
           !(_isMuted ?? false),
         );
-        print('发起群聊');
+        _loadGroupDisturbStatus();
       }),
       popviewItem(context, '更多设置', 'msgitemmore', () {
         Navigator.of(context).push(

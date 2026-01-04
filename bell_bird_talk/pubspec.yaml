@@ -137,6 +137,8 @@ flutter:
     - assets/img/friend/
     - assets/img/group/
     - assets/img/community/
+    - assets/img/noti/
+    
 
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

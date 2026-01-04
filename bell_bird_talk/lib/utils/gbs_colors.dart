@@ -11,7 +11,7 @@ class GbsColors {
   // ===========================================================================
 
   /// 页面背景主色A - 主要背景色
-  static const Color lightBackgroundA = Color(0xFFF3F3F3);
+  static const Color lightBackgroundA = Color.fromARGB(255, 240, 240, 240);
 
   /// 页面背景主色B - 次要背景色
   static const Color lightBackgroundB = Color(0xFFFFFFFF);

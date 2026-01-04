@@ -272,6 +272,7 @@ typedef void (^IMSDKGroupCompletion)(int errorCode, uint64_t reqId, NSString * _
 /// @param completion 结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
+userId:(NSString *)userId
                              completion:(IMSDKGroupCompletion)completion;
 
 

@@ -9,7 +9,6 @@ import 'package:bell_bird_talk/pages/friends/friend_groups_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/group_list_page.dart';
 import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
-import 'package:bell_bird_talk/pages/friends/views/move_to_sheet_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -17,23 +16,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../../../controllers/global_controller.dart';
 import '../../../services/native_bridge.dart';
 import '../../../services/message_database.dart';
-import 'friend_requests_page.dart';
+import '../views/friend_requests_page.dart';
 
 /// 好友列表页面
-class FriendsPage extends StatefulWidget {
-  const FriendsPage({super.key});
+class FriendsHomePage extends StatefulWidget {
+  const FriendsHomePage({super.key});
 
   @override
-  State<FriendsPage> createState() => _FriendsPageState();
+  State<FriendsHomePage> createState() => _FriendsHomePageState();
 }
 
-class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStateMixin {
+class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProviderStateMixin {
   final IOSNativeService _nativeService = IOSNativeService();
   final MessageDatabase _messageDatabase = MessageDatabase();
+
+  // 子页面刷新
+  final GlobalKey<FriendGroupsPageState> _friendGroupsPageKey = GlobalKey();
   
   // 好友申请
   final List<FriendRequestModel> _friendRequests = [];
@@ -140,7 +141,9 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
         color: GbsColors.lightAppBarColorA,
         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
       ),
-       child: AddFriendGroupPage(),));
+       child: AddFriendGroupPage(onAddGroup: () { 
+        _friendGroupsPageKey.currentState?.refresh();
+        },),));
   }
 
 
@@ -162,7 +165,10 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           _showGroupSettings();
         },
         onDeleteGroup: _deleteGroup,
-        onUpdateGroup: _updateGroup,
+        onUpdateGroup: (group) async {
+          // 刷新好友分组
+          _friendGroupsPageKey.currentState?.refresh();
+        },
       ),
     );
   }
@@ -203,110 +209,16 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
       final result = await _nativeService.imDeleteContactGroup(groupId: gid);
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('分组已删除');
-        await _loadContactGroups();
         if (_selectedGroupId == group.id) {
           _selectedGroupId = 'all';
-          // await _loadFriends(refresh: true);
         }
+        // 刷新好友分组
+        _friendGroupsPageKey.currentState?.refresh();
       } else {
         EasyLoading.showError(result['message'] ?? '删除失败');
       }
     } catch (e) {
       EasyLoading.showError('删除失败，请稍后重试');
-    }
-  }
-
-  Future<void> _updateGroup(FriendGroup group) async {
-    final controller = TextEditingController(text: group.name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('修改分组名称'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: '请输入新的分组名称'),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-            TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
-          ],
-        );
-      },
-    );
-    if (newName == null) return;
-    if (newName.isEmpty) {
-      EasyLoading.showError('分组名称不能为空');
-      return;
-    }
-    if (newName == group.name) return;
-
-    EasyLoading.show(status: '更新分组中...');
-    try {
-      final gid = int.tryParse(group.id) ?? 0;
-      final result = await _nativeService.imUpdateContactGroup(
-        groupId: gid,
-        groupName: newName,
-      );
-      if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组已更新');
-        await _loadContactGroups();
-      } else {
-        EasyLoading.showError(result['message'] ?? '更新失败');
-      }
-    } catch (e) {
-      EasyLoading.showError('更新失败，请稍后重试');
-    }
-  }
-
-
-  // 以下方法已迁移到子页面，保留仅为兼容性（可删除）
-  // ignore: unused_element
-  Future<void> _loadContactGroups() async {
-    try {
-      final result = await _nativeService.imGetContactGroups(
-        page: 1,
-        pageSize: 100,
-      );
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          final data = json.decode(dataStr);
-          final groupsJson = data['groups'] as List? ?? [];
-          
-          setState(() {
-            // 保留默认分组
-            final defaultGroups = _groups.where((g) => g.isDefault).toList();
-            _groups.clear();
-            _groups.addAll(defaultGroups);
-            
-            // 更新"全部"分组的数量
-            if (_friends.isNotEmpty) {
-              final allGroup = _groups.firstWhere((g) => g.id == 'all', orElse: () => _groups.first);
-              allGroup.count = _friends.length;
-            }
-            
-            // 添加服务器返回的分组
-            for (var json in groupsJson) {
-              final group = FriendGroup.fromJson(json);
-              // 避免重复添加
-              if (!_groups.any((g) => g.id == group.id)) {
-                _groups.add(group);
-              }
-            }
-            
-            // 按 order 排序（默认分组除外）
-            final nonDefaultGroups = _groups.where((g) => !g.isDefault).toList();
-            nonDefaultGroups.sort((a, b) => a.order.compareTo(b.order));
-            _groups.removeWhere((g) => !g.isDefault);
-            _groups.addAll(nonDefaultGroups);
-          });
-          
-          print('✅ 加载了 ${groupsJson.length} 个自定义分组');
-        }
-      }
-    } catch (e) {
-      print('❌ 获取联系人分组失败: $e');
     }
   }
 
@@ -472,7 +384,6 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
               ),
               // Tab Bar
               Container(
-                
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: Get.width * 0.45),
                 child: TabBar(
@@ -499,7 +410,9 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
             controller: _tabController,
             children: [
               FriendsListPage(),
-              FriendGroupsPage(onSettingGroup: (){
+              FriendGroupsPage(
+                key:  _friendGroupsPageKey,
+                onSettingGroup: (){
                 _showMoveToGroupDialog();
               }),
               GroupListPage(),

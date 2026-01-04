@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
 import '../services/native_bridge.dart';
-import 'friends/views/friends_page.dart';
+import 'friends/pages/friends_home_page.dart';
 import 'chat/chat_list_page.dart';
 import 'profile/profile_tab_page.dart';
 import 'community/pages/community_home_unjoin_page.dart';
@@ -89,7 +89,23 @@ class _HomePageState extends State<HomePage> {
         actionType: ActionType.Default,
         title: title,
         body: body,
-      )
+        notificationLayout: NotificationLayout.BigPicture,
+        bigPicture: 'asset://assets/img/noti/noti.png',
+      ),
+      actionButtons: [
+        NotificationActionButton(
+          key: 'REPLY',
+          label: '回复',
+        ),
+        NotificationActionButton(
+          key: 'DISMISS',
+          label: '忽略',
+          isDangerousOption: true,
+        ),
+      ],
+      schedule: NotificationInterval(
+        interval: Duration(seconds: 5),
+      ),
     );
   }
   
@@ -211,7 +227,7 @@ class _HomePageState extends State<HomePage> {
           // Tab 0: 聊天页面
           const ChatListPage(),
           // Tab 1: 好友页面
-          const FriendsPage(),
+          const FriendsHomePage(),
           // Tab 2: 社群页面
           GlobalController.to.joinedCommunitys.isEmpty ? const CommunityHomeUnjoinPage() : const CommunityHomeJoinedPage(),
           // Tab 3: 我的页面

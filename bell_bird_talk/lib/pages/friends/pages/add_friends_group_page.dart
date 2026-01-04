@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
-import 'package:bell_bird_talk/pages/friends/views/friends_page.dart';
+import 'package:bell_bird_talk/pages/friends/pages/friends_home_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -11,6 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class AddFriendGroupPage extends StatefulWidget {
+  AddFriendGroupPage({
+    required this.onAddGroup,
+  });
+
+  VoidCallback onAddGroup;
   @override
   State<StatefulWidget> createState() {
     return AddFriendGroupPageState();
@@ -153,80 +158,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
     });
   }
 
-  Future<void> _createGroup() async {
-    final groupName = _groupNameController.text.trim();
-    if (groupName.isEmpty) {
-      EasyLoading.showError('请输入分组名称');
-      return;
-    }
 
-    if (groupName.length > 10) {
-      EasyLoading.showError('分组名称不能超过10个字符');
-      return;
-    }
-
-    EasyLoading.show(status: '正在创建分组...');
-
-    try {
-      // 1. 创建分组
-      final result = await _nativeService.imCreateContactGroup(
-        groupName: groupName,
-      );
-
-      print('📁 创建联系人分组结果: $result');
-
-      if (result['errorCode'] == 0) {
-        // 2. 获取创建的分组ID
-        // 创建分组成功后，可能需要重新获取分组列表来获取新创建的分组ID
-        // 或者如果接口直接返回group_id，可以使用返回的ID
-        String? groupIdStr;
-        final dataStr = result['data'] as String?;
-        int? groupId;
-        
-        if (dataStr != null && dataStr.isNotEmpty) {
-          try {
-            final data = json.decode(dataStr) as Map<String, dynamic>;
-            groupIdStr = data['group_id']?.toString();
-            if (groupIdStr != null && groupIdStr.isNotEmpty) {
-              groupId = int.tryParse(groupIdStr);
-            }
-          } catch (e) {
-            print('解析分组ID失败: $e');
-          }
-        }
-
-        // 3. 如果有选中的好友且获取到了分组ID，将好友移动到新分组
-        if (_selectedFriendIds.isNotEmpty && groupId != null && groupId > 0) {
-          int successCount = 0;
-          for (final friendId in _selectedFriendIds) {
-            try {
-              final moveResult = await _nativeService.imMoveContactToGroup(
-                contactUserId: friendId,
-                groupId: groupId,
-              );
-              if (moveResult['errorCode'] == 0) {
-                successCount++;
-              }
-            } catch (e) {
-              print('移动好友到分组失败: $e');
-            }
-          }
-          print('✅ 已将 $successCount/${_selectedFriendIds.length} 个好友移动到新分组');
-        } else if (_selectedFriendIds.isNotEmpty) {
-          // 如果没有获取到分组ID，提示用户
-          print('⚠️ 无法获取分组ID，无法移动好友到新分组');
-        }
-
-        EasyLoading.showSuccess('分组创建成功');
-        Navigator.pop(context, true);
-      } else {
-        EasyLoading.showError(result['message'] ?? '创建失败');
-      }
-    } catch (e) {
-      print('创建分组错误: $e');
-      EasyLoading.showError('创建失败，请稍后重试');
-    }
-  }
 
   Future<void> _createGroupWithoutFriends(VoidCallback success) async {
     final groupName = _groupNameController.text.trim();
@@ -246,14 +178,11 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
       final result = await _nativeService.imCreateContactGroup(
         groupName: groupName,
       );
-
-      print('📁 创建联系人分组结果: $result');
-
       if (result['errorCode'] == 0) {
-        print('📁 创建联系人分组结果****123');
         EasyLoading.showSuccess('分组创建成功');
-        // 通知好友分组页刷新页面
-        FriendController.to.updateFriendGroupRefreshId();
+        widget.onAddGroup();
+        // // 通知好友分组页刷新页面
+        // FriendController.to.updateFriendGroupRefreshId();
         success();
       } else {
         EasyLoading.showError(result['message'] ?? '创建失败');

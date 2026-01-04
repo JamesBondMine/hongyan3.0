@@ -1239,10 +1239,12 @@ class IOSNativeService {
   /// @return 操作结果，data 中包含免打扰状态
   Future<Map<String, dynamic>> imGetGroupDisturbStatus({
     required String groupId,
+    required String userId,
   }) async {
     try {
       final result = await _bridge.invokeMethod<Map>('imGetGroupDisturbStatus', {
         'group_id': groupId,
+        'user_id': userId,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

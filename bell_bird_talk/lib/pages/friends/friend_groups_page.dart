@@ -16,10 +16,10 @@ class FriendGroupsPage extends StatefulWidget {
   VoidCallback onSettingGroup;
 
   @override
-  State<FriendGroupsPage> createState() => _FriendGroupsPageState();
+  State<FriendGroupsPage> createState() => FriendGroupsPageState();
 }
 
-class _FriendGroupsPageState extends State<FriendGroupsPage> {
+class FriendGroupsPageState extends State<FriendGroupsPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   
   final List<FriendGroup> _groups = [
@@ -51,6 +51,13 @@ class _FriendGroupsPageState extends State<FriendGroupsPage> {
       setState(() {
         _loadContactGroups();
       });
+    });
+  }
+
+  // 刷新
+  void refresh() {
+    setState(() {
+      _loadContactGroups();
     });
   }
 

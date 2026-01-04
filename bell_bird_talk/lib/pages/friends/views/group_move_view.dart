@@ -19,17 +19,7 @@ class GroupMoveView extends StatelessWidget {
 
   String _selectedItem = "";
 
-  List<String> items = [
-    "群组1",
-    "群组2",
-    "群组3",
-    "群组4",
-    "群组5",
-    "群组6",
-    "群组7",
-    "群组8",
-    "群组9",
-  ];
+  List<String> items = [];
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +109,116 @@ class GroupMoveView extends StatelessWidget {
       EasyLoading.dismiss();
     }
   }
+
+  // 获取分组数据
+  Future<List<FriendGroup>> _loadContactGroups() async {
+    List<FriendGroup> _groups = [];
+    try {
+      final result = await _nativeService.imGetContactGroups(
+        page: 1,
+        pageSize: 100,
+      );
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          final data = json.decode(dataStr);
+          final groupsJson = data['groups'] as List? ?? [];
+
+          for (var json in groupsJson) {
+            final group = FriendGroup.fromJson(json);
+            if (!_groups.any((g) => g.id == group.id)) {
+              _groups.add(group);
+            }
+          }
+        }
+      }
+      return _groups;
+    } catch (e) {
+      print('❌ 获取联系人分组失败: $e');
+      return [];
+    }
+  }
+}
+
+
+class FriendGroupSelectView extends StatelessWidget {
+  FriendGroupSelectView({Key? key, required this.onItemClick}) : super(key: key);
+
+  final ValueChanged<FriendGroup> onItemClick;
+  String contactUserId = "";
+  
+
+  final IOSNativeService _nativeService = IOSNativeService();
+
+  String _selectedItem = "";
+
+  List<String> items = [];
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      backgroundColor: GbsColors.lightAppBarColorA,
+      appBar: AppBar(
+        backgroundColor: GbsColors.lightAppBarColorA,
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+            
+              Padding(padding: EdgeInsetsGeometry.only(left: 10), child: Text(
+                '分组选择',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: GbsColors.des1Color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),)
+            ],
+          ),
+        ),
+      ),
+      body: FutureBuilder(
+        future: _loadContactGroups(),
+        builder: (context, AsyncSnapshot<List<FriendGroup>> snapshot) {
+          if (snapshot.hasData) {
+            final groups = snapshot.data;
+            if (groups != null && groups.isNotEmpty) {
+              return GetBuilder<FriendController>(
+                id: FriendController.to.friendGropRefreshId,
+                builder: (controller) {
+                return ListView.builder(
+                  itemCount: groups.length,
+                  itemBuilder: (context, index) {
+                    final group = groups[index];
+                    return Row(children: [
+                      Expanded(child: ListTile(
+                      title: Text(group.name),
+                      onTap: () {
+
+                        _selectedItem = group.id;
+                        controller.updateFriendGroupRefreshId();
+
+                        onItemClick(group);
+                        Navigator.pop(context);
+                      },
+                    ),),
+                    _selectedItem == group.id ? Icon(Icons.check, color: GbsColors.darkPrimaryButton,) : Container(),
+                    ],);
+                  },
+                );
+              });
+            }
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+
 
   // 获取分组数据
   Future<List<FriendGroup>> _loadContactGroups() async {

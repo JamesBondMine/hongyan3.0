@@ -57,7 +57,12 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     _groupName = widget.groupName;
     _groupAvatar = widget.groupAvatar;
     _loadMembers();
-    _loadDisturbStatus();
+    GroupController.to.loadDisturbStatus(widget.groupId, (disturb) {
+      // 获取到的免打扰状态
+      if (mounted) {
+        setState(() => _isDisturb = disturb);
+      }
+    });
   }
 
   Future<void> _loadMembers() async {
@@ -136,31 +141,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 
   
 
-  /// 加载群组免打扰状态
-  Future<void> _loadDisturbStatus() async {
-    final result = await _nativeService.imGetGroupDisturbStatus(groupId: widget.groupId);
-    if (!mounted) return;
-    if (result['errorCode'] == 0) {
-      final dataStr = result['data'] as String? ?? '';
-      if (dataStr.isNotEmpty) {
-        try {
-          final map = json.decode(dataStr) as Map<String, dynamic>;
-          // 根据返回的数据解析免打扰状态
-          // 假设返回格式为 {"disturb": true} 或 {"is_disturb": true}
-          final disturb = map['disturb'] as bool? ?? 
-                         map['is_disturb'] as bool? ?? 
-                         false;
-          if (mounted) {
-            setState(() {
-              _isDisturb = disturb;
-            });
-          }
-        } catch (e) {
-          print('解析免打扰状态失败: $e');
-        }
-      }
-    }
-  }
+  
 
 
   @override
@@ -175,7 +156,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         onRefresh: _loadMembers,
         child: ListView(
           children: [
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
             _buildMemberSection(),
             const SizedBox(height: 16),
             _buildSettingSection(),

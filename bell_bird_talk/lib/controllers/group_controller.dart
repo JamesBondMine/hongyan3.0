@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import '../services/native_bridge.dart';
@@ -303,6 +305,28 @@ class GroupController extends GetxController {
       EasyLoading.showSuccess(disturb ? '已开启免打扰' : '已关闭免打扰');
     } else {
       EasyLoading.showError(result['message']?.toString() ?? '设置失败');
+    }
+  }
+
+
+  /// 加载群组免打扰状态
+  Future<void> loadDisturbStatus(String groupId, ValueChanged<bool> onDisturbChanged) async {
+    final result = await _nativeService.imGetGroupDisturbStatus(groupId: groupId, userId: GlobalController.to.currentUser.value?.id ?? '');
+    if (result['errorCode'] == 0) {
+      final dataStr = result['data'] as String? ?? '';
+      if (dataStr.isNotEmpty) {
+        try {
+          final map = json.decode(dataStr) as Map<String, dynamic>;
+          // 根据返回的数据解析免打扰状态
+          // 假设返回格式为 {"disturb": true} 或 {"is_disturb": true}
+          final disturb = map['disturb'] as bool? ?? 
+                         map['is_disturb'] as bool? ?? 
+                         false;
+                         onDisturbChanged(disturb);
+        } catch (e) {
+          print('解析免打扰状态失败: $e');
+        }
+      }
     }
   }
 }

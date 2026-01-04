@@ -18,6 +18,11 @@ import netinet_in
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+
+    DispatchQueue.main.async {
+        UIApplication.shared.applicationIconBadgeNumber = 0
+    }
+    
     GeneratedPluginRegistrant.register(with: self)
     
     // 设置 Flutter 与原生通信
@@ -1817,9 +1822,10 @@ class NativeBridgeHandler: NSObject {
             return
         }
         
-        print("📁 查询群组免打扰状态: groupId=\(groupId)")
+        let userId = args["user_id"] as? String
+        print("📁 查询群组免打扰状态: groupId=\(groupId) userId=\(userId)")
         
-        let code = IMSDKGroupManager.shared().getGroupDisturbStatus(withGroupId: groupId) { errorCode, reqId, data in
+        let code = IMSDKGroupManager.shared().getGroupDisturbStatus(withGroupId: groupId, userId: userId!) { errorCode, reqId, data in
             print("📁 查询群组免打扰状态回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
                 "errorCode": errorCode,
