@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
-import 'package:bell_bird_talk/pages/friends/group_settings_sheet.dart';
-import 'package:bell_bird_talk/pages/friends/views/move_to_sheet_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
-import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +29,6 @@ class _FriendsListPageState extends State<FriendsListPage> {
   // 分组头部的位置映射（letter -> GlobalKey）
   final Map<String, GlobalKey> _groupHeaderKeys = {};
 
-  final IOSNativeService _nativeService = IOSNativeService();
-  
   bool _isLoading = false;
   int _currentPage = 1;
   final int _pageSize = 20;
@@ -45,7 +40,6 @@ class _FriendsListPageState extends State<FriendsListPage> {
   void initState() {
     super.initState();
     _loadFriends();
-    _loadContactGroups();
     
     final globalCtrl = Get.find<GlobalController>();
     _refreshFriendListWorker = ever(
@@ -277,10 +271,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
   }
 
   Widget _buildFriendItem(FriendModel friend) {
-    return GestureDetector(onLongPress: () {
-      _showMoveToGroupDialog(friend);
-    },
-    child: Container(
+    return  Container(
       color: Colors.white,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -322,20 +313,12 @@ class _FriendsListPageState extends State<FriendsListPage> {
           ],
         ),
         title: Text(
-          '${friend.nickname} ${friend.remark==null || friend.remark!.isEmpty || friend.remark != friend.nickname ? "(${friend.remark})" : ""}',
+          friend.nickname,
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
-        // subtitle: friend.accountId != null && friend.accountId!.isNotEmpty
-        //     ? Text(
-        //         'ID: ${friend.accountId}  ${friend.displayName}',
-        //         style: TextStyle(color: Colors.grey[500], fontSize: 13),
-        //         maxLines: 1,
-        //         overflow: TextOverflow.ellipsis,
-        //       )
-        //     : null,
         onTap: () => _showFriendDetail(friend),
       ),
-    ),);
+    );
   }
 
   void _showFriendDetail(FriendModel friend) async {
@@ -445,122 +428,6 @@ class _FriendsListPageState extends State<FriendsListPage> {
           ),
       ],
     );
-  }
-
-    // 以下方法已迁移到子页面，保留仅为兼容性（可删除）
-  // ignore: unused_element
-  Future<void> _loadContactGroups() async {
-    try {
-      final result = await _nativeService.imGetContactGroups(
-        page: 1,
-        pageSize: 100,
-      );
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          final data = json.decode(dataStr);
-          final groupsJson = data['groups'] as List? ?? [];
-          
-            // 添加服务器返回的分组
-            for (var json in groupsJson) {
-              final group = FriendGroup.fromJson(json);
-              // 避免重复添加
-              if (!friendGroups.any((g) => g.id == group.id)) {
-                friendGroups.add(group);
-              }
-            }
-          
-          print('✅ 加载了 ${groupsJson.length} 个自定义分组');
-        }
-      }
-    } catch (e) {
-      print('❌ 获取联系人分组失败: $e');
-    }
-  }
-
-  /// 显示移动到分组弹窗
-  Future<void> _showMoveToGroupDialog(FriendModel friend) async {
-    // 获取好友当前所在的分组ID（从数据库查询）
-    String? currentGroupId;
-    try {
-      final userId = Get.find<GlobalController>().currentUser.value?.id;
-      if (userId != null) {
-        final contactData = await MessageDatabase().getContact(userId, friend.id);
-        if (contactData != null && contactData['group_id'] != null) {
-          currentGroupId = contactData['group_id'].toString();
-        }
-      }
-    } catch (e) {
-      print('获取好友分组失败: $e');
-    }
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => MoveToGroupSheet(
-        friend: friend,
-        groups: friendGroups,
-        currentGroupId: currentGroupId,
-        onMoveToGroup: (groupId) => _moveFriendToGroup(friend, groupId),
-        onShowGroupSettings: () {
-          Navigator.pop(context); // 关闭移动到分组弹窗
-          _showGroupSettings(); // 打开分组管理弹窗
-        },
-      ),
-    );
-  }
-
-  /// 显示分组设置
-  void _showGroupSettings() {
-    // showModalBottomSheet(
-    //   context: context,
-    //   isScrollControlled: true,
-    //   shape: const RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    //   ),
-    //   builder: (context) => GroupSettingsSheet(
-    //     groups: _groups,
-    //     onAddGroup: _addGroup,
-    //     onDeleteGroup: _deleteGroup,
-    //     onUpdateGroup: _updateGroup,
-    //   ),
-    // );
-  }
-  
-  /// 移动好友到分组
-  Future<void> _moveFriendToGroup(FriendModel friend, String groupId) async {
-    EasyLoading.show(status: '正在移动...');
-    
-    try {
-      // 将 groupId 转换为 int（如果是 'all' 则传 0 表示移除分组）
-      int targetGroupId = 0;
-      if (groupId != 'all' && groupId != 'special') {
-        final parsedId = int.tryParse(groupId);
-        if (parsedId != null && parsedId > 0) {
-          targetGroupId = parsedId;
-        }
-      }
-      
-      // 调用移动联系人到分组的方法
-      final result = await _nativeService.imMoveContactToGroup(
-        contactUserId: friend.id,
-        groupId: targetGroupId,
-      );
-      
-      if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('移动成功');
-        // 刷新好友列表
-        await _loadFriends(refresh: true);
-      } else {
-        EasyLoading.showError(result['message'] ?? '移动失败');
-      }
-    } catch (e) {
-      print('移动好友到分组错误: $e');
-      EasyLoading.showError('移动失败，请稍后重试');
-    }
   }
 }
 
