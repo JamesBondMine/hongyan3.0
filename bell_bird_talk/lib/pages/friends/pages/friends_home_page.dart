@@ -382,10 +382,24 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                   }
                 },
               ),
+              Container(
+                height: 8,
+                width: Get.width,
+                color: Color(0xffF3F3F3),
+              ),
               // Tab Bar
               Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(right: Get.width * 0.45),
+                decoration: BoxDecoration(
+                  // color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Color(0xffE9E9E9),
+                      width: 1,
+                    ),
+                  ),
+                ),
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: false,
@@ -393,6 +407,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: GbsColors.lightPrimaryButton,
                   indicatorSize: TabBarIndicatorSize.label,
+                  indicatorPadding: const EdgeInsets.only(left: 4, bottom: 0),
                   dividerHeight: 0,
                   tabs: const [
                     Tab(text: '好友'),
@@ -472,11 +487,11 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
+              // decoration: BoxDecoration(
+              //   color: iconBgColor,
+              //   borderRadius: BorderRadius.circular(10),
+              // ),
+              child: Image.asset('assets/img/friend/friend_new.png', width: 22,height: 22,),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -492,7 +507,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.red,
+                  color: GbsColors.darkPrimaryButton,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -505,7 +520,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                 ),
               ),
             const SizedBox(width: 8),
-            Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+            // Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
           ],
         ),
       ),
