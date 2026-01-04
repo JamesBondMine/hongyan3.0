@@ -1,5 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_home_joined_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,7 @@ import '../services/native_bridge.dart';
 import 'friends/views/friends_page.dart';
 import 'chat/chat_list_page.dart';
 import 'profile/profile_tab_page.dart';
-import 'community/community_page.dart';
+import 'community/pages/community_home_unjoin_page.dart';
 
 /// 首页（带底部 TabBar）
 class HomePage extends StatefulWidget {
@@ -36,6 +37,18 @@ class _HomePageState extends State<HomePage> {
 
     // 注册本地通知
     _registerLocalNotification();
+
+    _registerListeners();
+  }
+
+  // 注册业务监听
+  void _registerListeners() {
+    _globalCtrl.addListenerId(_globalCtrl.communityTabRefreshId, (){
+      // 刷新社区列表
+      setState(() {
+        // 触发刷新
+      });
+    });
   }
 
   // 注册本地通知
@@ -200,7 +213,7 @@ class _HomePageState extends State<HomePage> {
           // Tab 1: 好友页面
           const FriendsPage(),
           // Tab 2: 社群页面
-          const CommunityPage(),
+          GlobalController.to.joinedCommunitys.isEmpty ? const CommunityHomeUnjoinPage() : const CommunityHomeJoinedPage(),
           // Tab 3: 我的页面
           const ProfileTabPage(),
         ],

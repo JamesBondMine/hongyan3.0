@@ -63,7 +63,7 @@ class GbsColors {
   static const Color lightBorder = Color(0xFFE0E0E0);
 
   /// 分割线颜色
-  static const Color lightDivider = Color(0xFFE0E0E0);
+  static const Color lightDivider = Color(0xFFE9E9E9);
 
   /// 禁用状态颜色
   static final Color lightDisabled = const Color(0xFF1D61E7).withOpacity(0.5);

@@ -1,0 +1,79 @@
+
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_child_page.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:flutter/material.dart';
+
+class CommunityHomeJoinedPage extends StatefulWidget {
+  const CommunityHomeJoinedPage({Key? key}) : super(key: key);
+
+  @override
+  _CommunityHomeJoinedPageState createState() => _CommunityHomeJoinedPageState();
+}
+
+class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
+  int _selectedCommunityIndex = 0;
+  List<CommunityModel> communities = []; // 示例社群列表
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    communities = GlobalController.to.joinedCommunitys;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: GbsColors.lightBackgroundA,
+      body: Row(
+        children: [
+          // 左侧社群列表
+          Container(
+            width: 80,
+            color: GbsColors.lightBackgroundA,
+            child: ListView.builder(
+              itemCount: communities.length,
+              itemBuilder: (context, index) {
+                bool isSelected = index == _selectedCommunityIndex;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedCommunityIndex = index;
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? GbsColors.lightPrimaryButton : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected
+                          ? const Border(left: BorderSide(color: Colors.white, width: 3))
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        communities[index].name,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // 右侧内容
+          Expanded(
+            child:CommunityChildPage() ,
+          ),
+        ],
+      ),
+    );
+  }
+}

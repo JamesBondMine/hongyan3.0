@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
@@ -57,6 +58,18 @@ class GlobalController extends GetxController {
   
   /// 触发聊天列表刷新
   void triggerChatListRefresh() => refreshChatList.value++;
+
+
+  /// 社群相关
+  
+  // 已经加入的社群
+  List<CommunityModel> joinedCommunitys = [];
+
+  // 刷新tab
+  String communityTabRefreshId = 'communityTabRefreshId';
+  void updatecommunityTabRefresh() {
+    update([communityTabRefreshId]);
+  }
   
   /// 触发所有列表刷新
   void triggerAllListRefresh() {

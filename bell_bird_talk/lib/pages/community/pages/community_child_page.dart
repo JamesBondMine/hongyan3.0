@@ -1,0 +1,192 @@
+
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:flutter/material.dart';
+
+class CommunityChildPage extends StatefulWidget {
+  const CommunityChildPage({super.key});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _CommunityChildPageState();
+  }
+  
+}
+
+class _CommunityChildPageState extends State<CommunityChildPage> {
+  Map<String, List<String>> categories = {
+    '文字频道': ['情感频道', '理财频道', '科技频道'],
+    '语音频道': ['语音聊天1', '语音聊天2'],
+    '分类C': ['频道5', '频道6'],
+  };
+  
+  // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
+  String? _expandedCategory;
+
+  // 分类图标映射
+  Map<String, IconData> categoryIcons = {
+    '文字频道': Icons.book,
+    '语音频道': Icons.mic,
+    '分类C': Icons.category,
+  };
+
+  // 获取频道图标
+  IconData getChannelIcon(String category, String channel) {
+    if (category == '文字频道') {
+      return Icons.tag; // # 符号
+    } else if (category == '语音频道') {
+      return Icons.volume_up;
+    } else {
+      return Icons.chat;
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(child:  Scaffold(
+      backgroundColor: GbsColors.lightBackgroundB,
+      body: _bodyView(),));
+  }
+  Widget _bodyView() { 
+    return Column(
+              children: [
+                // 头部
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  // color: Colors.red,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          
+                        },
+                        child: Padding(padding: EdgeInsets.only(top: 16, bottom: 16), child: Row(
+                        children: [
+                          Text(
+                            '服务器选择',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Icon(Icons.arrow_drop_down),
+                        ],
+                      ),),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          // 处理添加频道点击
+                        },
+                        child: Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Icon(Icons.add),),
+                      ),
+                    ],
+                  ),
+                ),
+                // 分类列表
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories.keys.elementAt(index);
+                      final channels = categories[category]!;
+                      final isExpanded = _expandedCategory == category;
+                      
+                      return _buildCategorySection(category, channels, isExpanded);
+                    },
+                  ),
+                ),
+              ],
+            );
+  }
+  
+  /// 构建分类区域
+  Widget _buildCategorySection(String category, List<String> channels, bool isExpanded) {
+    return ExpansionTile(
+      key: ValueKey('category_$category'),
+      initiallyExpanded: false,
+      backgroundColor: GbsColors.lightBackgroundB,
+      collapsedBackgroundColor: GbsColors.lightBackgroundB,
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      childrenPadding: EdgeInsets.zero,
+      shape: ShapeBorder.lerp(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(0),
+        ),
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(0),
+        ),
+        0,
+      ),
+      onExpansionChanged: (expanded) {
+        setState(() {
+          if (expanded) {
+            _expandedCategory = category; // 展开当前分类
+          } else {
+            _expandedCategory = null; // 关闭当前分类
+          }
+        });
+      },
+      // leading: Icon(
+      //   categoryIcons[category] ?? Icons.category,
+      //   color: GbsColors.lightTitlePrimary,
+      //   size: 20,
+      // ),
+      title: Text(
+        category,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: GbsColors.lightTitlePrimary,
+        ),
+      ),
+      // subtitle: Text(
+      //   '${channels.length}个频道',
+      //   style: TextStyle(
+      //     fontSize: 12,
+      //     color: GbsColors.des6Color,
+      //   ),
+      // ),
+      children: channels.map((channel) => _buildChannelItem(category, channel)).toList(),
+    );
+  }
+  
+  /// 构建频道项
+  Widget _buildChannelItem(String category, String channel) {
+    return InkWell(
+      onTap: () {
+        // 处理频道点击
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('点击了 $channel')),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: GbsColors.lightBackgroundB,
+          border: Border(
+            bottom: BorderSide(color: GbsColors.lightDivider, width: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              getChannelIcon(category, channel),
+              size: 16,
+              color: GbsColors.des6Color,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                channel,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: GbsColors.lightTitlePrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+}

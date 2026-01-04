@@ -1,7 +1,7 @@
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'models/community_model.dart';
+import '../models/community_model.dart';
 
 /// 社群详情页面
 class CommunityDetailPage extends StatelessWidget {
