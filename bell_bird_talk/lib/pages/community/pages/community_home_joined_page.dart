@@ -43,9 +43,20 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                       _selectedCommunityIndex = index;
                     });
                   },
-                  child: Container(
+                  child: Row(children: [
+                    Container(
+                      width: 4,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)),
+                        color: isSelected ? GbsColors.lightPrimaryButton : Colors.transparent,),
+                    ),
+                    Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    padding: const EdgeInsets.all(8),
+                    width: 44,
+                    height: 44,
+                    // padding: const EdgeInsets.all(8),
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isSelected ? GbsColors.lightPrimaryButton : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
@@ -54,16 +65,15 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                           : null,
                     ),
                     child: Center(
-                      child: Text(
-                        communities[index].name,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
+                      child: Image.asset(
+                        width: 32,
+                        height: 32,
+                        'assets/img/community/cunty_logo.png',
                       ),
+                    
                     ),
-                  ),
+                  )
+                  ],),
                 );
               },
             ),
