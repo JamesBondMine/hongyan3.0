@@ -1,6 +1,10 @@
+import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
+import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CommunityChildPage extends StatefulWidget {
   const CommunityChildPage({super.key});
@@ -131,6 +135,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
                   InkWell(
                     onTap: () {
                       // 处理添加频道点击
+                      _showAddMemberView();
                     },
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 6),
@@ -161,6 +166,25 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
         ),
       ],
     );
+  }
+
+  void _showAddMemberView(){
+    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
+      width: Get.width,
+      // padding: EdgeInsets.only(top: 12),
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: CommunityInvatePage(onConfirm: (value) {
+        if (value.isNotEmpty) {
+          // 添加群成员
+          // _showAddMemberDialog(value);
+        }
+        
+      },),
+    ));
   }
 
   /// 构建分类区域
