@@ -1,6 +1,7 @@
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
+import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
 import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
@@ -168,6 +169,46 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
     );
   }
 
+  // 频道设置
+  void _showChannelSettingView(){
+    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
+      width: Get.width,
+      // padding: EdgeInsets.only(top: 12),
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: CommunitySettingView(onConfirm: (value) {
+        switch (value) {
+          case 1:
+            _showAddMemberView();
+            break;
+          case 2:
+            // 处理社群设置
+            break;
+          case 3:
+            // 处理创建频道
+            break;
+          case 4:
+            // 处理创建分类
+            break;
+          case 5:
+            // 处理通知设置
+            break;
+          case 6:
+            // 处理隐私设置
+            break;
+          case 7:
+            // 处理离开社群
+            break;
+        }
+        
+      },),
+    ));
+  }
+
+  // 邀请好友
   void _showAddMemberView(){
     gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
       width: Get.width,
@@ -243,6 +284,9 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
   /// 构建频道项
   Widget _buildChannelItem(String category, String channel) {
     return InkWell(
+      onLongPress: () {
+        _showChannelSettingView();
+      },
       onTap: () {
         // 处理频道点击
         ScaffoldMessenger.of(

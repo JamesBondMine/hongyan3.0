@@ -111,6 +111,7 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
     return Scaffold(
       backgroundColor: GbsColors.lightAppBarColorB,
       appBar: AppBar(
+        backgroundColor: GbsColors.lightAppBarColorB,
         title: Text(
           '群成员 (${_members.length})',
           style: const TextStyle(
@@ -128,10 +129,10 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
                 children: [
                   Expanded(
                     child: Container(
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(left: 16, right: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: GbsColors.lightAppBarColorA,
+                        color: GbsColors.lightBackgroundB,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: GridView.builder(

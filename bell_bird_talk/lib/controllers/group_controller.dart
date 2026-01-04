@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import '../services/native_bridge.dart';
 import '../services/message_database.dart';
@@ -286,6 +287,22 @@ class GroupController extends GetxController {
         'has_more': false,
         'messages': [],
       };
+    }
+  }
+
+  // 群聊免打扰
+  /// 设置群组免打扰
+  Future<void> setGroupDisturb(String groupId, bool disturb) async {
+    EasyLoading.show(status: disturb ? '开启免打扰...' : '关闭免打扰...');
+    final result = await _nativeService.imSetGroupDisturb(
+      groupId: groupId,
+      disturb: disturb,
+    );
+
+    if (result['errorCode'] == 0) {
+      EasyLoading.showSuccess(disturb ? '已开启免打扰' : '已关闭免打扰');
+    } else {
+      EasyLoading.showError(result['message']?.toString() ?? '设置失败');
     }
   }
 }

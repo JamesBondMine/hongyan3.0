@@ -162,30 +162,13 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
-  /// 设置群组免打扰
-  Future<void> _setGroupDisturb(bool disturb) async {
-    EasyLoading.show(status: disturb ? '开启免打扰...' : '关闭免打扰...');
-    final result = await _nativeService.imSetGroupDisturb(
-      groupId: widget.groupId,
-      disturb: disturb,
-    );
-    if (!mounted) return;
-    if (result['errorCode'] == 0) {
-      EasyLoading.showSuccess(disturb ? '已开启免打扰' : '已关闭免打扰');
-      setState(() {
-        _isDisturb = disturb;
-      });
-    } else {
-      EasyLoading.showError(result['message']?.toString() ?? '设置失败');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final memberCount = _members.length;
     return Scaffold(
       backgroundColor: GbsColors.lightAppBarColorB,
       appBar: AppBar(
+        backgroundColor: GbsColors.lightAppBarColorB,
         title: const Text('群组设置',style: TextStyle(fontSize: 16, color: GbsColors.titleColor, fontWeight: FontWeight.w700),),
       ),
       body: RefreshIndicator(
@@ -194,88 +177,17 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           children: [
             const SizedBox(height: 20),
             _buildMemberSection(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildSettingSection(),
             const SizedBox(height: 20),
             _buildDangerZone(),
-            const SizedBox(height: 32),
-              SwitchListTile(
-          value: _isDisturb,
-          onChanged: (v) {
-            _setGroupDisturb(v);
-          },
-          title: const Text('消息免打扰'),
-          
-        ),
-        const SizedBox(height: 12),
-            _buildGroupHeader(memberCount),
-            
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGroupHeader(int memberCount) {
-    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
-    final isOwner = currentUserId.isNotEmpty && 
-                    _creatorUserId != null && 
-                    currentUserId == _creatorUserId;
-    return ListTile(
-      leading: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: Colors.blue.shade50,
-            backgroundImage: (_groupAvatar != null && _groupAvatar!.isNotEmpty)
-                ? NetworkImage(_groupAvatar!)
-                : null,
-            child: (_groupAvatar == null || _groupAvatar!.isEmpty)
-                ? Text(
-                    _groupName.isNotEmpty ? _groupName.characters.first : '#',
-                    style: const TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
-                  )
-                : null,
-          ),
-          if (isOwner) Positioned(
-            right: -4,
-            bottom: -4,
-            child: GestureDetector(
-              onTap: _pickAndUpdateAvatar,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.camera_alt, size: 16, color: Colors.blue),
-              ),
-            ),
-          ),
-        ],
-      ),
-      title: Text(
-        _groupName,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        '群ID: ${widget.groupId}  ·  成员 $memberCount 人',
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-      ),
-      trailing: isOwner ? IconButton(
-        icon: const Icon(Icons.edit),
-        onPressed: _editGroupName,
-      ) : null,
-    );
-  }
+
 
   Widget _buildMemberSection() {
     if (_loading && _members.isEmpty) {
@@ -300,6 +212,8 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final List<Widget> memberWidgets = _members.map((m) => _buildMemberItem(m)).toList();
     if (isOwner) {
       memberWidgets.add(_buildAddMemberButton());
+      memberWidgets.add(_buildRemoveMemberButton());
+      
     }
     
     return Container(
@@ -362,6 +276,40 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         )
       ],
     ),
+    );
+  }
+
+  Widget _buildRemoveMemberButton() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () {
+            // 显示选择移除成员的界面
+            _showSelectRemoveMemberDialog();
+          },
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.red.shade300, width: 2),
+            ),
+            child: Icon(
+              Icons.remove,
+              color: Colors.red.shade700,
+              size: 24,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          ' ',
+          style: TextStyle(fontSize: 12, color: Colors.red),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -537,7 +485,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         ),
         const SizedBox(height: 4),
         const Text(
-          '添加',
+          ' ',
           style: TextStyle(fontSize: 12, color: Colors.blue),
           textAlign: TextAlign.center,
         ),
@@ -631,7 +579,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     },
     child: Container(
           height: 52,
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          margin: EdgeInsets.only(left: 16, right: 16, bottom: 16),
           padding: EdgeInsets.symmetric(horizontal: 10),
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -1431,4 +1379,64 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     }
   }
 
+  void _showSelectRemoveMemberDialog() {
+    // 过滤掉自己，因为不能移除自己
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    final removableMembers = _members.where((m) {
+      final userId = (m['user_id'] as String?) ?? '';
+      return userId.isNotEmpty && userId != currentUserId;
+    }).toList();
+
+    if (removableMembers.isEmpty) {
+      EasyLoading.showInfo('没有可移除的成员');
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('选择要移除的成员'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: removableMembers.length,
+            itemBuilder: (context, index) {
+              final member = removableMembers[index];
+              final userId = (member['user_id'] as String?) ?? '';
+              final nickname = (member['nickname'] as String?) ?? '';
+              final alias = (member['member_alias'] as String?) ?? '';
+              final avatar = (member['avatar'] as String?) ?? '';
+              final displayName = nickname.isNotEmpty ? nickname : (alias.isNotEmpty ? alias : userId);
+
+              return ListTile(
+                leading: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey.shade300,
+                  backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                  child: avatar.isEmpty
+                      ? Text(
+                          displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                          style: const TextStyle(color: Colors.white),
+                        )
+                      : null,
+                ),
+                title: Text(displayName),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showRemoveMemberDialog(userId);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
 }

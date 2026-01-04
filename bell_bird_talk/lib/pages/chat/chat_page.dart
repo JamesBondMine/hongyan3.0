@@ -1120,22 +1120,7 @@ class _ChatPageState extends State<ChatPage> {
 
     if (_messages.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              '暂无消息',
-              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '发送一条消息开始聊天吧',
-              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-            ),
-          ],
-        ),
+       
       );
     }
 

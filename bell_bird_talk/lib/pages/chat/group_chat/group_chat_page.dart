@@ -189,27 +189,27 @@ class _GroupChatPageState extends State<GroupChatPage> {
         backgroundColor: GbsColors.lightAppBarColorA,
         title: Text(widget.groupName),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => GroupDetailPage(
-                    groupId: widget.groupId,
-                    groupName: widget.groupName,
-                    groupAvatar: widget.groupAvatar,
-                  ),
-                ),
-              );
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.more_horiz),
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(
+          //         builder: (_) => GroupDetailPage(
+          //           groupId: widget.groupId,
+          //           groupName: widget.groupName,
+          //           groupAvatar: widget.groupAvatar,
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
           CustomPopup(
           // contentPadding: EdgeInsets.only(right: 16),
   content: Column(
   mainAxisSize: MainAxisSize.min,
     children: _buildAppBarActions()
   ),
-  child: Image.asset('assets/img/chat/chatadd.png', width: 24, height: 24),
+  child: Image.asset('assets/img/msg/msgmore.png', width: 24, height: 24),
 ),SizedBox(width: 16,)
         ],
       ),
@@ -231,8 +231,18 @@ class _GroupChatPageState extends State<GroupChatPage> {
         popviewItem(context, '搜索聊天', 'msgitemchat', () {
         print('发起群聊'); }),
         popviewItem(context, '免打扰', 'msgitemdistunb', () {
+          GroupController.to.setGroupDisturb(widget.groupId, !(_isMuted ?? false));
         print('发起群聊'); }),
         popviewItem(context, '更多设置', 'msgitemmore', () {
+          Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => GroupDetailPage(
+                    groupId: widget.groupId,
+                    groupName: widget.groupName,
+                    groupAvatar: widget.groupAvatar,
+                  ),
+                ),
+              );
         print('发起群聊'); })
     ];
   }
