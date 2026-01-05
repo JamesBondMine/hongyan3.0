@@ -1,4 +1,4 @@
-import 'package:bell_bird_talk/pages/notification/notification_page.dart';
+import 'package:bell_bird_talk/pages/notification/notification_home_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,10 +71,6 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
           const Divider(height: 1, indent: 56),
           _buildSettingItem(Icons.security, '账号安全', () {
             Get.to(() => const SecuritySettingsPage());
-          }),
-          const Divider(height: 1, indent: 56),
-          _buildSettingItem(Icons.notifications_outlined, '消息通知', () {
-            Get.to(() => const NotificationPage());
           }),
 
         ],

@@ -33,12 +33,6 @@ class NotiController extends GetxController {
     update([notificationBarRefreshId]);
   } 
 
-  @override
-  void onInit() {
-    super.onInit();
-    // refresh();
-  }
-
   
 
   /// 加载未读数量
@@ -50,7 +44,6 @@ class NotiController extends GetxController {
         try {
           final map = json.decode(dataStr) as Map<String, dynamic>;
           unreadCount = (map['total_unread'] as num?)?.toInt() ?? 0;
-          update();
         } catch (_) {
           // ignore parse error
         }
@@ -61,40 +54,34 @@ class NotiController extends GetxController {
   }
 
   /// 加载通知列表
-  Future<void> loadList() async {
-    loading = true;
-    update();
-    
-    final result = await _nativeService.imPullNotifications(page: 1, pageSize: 50);
-    if (result['errorCode'] == 0) {
-      final dataStr = result['data'] as String? ?? '';
-      if (dataStr.isNotEmpty) {
-        try {
+  /// [state] 0=全部, 1=未读, 2=已读
+  /// [page] 页码
+  /// 返回当前状态的通知列表
+  Future<List<Map<String, dynamic>>> loadList(int state, int page) async {
+    try {
+      loading = true;
+      final result = await _nativeService.imPullNotifications(state: state, page: page, pageSize: 10);
+      loading = false;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
           final map = json.decode(dataStr) as Map<String, dynamic>;
           final list = (map['notifications'] as List?) ?? [];
-          items = list
+          return list
               .map((e) => _mapNotification((e as Map).cast<String, dynamic>()))
               .toList();
-        } catch (e) {
-          EasyLoading.showError('解析通知失败');
-          items = [];
         }
       } else {
-        items = [];
+        EasyLoading.showError(result['message']?.toString() ?? '获取通知失败');
       }
-    } else {
-      EasyLoading.showError(result['message']?.toString() ?? '获取通知失败');
-      items = [];
-    }
-    
-    loading = false;
-    update();
-  }
 
-  /// 切换Tab
-  void switchTab(int index) {
-    selectedTab = index;
-    update([notificationBarRefreshId, notificationDataListRefreshId]);
+      return [];
+    } catch (e) {
+      loading = false;
+      EasyLoading.showError('加载通知失败');
+      return [];
+    }
   }
 
   /// 获取过滤后的通知列表

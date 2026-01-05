@@ -26,6 +26,13 @@ class LoginController extends GetxController {
   final TextEditingController codeController = TextEditingController();
   final TextEditingController inviteCodeController = TextEditingController();  // 邀请码
 
+  // 原密码
+  final TextEditingController oldPasswordController = TextEditingController();
+  // 新密码
+  final TextEditingController newPasswordController = TextEditingController();
+  // 确认心密码
+  final TextEditingController confirmPasswordController = TextEditingController();
+
   static LoginController get to => Get.put(LoginController());
   
   // 状态

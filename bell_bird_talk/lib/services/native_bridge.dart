@@ -1627,6 +1627,7 @@ class IOSNativeService {
   /// 拉取通知列表
   Future<Map<String, dynamic>> imPullNotifications({
     List<String>? types,
+    int state = 0,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -1634,6 +1635,7 @@ class IOSNativeService {
       final result = await _bridge.invokeMethod<Map>('imPullNotifications', {
         'page': page,
         'page_size': pageSize,
+        'status': state, // 传递状态参数：0=全部, 1=未读, 2=已读
         if (types != null) 'types': types,
       });
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};

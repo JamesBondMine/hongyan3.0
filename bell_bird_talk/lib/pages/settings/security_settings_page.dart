@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/pages/settings/pwd_old_page.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -63,35 +65,36 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('安全设置'),
+        title: const Text('安全设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: GbsColors.des1Color),),
         elevation: 0,
       ),
       body: ListView(
         children: [
           // 修改密码
           _buildMenuItem(
-            icon: Icons.lock_outline,
+            icon: 'safe_pwd',
             title: '修改密码',
             subtitle: '更改当前登录密码',
             onTap: () {
-              Get.to(() => const ChangePasswordPage());
+              // Get.to(() => const ChangePasswordPage());
+              Get.to(() => const PwdOldPage());
             },
           ),
           
-          const Divider(height: 1),
+          // const Divider(height: 1),
           
-          // 重置密码
-          _buildMenuItem(
-            icon: Icons.lock_reset,
-            title: '重置密码',
-            subtitle: '忘记密码时重置',
-            onTap: () {
-              Get.to(() => const ResetPasswordPage());
-            },
-          ),
+          // // 重置密码
+          // _buildMenuItem(
+          //   icon: Icons.lock_reset,
+          //   title: '重置密码',
+          //   subtitle: '忘记密码时重置',
+          //   onTap: () {
+          //     Get.to(() => const ResetPasswordPage());
+          //   },
+          // ),
 
           _buildDeactivateMenuItem(
-                  icon: 'settingnoti',
+                  icon: 'safe_zhu',
                   title: _getDeactivateStatusTitle(),
                   subtitle: _getDeactivateStatusSubtitle(),
                   onTap: () => _showDeleteAccountConfirm(context, globalController),
@@ -356,7 +359,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     required VoidCallback onTap,
     Widget? trailing,
   }) {
-    return ListTile(
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: GbsColors.lightBackgroundB,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
       leading: Container(
         width: 24,
         height: 24,
@@ -374,29 +383,28 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         color: Colors.grey[400],
       ),
       onTap: onTap,
+    ),
     );
   }
 
   /// 构建菜单项
   Widget _buildMenuItem({
-    required IconData icon,
+    required String icon,
     required String title,
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: GbsColors.lightBackgroundB,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child:ListTile(
       leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          icon,
-          color: Colors.blue,
-          size: 22,
-        ),
+        width: 24,
+        height: 24,
+        child: Image.asset( 'assets/img/user/$icon.png', width: 24, height: 24, fit: BoxFit.fill,)
       ),
       title: Text(
         title,
@@ -405,21 +413,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[500],
-              ),
-            )
-          : null,
+     
       trailing: Icon(
         Icons.chevron_right,
         color: Colors.grey[400],
       ),
       onTap: onTap,
-    );
+    ));
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/pages/friends/pages/add_friends_group_page.dart';
@@ -326,7 +327,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
     setState(() => _isLoadingRequests = true);
     
     try {
-      final result = await _nativeService.imGetFriendRequests(
+      final result = await UserController.to.getFriendRequests(
         status: 0,
         page: 1,
         pageSize: 1,
@@ -484,13 +485,9 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Container(
+            SizedBox(
               width: 40,
               height: 40,
-              // decoration: BoxDecoration(
-              //   color: iconBgColor,
-              //   borderRadius: BorderRadius.circular(10),
-              // ),
               child: Image.asset('assets/img/friend/friend_new.png', width: 22,height: 22,),
             ),
             const SizedBox(width: 12),

@@ -1,3 +1,7 @@
+import 'package:bell_bird_talk/controllers/login_controller.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:bell_bird_talk/widgets/login_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -7,7 +11,9 @@ import '../../controllers/global_controller.dart';
 
 /// 修改密码页面
 class ChangePasswordPage extends StatefulWidget {
-  const ChangePasswordPage({super.key});
+
+  String oldPwd = '';
+  ChangePasswordPage({super.key, required this.oldPwd});
 
   @override
   State<ChangePasswordPage> createState() => _ChangePasswordPageState();
@@ -36,15 +42,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   /// 修改密码
   Future<void> _changePassword() async {
-    final oldPassword = _oldPasswordController.text.trim();
+    final oldPassword = widget.oldPwd;
     final newPassword = _newPasswordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
     
     // 验证输入
-    if (oldPassword.isEmpty) {
-      EasyLoading.showError('请输入当前密码');
-      return;
-    }
+    // if (oldPassword.isEmpty) {
+    //   EasyLoading.showError('请输入当前密码');
+    //   return;
+    // }
     
     if (newPassword.isEmpty) {
       EasyLoading.showError('请输入新密码');
@@ -107,108 +113,71 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            
+
+            _buildNewPwdInput(_newPasswordController),
             const SizedBox(height: 20),
-            
-            // 提示信息
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '为了您的账户安全，请定期修改密码',
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // 当前密码
-            _buildPasswordField(
-              controller: _oldPasswordController,
-              label: '当前密码',
-              hint: '请输入当前密码',
-              obscureText: _obscureOldPassword,
-              onToggleVisibility: () {
-                setState(() => _obscureOldPassword = !_obscureOldPassword);
+
+            _buildConfirmPwdInput(_confirmPasswordController),
+   
+            Padding(padding: EdgeInsetsGeometry.only(top: 8),child: Text('密码长度6-16位，需包含数字、字母、特殊符号中的两种', style: TextStyle(fontSize: 12,color: GbsColors.des9Color),),),
+            const SizedBox(height: 20),
+
+            CommonButton(text:  '完成',
+              enabled: _newPasswordController.text.isNotEmpty && _confirmPasswordController.text.isNotEmpty,
+              onPressed: () {
+                if (_newPasswordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+                  // EasyLoading.showError('请输入邀请码');
+                  return;
+                }
+                _changePassword();
               },
             ),
-            
-            const SizedBox(height: 20),
-            
-            // 新密码
-            _buildPasswordField(
-              controller: _newPasswordController,
-              label: '新密码',
-              hint: '请输入新密码（至少6位）',
-              obscureText: _obscureNewPassword,
-              onToggleVisibility: () {
-                setState(() => _obscureNewPassword = !_obscureNewPassword);
-              },
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // 确认新密码
-            _buildPasswordField(
-              controller: _confirmPasswordController,
-              label: '确认新密码',
-              hint: '请再次输入新密码',
-              obscureText: _obscureConfirmPassword,
-              onToggleVisibility: () {
-                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-              },
-            ),
-            
-            const SizedBox(height: 40),
-            
-            // 提交按钮
-            ElevatedButton(
-              onPressed: _isLoading ? null : _changePassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      '确认修改',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-            ),
+      
           ],
         ),
       ),
+    );
+  }
+
+
+  /// 邀请码输入框
+  Widget _buildNewPwdInput(TextEditingController controller) {
+    return LoginTextField(
+      controller: controller,
+      title: '新密码',
+      hintText: '请输入原密码',
+      obscureText: true,
+      onChanged: (value) {
+        // 可选填写，无需特殊处理
+        if (mounted) {
+          setState(() {
+            
+          });
+        }
+      },
+    );
+  }
+
+  /// 邀请码输入框
+  Widget _buildConfirmPwdInput(TextEditingController controller) {
+    return LoginTextField(
+      controller: controller,
+      title: '二次确认',
+      hintText: '请输入原密码',
+      obscureText: true,
+      onChanged: (value) {
+        // 可选填写，无需特殊处理
+        if (mounted) {
+          setState(() {
+            
+          });
+        }
+      },
     );
   }
 

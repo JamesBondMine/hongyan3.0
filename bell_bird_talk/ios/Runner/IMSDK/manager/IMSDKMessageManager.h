@@ -272,6 +272,7 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
 /// @param completion 结果回调
 - (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
                              page:(int32_t)page
+                             state:(int32_t)state
                          pageSize:(int32_t)pageSize
                         completion:(IMSDKMessageCompletion)completion;
 

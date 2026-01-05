@@ -67,6 +67,7 @@ static GPBFileDescriptor *ChatPbRoot_FileDescriptor(void) {
 GPBEnumDescriptor *NotificationStatus_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
+    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static const char *valueNames =
         "NotificationUnread\000NotificationRead\000Noti"
         "ficationDeleted\000";
@@ -80,11 +81,9 @@ GPBEnumDescriptor *NotificationStatus_EnumDescriptor(void) {
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:NotificationStatus_IsValidValue];
+                                     enumVerifier:NotificationStatus_IsValidValue
+                                            flags:GPBEnumDescriptorInitializationFlag_None];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
   }
   return descriptor;
 }

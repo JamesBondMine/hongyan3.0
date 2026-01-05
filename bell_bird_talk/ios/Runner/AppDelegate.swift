@@ -2359,12 +2359,9 @@ class NativeBridgeHandler: NSObject {
         let args = call.arguments as? [String: Any] ?? [:]
         let types = args["types"] as? [String]
         let page = args["page"] as? Int ?? 1
+        let state = args["state"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
-        
-        print("🔔 拉取通知: page=\(page), pageSize=\(pageSize), types=\(types ?? [])")
-        
-        let code = IMSDKMessageManager.shared().pullNotifications(withTypes: types, page: Int32(page), pageSize: Int32(pageSize)) { errorCode, reqId, data in
-            print("🔔 拉取通知回调: errorCode=\(errorCode), reqId=\(reqId)")
+        let code = IMSDKMessageManager.shared().pullNotifications(withTypes: types, page: Int32(page),state: Int32(state), pageSize: Int32(pageSize)) { errorCode, reqId, data in
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,

@@ -115,6 +115,25 @@ static void PullNotificationCallback(int errorCode, const char* data, int dataLe
                         item[@"related_user_id"] = n.relatedUserId ?: @"";
                         item[@"related_request_id"] = @(n.relatedRequestId);
                         item[@"status"] = @(n.status);
+                        
+//                        // 获取通知状态枚举值
+//                        NotificationStatus ns = n.status;
+//                        switch (ns) {
+//                            case NotificationStatus_NotificationUnread:
+//                                item[@"status"] = 0;
+//                                break;
+//                            case NotificationStatus_NotificationRead:
+//                                item[@"status"] = 1;
+//                                break;
+//                            case NotificationStatus_NotificationDeleted:
+//                                item[@"status"] = 2;
+//                                break;
+//                            default:
+//                                // 处理未知状态值，使用原始整数值
+//                                item[@"status"] = [NSString stringWithFormat:@"%d", (int)ns];
+//                                NSLog(@"⚠️ 未知的通知状态值: %d", (int)ns);
+//                                break;
+//                        }
                         item[@"create_time"] = @(n.createTime);
                         item[@"read_time"] = @(n.readTime);
                         item[@"expire_time"] = @(n.expireTime);
@@ -1504,9 +1523,13 @@ static void PullGroupMessagesCallback(int errorCode, const char* data, int dataL
 
 - (int)pullNotificationsWithTypes:(NSArray<NSString *> * _Nullable)notificationTypes
                              page:(int32_t)page
+                             state:(int32_t)state
                          pageSize:(int32_t)pageSize
                         completion:(IMSDKMessageCompletion)completion {
     NotificationPull *req = [NotificationPull message];
+    if (state >= 1) {
+        req.status = state == 1 ? NotificationStatus_NotificationUnread : NotificationStatus_NotificationRead;
+    }
     if (notificationTypes.count > 0) {
         [req.notificationTypesArray addObjectsFromArray:notificationTypes];
     }

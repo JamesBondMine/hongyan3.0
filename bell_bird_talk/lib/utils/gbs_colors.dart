@@ -13,11 +13,15 @@ class GbsColors {
   /// 页面背景主色A - 主要背景色
   static const Color lightBackgroundA = Color.fromARGB(255, 240, 240, 240);
 
-  /// 页面背景主色B - 次要背景色
+  /// 页面背景主色B - ffffff
   static const Color lightBackgroundB = Color(0xFFFFFFFF);
 
   /// 主要按钮颜色
   static const Color lightPrimaryButton = Color(0xFF1D61E7);
+
+  /// 主要按钮颜色
+  static const Color primaryColor = Color(0xFF1D61E7);
+
 
   /// 主要卡片主色
   static const Color lightCardPrimary = Color(0xFFFFFFFF);

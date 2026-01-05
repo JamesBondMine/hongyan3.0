@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
-import 'package:bell_bird_talk/pages/notification/notification_page.dart';
+import 'package:bell_bird_talk/pages/notification/notification_home_page.dart';
 import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
@@ -321,7 +321,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
   /// 打开通知设置
   void _openNotificationSettings(BuildContext context) async {
     Navigator.pop(context);
-    await Get.to(() => const NotificationPage());
+    await Get.to(() => const NotificationHomePage());
     _loadNotificationUnread();
   }
 

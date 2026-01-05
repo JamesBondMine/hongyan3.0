@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -73,10 +74,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
   /// 加载好友申请
   Future<void> _loadFriendRequests(bool refresh) async {
     try {
-      final result = await UserController.to.getFriendRequests(status: -1, page: _currentPage, pageSize: _pageSize);
-      
-      print('📋 好友申请列表结果: $result');
-      
+      final result = await UserController.to.getFriendRequests(status: 1, page: _currentPage, pageSize: _pageSize);
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -406,35 +404,8 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
   
   /// 空视图
   Widget _buildEmptyView() {
-    final isFriend = widget.type == RequestType.friend;
-    
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isFriend ? Icons.person_add_disabled : Icons.group_off,
-            size: 80,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isFriend ? '暂无好友申请' : '暂无群组申请',
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isFriend ? '当有人向你发送好友申请时会显示在这里' : '当有群组邀请时会显示在这里',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
+      child: EmptyView(),
     );
   }
 
