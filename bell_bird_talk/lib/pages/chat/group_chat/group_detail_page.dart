@@ -698,50 +698,6 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   }
 
 
-  Future<void> _editGroupDescription() async {
-    final controller = TextEditingController(text: _groupDescription ?? '');
-    final description = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('修改群描述'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: '请输入群描述',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 5,
-            maxLength: 200,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('保存'),
-            ),
-          ],
-        );
-      },
-    );
-    if (description == null) return; // 允许设置为空
-    EasyLoading.show(status: '修改群描述...');
-    final res = await _nativeService.imUpdateGroup(
-      groupId: widget.groupId,
-      groupDescription: description.isEmpty ? null : description,
-      version: 1,
-    );
-    if (!mounted) return;
-    if (res['errorCode'] == 0) {
-      EasyLoading.showSuccess('修改成功');
-      await _refreshGroupInfo();
-    } else {
-      EasyLoading.showError(res['message']?.toString() ?? '修改失败');
-    }
-  }
 
   Future<void> _editGroupAlias() async {
     final controller = TextEditingController();

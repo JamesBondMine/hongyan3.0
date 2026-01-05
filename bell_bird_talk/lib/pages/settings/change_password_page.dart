@@ -46,12 +46,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     final newPassword = _newPasswordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
     
-    // 验证输入
-    // if (oldPassword.isEmpty) {
-    //   EasyLoading.showError('请输入当前密码');
-    //   return;
-    // }
-    
     if (newPassword.isEmpty) {
       EasyLoading.showError('请输入新密码');
       return;
@@ -117,8 +111,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            
-
             _buildNewPwdInput(_newPasswordController),
             const SizedBox(height: 20),
 

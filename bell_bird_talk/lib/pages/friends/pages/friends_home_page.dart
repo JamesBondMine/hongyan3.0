@@ -486,8 +486,8 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
         child: Row(
           children: [
             SizedBox(
-              width: 40,
-              height: 40,
+              width: 22,
+              height: 22,
               child: Image.asset('assets/img/friend/friend_new.png', width: 22,height: 22,),
             ),
             const SizedBox(width: 12),

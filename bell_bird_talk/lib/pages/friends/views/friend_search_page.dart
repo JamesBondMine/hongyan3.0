@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -128,24 +130,24 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: GbsColors.lightBackgroundB,
       appBar: _buildSearchAppBar(),
       body: Column(
         children: [
-          // 搜索结果统计
-          if (_searchText.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.white,
-              width: double.infinity,
-              child: Text(
-                '找到 ${_filteredFriends.length} 位好友',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
+          // // 搜索结果统计
+          // if (_searchText.isNotEmpty)
+          //   Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          //     color: Colors.white,
+          //     width: double.infinity,
+          //     child: Text(
+          //       '找到 ${_filteredFriends.length} 位好友',
+          //       style: TextStyle(
+          //         fontSize: 13,
+          //         color: Colors.grey[600],
+          //       ),
+          //     ),
+          //   ),
           
           // 好友列表
           Expanded(
@@ -160,78 +162,51 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
 
   /// 搜索 AppBar
   PreferredSizeWidget _buildSearchAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0.5,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black87),
-        onPressed: () => Get.back(),
-      ),
-      title: TextField(
-        controller: _searchController,
-        focusNode: _focusNode,
-        onChanged: _onSearchChanged,
-        decoration: InputDecoration(
-          hintText: '搜索好友昵称、备注、ID',
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: SafeArea(child: Container(
+        color: Colors.white,
+        // child: _buildSearchBar(),
+        child: Row(children: [
+          Expanded(child: Container(
+            height: 36,
+            margin: const EdgeInsets.only(left: 16, right: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: TextField(
+              controller: _searchController,
+              focusNode: _focusNode,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: '搜索好友昵称、备注、ID',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                isDense: true,
+              ),
+              style: const TextStyle(fontSize: 15),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _doSearch(),
+            ),
+          )),
+          InkWell(onTap: () {
+            Get.back();
+          },child: 
+          Container(padding: const EdgeInsets.symmetric(horizontal: 16 ),
+          child: Text('取消',style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),))
+          
+        ],),
         ),
-        style: const TextStyle(fontSize: 15),
-        textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _doSearch(),
-      ),
-      actions: [
-        if (_searchText.isNotEmpty)
-          IconButton(
-            icon: Icon(Icons.close, color: Colors.grey[600]),
-            onPressed: _clearSearch,
-          ),
-        IconButton(
-          icon: _isSearching
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.search, color: Colors.blue),
-          onPressed: _isSearching ? null : _doSearch,
-          ),
-      ],
-    );
+    ));
+  
   }
 
   /// 空结果
   Widget _buildEmptyResult() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _searchText.isEmpty ? Icons.search : Icons.person_search,
-            size: 64,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _searchText.isEmpty ? '输入关键词搜索好友' : '未找到匹配的好友',
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[500],
-            ),
-          ),
-          if (_searchText.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              '试试其他关键词',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[400],
-              ),
-            ),
-          ],
-        ],
-      ),
+      child: EmptyView(),
     );
   }
 
