@@ -197,12 +197,35 @@ class IOSNativeService {
     });
   }
 
-  /// 显示 iOS 原生弹窗
-  Future<bool?> showNativeAlert(String title, String message) async {
-    return await _bridge.invokeMethod<bool>('showAlert', {
-      'title': title,
-      'message': message,
-    });
+  /// 显示原生 iOS Alert 弹窗
+  /// [title] 标题（可选，默认为"提示"）
+  /// [message] 消息内容（必填）
+  /// [confirmText] 确定按钮文字（可选，默认为"确定"）
+  /// [cancelText] 取消按钮文字（可选，默认为"取消"）
+  /// [showCancel] 是否显示取消按钮（可选，默认为 true）
+  /// 返回用户的选择：{"action": "confirm"/"cancel", "value": true/false}
+  Future<Map<String, dynamic>?> showNativeAlert({
+    String? title,
+    required String message,
+    String? confirmText,
+    String? cancelText,
+    bool showCancel = true,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'message': message,
+      };
+      if (title != null) params['title'] = title;
+      if (confirmText != null) params['confirmText'] = confirmText;
+      if (cancelText != null) params['cancelText'] = cancelText;
+      if (!showCancel) params['showCancel'] = false;
+      
+      final result = await _bridge.invokeMethod<Map>('showAlert', params);
+      return result?.cast<String, dynamic>();
+    } catch (e) {
+      print('显示原生 Alert 错误: $e');
+      return null;
+    }
   }
 
   // ---------- 聊天相关示例 ----------

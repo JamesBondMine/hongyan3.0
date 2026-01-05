@@ -96,7 +96,7 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
               title: '🎨 原生 UI',
               children: [
                 _buildButton('打开系统设置', _openSettings),
-                _buildButton('显示原生弹窗', _showNativeAlert),
+                // _buildButton('显示原生弹窗', _showNativeAlert),
               ],
             ),
             
@@ -283,19 +283,19 @@ class _NativeDemoPageState extends State<NativeDemoPage> {
     }
   }
 
-  Future<void> _showNativeAlert() async {
-    try {
-      final confirmed = await _nativeService.showNativeAlert(
-        '原生弹窗',
-        '这是一个 iOS 原生 UIAlertController',
-      );
-      setState(() {
-        _result = confirmed == true ? '✅ 用户点击了确定' : '❌ 用户点击了取消';
-      });
-    } catch (e) {
-      _showError(e);
-    }
-  }
+  // Future<void> _showNativeAlert() async {
+  //   try {
+  //     final confirmed = await _nativeService.showNativeAlert(
+  //       '原生弹窗',
+  //       '这是一个 iOS 原生 UIAlertController',
+  //     );
+  //     setState(() {
+  //       _result = confirmed == true ? '✅ 用户点击了确定' : '❌ 用户点击了取消';
+  //     });
+  //   } catch (e) {
+  //     _showError(e);
+  //   }
+  // }
 
   // 聊天功能
   Future<void> _processMessage() async {

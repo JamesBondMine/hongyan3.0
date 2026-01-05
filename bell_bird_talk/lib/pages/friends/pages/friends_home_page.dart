@@ -176,31 +176,25 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
 
   
   /// 删除分组
-  void _deleteGroup(FriendGroup group) {
+  void _deleteGroup(FriendGroup group) async{
     if (group.isDefault) {
       EasyLoading.showError('默认分组不能删除');
       return;
     }
-    
-    Get.dialog(
-      AlertDialog(
-        title: const Text('删除分组'),
-        content: Text('确定要删除「${group.name}」分组吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              _confirmDeleteGroup(group);
-            },
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+
+    final result = await _nativeService.showNativeAlert(
+      title: '删除分组',
+      message: '确定要删除「${group.name}」分组吗？',
+      confirmText: '删除',
+      cancelText: '取消',
+      showCancel: true,
     );
+    
+    if (result != null && result['action'] == 'confirm') {
+      // 用户点击了确定
+      Get.back();
+      _confirmDeleteGroup(group);
+    }
   }
 
   Future<void> _confirmDeleteGroup(FriendGroup group) async {

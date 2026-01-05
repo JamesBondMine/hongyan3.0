@@ -63,7 +63,7 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
 
   Future<void> _loadContactGroups() async {
     try {
-      final result = await _nativeService.imGetContactGroups(page: 1, pageSize: 100);
+      final result = await _nativeService.imGetContactGroups(page: 1, pageSize: 30);
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -97,6 +97,11 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
           for (var group in _groups) {
             _loadGroupFriends(group.id);
           }
+        } else 
+        {
+          setState(() {
+            _groups.removeWhere((g) => !g.isDefault);
+          });
         }
       }
     } catch (e) {

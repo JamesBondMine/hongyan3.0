@@ -586,11 +586,16 @@ class NativeBridgeHandler: NSObject {
     /// 显示原生弹窗
     private func showNativeAlert(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
-              let title = args["title"] as? String,
               let message = args["message"] as? String else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误：缺少 message", details: nil))
             return
         }
+        
+        // 获取参数，支持可选参数
+        let title = args["title"] as? String ?? "提示"
+        let confirmText = args["confirmText"] as? String ?? "确定"
+        let cancelText = args["cancelText"] as? String ?? "取消"
+        let showCancel = args["showCancel"] as? Bool ?? true
         
         DispatchQueue.main.async {
             guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
@@ -599,12 +604,18 @@ class NativeBridgeHandler: NSObject {
             }
             
             let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "确定", style: .default) { _ in
-                result(true)
+            
+            // 添加确定按钮
+            alert.addAction(UIAlertAction(title: confirmText, style: .default) { _ in
+                result(["action": "confirm", "value": true])
             })
-            alert.addAction(UIAlertAction(title: "取消", style: .cancel) { _ in
-                result(false)
-            })
+            
+            // 添加取消按钮（可选）
+            if showCancel {
+                alert.addAction(UIAlertAction(title: cancelText, style: .cancel) { _ in
+                    result(["action": "cancel", "value": false])
+                })
+            }
             
             rootViewController.present(alert, animated: true)
         }
@@ -2577,9 +2588,7 @@ class NativeBridgeHandler: NSObject {
         let width = args["width"] as? Int ?? 0
         let height = args["height"] as? Int ?? 0
         let size = args["size"] as? Int64 ?? 0
-        
-        print("📤 发送视频消息: videoUrl=\(videoUrl), coverUrl=\(coverUrl ?? ""), duration=\(duration), size=\(size), conversationId=\(conversationId), receiverId=\(receiverId)")
-        
+
         let code = IMSDKMessageManager.shared().sendVideoMessage(
             videoUrl,
             coverURL: coverUrl,

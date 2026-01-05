@@ -465,26 +465,7 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
           children: [
             // 左侧 - 头像
             _userHeadImgView(request.requesterAvatar ?? '', request.avatarBG ?? '',  request.requesterName),
-            // CircleAvatar(
-            //   radius: 28,
-            //   backgroundColor: Colors.orange[100],
-            //   backgroundImage: request.requesterAvatar != null
-            //       ? NetworkImage(request.requesterAvatar!)
-            //       : null,
-            //   child: request.requesterAvatar == null
-            //       ? Text(
-            //           request.requesterName.isNotEmpty
-            //               ? request.requesterName[0].toUpperCase()
-            //               : '?',
-            //           style: TextStyle(
-            //             color: Colors.orange[700],
-            //             fontWeight: FontWeight.bold,
-            //             fontSize: 20,
-            //           ),
-            //         )
-            //       : null,
-            // ),
-            
+
             const SizedBox(width: 12),
             
             // 中间 - 用户信息
@@ -535,11 +516,6 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
                       width: 24,
                       height: 24,
                     ),
-                    // style: IconButton.styleFrom(
-                    //   backgroundColor: Colors.grey[100],
-                    //   padding: const EdgeInsets.all(8),
-                    //   shape: const CircleBorder(),
-                    // ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
@@ -555,6 +531,14 @@ Map<String, List<FriendRequestModel>> _groupRequestsByDate() {
                     // ),
                   ),
                 ],
+              ),
+              if (!request.isPending)
+              Text(
+                '已处理',
+                style: TextStyle(
+                  color: GbsColors.des6Color,
+                  fontSize: 14,
+                ),
               ),
           ],
         ),

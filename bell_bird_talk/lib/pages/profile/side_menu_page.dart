@@ -401,35 +401,25 @@ class _SideMenuContentState extends State<SideMenuContent> {
     );
   }
 
-  /// 显示退出登录确认
-  void _showLogoutConfirm(BuildContext context, GlobalController controller) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context); // 关闭对话框
-              Navigator.pop(context); // 关闭侧边栏
-              controller.logout();
-              EasyLoading.showSuccess('已退出登录');
-              await Future.delayed(const Duration(seconds: 1));
-              Get.offAllNamed('/login');
-            },
-            child: const Text(
-              '退出',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+  /// 显示退出登录确认（使用原生 iOS Alert）
+  Future<void> _showLogoutConfirm(BuildContext context, GlobalController controller) async {
+    final result = await _nativeService.showNativeAlert(
+      title: '退出登录',
+      message: '确定要退出当前账号吗？',
+      confirmText: '退出',
+      cancelText: '取消',
+      showCancel: true,
     );
+    
+    if (result != null && result['action'] == 'confirm') {
+      // 用户点击了确定
+      Navigator.pop(context); // 关闭侧边栏
+      controller.logout();
+      EasyLoading.showSuccess('已退出登录');
+      await Future.delayed(const Duration(seconds: 1));
+      Get.offAllNamed('/login');
+    }
+    // 如果用户点击了取消，什么都不做
   }
 }
 

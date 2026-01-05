@@ -317,10 +317,10 @@ class LoginPage extends StatelessWidget {
             onChanged: _onInputChanged(),
             // prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
-              icon: Icon(
-                controller.obscurePassword.value
-                    ? Icons.visibility_off
-                    : Icons.visibility,
+              icon: Image.asset(controller.obscurePassword.value ? 'assets/img/login/eyeoff.png' : 'assets/img/login/eye.png',
+                width: 20,
+                height: 20,
+                color: controller.obscurePassword.value ? Colors.grey : Colors.blue,
               ),
               onPressed: controller.togglePasswordVisibility,
             ),
