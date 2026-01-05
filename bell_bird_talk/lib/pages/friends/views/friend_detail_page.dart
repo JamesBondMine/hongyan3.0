@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/pages/friends/views/group_move_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -51,7 +52,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
           title: const Text(
             '好友详情',
             style: TextStyle(
-              color: GbsColors.titleColor,
+              color: GbsColors.des1Color,
               fontSize: 16.0,
               fontWeight: FontWeight.w500,
             ),
@@ -71,7 +72,11 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: _buildAppBarActions(),
               ),
-              child: Icon(Icons.more_horiz, color: GbsColors.darkPrimaryButton),
+              child: Image.asset(
+                'assets/img/msg/msgmore.png',
+                width: 20,
+                height: 20,
+              ),
             ),
             SizedBox(width: 16),
           ],
@@ -93,7 +98,6 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                 text: '发消息',
               ),
             ),
-
           ],
         ),
       ), // 关闭 Scaffold
@@ -110,11 +114,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Image.asset(
-              'assets/img//friend/$icon.png',
-              width: 20,
-              height: 20,
-            ),
+            Image.asset('assets/img//friend/$icon.png', width: 20, height: 20),
             const SizedBox(width: 8),
             Text(title),
           ],
@@ -128,56 +128,63 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   }
 
   List<Widget> _buildAppBarActions() {
-    return _isBlocked==null ? [
-      _buildPopItem('备注', 'edit', () {
-        _showSetRemarkDialog();
-      }),
-      _buildPopItem('调整分组', 'move', () {
-        _showMoveGroupDialog();
-      }),
-      _buildPopItem('屏蔽消息', 'notifi', () {
-        // 拉黑
-        _confirmBlockFriend();
-      }),
-      _buildPopItem('删除好友', 'del', () {
-        _confirmDeleteFriend();
-      }),
-    ] : [
-      _buildPopItem('备注', 'edit', () {
-        _showSetRemarkDialog();
-      }),
-      _buildPopItem('调整分组', 'move', () {
-        _showMoveGroupDialog();
-      }),
-      _buildPopItem('屏蔽消息', 'notifi', () {
-        // 拉黑
-_confirmBlockFriend();
-      }),
-      _buildPopItem(_isBlocked! ? '取消黑名单' :  '加黑名单', 'notifi', () {
-        _confirmBlockFriend();
-      }),
-      _buildPopItem('删除好友', 'del', () {
-        _confirmDeleteFriend();
-      }),
-    ];
+    return _isBlocked == null
+        ? [
+            _buildPopItem('备注', 'edit', () {
+              _showSetRemarkDialog();
+            }),
+            _buildPopItem('调整分组', 'move', () {
+              _showMoveGroupDialog();
+            }),
+            _buildPopItem('屏蔽消息', 'notifi', () {
+              // 拉黑
+              _confirmBlockFriend();
+            }),
+            _buildPopItem('删除好友', 'del', () {
+              _confirmDeleteFriend();
+            }),
+          ]
+        : [
+            _buildPopItem('备注', 'edit', () {
+              _showSetRemarkDialog();
+            }),
+            _buildPopItem('调整分组', 'move', () {
+              _showMoveGroupDialog();
+            }),
+            _buildPopItem('屏蔽消息', 'notifi', () {
+              // 拉黑
+              _confirmBlockFriend();
+            }),
+            _buildPopItem(_isBlocked! ? '取消黑名单' : '加黑名单', 'notifi', () {
+              _confirmBlockFriend();
+            }),
+            _buildPopItem('删除好友', 'del', () {
+              _confirmDeleteFriend();
+            }),
+          ];
   }
 
   // 调整分组
   void _showMoveGroupDialog() async {
-    gbs.shower.showScreenViewCustom(context, 400, Container(
-      width: Get.width,
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: GbsColors.lightBackgroundB,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
+    gbs.shower.showScreenViewCustom(
+      context,
+      400,
+      Container(
+        width: Get.width,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: GbsColors.lightBackgroundB,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: GroupMoveView(
+          contactUserId: _friend.userId,
+          onItemClick: (value) {},
         ),
       ),
-      child: GroupMoveView(contactUserId: _friend.userId, onItemClick: (value) {
-        
-      },),
-    ));
+    );
   }
 
   /// 清理UTF-16字符串，移除无效字符
@@ -378,7 +385,6 @@ _confirmBlockFriend();
     );
   }
 
-
   /// 发起聊天
   Future<void> _startChat() async {
     try {
@@ -502,33 +508,24 @@ _confirmBlockFriend();
     }
   }
 
-  /// 复制到剪贴板
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    EasyLoading.showSuccess('已复制');
-  }
-
   /// 设置备注对话框
   void _showSetRemarkDialog() {
     final controller = TextEditingController(text: _friend.remark);
 
-    Get.dialog(
-      AlertDialog(
-        title: const Text('设置备注'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '请输入备注名',
-            border: OutlineInputBorder(),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
-          TextButton(
-            onPressed: () async {
+          child: FriendRemarkView(
+            controller: controller,
+            onTap: () async {
               final newRemark = controller.text.trim();
-              Get.back();
+              Navigator.pop(context);
 
               // 调用设置备注接口
               EasyLoading.show(status: '设置中...');
@@ -550,11 +547,14 @@ _confirmBlockFriend();
                 EasyLoading.showError(result['message'] ?? '设置备注失败');
               }
             },
-            child: const Text('确定'),
           ),
-        ],
-      ),
-    );
+        );
+      },
+    ).then((_) {
+      // 确保资源被释放
+      // controller.dispose();
+      // focusNode.dispose();
+    });
   }
 
   /// 确认拉黑/取消拉黑好友
@@ -611,40 +611,34 @@ _confirmBlockFriend();
   }
 
   /// 确认删除好友
-  void _confirmDeleteFriend() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('删除好友'),
-        content: Text(
+  void _confirmDeleteFriend() async {
+    final result = await _nativeService.showNativeAlert(
+      title: '删除好友',
+      message:
           '确定要删除好友「${_cleanUtf16String(_friend.displayName)}」吗？\n\n删除后，聊天记录将被清空，且需要重新添加才能继续聊天。',
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
-          TextButton(
-            onPressed: () async {
-              Get.back();
-              EasyLoading.show(status: '删除中...');
-
-              try {
-                final result = await _nativeService.imDeleteContact(
-                  contact_user_id: _friend.id,
-                );
-
-                if (result['errorCode'] == 0) {
-                  EasyLoading.showSuccess('已删除好友');
-                  widget.onDelete();
-                  Get.back(result: true); // 返回并刷新列表
-                } else {
-                  EasyLoading.showError(result['message'] ?? '删除失败');
-                }
-              } catch (e) {
-                EasyLoading.showError('删除失败');
-              }
-            },
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      confirmText: '删除',
+      cancelText: '取消',
+      showCancel: true,
     );
+
+    if (result != null && result['action'] == 'confirm') {
+      EasyLoading.show(status: '删除中...');
+
+      try {
+        final result = await _nativeService.imDeleteContact(
+          contact_user_id: _friend.id,
+        );
+
+        if (result['errorCode'] == 0) {
+          EasyLoading.showSuccess('已删除好友');
+          widget.onDelete();
+          Get.back(result: true); // 返回并刷新列表
+        } else {
+          EasyLoading.showError(result['message'] ?? '删除失败');
+        }
+      } catch (e) {
+        EasyLoading.showError('删除失败');
+      }
+    }
   }
 }
