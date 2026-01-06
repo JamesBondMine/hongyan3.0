@@ -5,11 +5,11 @@ import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/pages/chat/views/chat_gas_arrow.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/gestures.dart';
-import 'package:bell_bird_talk/pages/chat/group_chat/group_detail_page.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +25,6 @@ import '../../services/message_database.dart';
 import '../../models/chat_message.dart';
 import '../../controllers/global_controller.dart';
 import '../../widgets/voice_record_panel.dart';
-import 'chat_detail_page.dart';
 import 'image_preview_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -95,154 +94,7 @@ class _ChatPageState extends State<ChatPage> {
   // @功能相关
   List<Map<String, dynamic>> _atMembers = []; // 已@的成员列表
 
-  // 常用表情列表
-  static const List<String> _emojis = [
-    '😀',
-    '😃',
-    '😄',
-    '😁',
-    '😆',
-    '😅',
-    '🤣',
-    '😂',
-    '🙂',
-    '🙃',
-    '😉',
-    '😊',
-    '😇',
-    '🥰',
-    '😍',
-    '🤩',
-    '😘',
-    '😗',
-    '😚',
-    '😙',
-    '🥲',
-    '😋',
-    '😛',
-    '😜',
-    '🤪',
-    '😝',
-    '🤑',
-    '🤗',
-    '🤭',
-    '🤫',
-    '🤔',
-    '🤐',
-    '🤨',
-    '😐',
-    '😑',
-    '😶',
-    '😏',
-    '😒',
-    '🙄',
-    '😬',
-    '🤥',
-    '😌',
-    '😔',
-    '😪',
-    '🤤',
-    '😴',
-    '😷',
-    '🤒',
-    '🤕',
-    '🤢',
-    '🤮',
-    '🤧',
-    '🥵',
-    '🥶',
-    '🥴',
-    '😵',
-    '🤯',
-    '🤠',
-    '🥳',
-    '🥸',
-    '😎',
-    '🤓',
-    '🧐',
-    '😕',
-    '😟',
-    '🙁',
-    '☹️',
-    '😮',
-    '😯',
-    '😲',
-    '😳',
-    '🥺',
-    '😦',
-    '😧',
-    '😨',
-    '😰',
-    '😥',
-    '😢',
-    '😭',
-    '😱',
-    '😖',
-    '😣',
-    '😞',
-    '😓',
-    '😩',
-    '😫',
-    '🥱',
-    '😤',
-    '😡',
-    '😠',
-    '🤬',
-    '😈',
-    '👿',
-    '💀',
-    '☠️',
-    '💩',
-    '👍',
-    '👎',
-    '👏',
-    '🙌',
-    '👐',
-    '🤲',
-    '🤝',
-    '🙏',
-    '✌️',
-    '🤞',
-    '🤟',
-    '🤘',
-    '🤙',
-    '👈',
-    '👉',
-    '👆',
-    '👇',
-    '☝️',
-    '👋',
-    '🤚',
-    '🖐️',
-    '✋',
-    '🖖',
-    '👌',
-    '❤️',
-    '🧡',
-    '💛',
-    '💚',
-    '💙',
-    '💜',
-    '🖤',
-    '🤍',
-    '💔',
-    '❣️',
-    '💕',
-    '💞',
-    '💓',
-    '💗',
-    '💖',
-    '💘',
-    '💝',
-    '💟',
-    '🔥',
-    '✨',
-    '🎉',
-    '🎊',
-    '🎁',
-    '🎈',
-  ];
-
+ 
   @override
   void initState() {
     super.initState();
@@ -279,7 +131,6 @@ class _ChatPageState extends State<ChatPage> {
         List<String> unreadMsgIds = unreadMessages
             .map((msg) => msg['id'].toString())
             .toList();
-        print('会话页面组装。标记已读消息: ${unreadMsgIds.join(',')}');
         _nativeService.imMarkConversationRead(
           convId: widget.convId,
           msgIds: unreadMsgIds.join(','),
@@ -346,43 +197,46 @@ class _ChatPageState extends State<ChatPage> {
       appBar: widget.customAppBar ?? _buildAppBar(),
       body: Container(
         decoration: BoxDecoration(
-          image: DecorationImage(image: AssetImage('assets/img/chat/chat_bg.png'), fit: BoxFit.cover)
+          image: DecorationImage(
+            image: AssetImage('assets/img/chat/chat_bg.png'),
+            fit: BoxFit.cover,
+          ),
         ),
         child: Column(
-        children: [
-          // 消息列表
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                // 点击消息列表区域时收起面板和键盘
-                if (_showEmojiPicker || _showMorePanel) {
-                  setState(() {
-                    _showEmojiPicker = false;
-                    _showMorePanel = false;
-                  });
-                }
-                _focusNode.unfocus();
-              },
-              child: _buildMessageList(),
+          children: [
+            // 消息列表
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  // 点击消息列表区域时收起面板和键盘
+                  if (_showEmojiPicker || _showMorePanel) {
+                    setState(() {
+                      _showEmojiPicker = false;
+                      _showMorePanel = false;
+                    });
+                  }
+                  _focusNode.unfocus();
+                },
+                child: _buildMessageList(),
+              ),
             ),
-          ),
-          // 输入区域：语音面板 或 文字输入栏
-          if (_showVoicePanel)
-            VoiceRecordPanel(
-              onSend: _handleVoiceSend,
-              onClose: () => setState(() => _showVoicePanel = false),
-              autoStart: true,
-            )
-          else ...[
-            _buildInputBar(),
-            // 表情选择器
-            if (_showEmojiPicker) _buildEmojiPicker(),
-            // 更多面板
-            // if (_showMorePanel) _buildMorePanel(),
+            // 输入区域：语音面板 或 文字输入栏
+            if (_showVoicePanel)
+              VoiceRecordPanel(
+                onSend: _handleVoiceSend,
+                onClose: () => setState(() => _showVoicePanel = false),
+                autoStart: true,
+              )
+            else ...[
+              _buildInputBar(),
+              // 表情选择器
+              if (_showEmojiPicker) _buildEmojiPicker(),
+              // 更多面板
+              // if (_showMorePanel) _buildMorePanel(),
+            ],
           ],
-        ],
+        ),
       ),
-      )
     );
   }
 
@@ -1043,7 +897,11 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Text(
             widget.displayName,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: GbsColors.titleColor),
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: GbsColors.titleColor,
+            ),
           ),
           Text(
             '会话ID: ${widget.convId}',
@@ -1054,17 +912,27 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      leading: InkWell(onTap: () {
-        Navigator.pop(context);
-      },
-      child: Container(width: 120, color: Colors.red, padding: EdgeInsetsGeometry.only(left: 15, right: 20, top: 6, bottom: 6), child: Icon(Icons.arrow_back_ios,color: GbsColors.titleColor,),),),
+      leading: InkWell(
+        onTap: () {
+          Navigator.pop(context);
+        },
+        child: Container(
+          padding: EdgeInsetsGeometry.only(
+            left: 15,
+            right: 20,
+            top: 6,
+            bottom: 6,
+          ),
+          child: Icon(Icons.arrow_back_ios, color: GbsColors.titleColor),
+        ),
+      ),
       centerTitle: false,
       backgroundColor: GbsColors.lightAppBarColorA,
       foregroundColor: GbsColors.lightAppBarColorA,
       elevation: 0,
       actions: [
         IconButton(
-          icon: const Icon(Icons.search, color: GbsColors.titleColor,),
+          icon: const Icon(Icons.search, color: GbsColors.titleColor),
           onPressed: () {
             Navigator.push(
               context,
@@ -1080,38 +948,93 @@ class _ChatPageState extends State<ChatPage> {
             );
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.more_horiz, color: GbsColors.titleColor,),
-          onPressed: () {
-            if (widget.convType == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GroupDetailPage(
-                    groupId: widget.targetUserId,
-                    groupName: widget.displayName,
-                    groupAvatar: widget.avatar,
-                  ),
-                ),
-              );
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatDetailPage(
-                    convId: widget.convId,
-                    targetId: widget.targetUserId,
-                    displayName: widget.displayName,
-                    avatarUrl: widget.avatar ?? '',
-                    convType: widget.convType,
-                  ),
-                ),
-              );
-            }
-          },
+        CustomPopup(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _buildAppBarActions(),
+          ),
+          child: Padding(
+            padding: EdgeInsetsGeometry.only(right: 15),
+            child: Image.asset(
+              'assets/img/msg/msgmore.png',
+              width: 24,
+              height: 24,
+            ),
+          ),
         ),
+        // IconButton(
+        //   icon: const Icon(Icons.more_horiz, color: GbsColors.titleColor,),
+        //   onPressed: () {
+        //     if (widget.convType == 2) {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) => GroupDetailPage(
+        //             groupId: widget.targetUserId,
+        //             groupName: widget.displayName,
+        //             groupAvatar: widget.avatar,
+        //           ),
+        //         ),
+        //       );
+        //     } else {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) => ChatDetailPage(
+        //             convId: widget.convId,
+        //             targetId: widget.targetUserId,
+        //             displayName: widget.displayName,
+        //             avatarUrl: widget.avatar ?? '',
+        //             convType: widget.convType,
+        //           ),
+        //         ),
+        //       );
+        //     }
+        //   },
+        // ),
       ],
     );
+  }
+
+  Widget popviewItem(
+    BuildContext context,
+    String title,
+    String img,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      child: Container(
+        alignment: Alignment.center,
+        width: 120,
+        padding: const EdgeInsets.only(top: 10, bottom: 6, left: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset('assets/img//msg/$img.png', width: 20, height: 20),
+            const SizedBox(width: 8),
+            Text(title),
+          ],
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context); // 先关闭弹出菜单
+        onTap();
+      },
+    );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      popviewItem(context, '语音聊天', 'msgitemphone', () {
+        print('语音聊天');
+      }),
+      popviewItem(context, '发起群聊', 'chataddchat', () {
+        print('发起群聊');
+      }),
+      popviewItem(context, '关闭免打扰', 'msgitemdistunb', () {
+        print('关闭免打扰');
+      }),
+    ];
   }
 
   Widget _buildMessageList() {
@@ -1120,9 +1043,7 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     if (_messages.isEmpty) {
-      return Center(
-       
-      );
+      return Center();
     }
 
     return ListView.builder(
@@ -1342,25 +1263,30 @@ class _ChatPageState extends State<ChatPage> {
                       isMine
                           ? Container()
                           : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              CustomPaint(
-                                painter: VideoTrianglePainter(
-                                  Colors.white,
-                                  false,
-                                ), // 提供必需的颜色参数
-                                size: Size(10, 8), // 根据需要调整大小
-                              ),
-                            ],
-                          ),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                CustomPaint(
+                                  painter: VideoTrianglePainter(
+                                    Colors.white,
+                                    false,
+                                  ), // 提供必需的颜色参数
+                                  size: Size(10, 8), // 根据需要调整大小
+                                ),
+                              ],
+                            ),
                       Container(
                         constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.65,
                         ),
                         padding: isImageMessage
                             ? const EdgeInsets.all(4)
-                            : const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 4),
+                            : const EdgeInsets.only(
+                                left: 14,
+                                right: 14,
+                                top: 10,
+                                bottom: 4,
+                              ),
                         decoration: BoxDecoration(
                           color: isImageMessage
                               ? Colors.transparent
@@ -1379,7 +1305,9 @@ class _ChatPageState extends State<ChatPage> {
                             // 消息内容
                             Padding(
                               padding: EdgeInsets.only(
-                                bottom: isImageMessage ? 0 : 18, // 为时间留出空间（图片消息不需要）
+                                bottom: isImageMessage
+                                    ? 0
+                                    : 18, // 为时间留出空间（图片消息不需要）
                               ),
                               child: type == "at"
                                   ? _buildAtMessage(message, isMine, status)
@@ -1392,7 +1320,9 @@ class _ChatPageState extends State<ChatPage> {
                               child: Container(
                                 padding: isImageMessage
                                     ? const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2)
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      )
                                     : EdgeInsets.zero,
                                 decoration: isImageMessage
                                     ? BoxDecoration(
@@ -1760,76 +1690,91 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
             )
-          : Row(children: [
-              Expanded( 
-                child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: GbsColors.lightBackgroundB
-            ),
-            child: Row(
+          : Row(
               children: [
-                IconButton(
-                  icon: Icon(
-                    _showEmojiPicker
-                        ? Icons.keyboard
-                        : Icons.emoji_emotions_outlined,
-                    color: _showEmojiPicker ? Colors.blue : Colors.grey[600],
-                  ),
-                  onPressed: isMuted ? null : _toggleEmojiPicker,
-                ),
-
-                // 输入框
                 Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        // decoration: BoxDecoration(
-                        //   color: Colors.grey[100],
-                        //   borderRadius: BorderRadius.circular(20),
-                        // ),
-                        child: TextField(
-                          controller: _messageController,
-                          focusNode: _focusNode,
-                          enabled: !isMuted,
-                          decoration: const InputDecoration(
-                            hintText: '输入消息...',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: GbsColors.lightBackgroundB,
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _showEmojiPicker
+                                ? Icons.keyboard
+                                : Icons.emoji_emotions_outlined,
+                            color: _showEmojiPicker
+                                ? Colors.blue
+                                : Colors.grey[600],
                           ),
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sendMessage(),
+                          onPressed: isMuted ? null : _toggleEmojiPicker,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                // 更多/发送按钮
-                InkWell(
-                  onTap: isMuted
-                      ? null
-                      : () {
-                         _pickImageFromGallery();
-                        },
-                  child: Padding(padding: EdgeInsetsGeometry.only(left: 8), child: Image.asset( 'assets/img/msg/img.png', width: 22, height: 22 , fit: BoxFit.fill,),),
-                ),
-                // 语音按钮
-                IconButton(
-                  icon: Icon(
-                    Icons.mic,
-                    color: _showVoicePanel ? Colors.blue : Colors.grey[600],
+                        // 输入框
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                // decoration: BoxDecoration(
+                                //   color: Colors.grey[100],
+                                //   borderRadius: BorderRadius.circular(20),
+                                // ),
+                                child: TextField(
+                                  controller: _messageController,
+                                  focusNode: _focusNode,
+                                  enabled: !isMuted,
+                                  decoration: const InputDecoration(
+                                    hintText: '输入消息...',
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                  textInputAction: TextInputAction.send,
+                                  onSubmitted: (_) => _sendMessage(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 更多/发送按钮
+                        InkWell(
+                          onTap: isMuted
+                              ? null
+                              : () {
+                                  _pickImageFromGallery();
+                                },
+                          child: Padding(
+                            padding: EdgeInsetsGeometry.only(left: 8),
+                            child: Image.asset(
+                              'assets/img/msg/img.png',
+                              width: 22,
+                              height: 22,
+                              fit: BoxFit.fill,
+                            ),
+                          ),
+                        ),
+                        // 语音按钮
+                        IconButton(
+                          icon: Icon(
+                            Icons.mic,
+                            color: _showVoicePanel
+                                ? Colors.blue
+                                : Colors.grey[600],
+                          ),
+                          onPressed: _toggleVoicePanel,
+                        ),
+                      ],
+                    ),
                   ),
-                  onPressed: _toggleVoicePanel,
                 ),
-               
-              ],
-            ),
-          ),
-          
-              ),
 
                 // 更多/发送按钮
                 InkWell(
@@ -1840,9 +1785,16 @@ class _ChatPageState extends State<ChatPage> {
                         },
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 10),
-                    width: 40, height: 40, child: Image.asset( 'assets/img/msg/send.png', fit: BoxFit.fill,),),
+                    width: 40,
+                    height: 40,
+                    child: Image.asset(
+                      'assets/img/msg/send.png',
+                      fit: BoxFit.fill,
+                    ),
+                  ),
                 ),
-          ],),
+              ],
+            ),
     );
   }
 
@@ -2146,9 +2098,9 @@ class _ChatPageState extends State<ChatPage> {
                 mainAxisSpacing: 4,
                 crossAxisSpacing: 4,
               ),
-              itemCount: _emojis.length,
+              itemCount: ChatController.to.emojis.length,
               itemBuilder: (context, index) {
-                return _buildEmojiItem(_emojis[index]);
+                return _buildEmojiItem(ChatController.to.emojis[index]);
               },
             ),
           ),
@@ -2830,29 +2782,38 @@ class _ChatPageState extends State<ChatPage> {
         width: width,
         child: Row(
           mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isMine
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           children: [
-           // 时长（播放时显示不同颜色）
-            !isMine ? Container() : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: isPlaying
-                  ? BoxDecoration(
-                      color: isMine
-                          ? Colors.white.withOpacity(0.2)
-                          : Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    )
-                  : null,
-              child: Text(
-                '${duration}″',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
-                  color: GbsColors.titleColor,
-                ),
-              ),
-            ),
-             // 播放/暂停图标（带背景圆圈）
+            // 时长（播放时显示不同颜色）
+            !isMine
+                ? Container()
+                : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    decoration: isPlaying
+                        ? BoxDecoration(
+                            color: isMine
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          )
+                        : null,
+                    child: Text(
+                      '${duration}″',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isPlaying
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: GbsColors.titleColor,
+                      ),
+                    ),
+                  ),
+            // 播放/暂停图标（带背景圆圈）
             Container(
               width: 24,
               height: 24,
@@ -2864,27 +2825,38 @@ class _ChatPageState extends State<ChatPage> {
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
-              child: Image.asset(isMine ? 'assets/img/chat/chat_audio.png' : 'assets/img/chat/chat_audio_r.png')
-            ),
-             isMine ? Container() : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: isPlaying
-                  ? BoxDecoration(
-                      color: isMine
-                          ? Colors.white.withOpacity(0.2)
-                          : Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    )
-                  : null,
-              child: Text(
-                '${duration}″',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
-                  color: GbsColors.titleColor,
-                ),
+              child: Image.asset(
+                isMine
+                    ? 'assets/img/chat/chat_audio.png'
+                    : 'assets/img/chat/chat_audio_r.png',
               ),
             ),
+            isMine
+                ? Container()
+                : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    decoration: isPlaying
+                        ? BoxDecoration(
+                            color: isMine
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          )
+                        : null,
+                    child: Text(
+                      '${duration}″',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isPlaying
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: GbsColors.titleColor,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
