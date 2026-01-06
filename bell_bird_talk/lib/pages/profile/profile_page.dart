@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_line.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -90,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: Icons.phone_android,
             label: '用户名',
             value: _maskPhone(user?.username),
-            onTap: () => _showPhoneBindDialog(user?.phone),
+            onTap: () => _showEditUsernameDialog(user?.username),
           ),
           CommonLineView(),
            _buildInfoItem(
@@ -218,49 +219,50 @@ class _ProfilePageState extends State<ProfilePage> {
   // ==================== 弹窗和操作 ====================
   
   void _showAvatarOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('拍照'),
-              onTap: () {
-                Get.back();
-                _pickAndUploadAvatar(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.green),
-              title: const Text('从相册选择'),
-              onTap: () {
-                Get.back();
-                _pickAndUploadAvatar(ImageSource.gallery);
-              },
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              title: const Text('取消', textAlign: TextAlign.center),
-              onTap: () => Get.back(),
-            ),
-          ],
-        ),
-      ),
-    );
+    _pickAndUploadAvatar(ImageSource.gallery);
+    // showModalBottomSheet(
+    //   context: context,
+    //   shape: const RoundedRectangleBorder(
+    //     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    //   ),
+    //   builder: (context) => SafeArea(
+    //     child: Column(
+    //       mainAxisSize: MainAxisSize.min,
+    //       children: [
+    //         Container(
+    //           width: 40,
+    //           height: 4,
+    //           margin: const EdgeInsets.symmetric(vertical: 12),
+    //           decoration: BoxDecoration(
+    //             color: Colors.grey[300],
+    //             borderRadius: BorderRadius.circular(2),
+    //           ),
+    //         ),
+    //         ListTile(
+    //           leading: const Icon(Icons.camera_alt, color: Colors.blue),
+    //           title: const Text('拍照'),
+    //           onTap: () {
+    //             Get.back();
+    //             _pickAndUploadAvatar(ImageSource.camera);
+    //           },
+    //         ),
+    //         ListTile(
+    //           leading: const Icon(Icons.photo_library, color: Colors.green),
+    //           title: const Text('从相册选择'),
+    //           onTap: () {
+    //             Get.back();
+    //             _pickAndUploadAvatar(ImageSource.gallery);
+    //           },
+    //         ),
+    //         const SizedBox(height: 8),
+    //         ListTile(
+    //           title: const Text('取消', textAlign: TextAlign.center),
+    //           onTap: () => Get.back(),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
   
   /// 选择并上传头像
@@ -283,9 +285,6 @@ class _ProfilePageState extends State<ProfilePage> {
         print('❌ 用户取消选择图片');
         return;
       }
-      
-      print('📷 选择图片: ${pickedFile.path}');
-      
       setState(() {
         _isUploadingAvatar = true;
       });
@@ -503,29 +502,66 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // 修改用户名
+  void _showEditUsernameDialog(String? currentUsername) {
+    final controller = TextEditingController(text: currentUsername);
+        // 新增分组
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: FriendRemarkView(
+                controller: controller,
+                tip: '请输入用户名',
+                title: '修改用户名',
+                onTap: () async {
+                  final newUsername = controller.text.trim();
+              if (newUsername.isEmpty) {
+                EasyLoading.showError('用户名不能为空');
+                return;
+              }
+              
+              Get.back();
+              EasyLoading.show(status: '修改中...');
+              
+              final result = await _nativeBridge.imUpdateUsername(newUsername);
+              
+              if (result['errorCode'] == 0) {
+                // 更新本地用户信息
+                _globalCtrl.updateUserUsername( newUsername);
+                EasyLoading.showSuccess('用户名修改成功');
+              } else {
+                EasyLoading.showError(result['message'] ?? '修改失败');
+              }
+                }
+              ));
+          });
+  }
+
+  // 修改昵称
   void _showEditNicknameDialog(String? currentNickname) {
     final controller = TextEditingController(text: currentNickname);
-    
-    Get.dialog(
-      AlertDialog(
-        title: const Text('修改昵称'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 20,
-          decoration: const InputDecoration(
-            hintText: '请输入新昵称',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final newNickname = controller.text.trim();
+        // 新增分组
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: FriendRemarkView(
+                controller: controller,
+                tip: '请输入昵称',
+                title: '修改昵称',
+                onTap: () async {
+                  final newNickname = controller.text.trim();
               if (newNickname.isEmpty) {
                 EasyLoading.showError('昵称不能为空');
                 return;
@@ -543,12 +579,9 @@ class _ProfilePageState extends State<ProfilePage> {
               } else {
                 EasyLoading.showError(result['message'] ?? '修改失败');
               }
-            },
-            child: const Text('保存'),
-          ),
-        ],
-      ),
-    );
+                }
+              ));
+          });
   }
 
   void _showPhoneBindDialog(String? currentPhone) {

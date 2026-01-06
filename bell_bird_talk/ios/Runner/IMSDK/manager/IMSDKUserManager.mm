@@ -179,8 +179,8 @@ void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t r
     if (userInfo[@"nickname"]) {
         updateUser.nickname = userInfo[@"nickname"];
     }
-    if (userInfo[@"sex"]) {
-        updateUser.sex = (UserSex)[userInfo[@"sex"] intValue];
+    if (userInfo[@"username"]) {
+//        updateUser.username = [userInfo[@"username"];
     }
     if (userInfo[@"signature"]) {
         updateUser.signature = userInfo[@"signature"];

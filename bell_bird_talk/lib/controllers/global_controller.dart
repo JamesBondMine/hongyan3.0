@@ -223,6 +223,14 @@ class GlobalController extends GetxController {
       await updateUserInfo(updatedUser);
     }
   }
+
+  Future<void> updateUserUsername(String username) async {
+    final user = currentUser.value;
+    if (user != null) {
+      final updatedUser = user.copyWith(username: username);
+      await updateUserInfo(updatedUser);
+    }
+  }
   
   /// 更新用户签名
   Future<void> updateUserSignature(String signature) async {

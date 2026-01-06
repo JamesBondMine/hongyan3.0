@@ -157,7 +157,6 @@ class UserController extends GetxController {
       }
     } else {
       // 从数据库获取
-      print('📋 从数据库获取联系人数据');
       return await _getContactsFromDatabase(
         currentUserId: currentUserId,
         page: page,

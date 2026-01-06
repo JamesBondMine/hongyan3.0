@@ -662,6 +662,11 @@ class IOSNativeService {
     return imUpdateUserInfo(nickname: nickname);
   }
 
+  /// 更新用户名（便捷方法）
+  Future<Map<String, dynamic>> imUpdateUsername(String username) async {
+    return imUpdateUserInfo(username: username);
+  }
+
   /// 更新昵称+用户名（便捷方法）
   Future<Map<String, dynamic>> imUpdateNickAndUsername(String nickname,String username) async {
     return imUpdateUserInfo(nickname: nickname,username: username);

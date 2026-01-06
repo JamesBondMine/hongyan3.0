@@ -3040,9 +3040,6 @@ class NativeBridgeHandler: NSObject {
             result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
             return
         }
-        
-        print("📝 更新用户信息: \(args)")
-        
         // 构建用户信息字典
         var userInfo: [String: Any] = [:]
         
@@ -3051,6 +3048,9 @@ class NativeBridgeHandler: NSObject {
         }
         if let nickname = args["nickname"] as? String {
             userInfo["nickname"] = nickname
+        }
+        if let username = args["username"] as? String {
+            userInfo["username"] = username
         }
         if let sex = args["sex"] as? Int {
             userInfo["sex"] = sex
