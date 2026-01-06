@@ -1,6 +1,7 @@
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
 import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
 import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -186,6 +187,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
             break;
           case 2:
             // 处理社群设置
+            Get.to(CommunitySettingPage());
             break;
           case 3:
             // 处理创建频道
