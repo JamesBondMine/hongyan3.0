@@ -423,9 +423,6 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       );
 
       EasyLoading.dismiss();
-
-      print('📱 创建会话结果: $result');
-
       if (result['errorCode'] == 0) {
         // 解析返回的会话数据
         String convId = '';

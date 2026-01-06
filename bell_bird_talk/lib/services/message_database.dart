@@ -978,6 +978,43 @@ class MessageDatabase {
     );
   }
   
+  /// 批量更新联系人的分组信息
+  /// [userId] 当前用户ID
+  /// [contactUserIds] 要更新的联系人ID列表
+  /// [groupId] 分组ID
+  /// [groupName] 分组名称
+  Future<void> updateContactsGroup(
+    String userId,
+    List<String> contactUserIds,
+    int? groupId,
+    String groupName,
+  ) async {
+    if (contactUserIds.isEmpty) {
+      return;
+    }
+    
+    final db = await database;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    
+    // 使用批量更新
+    final batch = db.batch();
+    for (final contactUserId in contactUserIds) {
+      batch.update(
+        'contacts',
+        {
+          'group_id': groupId,
+          'group_name': groupName,
+          'updated_at': now,
+        },
+        where: 'user_id = ? AND contact_user_id = ?',
+        whereArgs: [userId, contactUserId],
+      );
+    }
+    
+    await batch.commit(noResult: true);
+    print('💾 更新联系人分组: ${contactUserIds.length} 条，分组ID: $groupId, 分组名: $groupName');
+  }
+  
   /// 删除好友
   Future<void> deleteContact(String userId, String contactUserId) async {
     final db = await database;

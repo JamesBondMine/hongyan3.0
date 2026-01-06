@@ -163,8 +163,79 @@ class FriendController extends GetxController {
           }
         }
       }
+      return null;
     } catch (e) {
       print('获取黑名单状态失败: $e');
+      return null;
+    }
+  }
+
+  /// 创建好友分组
+  /// [groupName] 分组名称（必填，1-10个字符）
+  /// [friendIds] 要添加到分组的好友ID列表（可选）
+  /// 返回创建结果：{'errorCode': 0表示成功, 'message': '错误信息', 'data': '分组数据'}
+  Future<Map<String, dynamic>> createContactGroup({
+    required String groupName,
+    List<String>? friendIds,
+  }) async {
+    try {
+      // 验证分组名称
+      if (groupName.isEmpty) {
+        return {'errorCode': -1, 'message': '请输入分组名称'};
+      }
+
+      if (groupName.length > 10) {
+        return {'errorCode': -1, 'message': '分组名称不能超过10个字符'};
+      }
+
+      final selectedFriendIds = friendIds ?? [];
+
+      // 创建分组，同时添加选中的好友
+      final result = await _nativeService.imCreateContactGroup(
+        groupName: groupName,
+        friendIds: selectedFriendIds.isNotEmpty ? selectedFriendIds : null,
+      );
+
+      // 如果创建成功，刷新分组列表
+      if (result['errorCode'] == 0) {
+        
+        
+        // 如果有选中的好友，更新数据库中的联系人分组信息
+        if (selectedFriendIds.isNotEmpty) {
+          try {
+            // 获取当前用户ID
+            final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+            if (currentUserId.isNotEmpty) {
+              // 解析返回的数据，获取 group_id
+              final dataStr = result['data'] as String?;
+              if (dataStr != null && dataStr.isNotEmpty) {
+                final data = json.decode(dataStr) as Map<String, dynamic>;
+                final groupId = data['group_id'];
+                final returnedGroupName = data['group_name'] as String? ?? groupName;
+                
+                // 更新数据库中的联系人分组信息
+                await _messageDatabase.updateContactsGroup(
+                  currentUserId,
+                  selectedFriendIds,
+                  groupId is int ? groupId : (groupId is String ? int.tryParse(groupId) : null),
+                  returnedGroupName,
+                );
+                print('✅ 已更新 ${selectedFriendIds.length} 个联系人的分组信息到数据库');
+              }
+            }
+          } catch (e) {
+            print('⚠️ 更新联系人分组信息到数据库失败: $e');
+            // 即使数据库更新失败，也不影响创建分组的成功返回
+          }
+          // 更新页面
+          updateFriendGroupRefreshId();
+        }
+      }
+
+      return result;
+    } catch (e) {
+      print('❌ 创建好友分组失败: $e');
+      return {'errorCode': -999, 'message': '创建失败，请稍后重试'};
     }
   }
     

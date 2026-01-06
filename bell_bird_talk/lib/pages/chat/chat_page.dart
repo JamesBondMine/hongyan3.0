@@ -1038,7 +1038,8 @@ class _ChatPageState extends State<ChatPage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: Column(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
             widget.displayName,
@@ -1056,7 +1057,7 @@ class _ChatPageState extends State<ChatPage> {
       leading: InkWell(onTap: () {
         Navigator.pop(context);
       },
-      child: Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 20, top: 6, bottom: 6), child: Icon(Icons.arrow_back_ios,color: GbsColors.titleColor,),),),
+      child: Container(width: 120, color: Colors.red, padding: EdgeInsetsGeometry.only(left: 15, right: 20, top: 6, bottom: 6), child: Icon(Icons.arrow_back_ios,color: GbsColors.titleColor,),),),
       centerTitle: false,
       backgroundColor: GbsColors.lightAppBarColorA,
       foregroundColor: GbsColors.lightAppBarColorA,

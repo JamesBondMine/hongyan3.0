@@ -1045,8 +1045,9 @@ static void CreateContactGroupCallback(int errorCode, const char* data, int data
                         groupOrder:(int32_t)groupOrder
                          groupIcon:(NSString * _Nullable)groupIcon
                    groupDescription:(NSString * _Nullable)groupDescription
+                           userIds:(NSArray<NSString *> * _Nullable)userIds
                         completion:(IMSDKContactCompletion)completion {
-    NSLog(@"📁 创建联系人分组: groupName=%@", groupName);
+    NSLog(@"📁 创建联系人分组: groupName=%@, userIds=%@", groupName, userIds);
     
     if (!groupName || groupName.length == 0) {
         NSLog(@"❌ 分组名称不能为空");
@@ -1056,6 +1057,20 @@ static void CreateContactGroupCallback(int errorCode, const char* data, int data
     // 创建 GroupCreate Protobuf 对象
     GroupCreate *groupCreate = [[GroupCreate alloc] init];
     groupCreate.groupName = groupName;
+    
+    // 设置用户ID列表（如果有）
+    if (userIds && userIds.count > 0) {
+        // 确保数组已初始化
+        if (!groupCreate.userIdsArray) {
+            groupCreate.userIdsArray = [[NSMutableArray alloc] init];
+        }
+        [groupCreate.userIdsArray removeAllObjects];
+        [groupCreate.userIdsArray addObjectsFromArray:userIds];
+        NSLog(@"📝 添加 %lu 个用户到分组: %@", (unsigned long)userIds.count, userIds);
+    } else {
+        // 如果没有用户ID，初始化为空数组
+        groupCreate.userIdsArray = [[NSMutableArray alloc] init];
+    }
     
     if (groupColor && groupColor.length > 0) {
         groupCreate.groupColor = groupColor;

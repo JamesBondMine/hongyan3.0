@@ -1483,10 +1483,11 @@ class NativeBridgeHandler: NSObject {
         let groupOrder = args["group_order"] as? Int32 ?? 0
         let groupIcon = args["group_icon"] as? String
         let groupDescription = args["group_description"] as? String
+        let friendIds = args["friend_ids"] as? [String]
         
-        print("📁 创建联系人分组: groupName=\(groupName)")
+        print("📁 创建联系人分组: groupName=\(groupName), friendIds=\(friendIds ?? [])")
         
-        let code = IMSDKContactManager.shared().createContactGroup(withName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription, completion: { errorCode, reqId, data in
+        let code = IMSDKContactManager.shared().createContactGroup(withName: groupName, groupColor: groupColor, groupOrder: groupOrder, groupIcon: groupIcon, groupDescription: groupDescription, userIds: friendIds, completion: { errorCode, reqId, data in
             print("AppDeleate 创建联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             
             result([

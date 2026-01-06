@@ -976,6 +976,7 @@ class IOSNativeService {
     int? groupOrder,
     String? groupIcon,
     String? groupDescription,
+    List<String>? friendIds,
   }) async {
     try {
       final Map<String, dynamic> params = {
@@ -985,7 +986,9 @@ class IOSNativeService {
       if (groupOrder != null) params['group_order'] = groupOrder;
       if (groupIcon != null) params['group_icon'] = groupIcon;
       if (groupDescription != null) params['group_description'] = groupDescription;
-      
+
+      if (friendIds != null) params['friend_ids'] = friendIds;
+
       final result = await _bridge.invokeMethod<Map>('imCreateContactGroup', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

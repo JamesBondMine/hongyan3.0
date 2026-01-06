@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
-import 'package:bell_bird_talk/pages/friends/pages/friends_home_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
-import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -26,7 +24,6 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
   final TextEditingController _groupNameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final IOSNativeService _nativeService = IOSNativeService();
 
   List<FriendModel> _allFriends = [];
   List<FriendModel> _filteredFriends = [];
@@ -162,33 +159,35 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
 
   Future<void> _createGroupWithoutFriends(VoidCallback success) async {
     final groupName = _groupNameController.text.trim();
-    if (groupName.isEmpty) {
-      EasyLoading.showError('请输入分组名称');
-      return;
-    }
-
-    if (groupName.length > 10) {
-      EasyLoading.showError('分组名称不能超过10个字符');
-      return;
-    }
-
-    EasyLoading.show(status: '正在创建分组...');
+    final selectedFriendIds = _selectedFriendIds.toList();
+    final friendCount = selectedFriendIds.length;
+    
+    EasyLoading.show(
+      status: friendCount > 0 
+        ? '正在创建分组并添加${friendCount}位好友...' 
+        : '正在创建分组...',
+    );
 
     try {
-      final result = await _nativeService.imCreateContactGroup(
+      // 使用 FriendController 创建分组
+      final result = await FriendController.to.createContactGroup(
         groupName: groupName,
+        friendIds: selectedFriendIds.isNotEmpty ? selectedFriendIds : null,
       );
+      
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组创建成功');
+        final successMessage = friendCount > 0 
+          ? '分组创建成功，已添加${friendCount}位好友' 
+          : '分组创建成功';
+        EasyLoading.showSuccess(successMessage);
+        
         widget.onAddGroup();
-        // // 通知好友分组页刷新页面
-        // FriendController.to.updateFriendGroupRefreshId();
         success();
       } else {
         EasyLoading.showError(result['message'] ?? '创建失败');
       }
     } catch (e) {
-      print('创建分组错误: $e');
+      print('❌ 创建分组错误: $e');
       EasyLoading.showError('创建失败，请稍后重试');
     }
   }
