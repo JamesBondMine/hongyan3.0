@@ -283,25 +283,17 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   /// 加载黑名单状态
   Future<void> _loadBlackStatus() async {
     try {
-      final result = await _nativeService.imGetBlackStatus(
-        userId: widget.friend.id,
+      bool? result = await FriendController.to.loadBlackStatus(
+         widget.friend.id,
       );
+      if (result != null) {
+        _isBlocked = result;
+        
+      }
       if (!mounted) return;
 
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String? ?? '';
-        if (dataStr.isNotEmpty) {
-          try {
-            final data = json.decode(dataStr) as Map<String, dynamic>;
-            final isBlocked = data['is_blocked'] as bool? ?? false;
-            setState(() {
-              _isBlocked = isBlocked;
+      setState(() {
             });
-          } catch (e) {
-            print('解析黑名单状态失败: $e');
-          }
-        }
-      }
     } catch (e) {
       print('获取黑名单状态失败: $e');
     }

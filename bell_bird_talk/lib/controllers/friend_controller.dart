@@ -142,6 +142,30 @@ class FriendController extends GetxController {
       print('❌ 删除好友失败: $e');
       return {'errorCode': -999, 'message': '删除好友失败: $e'};
     }
+    }
+
+
+  /// 加载黑名单状态
+  Future<bool?> loadBlackStatus(String friendId) async {
+    try {
+      final result = await _nativeService.imGetBlackStatus(
+        userId: friendId ,
+      );
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr) as Map<String, dynamic>;
+            final isBlocked = data['is_blocked'] as bool? ?? false;
+            return isBlocked;
+          } catch (e) {
+            print('解析黑名单状态失败: $e');
+          }
+        }
+      }
+    } catch (e) {
+      print('获取黑名单状态失败: $e');
+    }
   }
     
 }

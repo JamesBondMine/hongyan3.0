@@ -15,8 +15,6 @@ import '../profile/side_menu_page.dart';
 import 'chat_page.dart';
 import 'create_group_page.dart';
 
-
-
 /// 聊天列表页面
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
@@ -34,15 +32,15 @@ class _ChatListPageState extends State<ChatListPage> {
   List<ConversationModel> _conversations = [];
   List<ConversationModel> _filteredConversations = [];
   bool _isLoading = false;
-  bool _isLoadingFromNetwork = false;  // 网络加载状态
+  bool _isLoadingFromNetwork = false; // 网络加载状态
   int _currentPage = 1;
   bool _hasMore = true;
   int _filterType = 0; // 0=全部, 1=未读, 2=群聊, 3=@我的
-  
+
   Worker? _refreshWorker;
   Worker? _newMessageWorker;
   final GlobalController _globalCtrl = Get.find<GlobalController>();
-  
+
   /// 获取当前用户ID
   String get _currentUserId => _globalCtrl.currentUser.value?.id ?? '';
 
@@ -51,22 +49,19 @@ class _ChatListPageState extends State<ChatListPage> {
     super.initState();
     _loadConversations();
     _scrollController.addListener(_onScroll);
-    
+
     // 监听全局刷新信号
     _refreshWorker = ever(
       _globalCtrl.refreshChatList,
       (_) => _refreshConversations(0),
     );
-    
+
     // 监听新消息
-    _newMessageWorker = ever(
-      _globalCtrl.newMessage,
-      (message) {
-        if (message != null) {
-          _handleNewMessage(message);
-        }
-      },
-    );
+    _newMessageWorker = ever(_globalCtrl.newMessage, (message) {
+      if (message != null) {
+        _handleNewMessage(message);
+      }
+    });
   }
 
   @override
@@ -80,9 +75,7 @@ class _ChatListPageState extends State<ChatListPage> {
           // 筛选栏
           _buildFilterBar(),
           // 会话列表
-          Expanded(
-            child: _buildConversationList(),
-          ),
+          Expanded(child: _buildConversationList()),
         ],
       ),
     );
@@ -96,28 +89,29 @@ class _ChatListPageState extends State<ChatListPage> {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   /// 处理新消息，更新会话列表和本地数据库
   void _handleNewMessage(Map<String, dynamic> message) {
     final convId = message['conversation_id']?.toString() ?? '';
     final content = message['content'] as String? ?? '';
-    final sendTime = message['send_time'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+    final sendTime =
+        message['send_time'] as int? ?? DateTime.now().millisecondsSinceEpoch;
     final convType = message['conv_type'] as int? ?? 0;
     final from = message['from'] as String? ?? '';
     final nick = message['nick'] as String? ?? '';
     final msgType = message['m_type'] as int? ?? 0;
-    
+
     if (convId.isEmpty) return;
-    
+
     final userId = _currentUserId;
     if (userId.isEmpty) return;
-    
+
     // 先计算更新后的会话，再更新UI
     ConversationModel updatedConv;
-    
+
     // 查找现有会话
     final index = _conversations.indexWhere((c) => c.convId == convId);
-    
+
     if (index != -1) {
       // 更新现有会话
       final oldConv = _conversations[index];
@@ -144,13 +138,13 @@ class _ChatListPageState extends State<ChatListPage> {
         targetId: from,
       );
     }
-    
+
     setState(() {
       if (index != -1) {
         // 移除旧位置
         _conversations.removeAt(index);
       }
-      
+
       // 插入到正确位置（置顶的放前面）
       if (updatedConv.isPinned) {
         _conversations.insert(0, updatedConv);
@@ -163,17 +157,20 @@ class _ChatListPageState extends State<ChatListPage> {
           _conversations.insert(firstNotPinned, updatedConv);
         }
       }
-      
+
       // 重新过滤
       _filterConversations();
     });
-    
+
     // 同步更新本地数据库
     _syncConversationToDatabase(userId, updatedConv);
   }
-  
+
   /// 同步会话到本地数据库
-  Future<void> _syncConversationToDatabase(String userId, ConversationModel conversation) async {
+  Future<void> _syncConversationToDatabase(
+    String userId,
+    ConversationModel conversation,
+  ) async {
     try {
       await _messageDatabase.upsertConversation(userId, conversation);
       print('💾 会话已同步到本地: ${conversation.convId}');
@@ -202,38 +199,40 @@ class _ChatListPageState extends State<ChatListPage> {
     try {
       // 1. 先从本地数据库加载（快速显示）
       await _loadLocalConversations(userId);
-      
+
       // 2. 再从网络加载
       await _loadNetworkConversations(userId);
-      
     } catch (e) {
       print('❌ 加载会话列表错误: $e');
     } finally {
       if (!mounted) {
         setState(() {
-        _isLoading = false;
-      });
+          _isLoading = false;
+        });
       }
     }
   }
-  
+
   /// 从本地数据库加载会话列表
   Future<void> _loadLocalConversations(String userId) async {
     try {
       print('📦 从本地数据库加载会话列表...');
-      final localConversations = await _messageDatabase.getConversations(userId);
-      
+      final localConversations = await _messageDatabase.getConversations(
+        userId,
+      );
+
       if (localConversations.isNotEmpty) {
         print('📦 本地会话数: ${localConversations.length}');
-        
+
         // 补充消息表中的最后一条消息
-        final enrichedConversations = await _enrichConversationsWithLatestMessages(localConversations);
-        
+        final enrichedConversations =
+            await _enrichConversationsWithLatestMessages(localConversations);
+
         setState(() {
           _conversations = enrichedConversations;
           _filterConversations();
         });
-        
+
         // 更新全局未读数
         final totalUnread = await _messageDatabase.getTotalUnreadCount(userId);
         _globalCtrl.unreadCount.value = totalUnread;
@@ -242,28 +241,32 @@ class _ChatListPageState extends State<ChatListPage> {
       print('❌ 加载本地会话列表错误: $e');
     }
   }
-  
+
   /// 从消息表补充会话的最后一条消息
   Future<List<ConversationModel>> _enrichConversationsWithLatestMessages(
     List<ConversationModel> conversations,
   ) async {
     final List<ConversationModel> enriched = [];
-    
+
     for (final conv in conversations) {
       // 如果会话表中已有最后消息，直接使用
       if (conv.lastMessage?.isNotEmpty == true) {
         enriched.add(conv);
         continue;
       }
-      
+
       // 从消息表获取最后一条消息
-      final latestMessage = await _messageDatabase.getLatestMessage(conv.convId);
-      
+      final latestMessage = await _messageDatabase.getLatestMessage(
+        conv.convId,
+      );
+
       if (latestMessage != null) {
         final enrichedConv = conv.copyWith(
           lastMessage: latestMessage.displayContent,
           lastMessageType: latestMessage.type.value,
-          lastMessageTime: DateTime.fromMillisecondsSinceEpoch(latestMessage.createdAt),
+          lastMessageTime: DateTime.fromMillisecondsSinceEpoch(
+            latestMessage.createdAt,
+          ),
           lastSenderId: latestMessage.senderId,
         );
         enriched.add(enrichedConv);
@@ -271,50 +274,51 @@ class _ChatListPageState extends State<ChatListPage> {
         enriched.add(conv);
       }
     }
-    
+
     return enriched;
   }
-  
+
   /// 从网络加载会话列表
   Future<void> _loadNetworkConversations(String userId) async {
     if (_isLoadingFromNetwork) return;
     _isLoadingFromNetwork = true;
     try {
-      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
-        page: _currentPage,
-        pageSize: 20,
-        convType: 0,
-        isUnread: false,
-        isAtMe: false,
-      );
-   
-              final networkConversations = conversations
-                  .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              // 合并本地和网络数据
-              final mergedConversations = await _mergeConversations(
-                userId,
-                networkConversations,
-              );
-              
-              setState(() {
-                _conversations = mergedConversations;
-                _hasMore = conversations.length >= 20;
-                _filterConversations();
-              });
-              
-              // 保存到本地数据库
-              await _messageDatabase.upsertConversations(userId, mergedConversations);
-              print('💾 已保存 ${mergedConversations.length} 个会话到本地');
-              
-              // 更新全局未读数
-              final totalUnread = mergedConversations.fold<int>(
-                0, (sum, conv) => sum + conv.unreadCount);
-              _globalCtrl.unreadCount.value = totalUnread;
-            
- 
-        _isLoading = false;
+      List<Map<String, dynamic>> conversations = await ChatController.to
+          .getConversationList(
+            page: _currentPage,
+            pageSize: 20,
+            convType: 0,
+            isUnread: false,
+            isAtMe: false,
+          );
 
+      final networkConversations = conversations
+          .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+      // 合并本地和网络数据
+      final mergedConversations = await _mergeConversations(
+        userId,
+        networkConversations,
+      );
+
+      setState(() {
+        _conversations = mergedConversations;
+        _hasMore = conversations.length >= 20;
+        _filterConversations();
+      });
+
+      // 保存到本地数据库
+      await _messageDatabase.upsertConversations(userId, mergedConversations);
+      print('💾 已保存 ${mergedConversations.length} 个会话到本地');
+
+      // 更新全局未读数
+      final totalUnread = mergedConversations.fold<int>(
+        0,
+        (sum, conv) => sum + conv.unreadCount,
+      );
+      _globalCtrl.unreadCount.value = totalUnread;
+
+      _isLoading = false;
     } catch (e) {
       print('❌ 网络加载会话列表错误: $e');
       _isLoading = false;
@@ -322,7 +326,7 @@ class _ChatListPageState extends State<ChatListPage> {
       _isLoadingFromNetwork = false;
     }
   }
-  
+
   /// 合并本地和网络会话数据
   /// 网络数据为主，本地数据补充缺失信息
   /// 最后一条消息：优先网络 → 会话表 → 消息表
@@ -332,28 +336,39 @@ class _ChatListPageState extends State<ChatListPage> {
     List<ConversationModel> networkConversations,
   ) async {
     final List<ConversationModel> merged = [];
-    
+
     // 批量获取所有单聊会话的好友信息
     final singleChatTargetIds = networkConversations
-        .where((c) => c.convType == 0 && c.targetId != null && c.targetId!.isNotEmpty) // 单聊且有目标ID
+        .where(
+          (c) =>
+              c.convType == 0 && c.targetId != null && c.targetId!.isNotEmpty,
+        ) // 单聊且有目标ID
         .map((c) => c.targetId!)
         .toList();
-    final contactsMap = await _messageDatabase.getContactsMap(userId, singleChatTargetIds);
-    
+    final contactsMap = await _messageDatabase.getContactsMap(
+      userId,
+      singleChatTargetIds,
+    );
+
     for (final netConv in networkConversations) {
       // 1. 查询本地会话表
-      final localConv = await _messageDatabase.getConversation(userId, netConv.convId);
-      
+      final localConv = await _messageDatabase.getConversation(
+        userId,
+        netConv.convId,
+      );
+
       // 2. 查询消息表中该会话的最后一条消息
-      final latestMessage = await _messageDatabase.getLatestMessage(netConv.convId);
-      
+      final latestMessage = await _messageDatabase.getLatestMessage(
+        netConv.convId,
+      );
+
       // 3. 确定最后一条消息（优先级：网络 > 会话表 > 消息表）
       String? finalLastMessage = netConv.lastMessage;
       int? finalLastMessageType = netConv.lastMessageType;
       DateTime? finalLastMessageTime = netConv.lastMessageTime;
       String? finalLastSenderId = netConv.lastSenderId;
       String? finalLastSenderName = netConv.lastSenderName;
-      
+
       // 如果网络没有最后消息，尝试从本地会话表获取
       if (finalLastMessage == null || finalLastMessage.isEmpty) {
         if (localConv != null && localConv.lastMessage?.isNotEmpty == true) {
@@ -364,45 +379,46 @@ class _ChatListPageState extends State<ChatListPage> {
           finalLastSenderName = localConv.lastSenderName;
         }
       }
-      
+
       // 如果还是没有，从消息表获取
       if (finalLastMessage == null || finalLastMessage.isEmpty) {
         if (latestMessage != null) {
           finalLastMessage = latestMessage.displayContent;
           finalLastMessageType = latestMessage.type.value;
-          finalLastMessageTime = DateTime.fromMillisecondsSinceEpoch(latestMessage.createdAt);
+          finalLastMessageTime = DateTime.fromMillisecondsSinceEpoch(
+            latestMessage.createdAt,
+          );
           finalLastSenderId = latestMessage.senderId;
           // 发送者名称需要额外查询，暂时留空
         }
       }
 
-      
-      
       // 4. 从好友表获取显示名称和头像（仅单聊）
       String displayName = netConv.displayName;
       String avatar = netConv.avatar ?? '';
-      
-      if (netConv.convType == 0) { // 单聊
+
+      if (netConv.convType == 0) {
+        // 单聊
         final contact = contactsMap[netConv.targetId];
         if (contact != null) {
           // 备注优先 > 昵称 > 网络返回的名称
           final remark = contact['remark'] as String?;
           final nickname = contact['nickname'] as String?;
           final contactAvatar = contact['avatar'] as String?;
-          
+
           if (remark != null && remark.isNotEmpty) {
             displayName = remark;
           } else if (nickname != null && nickname.isNotEmpty) {
             displayName = nickname;
           }
-          
+
           // 头像：好友表优先
           if (contactAvatar != null && contactAvatar.isNotEmpty) {
             avatar = contactAvatar;
           }
         }
       }
-      
+
       // 5. 合并数据
       final mergedConv = netConv.copyWith(
         // 显示名称和头像
@@ -410,7 +426,9 @@ class _ChatListPageState extends State<ChatListPage> {
         avatar: avatar,
         avatarBg: netConv.avatarBg,
         // 未读数：网络优先，本地补充
-        unreadCount: netConv.unreadCount > 0 ? netConv.unreadCount : (localConv?.unreadCount ?? 0),
+        unreadCount: netConv.unreadCount > 0
+            ? netConv.unreadCount
+            : (localConv?.unreadCount ?? 0),
         // 最后消息
         lastMessage: finalLastMessage,
         lastMessageType: finalLastMessageType,
@@ -422,11 +440,13 @@ class _ChatListPageState extends State<ChatListPage> {
         isMuted: localConv?.isMuted ?? false,
         draft: localConv?.draft,
         // @我的数量
-        atMeCount: netConv.atMeCount > 0 ? netConv.atMeCount : (localConv?.atMeCount ?? 0),
+        atMeCount: netConv.atMeCount > 0
+            ? netConv.atMeCount
+            : (localConv?.atMeCount ?? 0),
       );
       merged.add(mergedConv);
     }
-    
+
     // 按置顶优先、时间倒序排序
     merged.sort((a, b) {
       if (a.isPinned != b.isPinned) {
@@ -436,7 +456,7 @@ class _ChatListPageState extends State<ChatListPage> {
       final timeB = b.lastMessageTime?.millisecondsSinceEpoch ?? 0;
       return timeB.compareTo(timeA);
     });
-    
+
     return merged;
   }
 
@@ -457,30 +477,29 @@ class _ChatListPageState extends State<ChatListPage> {
       //   isAtMe: _filterType == 3 ? true : false,
       // );
 
-      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
-        page: _currentPage + 1,
-        pageSize: 20,
-        convType: _filterType,
-        isUnread: _filterType == 1||_filterType == 3 ? true : false,
-        isAtMe: _filterType == 3 ? true : false,
-      );
+      List<Map<String, dynamic>> conversations = await ChatController.to
+          .getConversationList(
+            page: _currentPage + 1,
+            pageSize: 20,
+            convType: _filterType,
+            isUnread: _filterType == 1 || _filterType == 3 ? true : false,
+            isAtMe: _filterType == 3 ? true : false,
+          );
 
+      if (conversations != null && conversations.isNotEmpty) {
+        _conversations.addAll(
+          conversations
+              .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        );
+        _currentPage++;
+        _hasMore = conversations.length >= 20;
+      } else {
+        _hasMore = false;
+      }
 
-            if (conversations != null && conversations.isNotEmpty) {
-              _conversations.addAll(
-                conversations
-                    .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
-                    .toList(),
-              );
-              _currentPage++;
-              _hasMore = conversations.length >= 20;
-            } else {
-              _hasMore = false;
-            }
-   
-        _isLoading = false;
-        _filterConversations();
-      
+      _isLoading = false;
+      _filterConversations();
     } catch (e) {
       print('加载更多会话错误: $e');
       _isLoading = false;
@@ -498,10 +517,9 @@ class _ChatListPageState extends State<ChatListPage> {
       EasyLoading.showError('用户未登录');
       return;
     }
-    
+
     EasyLoading.show(status: '加载未读会话...');
-    
-    
+
     try {
       print('📋 加载未读会话列表...');
       final result = await _nativeService.imGetUnreadConversations(
@@ -509,9 +527,9 @@ class _ChatListPageState extends State<ChatListPage> {
         pageSize: 50,
         convType: -1,
       );
-      
+
       print('📋 未读会话列表结果: $result');
-      
+
       if (result['errorCode'] == 0) {
         final data = result['data'];
         if (data != null && data is String && data.isNotEmpty) {
@@ -520,30 +538,38 @@ class _ChatListPageState extends State<ChatListPage> {
             final conversations = dataMap['conversations'] as List<dynamic>?;
             if (conversations != null) {
               final unreadConversations = conversations
-                  .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+                  .map(
+                    (e) =>
+                        ConversationModel.fromJson(e as Map<String, dynamic>),
+                  )
                   .toList();
-              
+
               // 合并本地和网络数据
               final mergedConversations = await _mergeConversations(
                 userId,
                 unreadConversations,
               );
-              
+
               // 更新本地数据库
-              await _messageDatabase.upsertConversations(userId, mergedConversations);
+              await _messageDatabase.upsertConversations(
+                userId,
+                mergedConversations,
+              );
               print('💾 已更新 ${mergedConversations.length} 个未读会话到本地数据库');
-              
+
               // 更新会话列表（只显示未读会话）
               setState(() {
                 _conversations = mergedConversations;
                 _filterConversations(); // 这会根据 _filterType 过滤未读会话
               });
-              
+
               // 更新全局未读数
               final totalUnread = mergedConversations.fold<int>(
-                0, (sum, conv) => sum + conv.unreadCount);
+                0,
+                (sum, conv) => sum + conv.unreadCount,
+              );
               _globalCtrl.unreadCount.value = totalUnread;
-              
+
               EasyLoading.showSuccess('加载成功');
             } else {
               // 没有未读会话
@@ -577,64 +603,69 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 刷新会话列表（带超时控制）
   /// 刷新会话列表（带超时控制）
-  Future<void> _refreshConversations(int convType, {bool isAtMe = false}) async {
+  Future<void> _refreshConversations(
+    int convType, {
+    bool isAtMe = false,
+  }) async {
     // 重置分页
     _currentPage = 1;
     _hasMore = true;
     final userId = _currentUserId;
     try {
-      List<Map<String, dynamic>> conversations = await ChatController.to.getConversationList(
-        page: 1,
-        pageSize: 20,
-        convType: _filterType,
-        isUnread: _filterType == 1||_filterType == 3 ? true : false,
-        isAtMe: _filterType == 3 ? true : false,
-      );
+      List<Map<String, dynamic>> conversations = await ChatController.to
+          .getConversationList(
+            page: 1,
+            pageSize: 20,
+            convType: _filterType,
+            isUnread: _filterType == 1 || _filterType == 3 ? true : false,
+            isAtMe: _filterType == 3 ? true : false,
+          );
 
-            if (conversations != null) {
-              final networkConversations = conversations
-                  .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
-                  .toList();
-              
-              // 合并本地和网络数据
-              final mergedConversations = await _mergeConversations(
-                userId,
-                networkConversations,
-              );
-              
-              setState(() {
-                _conversations = mergedConversations;
-                _hasMore = conversations.length >= 20;
-                _filterConversations();
-              });
-              
-              // 保存到本地数据库
-              await _messageDatabase.upsertConversations(userId, mergedConversations);
-              
-              // 更新全局未读数
-              final totalUnread = mergedConversations.fold<int>(
-                0, (sum, conv) => sum + conv.unreadCount);
-              _globalCtrl.unreadCount.value = totalUnread;
-            }
+      if (conversations != null) {
+        final networkConversations = conversations
+            .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+            .toList();
 
-        // 刷新成功提示
-        EasyLoading.showSuccess('刷新成功', duration: const Duration(seconds: 1));
+        // 合并本地和网络数据
+        final mergedConversations = await _mergeConversations(
+          userId,
+          networkConversations,
+        );
+
+        setState(() {
+          _conversations = mergedConversations;
+          _hasMore = conversations.length >= 20;
+          _filterConversations();
+        });
+
+        // 保存到本地数据库
+        await _messageDatabase.upsertConversations(userId, mergedConversations);
+
+        // 更新全局未读数
+        final totalUnread = mergedConversations.fold<int>(
+          0,
+          (sum, conv) => sum + conv.unreadCount,
+        );
+        _globalCtrl.unreadCount.value = totalUnread;
+      }
     } catch (e) {
       print('刷新会话列表错误: $e');
       EasyLoading.showError('刷新失败');
-      setState(() {});  // 恢复页面状态
+      setState(() {}); // 恢复页面状态
     }
   }
 
   /// 过滤会话
   void _filterConversations() {
     final keyword = _searchController.text.trim().toLowerCase();
-    
+
     // 先按类型筛选
     List<ConversationModel> filtered;
     switch (_filterType) {
       case 1: // 未读
-        filtered = _conversations.where((conv) => conv.unreadCount > 0).toList();
+        filtered = _conversations
+            .where((conv) => conv.unreadCount > 0)
+            .toList();
         break;
       case 2: // 群聊
         filtered = _conversations.where((conv) => conv.convType == 2).toList();
@@ -646,20 +677,21 @@ class _ChatListPageState extends State<ChatListPage> {
       default: // 全部
         filtered = List.from(_conversations);
     }
-    
+
     // 再按关键词过滤
     if (keyword.isNotEmpty) {
       filtered = filtered
-          .where((conv) =>
-              conv.displayName.toLowerCase().contains(keyword) ||
-              (conv.lastMessage?.toLowerCase().contains(keyword) ?? false))
+          .where(
+            (conv) =>
+                conv.displayName.toLowerCase().contains(keyword) ||
+                (conv.lastMessage?.toLowerCase().contains(keyword) ?? false),
+          )
           .toList();
     }
-    
+
     _filteredConversations = filtered;
     setState(() {});
   }
-
 
   /// 构建搜索栏
   Widget _buildSearchBar() {
@@ -698,7 +730,7 @@ class _ChatListPageState extends State<ChatListPage> {
       child: Row(
         children: [
           _buildFilterButton(0, '全部', _getAllUnreadCount()),
-          _buildFilterButton(1, '未读', _getAllUnreadCount()),  // 和全部一样显示总未读数
+          _buildFilterButton(1, '未读', _getAllUnreadCount()), // 和全部一样显示总未读数
           _buildFilterButton(2, '群聊', _getGroupUnreadCount(false)),
           _buildFilterButton(3, '@我的', _getGroupUnreadCount(true)),
         ],
@@ -715,7 +747,7 @@ class _ChatListPageState extends State<ChatListPage> {
           setState(() {
             _filterType = type;
           });
-          
+
           // 根据筛选类型执行不同的操作
           if (type == 1) {
             // 点击"未读"：调用未读会话接口
@@ -731,7 +763,7 @@ class _ChatListPageState extends State<ChatListPage> {
             await _refreshConversations(0, isAtMe: true);
           } else {
             // 其他筛选类型：仅本地过滤
-          // _filterConversations();
+            // _filterConversations();
           }
         },
         child: Container(
@@ -760,7 +792,10 @@ class _ChatListPageState extends State<ChatListPage> {
               if (count > 0) ...[
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.blue : Colors.red,
                     borderRadius: BorderRadius.circular(10),
@@ -787,7 +822,6 @@ class _ChatListPageState extends State<ChatListPage> {
     return _conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
   }
 
-
   /// 获取群聊未读消息数
   int _getGroupUnreadCount(bool isOnlyAtMe) {
     if (isOnlyAtMe) {
@@ -800,7 +834,6 @@ class _ChatListPageState extends State<ChatListPage> {
         .fold(0, (sum, conv) => sum + conv.unreadCount);
   }
 
-
   List<Widget> _buildAppBarActions() {
     return [
       GestureDetector(
@@ -810,40 +843,48 @@ class _ChatListPageState extends State<ChatListPage> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(  'assets/img//chat/chatuseradd.png', width: 20, height: 20),
-                const SizedBox(width: 8),
-                const Text('添加好友'),
-              ], 
-            ),
+            children: [
+              Image.asset(
+                'assets/img//chat/chatuseradd.png',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text('添加好友'),
+            ],
+          ),
         ),
         onTap: () {
-          Navigator.pop(  context); // 先关闭弹出菜单
+          Navigator.pop(context); // 先关闭弹出菜单
           Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddFriendPage (),
+            context,
+            MaterialPageRoute(builder: (context) => const AddFriendPage()),
+          );
+        },
       ),
-    );
-        }),
-        GestureDetector(
+      GestureDetector(
         child: Container(
           alignment: Alignment.center,
           width: 120,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(  'assets/img//chat/chataddchat.png', width: 20, height: 20),
-                const SizedBox(width: 8),
-                const Text('创建群聊'),
-              ],
-            ),
+            children: [
+              Image.asset(
+                'assets/img//chat/chataddchat.png',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text('创建群聊'),
+            ],
+          ),
         ),
         onTap: () {
-          Navigator.pop(  context); // 先关闭弹出菜单
+          Navigator.pop(context); // 先关闭弹出菜单
           _createGroup();
-        }),
+        },
+      ),
     ];
   }
 
@@ -852,15 +893,14 @@ class _ChatListPageState extends State<ChatListPage> {
     final globalController = Get.find<GlobalController>();
     final user = globalController.currentUser.value;
     final avatar = user?.avatar;
-    
+
     final nickname = user?.nickname ?? '我';
 
     String userId = '';
     if (user != null) {
       userId = user.id;
-      
     }
-    
+
     return AppBar(
       leadingWidth: 56,
       leading: Padding(
@@ -870,7 +910,7 @@ class _ChatListPageState extends State<ChatListPage> {
             // 点击头像打开侧边栏菜单
             showSideMenu(context);
           },
-          child: _userHeadImgView(avatar ?? '', nickname,userId),
+          child: _userHeadImgView(avatar ?? '', nickname, userId),
         ),
       ),
       title: const Text('聊天'),
@@ -881,12 +921,17 @@ class _ChatListPageState extends State<ChatListPage> {
       actions: [
         CustomPopup(
           // contentPadding: EdgeInsets.only(right: 16),
-  content: Column(
-  mainAxisSize: MainAxisSize.min,
-    children: _buildAppBarActions()
-  ),
-  child: Image.asset('assets/img/chat/chatadd.png', width: 24, height: 24),
-),SizedBox(width: 16,)
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _buildAppBarActions(),
+          ),
+          child: Image.asset(
+            'assets/img/chat/chatadd.png',
+            width: 24,
+            height: 24,
+          ),
+        ),
+        SizedBox(width: 16),
       ],
     );
   }
@@ -897,59 +942,58 @@ class _ChatListPageState extends State<ChatListPage> {
     Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
     String bg = res?['avatar_bg'] ?? '';
 
-    
     return bg;
   }
 
-  Widget _userHeadImgView(String avatar, String nickname, String userId){
-    return FutureBuilder(future: _fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
+  Widget _userHeadImgView(String avatar, String nickname, String userId) {
+    return FutureBuilder(
+      future: _fetchUserAvatarUrl(userId),
+      builder: (context, AsyncSnapshot<String> snapshot) {
+        String bg = '';
 
+        if (snapshot.hasData && snapshot.data != null) {
+          bg = snapshot.data as String;
+        }
+        String bgcolorStr = '';
+        String txtcolorStr = '';
+        if (bg.isNotEmpty && bg.contains(':')) {
+          bgcolorStr = bg.split(':').first;
+          txtcolorStr = bg.split(':').last;
+          if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
+            bgcolorStr = bgcolorStr.split('&').first;
+          }
+        }
 
-      String bg = '';
+        Color bgColor = bg.isEmpty
+            ? Colors.blue
+            : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+        Color txtColor = bg.isEmpty
+            ? Colors.blue
+            : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
 
-      if (snapshot.hasData && snapshot.data != null) {
-        bg = snapshot.data as String;
-      }
-      String bgcolorStr = '';
-    String txtcolorStr = '';
-    if (bg.isNotEmpty && bg.contains(':')) {
-      bgcolorStr = bg.split(':').first;
-      txtcolorStr = bg.split(':').last;
-      if (bgcolorStr.isNotEmpty && bgcolorStr.contains('&')) {
-        bgcolorStr = bgcolorStr.split('&').first;
-      }
-    }
-
-    Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
-    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
-
-
-      return CircleAvatar(
-            radius: 18,
-            backgroundColor: bgColor,
-            backgroundImage: avatar.isNotEmpty
-                ? NetworkImage(avatar)
-                : null,
-            child: avatar.isEmpty
-                ? Text(
-                    nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
-                    style: TextStyle(
-                      color: txtColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
-          );
-    });
+        return CircleAvatar(
+          radius: 18,
+          backgroundColor: bgColor,
+          backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+          child: avatar.isEmpty
+              ? Text(
+                  nickname.isNotEmpty ? nickname.substring(0, 1) : '我',
+                  style: TextStyle(
+                    color: txtColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        );
+      },
+    );
   }
 
   /// 构建会话列表
   Widget _buildConversationList() {
     if (_isLoading && _conversations.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // 使用 RefreshIndicator 包裹整个内容，支持空状态下拉刷新
@@ -980,10 +1024,7 @@ class _ChatListPageState extends State<ChatListPage> {
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: _buildEmptyView(),
-        ),
+        SliverFillRemaining(hasScrollBody: false, child: _buildEmptyView()),
       ],
     );
   }
@@ -994,26 +1035,16 @@ class _ChatListPageState extends State<ChatListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             '暂无聊天记录',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
           ),
           const SizedBox(height: 8),
           Text(
             '快去找好友聊天吧',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[400],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[400]),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -1071,16 +1102,13 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 构建会话项
   Widget _buildConversationItem(ConversationModel conversation) {
-    
     return InkWell(
       onTap: () => _openChat(conversation),
       onLongPress: () => _showConversationOptions(conversation),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[200]!),
-          ),
+          border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
         ),
         child: Row(
           children: [
@@ -1088,15 +1116,25 @@ class _ChatListPageState extends State<ChatListPage> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                _getAvatarWidget(conversation, conversation.convType, conversation.avatarBg ?? ''),
+                _getAvatarWidget(
+                  conversation,
+                  conversation.convType,
+                  conversation.avatarBg ?? '',
+                ),
                 // 未读数角标
                 if (conversation.unreadCount > 0)
                   Positioned(
                     right: -4,
                     top: -4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
                       decoration: BoxDecoration(
                         color: conversation.disturb ? Colors.grey : Colors.red,
                         borderRadius: BorderRadius.circular(10),
@@ -1117,7 +1155,9 @@ class _ChatListPageState extends State<ChatListPage> {
                     ),
                   ),
                 // 在线状态指示器
-                if (conversation.convType == 0 && conversation.isOnline && conversation.unreadCount == 0)
+                if (conversation.convType == 0 &&
+                    conversation.isOnline &&
+                    conversation.unreadCount == 0)
                   Positioned(
                     right: 0,
                     bottom: 0,
@@ -1134,7 +1174,7 @@ class _ChatListPageState extends State<ChatListPage> {
               ],
             ),
             const SizedBox(width: 12),
-            
+
             // 会话信息
             Expanded(
               child: Column(
@@ -1154,29 +1194,31 @@ class _ChatListPageState extends State<ChatListPage> {
                       //   ),
                       // 会话名称
                       Expanded(
-                        child: Row(children: [
-                          Text(
-                          conversation.displayName ,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Text(
+                              conversation.displayName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // 免打扰图标
+                            if (conversation.disturb == true)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2),
+                                child: Icon(
+                                  Icons.notifications_off,
+                                  size: 16,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                          ],
                         ),
-                        // 免打扰图标
-                      if (conversation.disturb  == true)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 2),
-                          child: Icon(
-                            Icons.notifications_off,
-                            size: 16,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                        ],),
                       ),
-                      
+
                       // 时间
                       if (conversation.lastMessageTime != null)
                         Text(
@@ -1191,13 +1233,14 @@ class _ChatListPageState extends State<ChatListPage> {
                   const SizedBox(height: 4),
                   // 最后一条消息
                   Text(
-                    conversation.lastMessageDisplay.isNotEmpty 
-                        ? conversation.lastMessageDisplay 
-                        :  '暂无消息',
+                    conversation.lastMessageDisplay.isNotEmpty
+                        ? conversation.lastMessageDisplay
+                        : '暂无消息',
                     style: TextStyle(
                       fontSize: 14,
-                      color: conversation.unreadCount > 0 
-                          ? Colors.black87  // 有未读消息时文字加深
+                      color: conversation.unreadCount > 0
+                          ? Colors
+                                .black87 // 有未读消息时文字加深
                           : Colors.grey[600],
                     ),
                     maxLines: 1,
@@ -1227,8 +1270,11 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 
   /// 获取头像背景色
-  Widget _getAvatarWidget(ConversationModel conversation, int convType, String bg) {
-
+  Widget _getAvatarWidget(
+    ConversationModel conversation,
+    int convType,
+    String bg,
+  ) {
     String bgcolor = '';
     String txtcolorStr = '';
     if (bg.isNotEmpty && bg.contains(':')) {
@@ -1240,50 +1286,64 @@ class _ChatListPageState extends State<ChatListPage> {
     }
     String gid = conversation.convId;
     String gidLast = '1';
-                      if (gid.isNotEmpty) {
-                        // 从后往前查找最后一个数字
-                        for (int i = gid.length - 1; i >= 0; i--) {
-                          if (gid[i].contains(RegExp(r'[0-9]'))) {
-                            gidLast = gid[i];
-                            break;
-                          }
-                        }
-                      }
+    if (gid.isNotEmpty) {
+      // 从后往前查找最后一个数字
+      for (int i = gid.length - 1; i >= 0; i--) {
+        if (gid[i].contains(RegExp(r'[0-9]'))) {
+          gidLast = gid[i];
+          break;
+        }
+      }
+    }
 
     Color bgColor = Colors.grey;
     switch (convType) {
       case 0:
-        bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty
+            ? Colors.blue
+            : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 1:
-        bgColor = bg.isEmpty ? Colors.green : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty
+            ? Colors.green
+            : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 2:
-        bgColor = bg.isEmpty ? Colors.green : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty
+            ? Colors.green
+            : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 3:
-        bgColor = bg.isEmpty ? Colors.orange : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
+        bgColor = bg.isEmpty
+            ? Colors.orange
+            : Color(int.parse(bgcolor.replaceFirst('#', '0xFF')));
       case 4:
         bgColor = Colors.purple;
       default:
         bgColor = Colors.grey;
     }
 
-    Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+    Color txtColor = bg.isEmpty
+        ? Colors.blue
+        : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
     return CircleAvatar(
-                  radius: 24,
-                  backgroundColor: bgColor,
-                  backgroundImage: conversation.convType==2 ?  AssetImage('assets/img/group/groplogo$gidLast.png',) : (conversation.avatar != null && conversation.avatar!.isNotEmpty)
-                      ? NetworkImage(conversation.avatar!)
-                      : null,
-                  child: conversation.convType==2 ? Container() : (conversation.avatar == null || conversation.avatar!.isEmpty)
-                      ? Text(
-                          _getAvatarText(conversation),
-                          style: TextStyle(
-                            color: txtColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : null,
-                );
+      radius: 24,
+      backgroundColor: bgColor,
+      backgroundImage: conversation.convType == 2
+          ? AssetImage('assets/img/group/groplogo$gidLast.png')
+          : (conversation.avatar != null && conversation.avatar!.isNotEmpty)
+          ? NetworkImage(conversation.avatar!)
+          : null,
+      child: conversation.convType == 2
+          ? Container()
+          : (conversation.avatar == null || conversation.avatar!.isEmpty)
+          ? Text(
+              _getAvatarText(conversation),
+              style: TextStyle(
+                color: txtColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          : null,
+    );
   }
 
   /// 获取头像文字
@@ -1315,39 +1375,44 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 打开聊天
   void _openChat(ConversationModel conversation) async {
-    if (conversation.convType==2) {
-       await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GroupChatPage(convId: conversation.convId, groupId: conversation.targetId ?? '', groupName: conversation.displayName),
-
-      ),
-    );
-    // 清空会话ID
-    ChatController.to.conversationId = "";
-    } else { // 跳转到聊天详情页
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatPage(
-          convId: conversation.convId,
-          displayName: conversation.displayName,
-          avatar: conversation.avatar,
-          targetUserId: conversation.targetId ?? '',
+    if (conversation.convType == 2) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GroupChatPage(
+            convId: conversation.convId,
+            groupId: conversation.targetId ?? '',
+            groupName: conversation.displayName,
+          ),
         ),
-      ),
-    );}
+      );
+      // 清空会话ID
+      ChatController.to.conversationId = "";
+    } else {
+      // 跳转到聊天详情页
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatPage(
+            convId: conversation.convId,
+            displayName: conversation.displayName,
+            avatar: conversation.avatar,
+            targetUserId: conversation.targetId ?? '',
+          ),
+        ),
+      );
+    }
     // 清空会话ID
     ChatController.to.conversationId = "";
-   
+
     // 返回后清除该会话的未读数
     _clearConversationUnread(conversation.convId);
   }
-  
+
   /// 清除会话未读数
   void _clearConversationUnread(String convId) {
     final userId = _currentUserId;
-    
+
     setState(() {
       final index = _conversations.indexWhere((c) => c.convId == convId);
       if (index != -1) {
@@ -1361,7 +1426,7 @@ class _ChatListPageState extends State<ChatListPage> {
           // 清除该会话未读数
           _conversations[index] = oldConv.copyWith(unreadCount: 0);
           _filterConversations();
-          
+
           // 同步到本地数据库
           if (userId.isNotEmpty) {
             _messageDatabase.clearConversationUnreadCount(userId, convId);
@@ -1369,7 +1434,7 @@ class _ChatListPageState extends State<ChatListPage> {
         }
       }
     });
-    
+
     // 调用后端接口标记已读
     _nativeService.imMarkConversationRead(convId: convId, msgIds: '');
   }
@@ -1435,25 +1500,37 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 创建群聊
   Future<void> _createGroup() async {
-    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 150,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: CreateGroupPage(
+          onCreate: () {
+            _refreshConversations(0);
+          },
+        ),
       ),
-      child: CreateGroupPage(onCreate: () {
-        _refreshConversations(0);
-      },),
-    ));
+    );
   }
 
   /// 标记已读
-  Future<void> _markAsRead(ConversationModel conversation, String msgIds) async {
+  Future<void> _markAsRead(
+    ConversationModel conversation,
+    String msgIds,
+  ) async {
     try {
       final result = await _nativeService.imMarkConversationRead(
         convId: conversation.convId,
-        msgIds: msgIds
+        msgIds: msgIds,
       );
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('已标记为已读');
@@ -1496,7 +1573,10 @@ class _ChatListPageState extends State<ChatListPage> {
           // 删除本地数据库的会话
           final userId = _currentUserId;
           if (userId.isNotEmpty) {
-            await _messageDatabase.deleteConversation(userId, conversation.convId);
+            await _messageDatabase.deleteConversation(
+              userId,
+              conversation.convId,
+            );
           }
           _refreshConversations(0);
         } else {
@@ -1514,4 +1594,3 @@ class _ChatListPageState extends State<ChatListPage> {
     Get.snackbar('提示', '搜索功能开发中');
   }
 }
-

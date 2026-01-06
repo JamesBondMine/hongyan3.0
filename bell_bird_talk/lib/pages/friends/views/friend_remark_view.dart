@@ -11,11 +11,15 @@ class FriendRemarkView extends StatelessWidget {
     Key? key,
     required this.controller,
     required this.onTap,
+    this.title,
+    this.tip,
   }) : super(key: key);
 
 
   final VoidCallback onTap;
   TextEditingController controller;
+  String? title;
+  String? tip;
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +55,8 @@ class FriendRemarkView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '备注',
+                      Text(
+                        title ?? '备注',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -77,7 +81,7 @@ class FriendRemarkView extends StatelessWidget {
                     // focusNode: focusNode,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: '请输入备注名',
+                      hintText:  tip ?? '请输入备注名',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -136,7 +140,7 @@ class FriendRemarkView extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                           
+                           onTap();
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),

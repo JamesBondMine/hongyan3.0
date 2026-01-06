@@ -1136,9 +1136,6 @@ class NativeBridgeHandler: NSObject {
             result(FlutterError(code: "INVALID_ARGS", message: "目标用户ID不能为空", details: nil))
             return
         }
-        
-        print("👥 添加联系人: \(args)")
-        
         let code = IMSDKContactManager.shared().addContact(withParams: args) { errorCode, reqId, data in
             print("AppDeleate 添加联系人回调: errorCode=\(errorCode), reqId=\(reqId)")
             
@@ -1547,9 +1544,6 @@ class NativeBridgeHandler: NSObject {
             result(FlutterError(code: "INVALID_ARGS", message: "参数错误，缺少 group_id", details: nil))
             return
         }
-        
-        print("📁 删除联系人分组: groupId=\(groupId)")
-        
         let code = IMSDKContactManager.shared().deleteContactGroup(withId: groupId) { errorCode, reqId, data in
             print("AppDeleate 删除联系人分组回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([

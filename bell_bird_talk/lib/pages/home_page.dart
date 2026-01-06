@@ -91,6 +91,8 @@ class _HomePageState extends State<HomePage> {
         body: body,
         notificationLayout: NotificationLayout.BigPicture,
         bigPicture: 'asset://assets/img/noti/noti.png',
+        // largeIcon: 'asset://assets/img/noti/noti.png',
+        // icon: 'asset://assets/img/noti/noti.png',
       ),
       actionButtons: [
         NotificationActionButton(

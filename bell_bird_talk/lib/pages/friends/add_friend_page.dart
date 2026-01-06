@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/pages/friends/views/group_move_view.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
@@ -31,8 +33,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   FriendGroup? _selectedGroup;
 
+  List<FriendGroup> _friendGroups = [];
+
   // 黑名单状态mini app
-  bool? _isBlocked ;
+  bool? _isBlocked;
 
   @override
   void initState() {
@@ -41,14 +45,17 @@ class _AddFriendPageState extends State<AddFriendPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
+    // 获取好友分组
+    _loadFriendGroups();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _searchResults.isEmpty  ? GbsColors.lightBackgroundB : GbsColors.lightBackgroundA,
+      backgroundColor: _searchResults.isEmpty
+          ? GbsColors.lightBackgroundB
+          : GbsColors.lightBackgroundA,
       appBar: AppBar(
-        
         title: const Text(
           '添加好友',
           style: TextStyle(
@@ -58,7 +65,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
           ),
         ),
         centerTitle: true,
-              backgroundColor: _searchResults.isEmpty  ? GbsColors.lightBackgroundB : GbsColors.lightBackgroundA,
+        backgroundColor: _searchResults.isEmpty
+            ? GbsColors.lightBackgroundB
+            : GbsColors.lightBackgroundA,
 
         foregroundColor: GbsColors.titleColor,
         elevation: 0,
@@ -75,31 +84,39 @@ class _AddFriendPageState extends State<AddFriendPage> {
     );
   }
 
-  /// 加载黑名单状态
-  Future<void> _loadBlackStatus(String friendId) async {
-    try {
-      final result = await _nativeService.imGetBlackStatus(
-        userId: friendId,
-      );
-      if (!mounted) return;
+  // 加载好友分组
+  Future<void> _loadFriendGroups({bool refresh = false}) async {
+    FriendController.to.getFriendGroups().then((groups) {
+      if (refresh && mounted) {
+        setState(() {
+          _friendGroups = groups;
+        });
+        return;
+      }
+      _friendGroups = groups;
+    });
+  }
 
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String? ?? '';
-        if (dataStr.isNotEmpty) {
-          try {
-            final data = json.decode(dataStr) as Map<String, dynamic>;
-            final isBlocked = data['is_blocked'] as bool? ?? false;
-            setState(() {
-              _isBlocked = isBlocked;
-            });
-          } catch (e) {
-            print('解析黑名单状态失败: $e');
-          }
+  /// 加载黑名单状态
+  Future<bool?> _loadBlackStatus(String friendId) async {
+    try {
+      bool? result = await FriendController.to.loadBlackStatus(friendId);
+      if (result != null) {
+        _isBlocked = result;
+        if (result) {
+          EasyLoading.showError('用户已加入黑名单');
         }
+      }
+      if (!mounted) {
+        setState(() {});
+      }
+      if (_isBlocked != null) {
+        return _isBlocked;
       }
     } catch (e) {
       print('获取黑名单状态失败: $e');
     }
+    return null;
   }
 
   @override
@@ -244,13 +261,15 @@ class _AddFriendPageState extends State<AddFriendPage> {
         groupId: groupId,
       );
 
-      print('📊 添加好友结果: $result');
-
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('申请已发送');
         Get.back();
       } else {
-        EasyLoading.showError(result['message'] ?? '发送失败');
+        // 检查一下黑名单状态
+        bool? isBlocked = await _loadBlackStatus(user.id);
+        if (isBlocked != null && isBlocked == false) {
+          EasyLoading.showError(result['message'] ?? '发送失败');
+        }
       }
     } catch (e) {
       print('❌ 发送好友申请失败: $e');
@@ -390,7 +409,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
             ),
             Spacer(),
             Text(
-              _selectedGroup != null ? _selectedGroup!.name : '',
+              _friendGroups.isEmpty
+                  ? '暂无分组'
+                  : _selectedGroup != null
+                  ? _selectedGroup!.name
+                  : '',
               style: TextStyle(fontSize: 14, color: GbsColors.des6Color),
             ),
             SizedBox(width: 8),
@@ -418,6 +441,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   /// 移出黑名单按钮
   Widget _buildBlacklistButton(SearchUserModel user) {
+    if (_isBlocked == null || _isBlocked == false) {
+      return Container();
+    }
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -440,7 +466,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: GbsColors.darkPrimaryButton,
+                color: GbsColors.primaryColor,
               ),
             ),
           ],
@@ -451,30 +477,84 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   // 调整分组
   void _showMoveGroupDialog() async {
-    gbs.shower.showScreenViewCustom(
-      context,
-      400,
-      Container(
-        width: Get.width,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: GbsColors.lightBackgroundB,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
+    if (_friendGroups.isEmpty) {
+      final result = await _nativeService.showNativeAlert(
+        title: '请先新增分组后再设置好友分组',
+        message: '',
+        confirmText: '新增分组',
+        cancelText: '取消',
+        showCancel: true,
+      );
+
+      if (result != null && result['action'] == 'confirm') {
+        final controller = TextEditingController(text: '');
+        // 新增分组
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: FriendRemarkView(
+                controller: controller,
+                tip: '请输入分组名称',
+                title: '新建分组',
+                onTap: () async {
+                  final gname = controller.text.trim();
+                  Navigator.pop(context);
+
+                  EasyLoading.show(status: '正在创建分组...');
+
+                  try {
+                    final result = await _nativeService.imCreateContactGroup(
+                      groupName: gname,
+                    );
+                    if (result['errorCode'] == 0) {
+                      // 刷新分组列表
+                      await _loadFriendGroups(refresh: true);
+                      EasyLoading.showSuccess('分组创建成功');
+                    } else {
+                      EasyLoading.showError(result['message'] ?? '创建失败');
+                    }
+                  } catch (e) {
+                    print('创建分组错误: $e');
+                    EasyLoading.showError('创建失败，请稍后重试');
+                  }
+                },
+              ),
+            );
+          },
+        );
+      }
+    } else {
+      gbs.shower.showScreenViewCustom(
+        context,
+        400,
+        Container(
+          width: Get.width,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: GbsColors.lightBackgroundB,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+          ),
+          child: FriendGroupSelectView(
+            onItemClick: (value) {
+              if (mounted) {
+                setState(() {
+                  _selectedGroup = value;
+                });
+              }
+            },
           ),
         ),
-        child: FriendGroupSelectView(
-          onItemClick: (value) {
-            if (mounted) {
-              setState(() {
-                _selectedGroup = value;
-              });
-            }
-          },
-        ),
-      ),
-    );
+      );
+    }
   }
 
   /// 用户卡片
