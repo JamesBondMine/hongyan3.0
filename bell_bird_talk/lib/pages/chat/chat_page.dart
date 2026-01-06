@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/pages/chat/views/chat_gas_arrow.dart';
+import 'package:bell_bird_talk/pages/chat/views/chat_title_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/gestures.dart';
-import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -194,7 +193,13 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: widget.customAppBar ?? _buildAppBar(),
+      appBar: widget.customAppBar ?? ChatTitleView(
+        convId: widget.convId,
+        displayName: widget.displayName,
+        avatar: widget.avatar,
+        targetUserId: widget.targetUserId,
+        convType: widget.convType,
+      ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -890,152 +895,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            widget.displayName,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: GbsColors.titleColor,
-            ),
-          ),
-          Text(
-            '会话ID: ${widget.convId}',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-        ],
-      ),
-      leading: InkWell(
-        onTap: () {
-          Navigator.pop(context);
-        },
-        child: Container(
-          padding: EdgeInsetsGeometry.only(
-            left: 15,
-            right: 20,
-            top: 6,
-            bottom: 6,
-          ),
-          child: Icon(Icons.arrow_back_ios, color: GbsColors.titleColor),
-        ),
-      ),
-      centerTitle: false,
-      backgroundColor: GbsColors.lightAppBarColorA,
-      foregroundColor: GbsColors.lightAppBarColorA,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: GbsColors.titleColor),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SearchMessageHistory(
-                  convId: widget.convId,
-                  targetId: widget.targetUserId,
-                  displayName: widget.displayName,
-                  avatarUrl: widget.avatar ?? '',
-                  convType: widget.convType,
-                ),
-              ),
-            );
-          },
-        ),
-        CustomPopup(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _buildAppBarActions(),
-          ),
-          child: Padding(
-            padding: EdgeInsetsGeometry.only(right: 15),
-            child: Image.asset(
-              'assets/img/msg/msgmore.png',
-              width: 24,
-              height: 24,
-            ),
-          ),
-        ),
-        // IconButton(
-        //   icon: const Icon(Icons.more_horiz, color: GbsColors.titleColor,),
-        //   onPressed: () {
-        //     if (widget.convType == 2) {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (context) => GroupDetailPage(
-        //             groupId: widget.targetUserId,
-        //             groupName: widget.displayName,
-        //             groupAvatar: widget.avatar,
-        //           ),
-        //         ),
-        //       );
-        //     } else {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (context) => ChatDetailPage(
-        //             convId: widget.convId,
-        //             targetId: widget.targetUserId,
-        //             displayName: widget.displayName,
-        //             avatarUrl: widget.avatar ?? '',
-        //             convType: widget.convType,
-        //           ),
-        //         ),
-        //       );
-        //     }
-        //   },
-        // ),
-      ],
-    );
-  }
-
-  Widget popviewItem(
-    BuildContext context,
-    String title,
-    String img,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      child: Container(
-        alignment: Alignment.center,
-        width: 120,
-        padding: const EdgeInsets.only(top: 10, bottom: 6, left: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Image.asset('assets/img//msg/$img.png', width: 20, height: 20),
-            const SizedBox(width: 8),
-            Text(title),
-          ],
-        ),
-      ),
-      onTap: () {
-        Navigator.pop(context); // 先关闭弹出菜单
-        onTap();
-      },
-    );
-  }
-
-  List<Widget> _buildAppBarActions() {
-    return [
-      popviewItem(context, '语音聊天', 'msgitemphone', () {
-        print('语音聊天');
-      }),
-      popviewItem(context, '发起群聊', 'chataddchat', () {
-        print('发起群聊');
-      }),
-      popviewItem(context, '关闭免打扰', 'msgitemdistunb', () {
-        print('关闭免打扰');
-      }),
-    ];
-  }
 
   Widget _buildMessageList() {
     if (_isLoading && _messages.isEmpty) {

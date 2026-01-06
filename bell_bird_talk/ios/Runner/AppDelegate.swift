@@ -1829,8 +1829,6 @@ class NativeBridgeHandler: NSObject {
         }
         
         let userId = args["user_id"] as? String
-        print("📁 查询群组免打扰状态: groupId=\(groupId) userId=\(userId)")
-        
         let code = IMSDKGroupManager.shared().getGroupDisturbStatus(withGroupId: groupId, userId: userId!) { errorCode, reqId, data in
             print("📁 查询群组免打扰状态回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([

@@ -637,18 +637,14 @@ class IOSNativeService {
   }) async {
     try {
       final Map<String, dynamic> params = {};
-      
-      if (userId != null) params['user_id'] = userId;
       if (nickname != null) params['nickname'] = nickname;
-      if (username != null) params['username'] = username;
+      if (username != null) params['user_id'] = username;
       if (sex != null) params['sex'] = sex;
       if (signature != null) params['signature'] = signature;
       if (avatar != null) params['avatar'] = avatar;
       if (region != null) params['region'] = region;
       if (backgroundFile != null) params['background_file'] = backgroundFile;
-      
-      print('📝 更新用户信息: $params');
-      
+
       final result = await _bridge.invokeMethod<Map>('imUpdateUserInfo', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {

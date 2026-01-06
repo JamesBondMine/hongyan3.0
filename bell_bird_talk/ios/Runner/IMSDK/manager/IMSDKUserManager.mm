@@ -172,7 +172,7 @@ void UpdateUserCallback(int errorCode, const char* data, int dataLen, uint64_t r
     
     // 用户ID (可选，SDK 内部会自动从 MqttSession 中获取)
     if (userInfo[@"user_id"]) {
-//        updateUser.userId = userInfo[@"user_id"];
+        updateUser.userId = userInfo[@"user_id"];
     }
     
     // 设置要更新的字段

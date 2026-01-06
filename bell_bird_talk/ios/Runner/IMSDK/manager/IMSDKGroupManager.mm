@@ -1447,17 +1447,13 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
 - (int)getGroupDisturbStatusWithGroupId:(NSString *)groupId
 userId:(NSString *)userId
                              completion:(IMSDKGroupCompletion)completion {
-    NSLog(@"📁 查询群组免打扰状态: groupId=%@", groupId);
     
-    if (!groupId || groupId.length == 0) {
-        NSLog(@"❌ 群组ID不能为空");
-        return -1;
-    }
-    
-    
+
     disturbStatusQuery * bp = [[disturbStatusQuery alloc] init];
     bp.groupId = groupId;
-    bp.userId = userId;
+//    bp.userId = userId;
+    
+    NSLog(@"🍎 查询群组免打扰状态: groupId=%@。 userId=%@", bp.groupId,bp.userId);
     
     NSData * dataNs = [bp data];
     const char *data = (const char *)dataNs.bytes;

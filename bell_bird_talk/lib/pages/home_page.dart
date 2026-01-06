@@ -70,17 +70,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 创建通知
-  void _createNotification(int type, String body) async {
+  void _createNotification(int type, String body, {String title = '提示'}) async {
 
-    String title = '提示';
-
-    switch (type) {
-      case 0:
-        title = '提示';
-        break;
-      default:
-        title = '系统通知';
-    }
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
@@ -189,9 +180,11 @@ class _HomePageState extends State<HomePage> {
     }
     
     print('📨 [$convTypeStr] 来自 $displayName: $content');
+
+    
     final conversationId = message['conversation_id'] as String?;
     if (conversationId != null && conversationId.isNotEmpty && conversationId == ChatController.to.conversationId) {
-      _createNotification(1, '[$convTypeStr] 来自 $displayName: $content');
+      _createNotification(1, '$content', title: displayName);
     }
     
     

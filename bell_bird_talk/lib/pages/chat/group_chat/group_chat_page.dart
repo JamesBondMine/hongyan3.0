@@ -216,7 +216,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       isMuted: _isMuted, // 传递禁言状态
       customAppBar: AppBar(
         backgroundColor: GbsColors.lightAppBarColorA,
-        title: Text(widget.groupName),
+        title: Text(widget.groupName, style: const TextStyle(color: GbsColors.des1Color, fontSize: 16, fontWeight: FontWeight.w500),),
         actions: [
           CustomPopup(
             content: Column(

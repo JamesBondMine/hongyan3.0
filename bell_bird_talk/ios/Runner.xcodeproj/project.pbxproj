@@ -317,6 +317,7 @@
 		2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DataCPlus.cpp; sourceTree = "<group>"; };
 		2ADEF6E82F0CC30600AB984D /* AppPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppPb.pbobjc.h; sourceTree = "<group>"; };
 		2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppPb.pbobjc.m; sourceTree = "<group>"; };
+		2ADEF6EB2F0CF0FB00AB984D /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
 		2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
 		2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
@@ -822,6 +823,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				2ADEF6EB2F0CF0FB00AB984D /* Runner.entitlements */,
 				2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */,
 				2AD9E3342ED4096400C4E6A3 /* DataTrans */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
@@ -1217,6 +1219,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
@@ -1423,6 +1426,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
@@ -1469,6 +1473,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
