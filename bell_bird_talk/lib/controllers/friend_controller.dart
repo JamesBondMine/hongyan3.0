@@ -109,5 +109,39 @@ class FriendController extends GetxController {
       return {};
     }
   }
+
+  /// 删除好友
+  /// [contactUserId] 要删除的好友用户ID
+  /// 返回删除结果：{'errorCode': 0表示成功, 'message': '错误信息'}
+  Future<Map<String, dynamic>> deleteContact(String contactUserId) async {
+    try {
+      // 获取当前用户ID
+      final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+      if (currentUserId.isEmpty) {
+        return {'errorCode': -1, 'message': '用户未登录'};
+      }
+
+      // 1. 调用服务器接口删除好友
+      final result = await _nativeService.imDeleteContact(
+        contact_user_id: contactUserId,
+      );
+
+      // 2. 如果服务器删除成功，则删除本地数据库中的记录
+      if (result['errorCode'] == 0) {
+        try {
+          await _messageDatabase.deleteContact(currentUserId, contactUserId);
+          print('✅ 已删除本地数据库中的好友记录: $contactUserId');
+        } catch (e) {
+          print('⚠️ 删除本地数据库好友记录失败: $e');
+          // 即使本地删除失败，也返回成功（因为服务器已删除）
+        }
+      }
+
+      return result;
+    } catch (e) {
+      print('❌ 删除好友失败: $e');
+      return {'errorCode': -999, 'message': '删除好友失败: $e'};
+    }
+  }
     
 }

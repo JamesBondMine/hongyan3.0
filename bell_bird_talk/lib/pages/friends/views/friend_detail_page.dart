@@ -12,6 +12,7 @@ import 'package:flutter_popup/flutter_popup.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../../../controllers/global_controller.dart';
+import '../../../controllers/friend_controller.dart';
 import '../../../services/native_bridge.dart';
 import '../../../services/message_database.dart';
 import '../../chat/chat_page.dart';
@@ -32,6 +33,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   final MessageDatabase _messageDatabase = MessageDatabase();
   final GlobalController _globalCtrl = Get.find<GlobalController>();
+  final FriendController _friendController = FriendController.to;
 
   late FriendModel _friend;
   bool _isStarred = false;
@@ -625,16 +627,15 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       EasyLoading.show(status: '删除中...');
 
       try {
-        final result = await _nativeService.imDeleteContact(
-          contact_user_id: _friend.id,
-        );
+        // 使用 FriendController 的删除方法（会同时删除服务器和本地数据库）
+        final deleteResult = await _friendController.deleteContact(_friend.id);
 
-        if (result['errorCode'] == 0) {
+        if (deleteResult['errorCode'] == 0) {
           EasyLoading.showSuccess('已删除好友');
           widget.onDelete();
           Get.back(result: true); // 返回并刷新列表
         } else {
-          EasyLoading.showError(result['message'] ?? '删除失败');
+          EasyLoading.showError(deleteResult['message'] ?? '删除失败');
         }
       } catch (e) {
         EasyLoading.showError('删除失败');
