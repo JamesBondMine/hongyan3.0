@@ -509,14 +509,12 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
           }
         });
       },
-      title: InkWell(
-        onTap: () {},
+      title: GestureDetector(
         onLongPress: () {
           // 分类设置
           _showCategorySettingView(category);
         },
         child: Container(
-          color: Colors.red,
           child: Text(
             category,
             style: TextStyle(
@@ -537,7 +535,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
   void _showCategorySettingView(String channel) {
     gbs.shower.showScreenViewCustom(
       context,
-      400,
+      300,
       Container(
         width: Get.width,
         clipBehavior: Clip.hardEdge,
@@ -548,8 +546,75 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
             topRight: Radius.circular(12),
           ),
         ),
-        child: CategorySettingView(channelId: channel, onConfirm: (value) {}),
+        child: CategorySettingView(
+          channelId: channel,
+          onConfirm: (value) async {
+            if (value == 2) {
+              final result = await _nativeService.showNativeAlert(
+                title: '删除频道',
+                message: '确定要删除此频道吗？',
+                confirmText: '删除',
+                cancelText: '取消',
+                showCancel: true,
+              );
+
+              if (result != null && result['action'] == 'confirm') {
+                EasyLoading.showSuccess('success');
+              }
+              return;
+            }
+            // 编辑分类
+            _showEditCategoryView(channel);
+          },
+        ),
       ),
+    );
+  }
+
+  // 编辑分类
+  void _showEditCategoryView(String channel) {
+    final controller = TextEditingController(text: '');
+    // 新增分组
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: FriendRemarkView(
+            controller: controller,
+            tip: '请输入分类名称',
+            title: '编辑分类',
+            name: '分类名称',
+            needCancel: false,
+            onTap: () async {
+              final gname = controller.text.trim();
+              Navigator.pop(context);
+
+              EasyLoading.show(status: '正在创建分组...');
+
+              // try {
+              //   final result = await _nativeService.imCreateContactGroup(
+              //     groupName: gname,
+              //   );
+              //   if (result['errorCode'] == 0) {
+              //     // 刷新分组列表
+              //     await _loadFriendGroups(refresh: true);
+              //     EasyLoading.showSuccess('分组创建成功');
+              //   } else {
+              //     EasyLoading.showError(result['message'] ?? '创建失败');
+              //   }
+              // } catch (e) {
+              //   print('创建分组错误: $e');
+              //   EasyLoading.showError('创建失败，请稍后重试');
+              // }
+            },
+          ),
+        );
+      },
     );
   }
 
