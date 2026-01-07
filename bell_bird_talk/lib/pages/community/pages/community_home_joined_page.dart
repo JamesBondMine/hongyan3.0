@@ -1,4 +1,3 @@
-
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_child_page.dart';
@@ -9,13 +8,14 @@ class CommunityHomeJoinedPage extends StatefulWidget {
   const CommunityHomeJoinedPage({Key? key}) : super(key: key);
 
   @override
-  _CommunityHomeJoinedPageState createState() => _CommunityHomeJoinedPageState();
+  _CommunityHomeJoinedPageState createState() =>
+      _CommunityHomeJoinedPageState();
 }
 
 class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   int _selectedCommunityIndex = 0;
   List<CommunityModel> communities = []; // 示例社群列表
-  
+
   @override
   void initState() {
     // TODO: implement initState
@@ -31,7 +31,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
         children: [
           // 左侧社群列表
           Container(
-            width: 80,
+            width: 64,
             color: GbsColors.lightBackgroundA,
             child: ListView.builder(
               itemCount: communities.length,
@@ -43,45 +43,51 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                       _selectedCommunityIndex = index;
                     });
                   },
-                  child: Row(children: [
-                    Container(
-                      width: 4,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)),
-                        color: isSelected ? GbsColors.lightPrimaryButton : Colors.transparent,),
-                    ),
-                    Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    width: 44,
-                    height: 44,
-                    // padding: const EdgeInsets.all(8),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isSelected ? GbsColors.lightPrimaryButton : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                      border: isSelected
-                          ? const Border(left: BorderSide(color: Colors.white, width: 3))
-                          : null,
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        width: 32,
-                        height: 32,
-                        'assets/img/community/cunty_logo.png',
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(8),
+                            bottomRight: Radius.circular(8),
+                          ),
+                          color: isSelected
+                              ? GbsColors.lightPrimaryButton
+                              : Colors.transparent,
+                        ),
                       ),
-                    
-                    ),
-                  )
-                  ],),
+                      SizedBox(width: 6,),
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Container(
+                          // padding: const EdgeInsets.all(8),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? GbsColors.lightPrimaryButton
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Image.asset(
+                              width: 32,
+                              height: 32,
+                              'assets/img/community/cunty_logo.png',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
           ),
           // 右侧内容
-          Expanded(
-            child:CommunityChildPage() ,
-          ),
+          Expanded(child: CommunityChildPage()),
         ],
       ),
     );
