@@ -29,12 +29,13 @@ class Shower {
         builder: (BuildContext context) {
           return AnimatedPadding(
             padding: MediaQuery.of(context).viewInsets,
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.decelerate,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 autoDismiss ? _dismissView(context) : Container(),
-                Expanded(child: child)
+                Flexible(child: child)
               ],
             ),
           );

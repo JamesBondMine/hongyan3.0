@@ -1,0 +1,336 @@
+import 'package:bell_bird_talk/pages/community/views/channel_btn_view.dart';
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/instance_manager.dart';
+
+class ChannelCreateView extends StatefulWidget {
+  final ValueChanged<int> onConfirm;
+
+  const ChannelCreateView({super.key, required this.onConfirm});
+  
+  @override
+  State<StatefulWidget> createState() {
+    return _ChannelCreateViewState();
+  }
+
+}
+
+class _ChannelCreateViewState extends State<ChannelCreateView> {
+
+  bool createTextChannel = true;
+  
+  // 频道名称输入框控制器
+  final TextEditingController _channelNameController = TextEditingController();
+  
+  // 频道简介输入框控制器
+  final TextEditingController _channelDescriptionController = TextEditingController();
+  
+  // 选中的分类（null 表示暂不选择）
+  String? _selectedCategory;
+  
+  @override
+  void dispose() {
+    _channelNameController.dispose();
+    _channelDescriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: GbsColors.lightBackgroundB,
+      resizeToAvoidBottomInset: false, // 防止 Scaffold 自动调整，由 showScreenViewCustom 的 AnimatedPadding 处理
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '创建频道',
+              style: TextStyle(
+                color: GbsColors.des1Color,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        leadingWidth: 100,
+        backgroundColor: GbsColors.lightAppBarColorA,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close, color: GbsColors.titleColor),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+      body: Stack(children: [
+        Positioned.fill(child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildMiddle(),
+            
+          ],
+        ),
+      )),
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: // 底部
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom,
+              ),
+              child: CommonButton(
+                enabled: true,
+                text: '创建频道',
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),)
+      ],),
+    );
+  }
+
+  // 中间部分
+  Widget _buildMiddle() {
+    return Padding(padding: EdgeInsetsGeometry.only(left: 16, right: 16), child:  Column(
+      // padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: [
+        // header
+          SizedBox(
+            width: Get.width,
+            height: 32,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ChannelBtnView(
+                  width: (Get.width - 44) / 2,
+                  height: 32,
+                  enabled: createTextChannel ,
+                  text: '文字频道',
+                  onPressed: () {
+                    if (mounted) {
+                      setState(() {
+                        createTextChannel = true;
+                      });
+                    }
+                  },
+                ),
+                ChannelBtnView(
+                  width: (Get.width - 44) / 2,
+                  height: 32,
+                  enabled: !createTextChannel,
+                  text: '语音频道',
+                  onPressed: () {
+                    if (mounted) {
+                      setState(() {
+                        createTextChannel = false;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(right: 16, top: 10, bottom: 16),
+            alignment: Alignment.centerLeft,
+            child: Text(createTextChannel ? '成员可在频道内通过文字聊天' : '成员可在频道内通过语音聊天', style: TextStyle(fontSize: 12, color: GbsColors.des6Color)),
+          ),
+        // 1. 频道名称输入框
+        _buildChannelNameField(),
+        const SizedBox(height: 24),
+        
+        // 2. 频道简介输入框
+        _buildChannelDescriptionField(),
+        const SizedBox(height: 24),
+        
+        // 3. 所属分类选择
+        _buildCategorySelector(),
+      ],
+    ));
+  }
+  
+  // 频道名称输入框
+  Widget _buildChannelNameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题（带红色必填星号）
+        Row(
+          children: [
+            Text(
+              '频道名称',
+              style: TextStyle(
+                fontSize: 14,
+                color: GbsColors.des1Color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '*',
+              style: TextStyle(
+                fontSize: 14,
+                color: GbsColors.lightError,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // 输入框
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: GbsColors.lightInputBackground,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: GbsColors.lightDivider,
+              width: 0.5,
+            ),
+          ),
+          child: TextField(
+            controller: _channelNameController,
+            style: TextStyle(
+              fontSize: 16,
+              color: GbsColors.des1Color,
+            ),
+            decoration: InputDecoration(
+              hintText: '请输入频道名称',
+              hintStyle: TextStyle(
+                fontSize: 16,
+                color: GbsColors.des9Color,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // 频道简介输入框
+  Widget _buildChannelDescriptionField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题
+        Text(
+          '频道简介',
+          style: TextStyle(
+            fontSize: 14,
+            color: GbsColors.des1Color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // 输入框
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: GbsColors.lightInputBackground,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: GbsColors.lightDivider,
+              width: 0.5,
+            ),
+          ),
+          child: TextField(
+            controller: _channelDescriptionController,
+            style: TextStyle(
+              fontSize: 16,
+              color: GbsColors.des1Color,
+            ),
+            decoration: InputDecoration(
+              hintText: '请输入频道说明',
+              hintStyle: TextStyle(
+                fontSize: 16,
+                color: GbsColors.des9Color,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // 所属分类选择
+  Widget _buildCategorySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题
+        Text(
+          '所属分类',
+          style: TextStyle(
+            fontSize: 14,
+            color: GbsColors.des1Color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // 选择框
+        GestureDetector(
+          onTap: () {
+            // TODO: 打开分类选择弹窗或页面
+            // 这里暂时先不做具体实现，只提供一个占位
+          },
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: GbsColors.lightInputBackground,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: GbsColors.lightDivider,
+                width: 0.5,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedCategory ?? '暂不选择',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _selectedCategory != null 
+                        ? GbsColors.des1Color 
+                        : GbsColors.des9Color,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: GbsColors.des9Color,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

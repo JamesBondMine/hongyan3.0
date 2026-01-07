@@ -2,6 +2,7 @@ import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
+import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
 import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -191,6 +192,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
             break;
           case 3:
             // 处理创建频道
+            _showCreateChannelView();
             break;
           case 4:
             // 处理创建分类
@@ -207,6 +209,21 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
         }
         
       },),
+    ));
+  }
+
+  // 创建频道
+  void _showCreateChannelView(){
+    gbs.shower.showScreenViewCustom(context, Get.height-120, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+       decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: ChannelCreateView(onConfirm:   (value) {
+
+      }),
     ));
   }
 
