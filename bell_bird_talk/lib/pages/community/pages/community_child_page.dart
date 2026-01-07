@@ -3,10 +3,14 @@ import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart'
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
+import 'package:bell_bird_talk/pages/community/views/community_noti_setting_view.dart';
+import 'package:bell_bird_talk/pages/community/views/community_pri_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
-import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
+import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 class CommunityChildPage extends StatefulWidget {
@@ -19,6 +23,9 @@ class CommunityChildPage extends StatefulWidget {
 }
 
 class _CommunityChildPageState extends State<CommunityChildPage> {
+
+  final IOSNativeService _nativeService = IOSNativeService();
+  
   Map<String, List<String>> categories = {
     '文字频道': ['情感频道', '理财频道', '科技频道'],
     '语音频道': ['语音聊天1', '语音聊天2'],
@@ -79,7 +86,9 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      _showChannelSettingView();
+                    },
                     child: Padding(
                       padding: EdgeInsets.only(top: 16, bottom: 16),
                       child: Row(
@@ -196,20 +205,120 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
             break;
           case 4:
             // 处理创建分类
+            _showCreateCategoryView();
             break;
           case 5:
             // 处理通知设置
+            _showSettingNotiWithCommunityView();
             break;
           case 6:
             // 处理隐私设置
+            _showPrivacySettingView();
             break;
           case 7:
             // 处理离开社群
+            _showLeaveCommunityView();
             break;
         }
         
       },),
     ));
+  }
+  // 离开社群
+  void _showLeaveCommunityView() async {
+    final result = await _nativeService.showNativeAlert(
+      title: '退出登录',
+      message: '确定要退出当前账号吗？',
+      confirmText: '退出',
+      cancelText: '取消',
+      showCancel: true,
+    );
+    
+    if (result != null && result['action'] == 'confirm') {
+      EasyLoading.showSuccess('success');
+    }
+  }
+
+  // 隐私设置--CommunityPriSettingView
+   void _showPrivacySettingView(){
+    gbs.shower.showScreenViewCustom(context, 360, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+       decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: CommunityPriSettingView(
+        selectedCategory: 0 ,
+        onConfirm:   (value) {
+        
+      }),
+    ));
+   }
+
+  // 通知设置
+  void _showSettingNotiWithCommunityView(){
+    gbs.shower.showScreenViewCustom(context, 400, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+       decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: CommunityNotiSettingView(
+        selectedCategory: 0 ,
+        onConfirm:   (value) {
+        
+      }),
+    ));
+  }
+
+
+  // 创建分类
+  void _showCreateCategoryView(){
+    
+        final controller = TextEditingController(text: '');
+        // 新增分组
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: FriendRemarkView(
+                controller: controller,
+                tip: '请输入分类名称',
+                title: '分类名称',
+                onTap: () async {
+                  final gname = controller.text.trim();
+                  Navigator.pop(context);
+
+                  EasyLoading.show(status: '正在创建分组...');
+
+                  // try {
+                  //   final result = await _nativeService.imCreateContactGroup(
+                  //     groupName: gname,
+                  //   );
+                  //   if (result['errorCode'] == 0) {
+                  //     // 刷新分组列表
+                  //     await _loadFriendGroups(refresh: true);
+                  //     EasyLoading.showSuccess('分组创建成功');
+                  //   } else {
+                  //     EasyLoading.showError(result['message'] ?? '创建失败');
+                  //   }
+                  // } catch (e) {
+                  //   print('创建分组错误: $e');
+                  //   EasyLoading.showError('创建失败，请稍后重试');
+                  // }
+                },
+              ),
+            );
+          },
+        );
+      
   }
 
   // 创建频道
@@ -304,7 +413,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
   Widget _buildChannelItem(String category, String channel) {
     return InkWell(
       onLongPress: () {
-        _showChannelSettingView();
+        
       },
       onTap: () {
         // 处理频道点击
