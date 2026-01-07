@@ -17,7 +17,7 @@ enum CmtyStatus {
 }
 
 // 成员状态枚举
-enum MemberStatus {
+enum CmtyMemberStatus {
     NORMAL = 0;     // 正常（默认值）
     MUTED = 1;      // 禁言
     BANNED = 2;     // 封禁

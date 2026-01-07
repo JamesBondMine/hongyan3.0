@@ -116,14 +116,14 @@
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
 		2ADEF6EA2F0CC30600AB984D /* AppPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */; };
-		2ADEF6F42F0DF88A00AB984D /* cmty_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6F12F0DF88A00AB984D /* cmty_pb.proto */; };
-		2ADEF6F52F0DF88A00AB984D /* cmty_member_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6F02F0DF88A00AB984D /* cmty_member_pb.proto */; };
-		2ADEF6F62F0DF88A00AB984D /* cmty_category_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6EC2F0DF88A00AB984D /* cmty_category_pb.proto */; };
-		2ADEF6F72F0DF88A00AB984D /* cmty_channel_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6ED2F0DF88A00AB984D /* cmty_channel_pb.proto */; };
-		2ADEF6F82F0DF88A00AB984D /* cmty_invite_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6EF2F0DF88A00AB984D /* cmty_invite_pb.proto */; };
-		2ADEF6F92F0DF88A00AB984D /* cmty_config_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6EE2F0DF88A00AB984D /* cmty_config_pb.proto */; };
-		2ADEF6FA2F0DF88A00AB984D /* cmty_security_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6F22F0DF88A00AB984D /* cmty_security_pb.proto */; };
-		2ADEF7112F0DFE0200AB984D /* CmtyPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF70F2F0DFE0200AB984D /* CmtyPb.pbobjc.m */; };
+		2ADEF71E2F0E0A5100AB984D /* cmty_security_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */; };
+		2ADEF71F2F0E0A5100AB984D /* cmty_channel_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */; };
+		2ADEF7202F0E0A5100AB984D /* cmty_member_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF71A2F0E0A5100AB984D /* cmty_member_pb.proto */; };
+		2ADEF7212F0E0A5100AB984D /* cmty_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF71B2F0E0A5100AB984D /* cmty_pb.proto */; };
+		2ADEF7222F0E0A5100AB984D /* cmty_category_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */; };
+		2ADEF7232F0E0A5100AB984D /* cmty_invite_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7192F0E0A5100AB984D /* cmty_invite_pb.proto */; };
+		2ADEF7242F0E0A5100AB984D /* cmty_config_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */; };
+		2ADEF7282F0E0AA500AB984D /* CmtyPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */; };
 		2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */; };
 		2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */; };
 		2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */; };
@@ -322,15 +322,15 @@
 		2ADEF6E82F0CC30600AB984D /* AppPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppPb.pbobjc.h; sourceTree = "<group>"; };
 		2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppPb.pbobjc.m; sourceTree = "<group>"; };
 		2ADEF6EB2F0CF0FB00AB984D /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
-		2ADEF6EC2F0DF88A00AB984D /* cmty_category_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_category_pb.proto; sourceTree = "<group>"; };
-		2ADEF6ED2F0DF88A00AB984D /* cmty_channel_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_channel_pb.proto; sourceTree = "<group>"; };
-		2ADEF6EE2F0DF88A00AB984D /* cmty_config_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_config_pb.proto; sourceTree = "<group>"; };
-		2ADEF6EF2F0DF88A00AB984D /* cmty_invite_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_invite_pb.proto; sourceTree = "<group>"; };
-		2ADEF6F02F0DF88A00AB984D /* cmty_member_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_member_pb.proto; sourceTree = "<group>"; };
-		2ADEF6F12F0DF88A00AB984D /* cmty_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_pb.proto; sourceTree = "<group>"; };
-		2ADEF6F22F0DF88A00AB984D /* cmty_security_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_security_pb.proto; sourceTree = "<group>"; };
-		2ADEF70E2F0DFE0200AB984D /* CmtyPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPb.pbobjc.h; sourceTree = "<group>"; };
-		2ADEF70F2F0DFE0200AB984D /* CmtyPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPb.pbobjc.m; sourceTree = "<group>"; };
+		2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_category_pb.proto; sourceTree = "<group>"; };
+		2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_channel_pb.proto; sourceTree = "<group>"; };
+		2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_config_pb.proto; sourceTree = "<group>"; };
+		2ADEF7192F0E0A5100AB984D /* cmty_invite_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_invite_pb.proto; sourceTree = "<group>"; };
+		2ADEF71A2F0E0A5100AB984D /* cmty_member_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_member_pb.proto; sourceTree = "<group>"; };
+		2ADEF71B2F0E0A5100AB984D /* cmty_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_pb.proto; sourceTree = "<group>"; };
+		2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_security_pb.proto; sourceTree = "<group>"; };
+		2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPb.pbobjc.h; sourceTree = "<group>"; };
+		2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPb.pbobjc.m; sourceTree = "<group>"; };
 		2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
 		2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
 		2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
@@ -669,25 +669,25 @@
 			path = DataTrans;
 			sourceTree = "<group>";
 		};
-		2ADEF6F32F0DF88A00AB984D /* cmty */ = {
+		2ADEF71D2F0E0A5100AB984D /* cmty */ = {
 			isa = PBXGroup;
 			children = (
-				2ADEF6EC2F0DF88A00AB984D /* cmty_category_pb.proto */,
-				2ADEF6ED2F0DF88A00AB984D /* cmty_channel_pb.proto */,
-				2ADEF6EE2F0DF88A00AB984D /* cmty_config_pb.proto */,
-				2ADEF6EF2F0DF88A00AB984D /* cmty_invite_pb.proto */,
-				2ADEF6F02F0DF88A00AB984D /* cmty_member_pb.proto */,
-				2ADEF6F12F0DF88A00AB984D /* cmty_pb.proto */,
-				2ADEF6F22F0DF88A00AB984D /* cmty_security_pb.proto */,
+				2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */,
+				2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */,
+				2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */,
+				2ADEF7192F0E0A5100AB984D /* cmty_invite_pb.proto */,
+				2ADEF71A2F0E0A5100AB984D /* cmty_member_pb.proto */,
+				2ADEF71B2F0E0A5100AB984D /* cmty_pb.proto */,
+				2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */,
 			);
 			path = cmty;
 			sourceTree = "<group>";
 		};
-		2ADEF7102F0DFE0200AB984D /* cmty */ = {
+		2ADEF7272F0E0AA500AB984D /* cmty */ = {
 			isa = PBXGroup;
 			children = (
-				2ADEF70E2F0DFE0200AB984D /* CmtyPb.pbobjc.h */,
-				2ADEF70F2F0DFE0200AB984D /* CmtyPb.pbobjc.m */,
+				2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */,
+				2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */,
 			);
 			path = cmty;
 			sourceTree = "<group>";
@@ -695,7 +695,7 @@
 		2AF663982EFBC01D00A18180 /* pbobjc */ = {
 			isa = PBXGroup;
 			children = (
-				2ADEF7102F0DFE0200AB984D /* cmty */,
+				2ADEF7272F0E0AA500AB984D /* cmty */,
 				2ADEF6E82F0CC30600AB984D /* AppPb.pbobjc.h */,
 				2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */,
 				2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */,
@@ -725,7 +725,7 @@
 		2AF663B82EFBC3A000A18180 /* proto */ = {
 			isa = PBXGroup;
 			children = (
-				2ADEF6F32F0DF88A00AB984D /* cmty */,
+				2ADEF71D2F0E0A5100AB984D /* cmty */,
 				2AF6639E2EFBC3A000A18180 /* app_pb.proto */,
 				2AF6639F2EFBC3A000A18180 /* ban_pb.proto */,
 				2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */,
@@ -1105,6 +1105,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2ADEF71E2F0E0A5100AB984D /* cmty_security_pb.proto in Sources */,
+				2ADEF71F2F0E0A5100AB984D /* cmty_channel_pb.proto in Sources */,
+				2ADEF7202F0E0A5100AB984D /* cmty_member_pb.proto in Sources */,
+				2ADEF7212F0E0A5100AB984D /* cmty_pb.proto in Sources */,
+				2ADEF7222F0E0A5100AB984D /* cmty_category_pb.proto in Sources */,
+				2ADEF7232F0E0A5100AB984D /* cmty_invite_pb.proto in Sources */,
+				2ADEF7242F0E0A5100AB984D /* cmty_config_pb.proto in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				CS0001000000000000000001 /* CloudStorageManager.swift in Sources */,
 				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
@@ -1121,13 +1128,6 @@
 				2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */,
 				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
 				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
-				2ADEF6F42F0DF88A00AB984D /* cmty_pb.proto in Sources */,
-				2ADEF6F52F0DF88A00AB984D /* cmty_member_pb.proto in Sources */,
-				2ADEF6F62F0DF88A00AB984D /* cmty_category_pb.proto in Sources */,
-				2ADEF6F72F0DF88A00AB984D /* cmty_channel_pb.proto in Sources */,
-				2ADEF6F82F0DF88A00AB984D /* cmty_invite_pb.proto in Sources */,
-				2ADEF6F92F0DF88A00AB984D /* cmty_config_pb.proto in Sources */,
-				2ADEF6FA2F0DF88A00AB984D /* cmty_security_pb.proto in Sources */,
 				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
 				2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */,
 				2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */,
@@ -1158,7 +1158,7 @@
 				2AF663CD2EFBC3A000A18180 /* push_pb.proto in Sources */,
 				2AF663CF2EFBC3A000A18180 /* permission_pb.proto in Sources */,
 				2AF663D02EFBC3A000A18180 /* message_pb.proto in Sources */,
-				2ADEF7112F0DFE0200AB984D /* CmtyPb.pbobjc.m in Sources */,
+				2ADEF7282F0E0AA500AB984D /* CmtyPb.pbobjc.m in Sources */,
 				2AF663D12EFBC3A000A18180 /* user_pb.proto in Sources */,
 				2AF663D22EFBC3A000A18180 /* cluster_rpc.proto in Sources */,
 				2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */,

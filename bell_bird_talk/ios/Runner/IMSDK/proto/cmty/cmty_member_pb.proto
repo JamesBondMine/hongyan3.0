@@ -10,7 +10,7 @@ option java_outer_classname = "CmtyMemberProtos";
 // ========== 枚举类型定义 ==========
 
 // 成员角色枚举
-enum MemberRole {
+enum CmtyMemberRole {
     MEMBER = 0;     // 普通成员（默认值）
     OWNER = 1;      // 超管
 }
@@ -31,7 +31,7 @@ message CmtyMember {
     string nickname = 2;    // 昵称（返回字段）
     string username = 3;    // 用户名（返回字段）
     string avatar = 4;      // 头像URL（返回字段）
-    MemberRole role = 5;    // 角色（返回字段）
+    CmtyMemberRole role = 5;    // 角色（返回字段）
     int64 joined_at = 6;    // 加入时间（返回字段）
     string join_way = 7;    // 加入方式（自主加入、邀请加入，返回字段）
     int32 invite_count = 8; // 邀请人数（返回字段）
