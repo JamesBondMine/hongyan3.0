@@ -3,6 +3,8 @@ import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart'
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
+import 'package:bell_bird_talk/pages/community/views/channel_edit_view.dart';
+import 'package:bell_bird_talk/pages/community/views/channel_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_noti_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_pri_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
@@ -10,6 +12,7 @@ import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
@@ -87,7 +90,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
                 children: [
                   InkWell(
                     onTap: () {
-                      _showChannelSettingView();
+                      _showCommunitySettingView();
                     },
                     child: Padding(
                       padding: EdgeInsets.only(top: 16, bottom: 16),
@@ -180,8 +183,68 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
     );
   }
 
+  // 编辑频道
+  void _showChannelEditView(String channel) {
+    gbs.shower.showScreenViewCustom(context, Get.height-260, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: ChannelEditView(onConfirm: (value){}, channelId: channel),
+    ));
+  }
+
   // 频道设置
-  void _showChannelSettingView(){
+  void _showChannelSettingView(String channel) {
+    gbs.shower.showScreenViewCustom(context, Get.height-260, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: ChannelSettingView(
+        channelId: channel,
+        onConfirm: (value) {
+        switch (value) {
+          case 1:
+          _showAddMemberView();
+            break;
+          case 2:
+            // 复制链接
+            Clipboard.setData(ClipboardData(text: 'https://example.com')).then((value) {
+              Get.snackbar('复制成功', '链接已复制到剪贴板');
+            });
+
+            break;
+          case 3:
+            // 编辑频道
+            _showChannelEditView(channel);
+
+            break;
+          case 4:
+            // 删除频道
+            _showDeleteChannelView(channel);
+ 
+            break;
+          case 5:
+            // 创建文字频道
+          _showCreateChannelView(true);
+            break;
+          case 6:
+            // 频道通知
+            _showSettingNotiWithCommunityView();
+            break;
+        }
+        
+      },),
+    ));
+  }
+
+  // 社群设置
+  void _showCommunitySettingView(){
     gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
       width: Get.width,
       // padding: EdgeInsets.only(top: 12),
@@ -201,7 +264,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
             break;
           case 3:
             // 处理创建频道
-            _showCreateChannelView();
+            _showCreateChannelView(false);
             break;
           case 4:
             // 处理创建分类
@@ -223,6 +286,20 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
         
       },),
     ));
+  }
+  // 删除频道
+  void _showDeleteChannelView(String channel) async {
+    final result = await _nativeService.showNativeAlert(
+      title: '删除频道',
+      message: '确定要删除此频道吗？',
+      confirmText: '删除',
+      cancelText: '取消',
+      showCancel: true,
+    );
+    
+    if (result != null && result['action'] == 'confirm') {
+      EasyLoading.showSuccess('success');
+    }
   }
   // 离开社群
   void _showLeaveCommunityView() async {
@@ -322,7 +399,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 创建频道
-  void _showCreateChannelView(){
+  void _showCreateChannelView(bool onlyTextChannel){
     gbs.shower.showScreenViewCustom(context, Get.height-120, Container(
       width: Get.width,
       clipBehavior: Clip.hardEdge,
@@ -330,7 +407,9 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
         color: GbsColors.lightAppBarColorA,
         borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
       ),
-      child: ChannelCreateView(onConfirm:   (value) {
+      child: ChannelCreateView(
+        onlyTextChannel: onlyTextChannel,
+        onConfirm:   (value) {
 
       }),
     ));
@@ -413,7 +492,7 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
   Widget _buildChannelItem(String category, String channel) {
     return InkWell(
       onLongPress: () {
-        
+        _showChannelSettingView(channel);
       },
       onTap: () {
         // 处理频道点击

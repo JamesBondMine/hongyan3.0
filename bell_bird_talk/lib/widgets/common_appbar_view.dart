@@ -1,38 +1,96 @@
-
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/utils.dart';
 
+// 不同风格的appBar
+enum AppBarType { normal, close, backAndClose }
+
 class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Color backgroundColor;
+
+  //
+  final AppBarType appBarType;
 
   const CommonAppBarView({
     super.key,
     required this.title,
     this.backgroundColor = GbsColors.lightAppBarColorB,
+    this.appBarType = AppBarType.normal,
   });
 
   @override
   Widget build(BuildContext context) {
-    return PreferredSize(preferredSize: Size(Get.width, 64), child: Container(
-      color: backgroundColor,
-      child: SafeArea(child: Row(children: [
-      InkWell(onTap: () {
-        Get.back();
-      },
+    if (appBarType == AppBarType.close) {
+      return PreferredSize(
+        preferredSize: Size(Get.width, 64),
+        child: Container(
+          color: GbsColors.lightAppBarColorA,
+          margin: EdgeInsets.only(bottom: 10),
+          child: Padding(
+            padding: EdgeInsetsGeometry.only(top: 10, left: 16),
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: GbsColors.des1Color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, color: GbsColors.titleColor),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return PreferredSize(
+      preferredSize: Size(Get.width, 64),
       child: Container(
-        height: 44,
-        width: 64,
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 16), child: Icon(Icons.arrow_back_ios_new),),),
-        Expanded(child: Text(title, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: GbsColors.des1Color, fontWeight: FontWeight.w500),),),
-        SizedBox(width: 64,),
-    ],)),));
+        color: backgroundColor,
+        child: SafeArea(
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  Get.back();
+                },
+                child: Container(
+                  height: 44,
+                  width: 64,
+                  padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+                  child: Icon(Icons.arrow_back_ios_new),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: GbsColors.des1Color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              SizedBox(width: 64),
+            ],
+          ),
+        ),
+      ),
+    );
   }
-  
+
   @override
   // TODO: implement preferredSize
   Size get preferredSize => Size(Get.width, 64);
-  // 
+  //
 }

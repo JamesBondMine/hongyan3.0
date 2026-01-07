@@ -11,8 +11,9 @@ import 'package:get/instance_manager.dart';
 
 class ChannelCreateView extends StatefulWidget {
   final ValueChanged<int> onConfirm;
+  bool onlyTextChannel = false;
 
-  const ChannelCreateView({super.key, required this.onConfirm});
+  ChannelCreateView({super.key, required this.onConfirm, this.onlyTextChannel = false});
   
   @override
   State<StatefulWidget> createState() {
@@ -139,6 +140,9 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
                   enabled: !createTextChannel,
                   text: '语音频道',
                   onPressed: () {
+                    if (widget.onlyTextChannel == true) {
+                      return;
+                    }
                     if (mounted) {
                       setState(() {
                         createTextChannel = false;
