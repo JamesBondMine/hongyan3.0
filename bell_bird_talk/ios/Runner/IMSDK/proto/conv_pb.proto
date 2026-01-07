@@ -130,6 +130,13 @@ message BatchCreateUserStatesResult {
   int32 failed_count = 4;           // 失败数
 }
 
+// 批量创建会话请求
+// 用于群组添加成员时批量创建会话，避免逐个创建导致的性能问题
+message BatchCreateConv {
+  repeated Conv convs = 1;          // 会话列表（每个Conv已包含displayName）
+  repeated string user_ids = 2;     // 用户ID列表（与convs一一对应，每个Conv对应的userId）
+}
+
 // =====================================
 // 免打扰相关消息
 // =====================================

@@ -141,6 +141,7 @@ message User {
   string invited_by_user_id = 32;        // 邀请者用户ID（可选）
   string invited_by_biz_code = 33;      // 使用的业务邀请码（可选）
   int64 invite_time = 34;               // 被邀请时间（可选）
+  DeactivateStatus deactivate_status=36 ;
 }
 
 // 服务器连接信息 - 核心领域对象
@@ -169,9 +170,13 @@ message GetUser {
 // 用于分页查询用户列表
 message UserListQuery {
   string keyword = 1;          // 搜索关键词（可选）
-  UserStatus status = 2;       // 状态过滤（可选）
-  OnlineStatus online_status = 3; // 在线状态过滤（可选）
-  com.cloud.im.common.core.system.Page page = 4;        // 分页参数（使用系统类型）
+  optional UserStatus status = 2;       // 状态过滤（可选）
+  optional OnlineStatus online_status = 3; // 在线状态过滤（可选）
+  string accountId = 4; // 账号（可选）
+  string nickname = 5; // 昵称（可选）
+  string register_time =6 ; // 注册时间（可选）
+  string register_type =7 ; // 注册方式（可选）
+  com.cloud.im.common.core.system.Page page = 8;        // 分页参数（使用系统类型）
 }
 
 // 用户搜索 - 查询操作

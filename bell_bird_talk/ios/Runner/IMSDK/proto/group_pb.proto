@@ -180,6 +180,14 @@ message disturbStatusQuery {
   string user_id = 2;                     // 用户ID（可选，不填则查询群组状态）
 }
 
+// 在线人数响应 - 结果对象
+// 用于返回群组在线人数
+message OnlineCount {
+  string group_id = 1;                    // 群组ID（返回字段）
+  int32 online_count = 2;                 // 在线人数（返回字段）
+  int64 updated_at = 3;                   // 更新时间（返回字段，时间戳毫秒）
+}
+
 // ============ 操作对象 ============
 
 // 创建群组 - 操作对象
