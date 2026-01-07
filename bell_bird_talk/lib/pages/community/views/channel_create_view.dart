@@ -1,6 +1,10 @@
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_btn_view.dart';
+import 'package:bell_bird_talk/pages/community/views/channel_category_sel_view.dart';
+import 'package:bell_bird_talk/pages/community/views/slider_label_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/instance_manager.dart';
@@ -28,7 +32,10 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
   final TextEditingController _channelDescriptionController = TextEditingController();
   
   // 选中的分类（null 表示暂不选择）
-  String? _selectedCategory;
+  String _selectedCategory = '';
+
+  // 频道最大人数
+  bool channelMaxOpen = true;
   
   @override
   void dispose() {
@@ -151,14 +158,60 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
         _buildChannelNameField(),
         const SizedBox(height: 24),
         
-        // 2. 频道简介输入框
-        _buildChannelDescriptionField(),
+        // 2. 频道简介输入框 -- 如果是语音频道。则展示语音频道最大人数
+        createTextChannel ? _buildChannelDescriptionField() : _buildMaxMemberCount(),
         const SizedBox(height: 24),
         
         // 3. 所属分类选择
         _buildCategorySelector(),
       ],
     ));
+  }
+
+  // 语音频道最大人数
+  Widget _buildMaxMemberCount() {
+    return Container(
+      // padding: const EdgeInsets.symmetric(vertical: 8),
+      // decoration: BoxDecoration(
+      //   color: GbsColors.lightInputBackground,
+      //   borderRadius: BorderRadius.circular(8),
+      //   border: Border.all(
+      //     color: GbsColors.lightDivider,
+      //     width: 0.5,
+      //   )
+      // ), 
+      child: Column(children: [
+        Row(children: [
+          Text(
+            '最大人数',
+            style: TextStyle(
+              fontSize: 14,
+              color: GbsColors.des1Color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Spacer(),
+          Switch(
+            focusColor: GbsColors.primaryColor,
+            activeTrackColor:  GbsColors.primaryColor,
+            value: channelMaxOpen, onChanged: (value) {
+            setState(() {
+              channelMaxOpen = value;
+            });
+          })
+        ],),
+        SizedBox(height: 10,),
+        // 滑杆
+        CustomSliderWithTextOnTrack(
+                seekStart: () {},
+                seekEnd: (String value) {
+                  // _amountController.text = value;
+                  // _amountEvent(_amountController.text);
+                },
+                amountList: [],
+              )
+      ],),
+    );
   }
   
   // 频道名称输入框
@@ -297,6 +350,7 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
           onTap: () {
             // TODO: 打开分类选择弹窗或页面
             // 这里暂时先不做具体实现，只提供一个占位
+            _showSelCategoryChannelView();
           },
           child: Container(
             height: 48,
@@ -313,12 +367,10 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedCategory ?? '暂不选择',
+                  _selectedCategory.isEmpty ? '暂不选择' : _selectedCategory,
                   style: TextStyle(
-                    fontSize: 16,
-                    color: _selectedCategory != null 
-                        ? GbsColors.des1Color 
-                        : GbsColors.des9Color,
+                    fontSize: 14,
+                    color: GbsColors.des1Color,
                   ),
                 ),
                 Icon(
@@ -332,5 +384,26 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
         ),
       ],
     );
+  }
+
+  // 创建频道
+  void _showSelCategoryChannelView(){
+    gbs.shower.showScreenViewCustom(context, 400, Container(
+      width: Get.width,
+      clipBehavior: Clip.hardEdge,
+       decoration: BoxDecoration(
+        color: GbsColors.lightAppBarColorA,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+      ),
+      child: ChannelCategorySelView(
+        selectedCategory: _selectedCategory.isEmpty ? -1 : int.parse(_selectedCategory) ,
+        onConfirm:   (value) {
+        if (mounted) {
+          setState(() {
+            _selectedCategory = value.toString();
+          });
+        }
+      }),
+    ));
   }
 }
