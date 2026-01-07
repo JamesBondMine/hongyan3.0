@@ -2,6 +2,7 @@ import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
+import 'package:bell_bird_talk/pages/community/views/category_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_edit_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_setting_view.dart';
@@ -26,9 +27,8 @@ class CommunityChildPage extends StatefulWidget {
 }
 
 class _CommunityChildPageState extends State<CommunityChildPage> {
-
   final IOSNativeService _nativeService = IOSNativeService();
-  
+
   Map<String, List<String>> categories = {
     '文字频道': ['情感频道', '理财频道', '科技频道'],
     '语音频道': ['语音聊天1', '语音聊天2'],
@@ -185,108 +185,131 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
 
   // 编辑频道
   void _showChannelEditView(String channel) {
-    gbs.shower.showScreenViewCustom(context, Get.height-260, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 260,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: ChannelEditView(onConfirm: (value) {}, channelId: channel),
       ),
-      child: ChannelEditView(onConfirm: (value){}, channelId: channel),
-    ));
+    );
   }
 
   // 频道设置
   void _showChannelSettingView(String channel) {
-    gbs.shower.showScreenViewCustom(context, Get.height-260, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 260,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: ChannelSettingView(
+          channelId: channel,
+          onConfirm: (value) {
+            switch (value) {
+              case 1:
+                _showAddMemberView();
+                break;
+              case 2:
+                // 复制链接
+                Clipboard.setData(
+                  ClipboardData(text: 'https://example.com'),
+                ).then((value) {
+                  Get.snackbar('复制成功', '链接已复制到剪贴板');
+                });
+
+                break;
+              case 3:
+                // 编辑频道
+                _showChannelEditView(channel);
+                break;
+              case 4:
+                // 删除频道
+                _showDeleteChannelView(channel);
+                break;
+              case 5:
+                // 创建文字频道
+                _showCreateChannelView(true);
+                break;
+              case 6:
+                // 频道通知
+                _showSettingNotiWithCommunityView();
+                break;
+            }
+          },
+        ),
       ),
-      child: ChannelSettingView(
-        channelId: channel,
-        onConfirm: (value) {
-        switch (value) {
-          case 1:
-          _showAddMemberView();
-            break;
-          case 2:
-            // 复制链接
-            Clipboard.setData(ClipboardData(text: 'https://example.com')).then((value) {
-              Get.snackbar('复制成功', '链接已复制到剪贴板');
-            });
-
-            break;
-          case 3:
-            // 编辑频道
-            _showChannelEditView(channel);
-
-            break;
-          case 4:
-            // 删除频道
-            _showDeleteChannelView(channel);
- 
-            break;
-          case 5:
-            // 创建文字频道
-          _showCreateChannelView(true);
-            break;
-          case 6:
-            // 频道通知
-            _showSettingNotiWithCommunityView();
-            break;
-        }
-        
-      },),
-    ));
+    );
   }
 
   // 社群设置
-  void _showCommunitySettingView(){
-    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
-      width: Get.width,
-      // padding: EdgeInsets.only(top: 12),
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+  void _showCommunitySettingView() {
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 150,
+      Container(
+        width: Get.width,
+        // padding: EdgeInsets.only(top: 12),
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CommunitySettingView(
+          onConfirm: (value) {
+            switch (value) {
+              case 1:
+                _showAddMemberView();
+                break;
+              case 2:
+                // 处理社群设置
+                Get.to(CommunitySettingPage());
+                break;
+              case 3:
+                // 处理创建频道
+                _showCreateChannelView(false);
+                break;
+              case 4:
+                // 处理创建分类
+                _showCreateCategoryView();
+                break;
+              case 5:
+                // 处理通知设置
+                _showSettingNotiWithCommunityView();
+                break;
+              case 6:
+                // 处理隐私设置
+                _showPrivacySettingView();
+                break;
+              case 7:
+                // 处理离开社群
+                _showLeaveCommunityView();
+                break;
+            }
+          },
+        ),
       ),
-      child: CommunitySettingView(onConfirm: (value) {
-        switch (value) {
-          case 1:
-            _showAddMemberView();
-            break;
-          case 2:
-            // 处理社群设置
-            Get.to(CommunitySettingPage());
-            break;
-          case 3:
-            // 处理创建频道
-            _showCreateChannelView(false);
-            break;
-          case 4:
-            // 处理创建分类
-            _showCreateCategoryView();
-            break;
-          case 5:
-            // 处理通知设置
-            _showSettingNotiWithCommunityView();
-            break;
-          case 6:
-            // 处理隐私设置
-            _showPrivacySettingView();
-            break;
-          case 7:
-            // 处理离开社群
-            _showLeaveCommunityView();
-            break;
-        }
-        
-      },),
-    ));
+    );
   }
+
   // 删除频道
   void _showDeleteChannelView(String channel) async {
     final result = await _nativeService.showNativeAlert(
@@ -296,11 +319,12 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
       cancelText: '取消',
       showCancel: true,
     );
-    
+
     if (result != null && result['action'] == 'confirm') {
       EasyLoading.showSuccess('success');
     }
   }
+
   // 离开社群
   void _showLeaveCommunityView() async {
     final result = await _nativeService.showNativeAlert(
@@ -310,129 +334,152 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
       cancelText: '取消',
       showCancel: true,
     );
-    
+
     if (result != null && result['action'] == 'confirm') {
       EasyLoading.showSuccess('success');
     }
   }
 
   // 隐私设置--CommunityPriSettingView
-   void _showPrivacySettingView(){
-    gbs.shower.showScreenViewCustom(context, 360, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-       decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+  void _showPrivacySettingView() {
+    gbs.shower.showScreenViewCustom(
+      context,
+      360,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CommunityPriSettingView(
+          selectedCategory: 0,
+          onConfirm: (value) {},
+        ),
       ),
-      child: CommunityPriSettingView(
-        selectedCategory: 0 ,
-        onConfirm:   (value) {
-        
-      }),
-    ));
-   }
-
-  // 通知设置
-  void _showSettingNotiWithCommunityView(){
-    gbs.shower.showScreenViewCustom(context, 400, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-       decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
-      ),
-      child: CommunityNotiSettingView(
-        selectedCategory: 0 ,
-        onConfirm:   (value) {
-        
-      }),
-    ));
+    );
   }
 
+  // 通知设置
+  void _showSettingNotiWithCommunityView() {
+    gbs.shower.showScreenViewCustom(
+      context,
+      400,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CommunityNotiSettingView(
+          selectedCategory: 0,
+          onConfirm: (value) {},
+        ),
+      ),
+    );
+  }
 
   // 创建分类
-  void _showCreateCategoryView(){
-    
-        final controller = TextEditingController(text: '');
-        // 新增分组
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: FriendRemarkView(
-                controller: controller,
-                tip: '请输入分类名称',
-                title: '分类名称',
-                onTap: () async {
-                  final gname = controller.text.trim();
-                  Navigator.pop(context);
+  void _showCreateCategoryView() {
+    final controller = TextEditingController(text: '');
+    // 新增分组
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: FriendRemarkView(
+            controller: controller,
+            tip: '请输入分类名称',
+            title: '分类名称',
+            onTap: () async {
+              final gname = controller.text.trim();
+              Navigator.pop(context);
 
-                  EasyLoading.show(status: '正在创建分组...');
+              EasyLoading.show(status: '正在创建分组...');
 
-                  // try {
-                  //   final result = await _nativeService.imCreateContactGroup(
-                  //     groupName: gname,
-                  //   );
-                  //   if (result['errorCode'] == 0) {
-                  //     // 刷新分组列表
-                  //     await _loadFriendGroups(refresh: true);
-                  //     EasyLoading.showSuccess('分组创建成功');
-                  //   } else {
-                  //     EasyLoading.showError(result['message'] ?? '创建失败');
-                  //   }
-                  // } catch (e) {
-                  //   print('创建分组错误: $e');
-                  //   EasyLoading.showError('创建失败，请稍后重试');
-                  // }
-                },
-              ),
-            );
-          },
+              // try {
+              //   final result = await _nativeService.imCreateContactGroup(
+              //     groupName: gname,
+              //   );
+              //   if (result['errorCode'] == 0) {
+              //     // 刷新分组列表
+              //     await _loadFriendGroups(refresh: true);
+              //     EasyLoading.showSuccess('分组创建成功');
+              //   } else {
+              //     EasyLoading.showError(result['message'] ?? '创建失败');
+              //   }
+              // } catch (e) {
+              //   print('创建分组错误: $e');
+              //   EasyLoading.showError('创建失败，请稍后重试');
+              // }
+            },
+          ),
         );
-      
+      },
+    );
   }
 
   // 创建频道
-  void _showCreateChannelView(bool onlyTextChannel){
-    gbs.shower.showScreenViewCustom(context, Get.height-120, Container(
-      width: Get.width,
-      clipBehavior: Clip.hardEdge,
-       decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+  void _showCreateChannelView(bool onlyTextChannel) {
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 120,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: ChannelCreateView(
+          onlyTextChannel: onlyTextChannel,
+          onConfirm: (value) {},
+        ),
       ),
-      child: ChannelCreateView(
-        onlyTextChannel: onlyTextChannel,
-        onConfirm:   (value) {
-
-      }),
-    ));
+    );
   }
 
   // 邀请好友
-  void _showAddMemberView(){
-    gbs.shower.showScreenViewCustom(context, Get.height-150, Container(
-      width: Get.width,
-      // padding: EdgeInsets.only(top: 12),
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        color: GbsColors.lightAppBarColorA,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+  void _showAddMemberView() {
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 150,
+      Container(
+        width: Get.width,
+        // padding: EdgeInsets.only(top: 12),
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CommunityInvatePage(
+          onConfirm: (value) {
+            if (value.isNotEmpty) {
+              // 添加群成员
+              // _showAddMemberDialog(value);
+            }
+          },
+        ),
       ),
-      child: CommunityInvatePage(onConfirm: (value) {
-        if (value.isNotEmpty) {
-          // 添加群成员
-          // _showAddMemberDialog(value);
-        }
-        
-      },),
-    ));
+    );
   }
 
   /// 构建分类区域
@@ -462,29 +509,47 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
           }
         });
       },
-      // leading: Icon(
-      //   categoryIcons[category] ?? Icons.category,
-      //   color: GbsColors.lightTitlePrimary,
-      //   size: 20,
-      // ),
-      title: Text(
-        category,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: GbsColors.lightTitlePrimary,
+      title: InkWell(
+        onTap: () {},
+        onLongPress: () {
+          // 分类设置
+          _showCategorySettingView(category);
+        },
+        child: Container(
+          color: Colors.red,
+          child: Text(
+            category,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: GbsColors.lightTitlePrimary,
+            ),
+          ),
         ),
       ),
-      // subtitle: Text(
-      //   '${channels.length}个频道',
-      //   style: TextStyle(
-      //     fontSize: 12,
-      //     color: GbsColors.des6Color,
-      //   ),
-      // ),
       children: channels
           .map((channel) => _buildChannelItem(category, channel))
           .toList(),
+    );
+  }
+
+  // 分类设置
+  void _showCategorySettingView(String channel) {
+    gbs.shower.showScreenViewCustom(
+      context,
+      400,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CategorySettingView(channelId: channel, onConfirm: (value) {}),
+      ),
     );
   }
 
