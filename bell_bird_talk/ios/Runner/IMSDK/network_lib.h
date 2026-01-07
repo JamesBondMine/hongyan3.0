@@ -200,17 +200,7 @@ NET_API void registe_command_message_listener(CB_I_S_I cCallback);
  * @note 可以在 EXE 中创建 user_pb::AuthUser 对象，调用 SerializeAsString() 或 SerializeToString() 后传递序列化数据
  */
 NET_API int login_by_user_id(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
-/**
- * 用户Token快速登录
- * @param cCallback 回调函数（用于接收登录结果，参数：errorCode, data, dataLen, reqId）
- * @param data 序列化后的 user_pb::AuthUser 数据
- * @param dataLen 数据长度
- * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
- * @return 0表示成功，其它表示错误码
- */
-NET_API int login_by_token(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
-	
 /**
  * 设置用户认证信息
  * 用于在 SDK 内部设置用户的认证状态，通常在应用层从本地存储恢复登录状态时调用
@@ -336,18 +326,6 @@ NET_API int change_password(CB_I_S_I_U cCallback, const char* data, int dataLen,
  * @note 需要用户已登录，userId 自动从 MqttSession 中获取
  */
 NET_API int reset_password(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
-
-/**
- * 刷新Token
- * Topic: /im/USER/{userId}/refreshToken
- * @param cCallback 回调函数（用于接收刷新Token的结果，参数：errorCode, data, dataLen, reqId）
- * @param data 序列化后的刷新Token请求数据（包含refreshToken等）
- * @param dataLen 数据长度
- * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
- * @return 0表示成功，其他表示错误码
- * @note 需要用户已登录，userId 自动从 MqttSession 中获取
- */
-NET_API int refresh_auth_token(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
 
 /**
  * 获取验证码
@@ -909,6 +887,155 @@ NET_API int get_group_disturb_status(CB_I_S_I_U cCallback, const char* data, int
  * 
  */
 NET_API int perview_group(CB_I_S_I_U cCallback,const char* targetId, uint64_t &reqId);
+
+// ============================================
+// 社群管理接口
+// ============================================
+
+/**
+ * 加入社群
+ * Topic: /im/CMTY/{cmtyId}/join
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 加入社群参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int join_community(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 离开社群
+ * Topic: /im/CMTY/{cmtyId}/leave
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 离开社群参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int leave_community(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取社群信息
+ * Topic: /im/CMTY/{cmtyId}/info
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 获取社群信息参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_community_info(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取社群列表
+ * Topic: /im/CMTY/{userId}/list
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 获取社群列表参数（序列化后的数据）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int list_communities(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 获取社群在线人数
+ * Topic: /im/CMTY/{cmtyId}/onlineCount
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 获取在线人数参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_community_online_count(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 搜索社群
+ * Topic: /im/CMTY/{userId}/search
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 搜索社群参数（序列化后的数据）
+ * @param len 数据长度
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note userId 自动从 MqttSession 中获取
+ */
+NET_API int search_community(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
+
+/**
+ * 社群发言
+ * Topic: /im/CMTY/{cmtyId}/send
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 社群发言参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int send_community_message(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 申诉封禁
+ * Topic: /im/CMTY/{cmtyId}/appealBan
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 申诉封禁参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int appeal_community_ban(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取社群成员列表
+ * Topic: /im/CMTY/{cmtyId}/members
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 获取成员列表参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_community_members(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 禁言社群成员
+ * Topic: /im/CMTY/{cmtyId}/mute
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 禁言参数（序列化后的数据，包含成员ID、禁言时长等）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int mute_community_member(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 踢出社群成员
+ * Topic: /im/CMTY/{cmtyId}/kick
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 踢出参数（序列化后的数据，包含成员ID等）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int kick_community_member(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取社群封禁成员列表
+ * Topic: /im/CMTY/{cmtyId}/bannedMembers
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_community_banned_members(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
 // ============================================
 // 消息拉取接口
 // ============================================

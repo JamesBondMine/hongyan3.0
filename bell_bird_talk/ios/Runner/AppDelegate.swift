@@ -186,9 +186,9 @@ class NativeBridgeHandler: NSObject {
         case "imLogin":
             imLogin(call: call, result: result)
             
-        case "imRefreshToken":
-            imRefreshToken(call: call, result: result)
-            
+//        case "imRefreshToken":
+//            imRefreshToken(call: call, result: result)
+//            
         case "imSearchUser":
             imSearchUser(call: call, result: result)
         
@@ -342,6 +342,10 @@ class NativeBridgeHandler: NSObject {
         // ---------- 群组管理 ----------
         case "imCreateGroup":
             imCreateGroup(call: call, result: result)
+        
+        // ---------- 社群管理 ----------
+        case "imGetCommunityList":
+            imGetCommunityList(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -957,25 +961,25 @@ class NativeBridgeHandler: NSObject {
                                     }
             print("📋 邮箱登录: email=\(loginDict["email"] ?? "nil")")
             
-        case "token":
-            // Token 登录
-            if let token = args["token"] as? String {
-                print("📋 🍎🍎🍎🍎🍎🍎🍎🍎 token登录 appdelegate. : token=\(token ?? "nil")")
-                // 对于 token 登录，使用旧的方法
-                let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
-//                    print("AppDeleate Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
-                    result([
-                        "errorCode": errorCode,
-                        "reqId": reqId,
-                        "message": errorCode == 0 ? "登录成功" : "登录失败",
-                        "data": data ?? ""
-                    ])
-                }
-                if code != 0 {
-                    result(FlutterError(code: "LOGIN_ERROR", message: "Token登录请求发送失败: \(code)", details: nil))
-                }
-                return
-            }
+//        case "token":
+//            // Token 登录
+//            if let token = args["token"] as? String {
+//                print("📋 🍎🍎🍎🍎🍎🍎🍎🍎 token登录 appdelegate. : token=\(token ?? "nil")")
+//                // 对于 token 登录，使用旧的方法
+//                let code = IMSDKAuthManager.shared().login(withToken: token) { errorCode, reqId, data in
+////                    print("AppDeleate Token登录回调: errorCode=\(errorCode), reqId=\(reqId)")
+//                    result([
+//                        "errorCode": errorCode,
+//                        "reqId": reqId,
+//                        "message": errorCode == 0 ? "登录成功" : "登录失败",
+//                        "data": data ?? ""
+//                    ])
+//                }
+//                if code != 0 {
+//                    result(FlutterError(code: "LOGIN_ERROR", message: "Token登录请求发送失败: \(code)", details: nil))
+//                }
+//                return
+//            }
             
         default:
             // 兼容旧的 userId + token 方式
@@ -1082,47 +1086,47 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
-    /// 刷新认证Token
-    private func imRefreshToken(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let args = call.arguments as? [String: Any] else {
-            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
-            return
-        }
-        
-        guard let refreshToken = args["refreshToken"] as? String, !refreshToken.isEmpty else {
-            result(FlutterError(code: "INVALID_ARGS", message: "refreshToken不能为空", details: nil))
-            return
-        }
-        
-        print("🔄 刷新认证Token: \(refreshToken)")
-        
-        let code = IMSDKAuthManager.shared().refreshAuthToken(withToken: refreshToken) { errorCode, reqId, data in
-            print("AppDeleate 刷新Token回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
-            if errorCode == 0 {
-                result([
-                    "errorCode": errorCode,
-                    "reqId": reqId,
-                    "message": "刷新成功",
-                    "data": data ?? ""
-                ])
-            } else {
-                result([
-                    "errorCode": errorCode,
-                    "reqId": reqId,
-                    "message": "刷新失败",
-                    "data": data ?? ""
-                ])
-            }
-        }
-        
-        if code != 0 {
-            result(FlutterError(code: "REFRESH_ERROR",
-                              message: "刷新Token请求发送失败: \(code)",
-                              details: nil))
-        }
-    }
-    
+//    /// 刷新认证Token
+//    private func imRefreshToken(call: FlutterMethodCall, result: @escaping FlutterResult) {
+//        guard let args = call.arguments as? [String: Any] else {
+//            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+//            return
+//        }
+//        
+//        guard let refreshToken = args["refreshToken"] as? String, !refreshToken.isEmpty else {
+//            result(FlutterError(code: "INVALID_ARGS", message: "refreshToken不能为空", details: nil))
+//            return
+//        }
+//        
+//        print("🔄 刷新认证Token: \(refreshToken)")
+//        
+//        let code = IMSDKAuthManager.shared().refreshAuthToken(withToken: refreshToken) { errorCode, reqId, data in
+//            print("AppDeleate 刷新Token回调: errorCode=\(errorCode), reqId=\(reqId)")
+//            
+//            if errorCode == 0 {
+//                result([
+//                    "errorCode": errorCode,
+//                    "reqId": reqId,
+//                    "message": "刷新成功",
+//                    "data": data ?? ""
+//                ])
+//            } else {
+//                result([
+//                    "errorCode": errorCode,
+//                    "reqId": reqId,
+//                    "message": "刷新失败",
+//                    "data": data ?? ""
+//                ])
+//            }
+//        }
+//        
+//        if code != 0 {
+//            result(FlutterError(code: "REFRESH_ERROR",
+//                              message: "刷新Token请求发送失败: \(code)",
+//                              details: nil))
+//        }
+//    }
+//    
     // MARK: - 联系人管理
     
     /// 添加联系人（发送好友申请）
@@ -3656,6 +3660,33 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "CREATE_GROUP_ERROR",
                               message: "创建群聊请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    // MARK: - 社群管理
+    
+    /// 获取社群列表
+    private func imGetCommunityList(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["page_size"] as? Int ?? 20
+        
+        print("📁 获取社群列表: page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKCommunityManager.shared().getCommunityList(withPage: Int32(page), pageSize: Int32(pageSize), completion: { errorCode, reqId, data in
+            print("📁 社群列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_COMMUNITY_LIST_ERROR",
+                              message: "获取社群列表请求发送失败: \(code)",
                               details: nil))
         }
     }

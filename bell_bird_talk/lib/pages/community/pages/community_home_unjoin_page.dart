@@ -1,11 +1,12 @@
+import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
-import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -25,13 +26,13 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   final List<CommunityModel> _filteredCommunities = [];
   String _selectedCategory = '全部';
 
-  final MessageDatabase _messageDatabase = MessageDatabase();
   final IOSNativeService _nativeService = IOSNativeService();
+  final CommunityController _communityController = CommunityController.to;
 
   @override
   void initState() {
     super.initState();
-    _loadDefaultCommunities();
+    _loadCommunities();
   }
   
   @override
@@ -39,51 +40,18 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
     super.dispose();
   }
   
-  /// 加载默认社群
-  void _loadDefaultCommunities() {
-    setState(() {
-      _communities.clear();
-      _communities.addAll([
-        CommunityModel(
-          id: '1',
-          name: '足球俱乐部',
-          description: '专注于 Flutter 开发技术分享，包括 Dart 语言、Widget 开发、性能优化等',
-          avatar: null,
-          memberCount: 1250,
-          maxMembers: 2000,
-          category: '技术',
-          isPublic: true,
-          ownerName: 'Flutter官方',
-          createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 30,
-        ),
-        CommunityModel(
-          id: '2',
-          name: '美食分享圈',
-          description: '分享各地美食，交流烹饪心得，发现身边的美食小店',
-          avatar: null,
-          memberCount: 890,
-          maxMembers: 1000,
-          category: '生活',
-          isPublic: true,
-          ownerName: '美食达人',
-          createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 20,
-        ),
-        CommunityModel(
-          id: '3',
-          name: '电影爱好者',
-          description: '一起讨论最新电影，分享观影感受，推荐好片',
-          avatar: null,
-          memberCount: 2100,
-          maxMembers: 3000,
-          category: '娱乐',
-          isPublic: true,
-          ownerName: '影评人',
-          createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 60,
-        ),
-      
-      ]);
-      _filteredCommunities.addAll(_communities);
-    });
+  /// 加载社群列表
+  Future<void> _loadCommunities() async {
+    await _communityController.getCommunityList(page: 1, pageSize: 20);
+    
+    if (mounted) {
+      setState(() {
+        _communities.clear();
+        _communities.addAll(_communityController.communityList);
+        _filteredCommunities.clear();
+        _filteredCommunities.addAll(_communities);
+      });
+    }
   }
   
   /// 筛选社群
@@ -228,35 +196,28 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
           
           // 社群列表
           Expanded(
-            child: _filteredCommunities.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.group_outlined,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '暂无社群',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _filteredCommunities.length,
-                    itemBuilder: (context, index) {
-                      final community = _filteredCommunities[index];
-                      return _buildCommunityCard(community);
-                    },
-                  ),
+            child: Obx(() {
+              if (_communityController.isLoading.value && _filteredCommunities.isEmpty) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              
+              if (_filteredCommunities.isEmpty) {
+                return Center(
+                  child: EmptyView(message: '暂无社群',community: true,),
+                );
+              }
+              
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _filteredCommunities.length,
+                itemBuilder: (context, index) {
+                  final community = _filteredCommunities[index];
+                  return _buildCommunityCard(community);
+                },
+              );
+            }),
           ),
         ],
       ),

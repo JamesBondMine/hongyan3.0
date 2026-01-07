@@ -42,8 +42,8 @@ class CommunityModel {
       isPublic: json['is_public'] ?? true,
       ownerId: json['owner_id'],
       ownerName: json['owner_name'],
-      createTime: json['create_time'] ?? 0,
-      isJoined: json['is_joined'] ?? false,
+      createTime: json['created_at'] ?? json['create_time'] ?? 0,
+      isJoined: json['is_member'] ?? json['is_joined'] ?? false,
       hasApplied: json['has_applied'] ?? false,
     );
   }

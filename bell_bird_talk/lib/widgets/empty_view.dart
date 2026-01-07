@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 
 class EmptyView extends StatelessWidget {
   final String message;
+  final bool? community;
   VoidCallback? click;
 
   Widget? child;
 
-  EmptyView({super.key, this.click, this.child, this.message = '暂无数据'});
+  EmptyView({super.key, this.click, this.child, this.community = false, this.message = '暂无数据'});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class EmptyView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Image.asset(  'assets/img/common/empty.png',width: 230,fit: BoxFit.fill,),
+          Image.asset( community!=null && community==true ? 'assets/img/common/empty_cunity.png' : 'assets/img/common/empty.png',width: 230,fit: BoxFit.fill,),
           InkWell(onTap: () {
             if (click != null) {
               click!();

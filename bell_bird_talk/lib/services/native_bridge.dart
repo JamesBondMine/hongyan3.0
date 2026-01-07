@@ -501,24 +501,24 @@ class IOSNativeService {
     );
   }
   
-  /// 刷新认证Token
-  /// @param refreshToken 刷新Token
-  /// @return 刷新结果
-  Future<Map<String, dynamic>> imRefreshToken({
-    required String refreshToken,
-  }) async {
-    try {
-      final Map<String, dynamic> params = {
-        'refreshToken': refreshToken,
-      };
+  // /// 刷新认证Token
+  // /// @param refreshToken 刷新Token
+  // /// @return 刷新结果
+  // Future<Map<String, dynamic>> imRefreshToken({
+  //   required String refreshToken,
+  // }) async {
+  //   try {
+  //     final Map<String, dynamic> params = {
+  //       'refreshToken': refreshToken,
+  //     };
       
-      final result = await _bridge.invokeMethod<Map>('imRefreshToken', params);
-      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '调用失败'};
-    } catch (e) {
-      print('❌ imRefreshToken 异常: $e');
-      return {'errorCode': -999, 'message': e.toString()};
-    }
-  }
+  //     final result = await _bridge.invokeMethod<Map>('imRefreshToken', params);
+  //     return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '调用失败'};
+  //   } catch (e) {
+  //     print('❌ imRefreshToken 异常: $e');
+  //     return {'errorCode': -999, 'message': e.toString()};
+  //   }
+  // }
   
   /// 修改密码
   /// @param userId 用户ID
@@ -1060,6 +1060,28 @@ class IOSNativeService {
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       print('获取群组列表错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
+  // ---------- 社群管理 ----------
+  
+  /// 获取社群列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 社群列表结果
+  Future<Map<String, dynamic>> imGetCommunityList({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityList', {
+        'page': page,
+        'page_size': pageSize,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('获取社群列表错误: $e');
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

@@ -124,6 +124,7 @@
 		2ADEF7232F0E0A5100AB984D /* cmty_invite_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7192F0E0A5100AB984D /* cmty_invite_pb.proto */; };
 		2ADEF7242F0E0A5100AB984D /* cmty_config_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */; };
 		2ADEF7282F0E0AA500AB984D /* CmtyPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */; };
+		2ADEF72B2F0E608500AB984D /* IMSDKCommunityManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF72A2F0E608500AB984D /* IMSDKCommunityManager.mm */; };
 		2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */; };
 		2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */; };
 		2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */; };
@@ -331,6 +332,8 @@
 		2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_security_pb.proto; sourceTree = "<group>"; };
 		2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPb.pbobjc.h; sourceTree = "<group>"; };
 		2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPb.pbobjc.m; sourceTree = "<group>"; };
+		2ADEF7292F0E608500AB984D /* IMSDKCommunityManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKCommunityManager.h; sourceTree = "<group>"; };
+		2ADEF72A2F0E608500AB984D /* IMSDKCommunityManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKCommunityManager.mm; sourceTree = "<group>"; };
 		2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
 		2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
 		2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
@@ -766,6 +769,8 @@
 		2AF663EC2EFBDB3700A18180 /* manager */ = {
 			isa = PBXGroup;
 			children = (
+				2ADEF7292F0E608500AB984D /* IMSDKCommunityManager.h */,
+				2ADEF72A2F0E608500AB984D /* IMSDKCommunityManager.mm */,
 				2AF663DC2EFBDB3700A18180 /* IMSDKAuthManager.h */,
 				2AF663DD2EFBDB3700A18180 /* IMSDKAuthManager.mm */,
 				2AF663DE2EFBDB3700A18180 /* IMSDKContactManager.h */,
@@ -1153,6 +1158,7 @@
 				2AF663C82EFBC3A000A18180 /* sensitive_pb.proto in Sources */,
 				2AF663C92EFBC3A000A18180 /* chat_pb.proto in Sources */,
 				2AF663CA2EFBC3A000A18180 /* file_pb.proto in Sources */,
+				2ADEF72B2F0E608500AB984D /* IMSDKCommunityManager.mm in Sources */,
 				2AF663CB2EFBC3A000A18180 /* group_pb.proto in Sources */,
 				2AF663CC2EFBC3A000A18180 /* handshake_pb.proto in Sources */,
 				2AF663CD2EFBC3A000A18180 /* push_pb.proto in Sources */,

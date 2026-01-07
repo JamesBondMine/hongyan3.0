@@ -47,12 +47,12 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
                  token:(NSString *)token
             completion:(IMSDKAuthCompletion)completion __attribute__((deprecated("Use loginWithDictionary:completion: instead")));
 
-/// 使用Token快速登录
-/// @param token 用户token
-/// @param completion 登录结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)loginWithToken:(NSString *)token
-           completion:(IMSDKAuthCompletion)completion;
+///// 使用Token快速登录
+///// @param token 用户token
+///// @param completion 登录结果回调
+///// @return 0表示请求发送成功，其他为错误码
+//- (int)loginWithToken:(NSString *)token
+//           completion:(IMSDKAuthCompletion)completion;
 
 /// 使用序列化数据登录（user_pb::AuthUser）
 /// @param serializedData 序列化后的数据
@@ -141,12 +141,12 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 /// @return 0 表示请求发送成功，其他为错误码
 - (int)deleteCurrentUserWithCompletion:(IMSDKAuthCompletion)completion;
 
-/// 刷新认证Token
-/// @param refreshToken 刷新Token
-/// @param completion 刷新结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
-                      completion:(IMSDKAuthCompletion)completion;
+///// 刷新认证Token
+///// @param refreshToken 刷新Token
+///// @param completion 刷新结果回调
+///// @return 0表示请求发送成功，其他为错误码
+//- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
+//                      completion:(IMSDKAuthCompletion)completion;
 
 // ==================== Token 持久化 ====================
 

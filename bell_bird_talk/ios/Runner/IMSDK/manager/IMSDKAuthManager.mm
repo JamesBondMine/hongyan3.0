@@ -439,59 +439,59 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     return [self loginWithSerializedData:jsonData completion:completion];
 }
 
-- (int)loginWithToken:(NSString *)token
-           completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"🎫 Token快速登录");
-    
-    if (!token || token.length == 0) {
-        NSLog(@"❌ token 不能为空");
-        return -1;
-    }
-    
-    // 使用 protobuf 创建 AuthUser 对象（与 loginWithDictionary 保持一致）
-    Param * p = [[Param alloc] init];
-    p.param = token;
-    
-    // 序列化为 Protobuf 二进制数据
-    NSData *serializedData = [p data];
-    if (!serializedData || serializedData.length == 0) {
-        NSLog(@"❌ Protobuf 序列化失败");
-        return -2;
-    }
-    
-    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
-    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
-    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
-    
-    const char *data = (const char *)serializedData.bytes;
-    int dataLen = (int)serializedData.length;
-    uint64_t reqId = 0;
-    
-    if (completion) {
-        // 使用临时 ID 先保存回调
-        static uint64_t tempId = 2000;
-        NSNumber *tempKey = @(tempId++);
-        self.authCallbacks[tempKey] = completion;
-        
-        int result = login_by_token(LoginCallback, data, dataLen, reqId);
-        
-        if (result == 0) {
-            NSLog(@"✅ Token登录请求发送成功: reqId=%llu", reqId);
-            // 用真实 reqId 更新
-            if (reqId != 0) {
-                self.authCallbacks[@(reqId)] = completion;
-                [self.authCallbacks removeObjectForKey:tempKey];
-            }
-        } else {
-            NSLog(@"❌ Token登录请求失败: %d", result);
-            [self.authCallbacks removeObjectForKey:tempKey];
-        }
-        
-        return result;
-    }
-    
-    return login_by_token(LoginCallback, data, dataLen, reqId);
-}
+//- (int)loginWithToken:(NSString *)token
+//           completion:(IMSDKAuthCompletion)completion {
+//    NSLog(@"🎫 Token快速登录");
+//    
+//    if (!token || token.length == 0) {
+//        NSLog(@"❌ token 不能为空");
+//        return -1;
+//    }
+//    
+//    // 使用 protobuf 创建 AuthUser 对象（与 loginWithDictionary 保持一致）
+//    Param * p = [[Param alloc] init];
+//    p.param = token;
+//    
+//    // 序列化为 Protobuf 二进制数据
+//    NSData *serializedData = [p data];
+//    if (!serializedData || serializedData.length == 0) {
+//        NSLog(@"❌ Protobuf 序列化失败");
+//        return -2;
+//    }
+//    
+//    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
+//    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
+//    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
+//    
+//    const char *data = (const char *)serializedData.bytes;
+//    int dataLen = (int)serializedData.length;
+//    uint64_t reqId = 0;
+//    
+//    if (completion) {
+//        // 使用临时 ID 先保存回调
+//        static uint64_t tempId = 2000;
+//        NSNumber *tempKey = @(tempId++);
+//        self.authCallbacks[tempKey] = completion;
+//        
+//        int result = login_by_token(LoginCallback, data, dataLen, reqId);
+//        
+//        if (result == 0) {
+//            NSLog(@"✅ Token登录请求发送成功: reqId=%llu", reqId);
+//            // 用真实 reqId 更新
+//            if (reqId != 0) {
+//                self.authCallbacks[@(reqId)] = completion;
+//                [self.authCallbacks removeObjectForKey:tempKey];
+//            }
+//        } else {
+//            NSLog(@"❌ Token登录请求失败: %d", result);
+//            [self.authCallbacks removeObjectForKey:tempKey];
+//        }
+//        
+//        return result;
+//    }
+//    
+//    return login_by_token(LoginCallback, data, dataLen, reqId);
+//}
 
 - (int)loginWithSerializedData:(NSData *)serializedData
                     completion:(IMSDKAuthCompletion)completion {
@@ -1284,55 +1284,55 @@ static void RefreshTokenCallback(int errorCode, const char* data, int dataLen, u
     return deactivate_user(DeleteUserCallback, data, dataLen, reqId);
 }
 
-/// 刷新认证Token
-- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
-                      completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"🔄 刷新认证Token: %@", refreshToken);
-    
-    if (!refreshToken || refreshToken.length == 0) {
-        NSLog(@"❌ 刷新Token为空");
-        return -1;
-    }
-    
-    // 创建刷新Token请求数据（假设使用简单的JSON格式）
-    NSDictionary *requestDict = @{
-        @"refreshToken": refreshToken
-    };
-    
-    NSError *error = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&error];
-    if (error) {
-        NSLog(@"❌ 序列化刷新Token请求失败: %@", error);
-        return -2;
-    }
-    
-    const char *data = (const char *)[jsonData bytes];
-    int dataLen = (int)[jsonData length];
-    uint64_t reqId = 0;
-    
-    if (completion) {
-        static uint64_t tempId = 9000;
-        NSNumber *tempKey = @(tempId++);
-        self.authCallbacks[tempKey] = completion;
-        
-        int result = refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
-        
-        if (result == 0) {
-            NSLog(@"✅ 刷新Token请求发送成功: reqId=%llu", reqId);
-            if (reqId != 0) {
-                self.authCallbacks[@(reqId)] = completion;
-                [self.authCallbacks removeObjectForKey:tempKey];
-            }
-        } else {
-            NSLog(@"❌ 刷新Token请求失败: %d", result);
-            [self.authCallbacks removeObjectForKey:tempKey];
-        }
-        
-        return result;
-    }
-    
-    return refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
-}
+///// 刷新认证Token
+//- (int)refreshAuthTokenWithToken:(NSString *)refreshToken
+//                      completion:(IMSDKAuthCompletion)completion {
+//    NSLog(@"🔄 刷新认证Token: %@", refreshToken);
+//    
+//    if (!refreshToken || refreshToken.length == 0) {
+//        NSLog(@"❌ 刷新Token为空");
+//        return -1;
+//    }
+//    
+//    // 创建刷新Token请求数据（假设使用简单的JSON格式）
+//    NSDictionary *requestDict = @{
+//        @"refreshToken": refreshToken
+//    };
+//    
+//    NSError *error = nil;
+//    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:requestDict options:0 error:&error];
+//    if (error) {
+//        NSLog(@"❌ 序列化刷新Token请求失败: %@", error);
+//        return -2;
+//    }
+//    
+//    const char *data = (const char *)[jsonData bytes];
+//    int dataLen = (int)[jsonData length];
+//    uint64_t reqId = 0;
+//    
+//    if (completion) {
+//        static uint64_t tempId = 9000;
+//        NSNumber *tempKey = @(tempId++);
+//        self.authCallbacks[tempKey] = completion;
+//        
+//        int result = refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
+//        
+//        if (result == 0) {
+//            NSLog(@"✅ 刷新Token请求发送成功: reqId=%llu", reqId);
+//            if (reqId != 0) {
+//                self.authCallbacks[@(reqId)] = completion;
+//                [self.authCallbacks removeObjectForKey:tempKey];
+//            }
+//        } else {
+//            NSLog(@"❌ 刷新Token请求失败: %d", result);
+//            [self.authCallbacks removeObjectForKey:tempKey];
+//        }
+//        
+//        return result;
+//    }
+//    
+//    return refresh_auth_token(RefreshTokenCallback, data, dataLen, reqId);
+//}
 
 // varint32 编码
 - (NSData *)encodeVarint32:(uint32_t)value {

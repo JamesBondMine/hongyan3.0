@@ -1,0 +1,38 @@
+//
+//  IMSDKCommunityManager.h
+//  Runner
+//
+//  IM SDK 社群管理类 - 社群列表、加入、退出等
+//
+
+#import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+/// 社群操作结果回调
+/// @param errorCode 错误码，0表示成功
+/// @param reqId 请求ID
+/// @param data 返回数据（JSON 格式）
+typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString * _Nullable data);
+
+/// IM SDK 社群管理类
+@interface IMSDKCommunityManager : NSObject
+
+/// 单例实例
++ (instancetype)sharedManager;
+
+// ==================== 社群查询 ====================
+
+/// 获取社群列表
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getCommunityListWithPage:(int)page
+                        pageSize:(int)pageSize
+                      completion:(IMSDKCommunityCompletion)completion;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
