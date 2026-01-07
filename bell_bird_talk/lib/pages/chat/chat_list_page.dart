@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
@@ -936,18 +937,10 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
-  Future<String> _fetchUserAvatarUrl(String userId) async {
-    await Future.delayed(Duration(seconds: 2));
-    // 从数据库获取用户信息
-    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
-    String bg = res?['avatar_bg'] ?? '';
-
-    return bg;
-  }
 
   Widget _userHeadImgView(String avatar, String nickname, String userId) {
     return FutureBuilder(
-      future: _fetchUserAvatarUrl(userId),
+      future: UserController.to.fetchUserAvatarUrl(userId),
       builder: (context, AsyncSnapshot<String> snapshot) {
         String bg = '';
 

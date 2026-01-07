@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/pages/settings/language_page.dart';
 import 'package:bell_bird_talk/pages/settings/security_settings_page.dart';
@@ -196,18 +197,8 @@ class _SideMenuContentState extends State<SideMenuContent> {
     });
   }
 
-  Future<String> _fetchUserAvatarUrl(String userId) async {
-    await Future.delayed(Duration(seconds: 2));
-    // 从数据库获取用户信息
-    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
-    String bg = res?['avatar_bg'] ?? '';
-
-    
-    return bg;
-  }
-
   Widget _userHeadImgView(String avatar, String nickname, String userId){
-    return FutureBuilder(future: _fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
+    return FutureBuilder(future: UserController.to.fetchUserAvatarUrl(userId), builder: (context, AsyncSnapshot<String> snapshot) {
 
 
       String bg = '';

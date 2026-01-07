@@ -1,7 +1,9 @@
 import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/services/message_database.dart';
+import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   String _selectedCategory = '全部';
 
   final MessageDatabase _messageDatabase = MessageDatabase();
+  final IOSNativeService _nativeService = IOSNativeService();
 
   @override
   void initState() {
@@ -110,23 +113,24 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       EasyLoading.showError('该社群已满员');
       return;
     }
+
+    final result = await _nativeService.showNativeAlert(
+      title: '申请加入社群',
+      message: '社群将会给你发消息',
+      confirmText: '确认',
+      cancelText: '取消',
+      showCancel: true,
+    );
+    bool confirmed = result != null && result['action'] == 'confirm';
     
-    // 显示确认对话框
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('申请加入 ${community.name}'),
-        content: Text('确定要申请加入该社群吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, true);
-              // 刷新TabBar
-              GlobalController.to.joinedCommunitys = [community,CommunityModel(
+
+    
+    if (confirmed == true) {
+      EasyLoading.show(status: '正在申请...');
+      
+      // 模拟申请过程
+      await Future.delayed(const Duration(seconds: 1));
+      GlobalController.to.joinedCommunitys = [community,CommunityModel(
           id: '2',
           name: '美食分享圈',
           description: '分享各地美食，交流烹饪心得，发现身边的美食小店',
@@ -151,18 +155,6 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
           createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 60,
         ),];
               GlobalController.to.updatecommunityTabRefresh();
-            },
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
-    
-    if (confirmed == true) {
-      EasyLoading.show(status: '正在申请...');
-      
-      // 模拟申请过程
-      await Future.delayed(const Duration(seconds: 1));
       
       // 更新状态
       if (mounted) {
@@ -299,16 +291,11 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
     );
   }
 
-  Future<String> _fetchUserAvatarUrl(String userId) async {
-    await Future.delayed(const Duration(seconds: 2));
-    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
-    String bg = res?['avatar_bg'] ?? '';
-    return bg;
-  }
+  
 
   Widget _userHeadImgView(String avatar, String nickname, String userId) {
     return FutureBuilder(
-      future: _fetchUserAvatarUrl(userId),
+      future: UserController.to.fetchUserAvatarUrl(userId),
       builder: (context, AsyncSnapshot<String> snapshot) {
         String bg = '';
         if (snapshot.hasData && snapshot.data != null) {

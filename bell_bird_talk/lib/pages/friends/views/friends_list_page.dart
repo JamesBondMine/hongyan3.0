@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
-import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -20,12 +21,12 @@ class FriendsListPage extends StatefulWidget {
 class _FriendsListPageState extends State<FriendsListPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   final List<FriendModel> _friends = [];
   List<FriendModel> _filteredFriends = [];
 
   List<FriendGroup> friendGroups = [];
-  
+
   // 分组头部的位置映射（letter -> GlobalKey）
   final Map<String, GlobalKey> _groupHeaderKeys = {};
 
@@ -40,14 +41,11 @@ class _FriendsListPageState extends State<FriendsListPage> {
   void initState() {
     super.initState();
     _loadFriends();
-    
+
     final globalCtrl = Get.find<GlobalController>();
-    _refreshFriendListWorker = ever(
-      globalCtrl.refreshFriendList,
-      (_) {
-        _loadFriends(refresh: true);
-      },
-    );
+    _refreshFriendListWorker = ever(globalCtrl.refreshFriendList, (_) {
+      _loadFriends(refresh: true);
+    });
   }
 
   @override
@@ -60,7 +58,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
 
   Future<void> _loadFriends({bool refresh = false}) async {
     if (_isLoading) return;
-    
+
     if (refresh) {
       setState(() {
         _currentPage = 1;
@@ -69,35 +67,37 @@ class _FriendsListPageState extends State<FriendsListPage> {
     } else {
       setState(() => _isLoading = true);
     }
-    
+
     try {
       final result = await UserController.to.getContactList(
         page: refresh ? 1 : _currentPage,
         pageSize: _pageSize,
         groupId: null,
         relationship: -1,
-        forceRefresh: refresh
+        forceRefresh: refresh,
       );
-      
+
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           final data = json.decode(dataStr);
-          
+
           final contactsJson = data['contacts'] as List? ?? [];
-          
+
           final newFriends = contactsJson
               .map((json) => FriendModel.fromJson(json))
               .toList();
-          
+
           setState(() {
             if (refresh) {
               _friends.clear();
             }
-            
+
             final existingIds = _friends.map((f) => f.id).toSet();
-            final uniqueNewFriends = newFriends.where((f) => !existingIds.contains(f.id)).toList();
-            
+            final uniqueNewFriends = newFriends
+                .where((f) => !existingIds.contains(f.id))
+                .toList();
+
             _friends.addAll(uniqueNewFriends);
             _filteredFriends = _sortAndGroupFriends(List.from(_friends));
             _hasMore = newFriends.length >= _pageSize;
@@ -105,7 +105,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
               _currentPage++;
             }
           });
-          
+
           _filterFriends(_searchController.text);
           Get.find<GlobalController>().triggerChatListRefresh();
         }
@@ -130,15 +130,24 @@ class _FriendsListPageState extends State<FriendsListPage> {
         _filteredFriends = List.from(_friends);
       } else {
         _filteredFriends = _friends
-            .where((friend) =>
-                friend.displayName.toLowerCase().contains(query.toLowerCase()) ||
-                (friend.accountId?.toLowerCase().contains(query.toLowerCase()) ?? false))
+            .where(
+              (friend) =>
+                  friend.displayName.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ||
+                  (friend.accountId?.toLowerCase().contains(
+                        query.toLowerCase(),
+                      ) ??
+                      false),
+            )
             .toList();
       }
       _filteredFriends = _sortAndGroupFriends(_filteredFriends);
-      
+
       final currentLetters = _getGroupedFriends().keys.toSet();
-      _groupHeaderKeys.removeWhere((letter, _) => !currentLetters.contains(letter));
+      _groupHeaderKeys.removeWhere(
+        (letter, _) => !currentLetters.contains(letter),
+      );
     });
   }
 
@@ -193,85 +202,97 @@ class _FriendsListPageState extends State<FriendsListPage> {
 
   Widget _buildEmptyView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline, size: 80, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            _searchController.text.isEmpty ? '暂无好友' : '未找到匹配的好友',
-            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+      child: EmptyView(
+        message: '暂无群聊、去创建',
+        child: Padding(
+          padding: EdgeInsetsGeometry.only(top: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "暂无好友、",
+                style: TextStyle(color: GbsColors.des6Color, fontSize: 14),
+              ),
+              Text(
+                "去添加",
+                style: TextStyle(color: GbsColors.primaryColor, fontSize: 14),
+              ),
+            ],
           ),
-        ],
+        ),
+        click: () {
+          Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (context) => const AddFriendPage()),
+          );
+        },
       ),
     );
   }
 
   Widget _buildGroupedFriendList() {
     final grouped = _getGroupedFriends();
-    final letters = grouped.keys.toList()..sort((a, b) {
-      if (a == '#') return 1;
-      if (b == '#') return -1;
-      return a.compareTo(b);
-    });
-    
+    final letters = grouped.keys.toList()
+      ..sort((a, b) {
+        if (a == '#') return 1;
+        if (b == '#') return -1;
+        return a.compareTo(b);
+      });
+
     for (final letter in letters) {
       _groupHeaderKeys.putIfAbsent(letter, () => GlobalKey());
     }
-    
+
     int totalCount = 0;
     for (final letter in letters) {
       totalCount += 1 + grouped[letter]!.length;
     }
     if (_hasMore) totalCount += 1;
-    
+
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          int currentIndex = 0;
-          for (final letter in letters) {
-            final friends = grouped[letter]!;
-            if (index == currentIndex) {
-              return Container(
-                key: _groupHeaderKeys[letter],
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: Colors.grey[100],
-                child: Text(
-                  letter,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        int currentIndex = 0;
+        for (final letter in letters) {
+          final friends = grouped[letter]!;
+          if (index == currentIndex) {
+            return Container(
+              key: _groupHeaderKeys[letter],
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.grey[100],
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
                 ),
-              );
-            }
-            currentIndex++;
-            
-            for (int i = 0; i < friends.length; i++) {
-              if (index == currentIndex) {
-                return _buildFriendItem(friends[i]);
-              }
-              currentIndex++;
-            }
-          }
-          
-          if (index == currentIndex && _hasMore) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
+              ),
             );
           }
-          
-          return const SizedBox.shrink();
-        },
-        childCount: totalCount,
-      ),
+          currentIndex++;
+
+          for (int i = 0; i < friends.length; i++) {
+            if (index == currentIndex) {
+              return _buildFriendItem(friends[i]);
+            }
+            currentIndex++;
+          }
+        }
+
+        if (index == currentIndex && _hasMore) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return const SizedBox.shrink();
+      }, childCount: totalCount),
     );
   }
 
   Widget _buildFriendItem(FriendModel friend) {
-    return  Container(
+    return Container(
       color: Colors.white,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -280,12 +301,13 @@ class _FriendsListPageState extends State<FriendsListPage> {
             CircleAvatar(
               radius: 24,
               backgroundColor: Colors.blue[100],
-              backgroundImage: (friend.avatar != null && friend.avatar!.isNotEmpty)
+              backgroundImage:
+                  (friend.avatar != null && friend.avatar!.isNotEmpty)
                   ? NetworkImage(friend.avatar!)
                   : null,
               child: (friend.avatar == null || friend.avatar!.isEmpty)
                   ? Text(
-                      friend.displayName.isNotEmpty 
+                      friend.displayName.isNotEmpty
                           ? friend.displayName[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
@@ -333,16 +355,17 @@ class _FriendsListPageState extends State<FriendsListPage> {
 
   Widget _buildAlphabetIndex() {
     final grouped = _getGroupedFriends();
-    final letters = grouped.keys.toList()..sort((a, b) {
-      if (a == '#') return 1;
-      if (b == '#') return -1;
-      return a.compareTo(b);
-    });
-    
+    final letters = grouped.keys.toList()
+      ..sort((a, b) {
+        if (a == '#') return 1;
+        if (b == '#') return -1;
+        return a.compareTo(b);
+      });
+
     if (letters.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Container(
       width: 24,
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -420,14 +443,8 @@ class _FriendsListPageState extends State<FriendsListPage> {
         ),
         // 右侧字母索引条
         if (_filteredFriends.isNotEmpty)
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: _buildAlphabetIndex(),
-          ),
+          Positioned(right: 0, top: 0, bottom: 0, child: _buildAlphabetIndex()),
       ],
     );
   }
 }
-

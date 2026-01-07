@@ -613,4 +613,12 @@ class UserController extends GetxController {
       }).toList();
   }
 
+
+  Future<String> fetchUserAvatarUrl(String userId) async {
+    await Future.delayed(const Duration(seconds: 2));
+    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
+    String bg = res?['avatar_bg'] ?? '';
+    return bg;
+  }
+
 }

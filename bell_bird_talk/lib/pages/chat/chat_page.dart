@@ -1119,7 +1119,7 @@ class _ChatPageState extends State<ChatPage> {
                         : MainAxisAlignment.start,
                     children: [
                       // 绘制一个直角三角形
-                      isMine
+                      isMine || isImageMessage
                           ? Container()
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1202,7 +1202,7 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ),
                       // 绘制一个直角三角形
-                      !isMine
+                      !isMine || isImageMessage
                           ? Container()
                           : Container(
                               // color: Colors.red,

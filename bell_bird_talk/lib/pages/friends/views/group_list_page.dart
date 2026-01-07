@@ -63,7 +63,7 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(title: const Text('群组')),
+      backgroundColor: GbsColors.lightAppBarColorA,
       body: RefreshIndicator(
         onRefresh: _loadGroups,
         child: _loading

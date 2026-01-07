@@ -78,7 +78,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: GbsColors.lightBackgroundB,
       appBar: _buildNormalAppBar(),
       body: _buildMainContent(),
     );
@@ -268,16 +268,10 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
     );
   }
 
-  Future<String> _fetchUserAvatarUrl(String userId) async {
-    await Future.delayed(const Duration(seconds: 2));
-    Map<String, dynamic>? res = await _messageDatabase.getUser(userId);
-    String bg = res?['avatar_bg'] ?? '';
-    return bg;
-  }
 
   Widget _userHeadImgView(String avatar, String nickname, String userId) {
     return FutureBuilder(
-      future: _fetchUserAvatarUrl(userId),
+      future: UserController.to.fetchUserAvatarUrl(userId),
       builder: (context, AsyncSnapshot<String> snapshot) {
         String bg = '';
         if (snapshot.hasData && snapshot.data != null) {
@@ -424,7 +418,10 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                 key:  _friendGroupsPageKey,
                 onSettingGroup: (){
                 _showMoveToGroupDialog();
-              }),
+              }, onCreateGroup: () { 
+                // 直接创建
+                _showGroupSettings();
+               },),
               GroupListPage(),
             ],
           ),

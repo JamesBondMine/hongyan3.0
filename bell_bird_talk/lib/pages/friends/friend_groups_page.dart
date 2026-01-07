@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/friend_controller.dart';
-import 'package:bell_bird_talk/pages/friends/pages/add_friends_group_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/user_controller.dart';
@@ -12,8 +11,10 @@ import '../../services/native_bridge.dart';
 
 /// 分组列表子页面（折叠的分组列表）
 class FriendGroupsPage extends StatefulWidget {
-  FriendGroupsPage({super.key, required this.onSettingGroup});
+  FriendGroupsPage({super.key, required this.onSettingGroup, required this.onCreateGroup});
   VoidCallback onSettingGroup;
+  VoidCallback onCreateGroup;
+
 
   @override
   State<FriendGroupsPage> createState() => FriendGroupsPageState();
@@ -21,17 +22,17 @@ class FriendGroupsPage extends StatefulWidget {
 
 class FriendGroupsPageState extends State<FriendGroupsPage> {
   final IOSNativeService _nativeService = IOSNativeService();
-  
+
   final List<FriendGroup> _groups = [
-    FriendGroup(id: 'all', name: '全部', isDefault: true),
+    // FriendGroup(id: 'all', name: '全部', isDefault: true),
   ];
-  
+
   // 跟踪每个分组的展开/折叠状态
   final Map<String, bool> _expandedStates = {};
-  
+
   // 存储每个分组的好友列表
   final Map<String, List<FriendModel>> _groupFriends = {};
-  
+
   // 跟踪加载状态
   final Map<String, bool> _loadingStates = {};
 
@@ -47,7 +48,6 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
   // 注册通知
   void _registerNotification() {
     _friendController.addListenerId(_friendController.friendGropRefreshId, () {
-      print('监听到创建了新的好友分组，需要 刷新好友分组列表');
       setState(() {
         _loadContactGroups();
       });
@@ -63,42 +63,46 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
 
   Future<void> _loadContactGroups() async {
     try {
-      final result = await _nativeService.imGetContactGroups(page: 1, pageSize: 30);
+      final result = await _nativeService.imGetContactGroups(
+        page: 1,
+        pageSize: 30,
+      );
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           final data = json.decode(dataStr);
           final groupsJson = data['groups'] as List? ?? [];
-          
+
           setState(() {
             final defaultGroups = _groups.where((g) => g.isDefault).toList();
             _groups.clear();
             _groups.addAll(defaultGroups);
-            
+
             for (var json in groupsJson) {
               final group = FriendGroup.fromJson(json);
               if (!_groups.any((g) => g.id == group.id)) {
                 _groups.add(group);
               }
             }
-            
-            final nonDefaultGroups = _groups.where((g) => !g.isDefault).toList();
+
+            final nonDefaultGroups = _groups
+                .where((g) => !g.isDefault)
+                .toList();
             nonDefaultGroups.sort((a, b) => a.order.compareTo(b.order));
             _groups.removeWhere((g) => !g.isDefault);
             _groups.addAll(nonDefaultGroups);
-            
+
             // 初始化展开状态（默认全部折叠）
             for (var group in _groups) {
               _expandedStates[group.id] = false;
             }
           });
-          
+
           // 加载所有分组的好友
           for (var group in _groups) {
             _loadGroupFriends(group.id);
           }
-        } else 
-        {
+        } else {
           setState(() {
             _groups.removeWhere((g) => !g.isDefault);
           });
@@ -111,11 +115,11 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
 
   Future<void> _loadGroupFriends(String groupId) async {
     if (_loadingStates[groupId] == true) return;
-    
+
     setState(() {
       _loadingStates[groupId] = true;
     });
-    
+
     try {
       int? gid;
       if (groupId != 'all' && groupId != 'special') {
@@ -124,24 +128,24 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
           gid = parsedId;
         }
       }
-      
+
       final result = await UserController.to.getContactList(
         page: 1,
         pageSize: 200,
         groupId: gid,
         relationship: -1,
       );
-      
+
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           final data = json.decode(dataStr);
           final contactsJson = data['contacts'] as List? ?? [];
-          
+
           final friends = contactsJson
               .map((json) => FriendModel.fromJson(json))
               .toList();
-          
+
           setState(() {
             _groupFriends[groupId] = friends;
             // 更新分组数量
@@ -166,7 +170,7 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
 
   void _toggleGroup(String groupId) {
     final isCurrentlyExpanded = _expandedStates[groupId] ?? false;
-    
+
     setState(() {
       // 如果当前分组是展开的，则折叠它
       if (isCurrentlyExpanded) {
@@ -179,7 +183,7 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
         _expandedStates[groupId] = true;
       }
     });
-    
+
     // 如果展开且还没有加载好友，则加载
     if (!isCurrentlyExpanded && !_groupFriends.containsKey(groupId)) {
       _loadGroupFriends(groupId);
@@ -190,7 +194,7 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
     final isExpanded = _expandedStates[group.id] ?? false;
     final friends = _groupFriends[group.id] ?? [];
     final isLoading = _loadingStates[group.id] ?? false;
-    
+
     return Container(
       // margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -211,7 +215,9 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
               child: Row(
                 children: [
                   Icon(
-                    isExpanded ? Icons.arrow_drop_down_sharp : Icons.arrow_right,
+                    isExpanded
+                        ? Icons.arrow_drop_down_sharp
+                        : Icons.arrow_right,
                     color: Colors.grey[600],
                   ),
                   const SizedBox(width: 12),
@@ -226,16 +232,13 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
                   ),
                   Text(
                     '${friends.length}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
               ),
             ),
           ),
-          
+
           // 分组内容（好友列表）
           if (isExpanded)
             Container(
@@ -246,21 +249,21 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
                       child: Center(child: CircularProgressIndicator()),
                     )
                   : friends.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            '暂无好友',
-                            style: TextStyle(color: Colors.grey[500]),
-                          ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: friends.length,
-                          itemBuilder: (context, index) {
-                            return _buildFriendItem(friends[index]);
-                          },
-                        ),
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        '暂无好友',
+                        style: TextStyle(color: Colors.grey[500]),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: friends.length,
+                      itemBuilder: (context, index) {
+                        return _buildFriendItem(friends[index]);
+                      },
+                    ),
             ),
         ],
       ),
@@ -277,12 +280,13 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
             CircleAvatar(
               radius: 20,
               backgroundColor: Colors.blue[100],
-              backgroundImage: (friend.avatar != null && friend.avatar!.isNotEmpty)
+              backgroundImage:
+                  (friend.avatar != null && friend.avatar!.isNotEmpty)
                   ? NetworkImage(friend.avatar!)
                   : null,
               child: (friend.avatar == null || friend.avatar!.isEmpty)
                   ? Text(
-                      friend.displayName.isNotEmpty 
+                      friend.displayName.isNotEmpty
                           ? friend.displayName[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
@@ -293,7 +297,6 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
                     )
                   : null,
             ),
-      
           ],
         ),
         title: Text(
@@ -319,10 +322,13 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
         friend: friend,
         onDelete: () {
           // 刷新该分组的好友列表
-          final groupId = _groups.firstWhere(
-            (g) => _groupFriends[g.id]?.any((f) => f.id == friend.id) ?? false,
-            orElse: () => _groups.first,
-          ).id;
+          final groupId = _groups
+              .firstWhere(
+                (g) =>
+                    _groupFriends[g.id]?.any((f) => f.id == friend.id) ?? false,
+                orElse: () => _groups.first,
+              )
+              .id;
           _loadGroupFriends(groupId);
         },
       ),
@@ -346,7 +352,35 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
         }
       },
       child: _groups.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: EmptyView(
+                child: Padding(
+                  padding: EdgeInsetsGeometry.only(top: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "暂无好友分组、",
+                        style: TextStyle(
+                          color: GbsColors.des6Color,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        "去创建",
+                        style: TextStyle(
+                          color: GbsColors.primaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                click: () {
+                  widget.onCreateGroup();
+                },
+              ),
+            )
           : ListView.builder(
               itemCount: _groups.length,
               itemBuilder: (context, index) {
@@ -356,4 +390,3 @@ class FriendGroupsPageState extends State<FriendGroupsPage> {
     );
   }
 }
-
