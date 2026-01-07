@@ -407,7 +407,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                   tabs: const [
                     Tab(text: '好友'),
                     Tab(text: '分组'),
-                    Tab(text: '群组'),
+                    Tab(text: '群聊'),
                   ],
                 ),
               ),

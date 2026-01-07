@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/pages/chat/create_group_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -41,7 +44,9 @@ class _GroupListPageState extends State<GroupListPage> {
           final map = json.decode(dataStr) as Map<String, dynamic>;
           final list = (map['groups'] as List?) ?? [];
           setState(() {
-            _groups = list.map((e) => (e as Map).cast<String, dynamic>()).toList();
+            _groups = list
+                .map((e) => (e as Map).cast<String, dynamic>())
+                .toList();
           });
         } catch (e) {
           EasyLoading.showError('解析群组列表失败');
@@ -64,46 +69,119 @@ class _GroupListPageState extends State<GroupListPage> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _groups.isEmpty
-                ? const Center(child: Text('暂无群组'))
-                : ListView.separated(
-                    itemCount: _groups.length,
-                    separatorBuilder: (_, __) => Container(),
-                    itemBuilder: (context, index) {
-                      final item = _groups[index];
-                      final name = (item['group_name'] as String?) ?? '群组';
-                      final avatar = (item['group_avatar'] as String?) ?? '';
-                      final gid = (item['group_id'] as String?) ?? '';
-                      final type = (item['group_type'] as num?)?.toInt() ?? 0;
-                      
-                      String gidLast = '1';
-                      if (gid.isNotEmpty) {
-                        // 从后往前查找最后一个数字
-                        for (int i = gid.length - 1; i >= 0; i--) {
-                          if (gid[i].contains(RegExp(r'[0-9]'))) {
-                            gidLast = gid[i];
-                            break;
-                          }
-                        }
-                      }
-                      return Container(
-                        height: 52,
-                        // margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          color: GbsColors.lightBackgroundB
+            ? Center(
+                child: EmptyView(
+                  message: '暂无群聊、去创建',
+                  child: Padding(
+                    padding: EdgeInsetsGeometry.only(top: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "暂无群聊、",
+                          style: TextStyle(
+                            color: GbsColors.des6Color,
+                            fontSize: 14,
+                          ),
                         ),
-                        child: ListTile(
-                        leading: SizedBox(width: 36, height: 36,child: CircleAvatar(
-                          backgroundColor: Colors.blue.shade50,
-                          backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                          child: Image.asset('assets/img/group/groplogo$gidLast.png', fit: BoxFit.cover,),
-                        ),),
-                        title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        onTap: () => _enterGroupChat(gid: gid, name: name, avatar: avatar, type: type),
-                      ),
-                      );
-                    },
+                        Text(
+                          "去创建",
+                          style: TextStyle(
+                            color: GbsColors.primaryColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  click: () {
+                    // 创建群聊
+                    _createGroup();
+                  },
+                ),
+              )
+            : ListView.separated(
+                itemCount: _groups.length,
+                separatorBuilder: (_, __) => Container(),
+                itemBuilder: (context, index) {
+                  final item = _groups[index];
+                  final name = (item['group_name'] as String?) ?? '群组';
+                  final avatar = (item['group_avatar'] as String?) ?? '';
+                  final gid = (item['group_id'] as String?) ?? '';
+                  final type = (item['group_type'] as num?)?.toInt() ?? 0;
+
+                  String gidLast = '1';
+                  if (gid.isNotEmpty) {
+                    // 从后往前查找最后一个数字
+                    for (int i = gid.length - 1; i >= 0; i--) {
+                      if (gid[i].contains(RegExp(r'[0-9]'))) {
+                        gidLast = gid[i];
+                        break;
+                      }
+                    }
+                  }
+                  return Container(
+                    height: 52,
+                    // margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: GbsColors.lightBackgroundB,
+                    ),
+                    child: ListTile(
+                      leading: SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.blue.shade50,
+                          backgroundImage: avatar.isNotEmpty
+                              ? NetworkImage(avatar)
+                              : null,
+                          child: Image.asset(
+                            'assets/img/group/groplogo$gidLast.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => _enterGroupChat(
+                        gid: gid,
+                        name: name,
+                        avatar: avatar,
+                        type: type,
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+
+  /// 创建群聊
+  Future<void> _createGroup() async {
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 150,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: CreateGroupPage(
+          onCreate: () {
+            // 刷新页面
+            _loadGroups();
+          },
+        ),
       ),
     );
   }
@@ -120,24 +198,24 @@ class _GroupListPageState extends State<GroupListPage> {
       EasyLoading.showError('群组ID缺失');
       return;
     }
-    
+
     final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
     if (currentUserId.isEmpty) {
       EasyLoading.showError('用户未登录');
       return;
     }
-    
+
     EasyLoading.show(status: '进入群聊...');
-    
+
     try {
       String? convId;
-      
+
       // 先查询数据库中是否存在该群组的会话
       final conversations = await _database.getConversations(
         currentUserId,
         convType: 2, // 群聊类型
       );
-      
+
       // 查找是否有该群组的会话（通过 targetId 匹配）
       ConversationModel? existingConversation;
       try {
@@ -148,8 +226,9 @@ class _GroupListPageState extends State<GroupListPage> {
         // 没有找到匹配的会话
         existingConversation = null;
       }
-      
-      if (existingConversation != null && existingConversation.convId.isNotEmpty) {
+
+      if (existingConversation != null &&
+          existingConversation.convId.isNotEmpty) {
         // 数据库中已存在该会话，直接使用
         convId = existingConversation.convId;
         print('✅ 从数据库中找到会话: convId=$convId');
@@ -162,14 +241,15 @@ class _GroupListPageState extends State<GroupListPage> {
           displayName: name,
           avatarUrl: avatar.isNotEmpty ? avatar : null,
         );
-        
+
         if (res['errorCode'] == 0) {
           final dataStr = res['data'] as String? ?? '';
           if (dataStr.isNotEmpty) {
             try {
               final map = json.decode(dataStr) as Map<String, dynamic>;
-              convId = (map['conv_id'] as String?) ?? (map['convId'] as String?);
-              
+              convId =
+                  (map['conv_id'] as String?) ?? (map['convId'] as String?);
+
               // 创建会话对象并保存到数据库
               if (convId != null && convId.isNotEmpty) {
                 final conversation = ConversationModel(
@@ -180,7 +260,7 @@ class _GroupListPageState extends State<GroupListPage> {
                   targetId: gid,
                   unreadCount: 0,
                 );
-                
+
                 await _database.upsertConversation(currentUserId, conversation);
                 print('✅ 会话已保存到数据库: convId=$convId');
               }
@@ -193,25 +273,27 @@ class _GroupListPageState extends State<GroupListPage> {
           return;
         }
       }
-      
+
       if (convId == null || convId.isEmpty) {
         EasyLoading.showError('未获取到会话ID');
         return;
       }
-      
+
       EasyLoading.dismiss();
       if (!mounted) return;
-      
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => GroupChatPage(
-            convId: convId!,
-            groupId: gid,
-            groupName: name,
-            groupAvatar: avatar.isNotEmpty ? avatar : null,
-          ),
-        ),
-      ).then(  (_) {
+
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute(
+              builder: (_) => GroupChatPage(
+                convId: convId!,
+                groupId: gid,
+                groupName: name,
+                groupAvatar: avatar.isNotEmpty ? avatar : null,
+              ),
+            ),
+          )
+          .then((_) {
             // 返回后清除该会话的未读数
             ChatController.to.conversationId = "";
           });
@@ -221,4 +303,3 @@ class _GroupListPageState extends State<GroupListPage> {
     }
   }
 }
-

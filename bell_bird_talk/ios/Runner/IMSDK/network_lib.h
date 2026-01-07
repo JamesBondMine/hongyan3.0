@@ -33,7 +33,78 @@ NET_API int network_init();
 // @return 0表示成功，其他为错误码
 NET_API int network_start();
 
-NET_API int network_start_net_check(const char* url);
+/**
+ * 启动网络检测和 HttpDns 加速节点选择
+ * 
+ * 流程：
+ * 1. 请求 HttpDns 服务器（需先通过 network_add_httpdns_server 添加），获取加速节点列表
+ * 2. TCP 竞速连接所有节点，选择最先连上的节点进行业务
+ * 3. 开启定时网络质量检测，从服务器获取加速节点进行 RTT 排序，选择最优节点
+ * 
+ * @return 0 表示成功，负数表示错误
+ */
+NET_API int network_start_net_check();
+
+/**
+ * 添加 HttpDns 备份服务器
+ * @param url HttpDns 服务器地址
+ * @return 0 表示成功
+ */
+NET_API int network_add_httpdns_server(const char* url);
+
+/**
+ * 批量添加 HttpDns 备份服务器
+ * @param urls HttpDns 服务器地址数组
+ * @param count 服务器数量
+ * @return 成功添加的服务器数量
+ */
+NET_API int network_add_httpdns_servers(const char** urls, int count);
+
+/**
+ * 设置 HttpDns 请求参数
+ * 完整 URL 格式: https://223.5.5.5/resolve?name=域名&type=记录类型&uid=AccountID&ak=AccessKey&key=签名&ts=时间戳
+ * 
+ * @param domain_name 要解析的域名 (name 参数)
+ * @param type 记录类型，如 28 (AAAA记录)
+ * @param uid 账户ID (uid 参数)默认为空
+ * @param api_key AccessKey ID (ak 参数)默认为空
+ * @param key_secret 签名密钥 (sign_key)，用于生成签名
+ * @return 0 表示成功
+ */
+NET_API int network_set_httpdns_params(const char *invite_code, const char* domain_name, int type, const char* uid, const char* api_key, const char* key_secret);
+
+/**
+ * 手动添加加速节点（用于测试或手动配置）
+ * @param host 节点地址（IP或域名）
+ * @param port 节点端口
+ * @return 0 表示成功
+ */
+NET_API int network_add_accelerate_node(const char* host, int port);
+
+/**
+ * 清除所有加速节点
+ * @return 0 表示成功
+ */
+NET_API int network_clear_accelerate_nodes();
+
+/**
+ * 触发立即进行网络质量检测
+ * @return 0 表示成功
+ */
+NET_API int network_trigger_quality_check();
+
+/**
+ * 停止定时网络质量检测
+ * @return 0 表示成功
+ */
+NET_API int network_stop_quality_check();
+
+/**
+ * 设置网络质量检测间隔
+ * @param interval_ms 检测间隔（毫秒），默认180000（3分钟）
+ * @return 0 表示成功
+ */
+NET_API int network_set_check_interval(int interval_ms);
 
 
 // 设置IP地址表
@@ -138,6 +209,18 @@ NET_API int login_by_user_id(CB_I_S_I_U cCallback, const char* data, int dataLen
  * @return 0表示成功，其它表示错误码
  */
 NET_API int login_by_token(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+
+	
+/**
+ * 设置用户认证信息
+ * 用于在 SDK 内部设置用户的认证状态，通常在应用层从本地存储恢复登录状态时调用
+ * 
+ * @param userId 用户ID
+ * @param token 访问令牌
+ * @param refreshToken 刷新令牌
+ * @return 0表示成功，其他表示错误码
+ */
+NET_API int set_user_auth_info(const char* userId, const char* token, const char* refreshToken);
 
 /**
  * 退出登录

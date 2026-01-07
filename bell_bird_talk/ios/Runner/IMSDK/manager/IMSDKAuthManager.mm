@@ -41,6 +41,49 @@
     return self;
 }
 
+// ==================== Token 持久化 ====================
+
+/// 保存认证信息到 NSUserDefaults
++ (void)saveAuthInfoWithUserId:(NSString *)userId token:(NSString *)token refreshToken:(NSString *)refreshToken {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (userId && userId.length > 0) {
+        [defaults setObject:userId forKey:@"IMSDK_UserId"];
+    }
+    if (token && token.length > 0) {
+        [defaults setObject:token forKey:@"IMSDK_Token"];
+    }
+    if (refreshToken && refreshToken.length > 0) {
+        [defaults setObject:refreshToken forKey:@"IMSDK_RefreshToken"];
+    }
+    [defaults synchronize];
+    NSLog(@"💾 已保存认证信息: userId=%@, token=%@, refreshToken=%@", userId, token ? @"***" : @"nil", refreshToken ? @"***" : @"nil");
+}
+
+/// 从 NSUserDefaults 读取认证信息
++ (NSDictionary<NSString *, NSString *> *)loadAuthInfo {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *userId = [defaults stringForKey:@"IMSDK_UserId"];
+    NSString *token = [defaults stringForKey:@"IMSDK_Token"];
+    NSString *refreshToken = [defaults stringForKey:@"IMSDK_RefreshToken"];
+    
+    NSMutableDictionary *authInfo = [NSMutableDictionary dictionary];
+    if (userId) authInfo[@"userId"] = userId;
+    if (token) authInfo[@"token"] = token;
+    if (refreshToken) authInfo[@"refreshToken"] = refreshToken;
+    
+    return [authInfo copy];
+}
+
+/// 清除认证信息
++ (void)clearAuthInfo {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults removeObjectForKey:@"IMSDK_UserId"];
+    [defaults removeObjectForKey:@"IMSDK_Token"];
+    [defaults removeObjectForKey:@"IMSDK_RefreshToken"];
+    [defaults synchronize];
+    NSLog(@"🗑️ 已清除认证信息");
+}
+
 // ==================== C 回调函数 ====================
 
 // 登录回调函数
@@ -112,6 +155,18 @@ static void LoginCallback(int errorCode, const char* data, int dataLen, uint64_t
                 if (jsonData && !jsonError) {
                     dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     NSLog(@"✅ 登录响应解析成功: %@", dataStr);
+                    
+                    // 登录成功时，持久化保存 token、refreshToken、userId
+                    if (errorCode == 0) {
+                        NSString *userId = nil;
+                        if (result.hasUser && result.user.userId.length > 0) {
+                            userId = result.user.userId;
+                        }
+                        NSString *token = result.token.length > 0 ? result.token : nil;
+                        NSString *refreshToken = result.refreshToken.length > 0 ? result.refreshToken : nil;
+                        
+                        [IMSDKAuthManager saveAuthInfoWithUserId:userId token:token refreshToken:refreshToken];
+                    }
                 } else {
                     NSLog(@"⚠️ JSON 序列化失败: %@", jsonError);
                 }
@@ -190,6 +245,18 @@ static void RegisterCallback(int errorCode, const char* data, int dataLen, uint6
                 if (jsonData && !jsonError) {
                     dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     NSLog(@"✅ 注册响应解析成功: %@", dataStr);
+                    
+                    // 注册成功时，持久化保存 token、refreshToken、userId
+                    if (errorCode == 0) {
+                        NSString *userId = nil;
+                        if (result.hasUser && result.user.userId.length > 0) {
+                            userId = result.user.userId;
+                        }
+                        NSString *token = result.token.length > 0 ? result.token : nil;
+                        NSString *refreshToken = result.refreshToken.length > 0 ? result.refreshToken : nil;
+                        
+                        [IMSDKAuthManager saveAuthInfoWithUserId:userId token:token refreshToken:refreshToken];
+                    }
                 } else {
                     NSLog(@"⚠️ JSON 序列化失败: %@", jsonError);
                 }

@@ -6,6 +6,7 @@
 //
 
 #import "IMSDKManager.h"
+#import "IMSDKAuthManager.h"
 #import <UIKit/UIKit.h>
 #include "network_lib.h"
 #include "callback_types.h"
@@ -68,6 +69,21 @@
         network_set_event_callback(GlobalEventCallback);
         network_set_data_callback(GlobalDataCallback);
         
+        // 步骤4: 设置用户认证信息（从持久化存储中读取）
+        NSDictionary<NSString *, NSString *> *authInfo = [IMSDKAuthManager loadAuthInfo];
+        NSString *userId = authInfo[@"userId"];
+        NSString *token = authInfo[@"token"];
+        NSString *refreshToken = authInfo[@"refreshToken"];
+        
+        if (userId && token && refreshToken) {
+            set_user_auth_info([userId UTF8String], [token UTF8String], [refreshToken UTF8String]);
+            NSLog(@"✅ 已设置用户认证信息: userId=%@", userId);
+        } else {
+            NSLog(@"⚠️ 未找到持久化的认证信息，跳过设置");
+            // 如果没有持久化的认证信息，传递空字符串
+//            set_user_auth_info("", "", "");
+        }
+        
         // 步骤4: 启动网络服务
         int startResult = network_start();
         if (startResult != 0) {
@@ -80,34 +96,46 @@
         g_initResult = -1;
         
          // 添加目标服务器
-        NSString *serverIP = @"175.178.227.41";
-        int serverPort = 8885;
-        
+//        NSString *serverIP = @"175.178.227.41";
+//        int serverPort = 8885;
+//        
 //        NSString *serverIP = @"10.226.7.239";
 //        int serverPort = 5280;
 
         // 先测试服务器连通性
-        NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
-        BOOL isReachable = [self pingHost:serverIP port:serverPort timeout:3.0];
-        if (isReachable) {
-            NSLog(@"✅ 服务器可达: %@:%d", serverIP, serverPort);
-        } else {
-            NSLog(@"⚠️ 服务器可能不可达: %@:%d（继续尝试连接）", serverIP, serverPort);
-        }
+//        NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
+//        BOOL isReachable = [self pingHost:serverIP port:serverPort timeout:3.0];
+//        if (isReachable) {
+//            NSLog(@"✅ 服务器可达: %@:%d", serverIP, serverPort);
+//        } else {
+//            NSLog(@"⚠️ 服务器可能不可达: %@:%d（继续尝试连接）", serverIP, serverPort);
+//        }
         
-        NSLog(@"🌐 添加目标服务器: %@:%d", serverIP, serverPort);
-        network_add_target_to_group([serverIP UTF8String], serverPort);
-        NSLog(@"✅ 目标服务器已添加");
+//        NSLog(@"🌐 添加目标服务器: %@:%d", serverIP, serverPort);
+//        network_add_target_to_group([serverIP UTF8String], serverPort);
+//        NSLog(@"✅ 目标服务器已添加");
+        
+        network_set_httpdns_params(
+                "222222",
+                "222222.loadingworks.com",           // domain_name - 要解析的域名
+                28,                                // type - 记录类型 (28 = AAAA记录)
+                nullptr,
+                nullptr,
+                nullptr
+            );
+
+            // 配置 HttpDns 服务器（可配置多个备份服务器）
+            network_add_httpdns_server("https://223.5.5.5/resolve");
         
         // 步骤5: 启动网络检测
-        int checkResult = network_start_net_check("https://106.55.129.121/");
+        int checkResult = network_start_net_check();
         if (checkResult != 0) {
             NSLog(@"⚠️ network_start_net_check 失败: %d（不影响初始化）", checkResult);
         }
         
         // 等待初始化成功回调（event_code = 6），超时时间 10 秒
         NSLog(@"⏳ 等待 SDK 初始化成功回调 (event_code=6)...");
-        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC);
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 20 * NSEC_PER_SEC);
         long waitResult = dispatch_semaphore_wait(g_initSemaphore, timeout);
         
         if (waitResult == 0) {
@@ -230,7 +258,7 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
 - (int)startNetworkCheckWithURL:(NSString *)url {
     NSLog(@"🔍 启动网络检查: %@", url);
     const char *cUrl = [url UTF8String];
-    int result = network_start_net_check(cUrl);
+    int result = network_start_net_check();
     NSLog(@"📊 检查结果: %d", result);
     return result;
 }

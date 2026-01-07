@@ -368,78 +368,78 @@ class GlobalController extends GetxController {
   
   /// 使用 Token 自动登录
   /// 返回 true 表示登录成功，false 表示登录失败
-  Future<bool> autoLoginWithToken() async {
-    // 检查本地是否有保存的 Token
-    final savedToken = StorageUtil().getString(AppConstants.keyToken);
-    if (savedToken == null || savedToken.isEmpty) {
-      print('⚠️ 没有保存的 Token，跳过自动登录');
-      return false;
-    }
+  // Future<bool> autoLoginWithToken() async {
+  //   // 检查本地是否有保存的 Token
+  //   final savedToken = StorageUtil().getString(AppConstants.keyToken);
+  //   if (savedToken == null || savedToken.isEmpty) {
+  //     print('⚠️ 没有保存的 Token，跳过自动登录');
+  //     return false;
+  //   }
     
-    print('🔐 开始 Token 自动登录...');
-    isAutoLogging.value = true;
-    autoLoginStatus.value = '正在自动登录...';
+  //   print('🔐 开始 Token 自动登录...');
+  //   isAutoLogging.value = true;
+  //   autoLoginStatus.value = '正在自动登录...';
     
-    try {
-      final nativeService = IOSNativeService();
-      print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Token登录. 拉取Token=$savedToken");
-      // 调用 Token 登录
-      final result = await nativeService.imLoginWithToken(token: savedToken)
-          .timeout(const Duration(seconds: 10), onTimeout: () {
-        print('⚠️ Token 登录超时');
-        return {'errorCode': -408, 'message': '登录超时'};
-      });
+  //   try {
+  //     final nativeService = IOSNativeService();
+  //     print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ Token登录. 拉取Token=$savedToken");
+  //     // 调用 Token 登录
+  //     final result = await nativeService.imLoginWithToken(token: savedToken)
+  //         .timeout(const Duration(seconds: 10), onTimeout: () {
+  //       print('⚠️ Token 登录超时');
+  //       return {'errorCode': -408, 'message': '登录超时'};
+  //     });
       
-      print('📊 Token 登录结果: $result');
+  //     print('📊 Token 登录结果: $result');
       
-      final errorCode = result['errorCode'] as int? ?? -1;
+  //     final errorCode = result['errorCode'] as int? ?? -1;
       
-      if (errorCode == 0) {
-        // 登录成功
-        autoLoginStatus.value = '登录成功';
+  //     if (errorCode == 0) {
+  //       // 登录成功
+  //       autoLoginStatus.value = '登录成功';
         
-        // 解析返回的用户数据（如果有）
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          try {
-            final dataMap = json.decode(dataStr) as Map<String, dynamic>;
+  //       // 解析返回的用户数据（如果有）
+  //       final dataStr = result['data'] as String?;
+  //       if (dataStr != null && dataStr.isNotEmpty) {
+  //         try {
+  //           final dataMap = json.decode(dataStr) as Map<String, dynamic>;
             
-            // 更新 Token（如果服务器返回新 Token）
-            final newToken = dataMap['token'] as String?;
-            if (newToken != null && newToken.isNotEmpty) {
-              token.value = newToken;
-              await StorageUtil().setString(AppConstants.keyToken, newToken);
-            }
+  //           // 更新 Token（如果服务器返回新 Token）
+  //           final newToken = dataMap['token'] as String?;
+  //           if (newToken != null && newToken.isNotEmpty) {
+  //             token.value = newToken;
+  //             await StorageUtil().setString(AppConstants.keyToken, newToken);
+  //           }
             
-            // 更新用户信息（如果有）
-            if (dataMap.containsKey('user')) {
-              final userMap = dataMap['user'] as Map<String, dynamic>;
-              final user = UserModel.fromJson(userMap);
-              currentUser.value = user;
-              await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
+  //           // 更新用户信息（如果有）
+  //           if (dataMap.containsKey('user')) {
+  //             final userMap = dataMap['user'] as Map<String, dynamic>;
+  //             final user = UserModel.fromJson(userMap);
+  //             currentUser.value = user;
+  //             await StorageUtil().setObject(AppConstants.keyUserInfo, user.toJson());
 
-              // 根据user_id获取我的用户信息
-              String userId = userMap['user_id'] ?? '';
-              logMyPublicInfo(userId);
-            }
-          } catch (e) {
-            print('⚠️ 解析登录数据失败: $e');
-          }
-        }
+  //             // 根据user_id获取我的用户信息
+  //             String userId = userMap['user_id'] ?? '';
+  //             logMyPublicInfo(userId);
+  //           }
+  //         } catch (e) {
+  //           print('⚠️ 解析登录数据失败: $e');
+  //         }
+  //       }
         
-        isLoggedIn.value = true;
-        return true;
-      } else {
-        return refreshToken(nativeService,result);
-      }
-    } catch (e) {
-      print('❌ Token 自动登录异常: $e');
-      autoLoginStatus.value = '登录异常';
-      return false;
-    } finally {
-      isAutoLogging.value = false;
-    }
-  }
+  //       isLoggedIn.value = true;
+  //       return true;
+  //     } else {
+  //       return refreshToken(nativeService,result);
+  //     }
+  //   } catch (e) {
+  //     print('❌ Token 自动登录异常: $e');
+  //     autoLoginStatus.value = '登录异常';
+  //     return false;
+  //   } finally {
+  //     isAutoLogging.value = false;
+  //   }
+  // }
 
   // 获取用户信息
   Future<void> logMyPublicInfo(String userId) async {
@@ -472,73 +472,73 @@ class GlobalController extends GetxController {
     }
   }
   // 刷新Token
-  Future<bool> refreshToken(IOSNativeService nativeService, Map<String, dynamic> result) async {
-    // 登录失败，尝试刷新Token
-        print('❌ Token 自动登录失败: ${result['message']}，尝试刷新Token');
-        autoLoginStatus.value = 'Token失效，尝试刷新...';
+  // Future<bool> refreshToken(IOSNativeService nativeService, Map<String, dynamic> result) async {
+  //   // 登录失败，尝试刷新Token
+  //       print('❌ Token 自动登录失败: ${result['message']}，尝试刷新Token');
+  //       autoLoginStatus.value = 'Token失效，尝试刷新...';
         
-        try {
-          // 假设有保存的refreshToken（这里需要根据实际情况获取）
-          final savedRefreshToken = StorageUtil().getString('refreshToken'); // 假设存储在本地
-          if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
-            final refreshResult = await nativeService.imRefreshToken(refreshToken: savedRefreshToken)
-                .timeout(const Duration(seconds: 10), onTimeout: () {
-              print('⚠️ 刷新Token超时');
-              return {'errorCode': -408, 'message': '刷新超时'};
-            });
+  //       try {
+  //         // 假设有保存的refreshToken（这里需要根据实际情况获取）
+  //         final savedRefreshToken = StorageUtil().getString('refreshToken'); // 假设存储在本地
+  //         if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
+  //           final refreshResult = await nativeService.imRefreshToken(refreshToken: savedRefreshToken)
+  //               .timeout(const Duration(seconds: 10), onTimeout: () {
+  //             print('⚠️ 刷新Token超时');
+  //             return {'errorCode': -408, 'message': '刷新超时'};
+  //           });
             
-            print('📊 刷新Token结果: $refreshResult');
+  //           print('📊 刷新Token结果: $refreshResult');
             
-            final refreshErrorCode = refreshResult['errorCode'] as int? ?? -1;
+  //           final refreshErrorCode = refreshResult['errorCode'] as int? ?? -1;
             
-            if (refreshErrorCode == 0) {
-              // 刷新成功，解析新Token
-              final refreshDataStr = refreshResult['data'] as String?;
-              if (refreshDataStr != null && refreshDataStr.isNotEmpty) {
-                try {
-                  final refreshDataMap = json.decode(refreshDataStr) as Map<String, dynamic>;
+  //           if (refreshErrorCode == 0) {
+  //             // 刷新成功，解析新Token
+  //             final refreshDataStr = refreshResult['data'] as String?;
+  //             if (refreshDataStr != null && refreshDataStr.isNotEmpty) {
+  //               try {
+  //                 final refreshDataMap = json.decode(refreshDataStr) as Map<String, dynamic>;
                   
-                  final newToken = refreshDataMap['token'] as String?;
-                  final newRefreshToken = refreshDataMap['refreshToken'] as String?;
+  //                 final newToken = refreshDataMap['token'] as String?;
+  //                 final newRefreshToken = refreshDataMap['refreshToken'] as String?;
                   
-                  if (newToken != null && newToken.isNotEmpty) {
-                    print('✅ Token刷新成功，使用新Token重新登录');
-                    autoLoginStatus.value = '刷新成功，重新登录...';
+  //                 if (newToken != null && newToken.isNotEmpty) {
+  //                   print('✅ Token刷新成功，使用新Token重新登录');
+  //                   autoLoginStatus.value = '刷新成功，重新登录...';
                     
-                    // 保存新Token
-                    token.value = newToken;
-                    await StorageUtil().setString(AppConstants.keyToken, newToken);
-                    if (newRefreshToken != null) {
-                      await StorageUtil().setString('refreshToken', newRefreshToken);
-                    }
+  //                   // 保存新Token
+  //                   token.value = newToken;
+  //                   await StorageUtil().setString(AppConstants.keyToken, newToken);
+  //                   if (newRefreshToken != null) {
+  //                     await StorageUtil().setString('refreshToken', newRefreshToken);
+  //                   }
                     
-                    // 递归调用自己重新尝试登录（这里简化处理，实际可能需要限制重试次数）
-                    return await autoLoginWithToken();
-                  }
-                } catch (e) {
-                  print('⚠️ 解析刷新Token数据失败: $e');
-                }
-              }
+  //                   // 递归调用自己重新尝试登录（这里简化处理，实际可能需要限制重试次数）
+  //                   return await autoLoginWithToken();
+  //                 }
+  //               } catch (e) {
+  //                 print('⚠️ 解析刷新Token数据失败: $e');
+  //               }
+  //             }
               
-              print('❌ 刷新Token成功但未获取到新Token');
-              autoLoginStatus.value = '刷新失败';
-              return false;
-            } else {
-              print('❌ 刷新Token失败: ${refreshResult['message']}');
-              autoLoginStatus.value = '刷新失败';
-              return false;
-            }
-          } else {
-            print('⚠️ 没有保存的refreshToken');
-            autoLoginStatus.value = '无刷新Token';
-            return false;
-          }
-        } catch (e) {
-          print('❌ 刷新Token异常: $e');
-          autoLoginStatus.value = '刷新异常';
-          return false;
-        }
-  }
+  //             print('❌ 刷新Token成功但未获取到新Token');
+  //             autoLoginStatus.value = '刷新失败';
+  //             return false;
+  //           } else {
+  //             print('❌ 刷新Token失败: ${refreshResult['message']}');
+  //             autoLoginStatus.value = '刷新失败';
+  //             return false;
+  //           }
+  //         } else {
+  //           print('⚠️ 没有保存的refreshToken');
+  //           autoLoginStatus.value = '无刷新Token';
+  //           return false;
+  //         }
+  //       } catch (e) {
+  //         print('❌ 刷新Token异常: $e');
+  //         autoLoginStatus.value = '刷新异常';
+  //         return false;
+  //       }
+  // }
   
   /// 检查是否需要自动登录
   bool needAutoLogin() {

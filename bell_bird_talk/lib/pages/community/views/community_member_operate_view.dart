@@ -89,7 +89,6 @@ class CommunityMemberOperateView extends StatelessWidget {
           children: [
             // Icon(iconData, color: GbsColors.des3Color),
             Image.asset(  'assets/img/community/$icon.png', width: 24, height: 24,),
-    
             const SizedBox(width: 12),
             Text(
               title,

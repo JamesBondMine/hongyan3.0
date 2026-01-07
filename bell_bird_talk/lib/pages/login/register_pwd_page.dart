@@ -468,21 +468,21 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
               await globalController.saveLoginInfo(token, refresh_token ?? '', user);
               // 使用 Token 自动登录，确保 SDK 状态正确
               EasyLoading.show(status: '正在登录...');
-              final loginSuccess = await globalController.autoLoginWithToken();
-              EasyLoading.dismiss();
-              if (loginSuccess) {
+              // final loginSuccess = await globalController.autoLoginWithToken();
+              // EasyLoading.dismiss();
+              // if (loginSuccess) {
                 print('✅ Token 自动登录成功');
                 // 延迟后跳转到设置用户信息页
                 Get.to(() =>  RegisterInfoPage(loginWithToken: true, data:dataMap));
                 EasyLoading.showSuccess('注册成功');
-              } else {
-                print('⚠️ Token 自动登录失败，仍跳转到登录'); 
-                EasyLoading.showSuccess('注册成功');
-                await Future.delayed(const Duration(milliseconds: 800));
-                // Get.offAll(LoginPage());
-                // 延迟后跳转到设置用户信息页
-                Get.to(() =>  RegisterInfoPage(loginWithToken: false,data: {}));
-              }
+              // } else {
+              //   print('⚠️ Token 自动登录失败，仍跳转到登录'); 
+              //   EasyLoading.showSuccess('注册成功');
+              //   await Future.delayed(const Duration(milliseconds: 800));
+              //   // Get.offAll(LoginPage());
+              //   // 延迟后跳转到设置用户信息页
+              //   Get.to(() =>  RegisterInfoPage(loginWithToken: false,data: {}));
+              // }
               return;
             }
           } catch (e) {

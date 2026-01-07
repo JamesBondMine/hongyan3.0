@@ -148,6 +148,21 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 - (int)refreshAuthTokenWithToken:(NSString *)refreshToken
                       completion:(IMSDKAuthCompletion)completion;
 
+// ==================== Token 持久化 ====================
+
+/// 保存认证信息到 NSUserDefaults
+/// @param userId 用户ID
+/// @param token 访问Token
+/// @param refreshToken 刷新Token
++ (void)saveAuthInfoWithUserId:(NSString *)userId token:(NSString *)token refreshToken:(NSString *)refreshToken;
+
+/// 从 NSUserDefaults 读取认证信息
+/// @return 包含 userId、token、refreshToken 的字典
++ (NSDictionary<NSString *, NSString *> *)loadAuthInfo;
+
+/// 清除认证信息
++ (void)clearAuthInfo;
+
 @end
 
 NS_ASSUME_NONNULL_END
