@@ -2272,6 +2272,56 @@ class IOSNativeService {
     }
   }
 
+  /// 创建频道
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分类ID
+  /// @param channelName 频道名称
+  /// @param channelType 频道类型（0=文字频道，1=语音频道）
+  /// @param description 频道描述（可选）
+  /// @param maxMembers 最大成员数（可选，语音频道默认50）
+  /// @return 创建结果
+  Future<Map<String, dynamic>> imCreateChannel({
+    required String cmtyId,
+    required String categoryId,
+    required String channelName,
+    required int channelType,
+    String? description,
+    int? maxMembers,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+        'channelName': channelName,
+        'channelType': channelType,
+      };
+      if (description != null && description.isNotEmpty) {
+        params['description'] = description;
+      }
+      if (maxMembers != null && maxMembers > 0) {
+        params['maxMembers'] = maxMembers;
+      }
+
+      final result = await _bridge.invokeMethod<Map>('imCreateChannel', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imCreateChannel', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imCreateChannel', {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+        'channelName': channelName,
+        'channelType': channelType,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 注销用户
   /// @param userId 用户ID（必填）
   /// @param reason 注销原因（可选）

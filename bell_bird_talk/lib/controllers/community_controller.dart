@@ -154,8 +154,10 @@ class CommunityController extends GetxController {
 
   /// 获取社群分组和频道（分组里嵌套频道）
   /// @param cmtyId 社群ID
-  /// @return 返回Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
-  Future<Map<String, List<String>>> getCommunityGroupsWithChannels({
+  /// @return 返回Map，包含：
+  ///   - 'categories': Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
+  ///   - 'categoryIdMap': Map<String, String>，key为分组名，value为分组ID
+  Future<Map<String, dynamic>> getCommunityGroupsWithChannels({
     required String cmtyId,
   }) async {
     try {
@@ -196,7 +198,11 @@ class CommunityController extends GetxController {
       if (channelsResult['errorCode'] != 0) {
         print('获取频道列表失败: ${channelsResult['message']}');
         // 即使获取频道失败，也返回分组（频道为空）
-        return _buildGroupsWithChannels(groupsList, []);
+        final result = _buildGroupsWithChannels(groupsList, []);
+        return {
+          'categories': result['categories'],
+          'categoryIdMap': result['categoryIdMap'],
+        };
       }
       
       // 解析频道列表
@@ -217,10 +223,17 @@ class CommunityController extends GetxController {
       }
       
       // 3. 组合成分组嵌套频道的结构
-      return _buildGroupsWithChannels(groupsList, channelsList);
+      final result = _buildGroupsWithChannels(groupsList, channelsList);
+      return {
+        'categories': result['categories'],
+        'categoryIdMap': result['categoryIdMap'],
+      };
     } catch (e) {
       print('获取分组和频道异常: $e');
-      return {};
+      return {
+        'categories': <String, List<String>>{},
+        'categoryIdMap': <String, String>{},
+      };
     } finally {
       isLoading.value = false;
     }
@@ -229,12 +242,15 @@ class CommunityController extends GetxController {
   /// 构建分组嵌套频道的结构
   /// @param groupsList 分组列表
   /// @param channelsList 频道列表
-  /// @return Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
-  Map<String, List<String>> _buildGroupsWithChannels(
+  /// @return Map，包含：
+  ///   - 'categories': Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
+  ///   - 'categoryIdMap': Map<String, String>，key为分组名，value为分组ID
+  Map<String, dynamic> _buildGroupsWithChannels(
     List<dynamic> groupsList,
     List<dynamic> channelsList,
   ) {
-    final Map<String, List<String>> result = {};
+    final Map<String, List<String>> categories = {};
+    final Map<String, String> categoryIdMap = {};
     
     // 遍历分组
     for (var group in groupsList) {
@@ -269,12 +285,15 @@ class CommunityController extends GetxController {
       
       // 如果分组有频道或者分组本身存在，就添加到结果中
       if (channelNames.isNotEmpty || groupName.isNotEmpty) {
-        result[groupName] = channelNames;
+        categories[groupName] = channelNames;
+        if (groupId.isNotEmpty) {
+          categoryIdMap[groupName] = groupId;
+        }
       }
     }
     
     // 如果没有任何分组，但存在频道，创建一个默认分组
-    if (result.isEmpty && channelsList.isNotEmpty) {
+    if (categories.isEmpty && channelsList.isNotEmpty) {
       List<String> channelNames = [];
       for (var channel in channelsList) {
         if (channel is! Map<String, dynamic>) continue;
@@ -285,11 +304,57 @@ class CommunityController extends GetxController {
         channelNames.add(channelName);
       }
       if (channelNames.isNotEmpty) {
-        result['默认分组'] = channelNames;
+        categories['默认分组'] = channelNames;
       }
     }
     
-    return result;
+    return {
+      'categories': categories,
+      'categoryIdMap': categoryIdMap,
+    };
+  }
+
+  /// 创建频道
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分类ID
+  /// @param channelName 频道名称
+  /// @param channelType 频道类型（0=文字频道，1=语音频道）
+  /// @param description 频道描述（可选）
+  /// @param maxMembers 最大成员数（可选，语音频道默认50）
+  /// @return 创建结果
+  Future<bool> createChannel({
+    required String cmtyId,
+    required String categoryId,
+    required String channelName,
+    required int channelType,
+    String? description,
+    int? maxMembers,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imCreateChannel(
+        cmtyId: cmtyId,
+        categoryId: categoryId,
+        channelName: channelName,
+        channelType: channelType,
+        description: description,
+        maxMembers: maxMembers,
+      );
+      
+      if (result['errorCode'] == 0) {
+        // 创建成功后，刷新分组和频道列表
+        return true;
+      } else {
+        print('创建频道失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('创建频道异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
 }

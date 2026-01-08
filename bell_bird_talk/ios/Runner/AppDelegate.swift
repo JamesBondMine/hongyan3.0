@@ -354,6 +354,8 @@ class NativeBridgeHandler: NSObject {
             imGetCommunityGroups(call: call, result: result)
         case "imGetChannels":
             imGetChannels(call: call, result: result)
+        case "imCreateChannel":
+            imCreateChannel(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -3790,6 +3792,35 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_CHANNELS_ERROR",
                               message: "获取频道列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 创建频道
+    private func imCreateChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let categoryId = args["categoryId"] as? String ?? ""
+        let channelName = args["channelName"] as? String ?? ""
+        let channelType = args["channelType"] as? Int ?? 0
+        let description = args["description"] as? String
+        let maxMembers = args["maxMembers"] as? Int32 ?? 0
+        
+        print("📁 创建频道: cmtyId=\(cmtyId), categoryId=\(categoryId), channelName=\(channelName), channelType=\(channelType)")
+        
+        let code = IMSDKCommunityManager.shared().createChannel(withCmtyId: cmtyId, categoryId: categoryId, channelName: channelName, channelType: Int32(channelType), description: description, maxMembers: maxMembers, completion: { errorCode, reqId, data in
+            print("📁 创建频道回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "CREATE_CHANNEL_ERROR",
+                              message: "创建频道请求发送失败: \(code)",
                               details: nil))
         }
     }

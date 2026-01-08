@@ -40,6 +40,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     '分类C': ['频道5', '频道6'],
   };
 
+  // 分组ID和分组名称的映射关系（用于创建频道时获取分组ID）
+  Map<String, String> categoryIdMap = {}; // key: 分组名称, value: 分组ID
+
   // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
   String? _expandedCategory;
 
@@ -82,9 +85,10 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         cmtyId: cmty.id,
       );
       
-      if (result.isNotEmpty) {
+      if (result['categories'] != null && (result['categories'] as Map).isNotEmpty) {
         setState(() {
-          categories = result;
+          categories = Map<String, List<String>>.from(result['categories']);
+          categoryIdMap = Map<String, String>.from(result['categoryIdMap'] ?? {});
         });
       } else {
         print('⚠️ 未获取到分组和频道数据');
@@ -489,7 +493,42 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         ),
         child: ChannelCreateView(
           onlyTextChannel: onlyTextChannel,
-          onConfirm: (value) {},
+          onConfirm: (channelData) async {
+            if (channelData == null) return;
+            
+            // 获取当前社群信息
+            final cmty = widget.cmty ?? _cmty;
+            if (cmty == null) {
+              EasyLoading.showError('未选择社群');
+              return;
+            }
+            
+            // 获取分类ID（如果用户选择了分类）
+            // channelData['categoryId'] 是分类索引（int转String），需要从分组列表中获取对应的分组ID
+            String categoryId = channelData['categoryId'] as String? ?? '';
+            try {
+              EasyLoading.show(status: '创建中...');
+              
+              final success = await _controller.createChannel(
+                cmtyId: cmty.id,
+                categoryId: categoryId,
+                channelName: channelData['channelName'] as String,
+                channelType: channelData['channelType'] as int,
+                description: channelData['description'] as String?,
+                maxMembers: channelData['maxMembers'] as int?,
+              );
+              
+              if (success) {
+                EasyLoading.showSuccess('创建成功');
+                await _loadGroupsAndChannels(cmty);
+              } else {
+                EasyLoading.showError('创建失败');
+              }
+            } catch (e) {
+              print('❌ 创建频道失败: $e');
+              EasyLoading.showError('创建失败');
+            }
+          },
         ),
       ),
     );

@@ -68,6 +68,23 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
 - (int)getChannelsWithCmtyId:(NSString *)cmtyId
                   completion:(IMSDKCommunityCompletion)completion;
 
+/// 创建频道
+/// @param cmtyId 社群ID
+/// @param categoryId 分类ID
+/// @param channelName 频道名称
+/// @param channelType 频道类型（0=文字频道，1=语音频道）
+/// @param description 频道描述（可选）
+/// @param maxMembers 最大成员数（可选，语音频道默认50）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)createChannelWithCmtyId:(NSString *)cmtyId
+                      categoryId:(NSString *)categoryId
+                      channelName:(NSString *)channelName
+                      channelType:(int)channelType
+                      description:(NSString * _Nullable)description
+                      maxMembers:(int32_t)maxMembers
+                      completion:(IMSDKCommunityCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

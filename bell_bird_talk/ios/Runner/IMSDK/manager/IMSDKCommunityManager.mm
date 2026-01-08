@@ -291,6 +291,39 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
     });
 }
 
+/// 创建频道回调
+static void CreateChannelCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 创建频道回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 创建频道响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现 ====================
 
 @implementation IMSDKCommunityManager
@@ -471,6 +504,48 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
     uint64_t reqId = 0;
     int code = get_channels(
         GetChannelsCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)createChannelWithCmtyId:(NSString *)cmtyId
+                      categoryId:(NSString *)categoryId
+                      channelName:(NSString *)channelName
+                      channelType:(int)channelType
+                      description:(NSString *)description
+                      maxMembers:(int32_t)maxMembers
+                      completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 创建频道: cmtyId=%@, categoryId=%@, channelName=%@, channelType=%d", cmtyId, categoryId, channelName, channelType);
+    
+    if (!cmtyId || cmtyId.length == 0 || !categoryId || categoryId.length == 0 || !channelName || channelName.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    CmtyCreateChannel *createReq = [CmtyCreateChannel message];
+    createReq.communityId = cmtyId;
+    createReq.categoryId = categoryId;
+    createReq.channelName = channelName;
+    createReq.channelType = (CmtyChannelType)channelType;
+    if (description && description.length > 0) {
+        createReq.description_p = description;
+    }
+    if (maxMembers > 0) {
+        createReq.maxMembers = maxMembers;
+    }
+    
+    NSData *protoData = [createReq data];
+    
+    uint64_t reqId = 0;
+    int code = create_channel(
+        CreateChannelCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],

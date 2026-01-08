@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:get/instance_manager.dart';
 
 class ChannelCreateView extends StatefulWidget {
-  final ValueChanged<int> onConfirm;
+  final ValueChanged<Map<String, dynamic>?> onConfirm;
   bool onlyTextChannel = false;
 
   ChannelCreateView({super.key, required this.onConfirm, this.onlyTextChannel = false});
@@ -101,7 +101,24 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
                 enabled: true,
                 text: '创建频道',
                 onPressed: () {
+                  // 验证频道名称
+                  final channelName = _channelNameController.text.trim();
+                  if (channelName.isEmpty) {
+                    // 可以显示错误提示
+                    return;
+                  }
+                  
+                  // 准备创建频道的数据
+                  final channelData = {
+                    'channelName': channelName,
+                    'description': _channelDescriptionController.text.trim(),
+                    'channelType': createTextChannel ? 0 : 1, // 0=文字频道，1=语音频道
+                    'categoryId': _selectedCategory.isEmpty ? '' : _selectedCategory,
+                    'maxMembers': channelMaxOpen ? 50 : 0, // 这里可以根据实际需求设置
+                  };
+                  
                   Navigator.of(context).pop();
+                  widget.onConfirm(channelData);
                 },
               ),
             ),)
