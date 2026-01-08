@@ -28,7 +28,7 @@ class CommunityController extends GetxController {
   /// 获取社群列表
   /// @param page 页码（从1开始）
   /// @param pageSize 每页数量
-  Future<void> getCommunityList({
+  Future<List<CommunityModel>> getCommunityList({
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -46,7 +46,7 @@ class CommunityController extends GetxController {
           final data = json.decode(dataStr) as Map<String, dynamic>;
           final communitiesData = data['communities'] as List<dynamic>? ?? [];
           
-          final List<CommunityModel> communities = communitiesData.map((item) {
+          List<CommunityModel> communities = communitiesData.map((item) {
             return CommunityModel.fromJson(Map<String, dynamic>.from(item));
           }).toList();
           
@@ -55,14 +55,42 @@ class CommunityController extends GetxController {
           } else {
             communityList.addAll(communities);
           }
+          return communities;
         }
       } else {
         print('获取社群列表失败: ${result['message']}');
       }
+      return [];
     } catch (e) {
       print('获取社群列表异常: $e');
+      return [];
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// 加入社群
+  /// @param cmtyId 社群ID
+  Future<Map<String, dynamic>> joinCommunity({
+    required String cmtyId,
+  }) async {
+    try {
+      final result = await _nativeService.imJoinCommunity(
+        cmtyId: cmtyId,
+      );
+
+      if (result['errorCode'] == 0) {
+        print('加入社群成功: $cmtyId');
+        // 可以在这里更新本地状态，比如刷新社群列表
+        await getCommunityList(page: 1, pageSize: 20);
+      } else {
+        print('加入社群失败: ${result['message']}');
+      }
+
+      return result;
+    } catch (e) {
+      print('加入社群异常: $e');
+      return {'errorCode': -999, 'message': e.toString()};
     }
   }
 

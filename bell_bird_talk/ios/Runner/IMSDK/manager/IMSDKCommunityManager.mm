@@ -99,6 +99,38 @@ static void ListCommunitiesCallback(int errorCode, const char* data, int dataLen
     });
 }
 
+/// 加入社群回调
+static void JoinCommunityCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 加入社群回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现 ====================
 
 @implementation IMSDKCommunityManager
@@ -141,6 +173,46 @@ static void ListCommunitiesCallback(int errorCode, const char* data, int dataLen
         ListCommunitiesCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+#pragma mark - 社群操作
+
+- (int)joinCommunityWithCmtyId:(NSString *)cmtyId
+                  completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 加入社群: cmtyId=%@", cmtyId);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    CmtyJoin *joinReq = [CmtyJoin message];
+    // 如果有传入的data，尝试解析为JSON并设置相关字段
+//    if (data && data.length > 0) {
+//        NSError *jsonError = nil;
+//        NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:[data dataUsingEncoding:NSUTF8StringEncoding] 
+//                                                                options:0 
+//                                                                  error:&jsonError];
+//        if (!jsonError && jsonDict) {
+//            // 可以根据需要设置CmtyJoin的字段，比如joinReason等
+//            // joinReq.joinReason = jsonDict[@"joinReason"];
+//        }
+//    }
+    
+    NSData *protoData = [joinReq data];
+    
+    uint64_t reqId = 0;
+    int code = join_community(
+        JoinCommunityCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
         reqId
     );
     

@@ -346,6 +346,8 @@ class NativeBridgeHandler: NSObject {
         // ---------- 社群管理 ----------
         case "imGetCommunityList":
             imGetCommunityList(call: call, result: result)
+        case "imJoinCommunity":
+            imJoinCommunity(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -3687,6 +3689,29 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_COMMUNITY_LIST_ERROR",
                               message: "获取社群列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func imJoinCommunity(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("📁 加入社群: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().joinCommunity(withCmtyId: cmtyId, completion: { errorCode, reqId, data in
+            print("📁 加入社群回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "加入成功" : "加入失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "JOIN_COMMUNITY_ERROR",
+                              message: "加入社群请求发送失败: \(code)",
                               details: nil))
         }
     }

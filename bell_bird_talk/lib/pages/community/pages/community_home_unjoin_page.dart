@@ -10,6 +10,7 @@ import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../models/community_model.dart';
 import 'community_detail_page.dart';
 
@@ -28,6 +29,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
 
   final IOSNativeService _nativeService = IOSNativeService();
   final CommunityController _communityController = CommunityController.to;
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
 
   @override
   void initState() {
@@ -37,12 +39,26 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   
   @override
   void dispose() {
+    _refreshController.dispose();
     super.dispose();
   }
   
   /// 加载社群列表
   Future<void> _loadCommunities() async {
-    await _communityController.getCommunityList(page: 1, pageSize: 20);
+    List<CommunityModel> res = await _communityController.getCommunityList(page: 1, pageSize: 12);
+
+    // 如果已经加入过社群、则直接显示已经加入的状态
+    if (res.isNotEmpty) {
+      for (var element in res) {
+        if (element.isJoined==true) {
+          //
+          GlobalController.to.joinedCommunitys = [element];
+          GlobalController.to.updatecommunityTabRefresh();
+          return;
+        }
+      }
+      return;
+    }
     
     if (mounted) {
       setState(() {
@@ -52,6 +68,12 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
         _filteredCommunities.addAll(_communities);
       });
     }
+  }
+
+  /// 下拉刷新
+  Future<void> _onRefresh() async {
+    await _loadCommunities();
+    _refreshController.refreshCompleted();
   }
   
   /// 筛选社群
@@ -95,7 +117,8 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
     
     if (confirmed == true) {
       EasyLoading.show(status: '正在申请...');
-      
+      Map<String, dynamic> res = await CommunityController.to.joinCommunity(cmtyId: community.id);
+      print(res);
       // 模拟申请过程
       await Future.delayed(const Duration(seconds: 1));
       GlobalController.to.joinedCommunitys = [community,CommunityModel(
@@ -209,13 +232,17 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                 );
               }
               
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _filteredCommunities.length,
-                itemBuilder: (context, index) {
-                  final community = _filteredCommunities[index];
-                  return _buildCommunityCard(community);
-                },
+              return SmartRefresher(
+                controller: _refreshController,
+                onRefresh: _onRefresh,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _filteredCommunities.length,
+                  itemBuilder: (context, index) {
+                    final community = _filteredCommunities[index];
+                    return _buildCommunityCard(community);
+                  },
+                ),
               );
             }),
           ),
@@ -460,7 +487,7 @@ void showSideMenu(BuildContext context) {
                           ),
                         ),
                         Text(
-                          '10000在线',
+                          '${community.memberCount}在线',
                           style: TextStyle(
                             fontSize: 12,
                             color: GbsColors.lightPrimaryButton,
@@ -477,7 +504,7 @@ void showSideMenu(BuildContext context) {
                           ),
                         ),
                         Text(
-                          '30000成员',
+                          '${community.maxMembers}成员',
                           style: TextStyle(
                             fontSize: 12,
                             color: GbsColors.des9Color,

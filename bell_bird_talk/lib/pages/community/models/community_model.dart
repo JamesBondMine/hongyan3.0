@@ -43,7 +43,7 @@ class CommunityModel {
       ownerId: json['owner_id'],
       ownerName: json['owner_name'],
       createTime: json['created_at'] ?? json['create_time'] ?? 0,
-      isJoined: json['is_member'] ?? json['is_joined'] ?? false,
+      isJoined: json['is_member'] ?? false,
       hasApplied: json['has_applied'] ?? false,
     );
   }

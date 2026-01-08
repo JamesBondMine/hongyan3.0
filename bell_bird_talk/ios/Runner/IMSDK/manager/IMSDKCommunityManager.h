@@ -32,6 +32,14 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
                         pageSize:(int)pageSize
                       completion:(IMSDKCommunityCompletion)completion;
 
+/// 加入社群
+/// @param data 加入社群参数（JSON字符串）
+/// @param cmtyId 社群ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)joinCommunityWithCmtyId:(NSString *)cmtyId
+                  completion:(IMSDKCommunityCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

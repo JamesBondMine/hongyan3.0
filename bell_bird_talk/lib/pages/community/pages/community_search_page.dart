@@ -4,6 +4,7 @@ import 'package:bell_bird_talk/services/message_database.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../models/community_model.dart';
@@ -264,24 +265,7 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
             Expanded(
               child: _filteredCommunities.isEmpty
                   ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.group_outlined,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            '暂无社群',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: EmptyView(message: '暂无社群',community: true,),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),

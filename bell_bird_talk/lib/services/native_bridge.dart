@@ -1085,6 +1085,23 @@ class IOSNativeService {
       return {'errorCode': -999, 'message': e.toString()};
     }
   }
+
+  /// 加入社群
+  /// @param cmtyId 社群ID
+  /// @return 加入结果
+  Future<Map<String, dynamic>> imJoinCommunity({
+    required String cmtyId,
+  }) async {
+    try {
+      final result = await _bridge.invokeMethod<Map>('imJoinCommunity', {
+        'cmtyId': cmtyId,
+      });
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      print('加入社群错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
   
   /// 获取群成员列表
   Future<Map<String, dynamic>> imGetGroupMembers({
