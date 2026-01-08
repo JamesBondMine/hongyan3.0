@@ -5,6 +5,7 @@ import 'package:bell_bird_talk/controllers/user_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
+import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_popup/flutter_popup.dart';
@@ -1025,71 +1026,7 @@ class _ChatListPageState extends State<ChatListPage> {
   /// 构建空视图
   Widget _buildEmptyView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            '暂无聊天记录',
-            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '快去找好友聊天吧',
-            style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              // 显示相同的弹出菜单
-              showMenu<String>(
-                context: context,
-                position: const RelativeRect.fromLTRB(100, 100, 100, 100),
-                items: [
-                  const PopupMenuItem<String>(
-                    value: 'single',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person),
-                        SizedBox(width: 8),
-                        Text('发起单聊'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'group',
-                    child: Row(
-                      children: [
-                        Icon(Icons.group),
-                        SizedBox(width: 8),
-                        Text('发起群聊'),
-                      ],
-                    ),
-                  ),
-                ],
-              ).then((value) {
-                if (value == 'single') {
-                  // TODO: 导航到好友选择页面
-                  Get.snackbar('提示', '单聊功能开发中');
-                } else if (value == 'group') {
-                  _createGroup();
-                }
-              });
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('发起聊天'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: EmptyView()
     );
   }
 

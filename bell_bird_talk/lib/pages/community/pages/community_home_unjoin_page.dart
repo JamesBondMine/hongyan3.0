@@ -63,7 +63,6 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
           return;
         }
       }
-      return;
     }
 
     if (mounted) {

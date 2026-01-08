@@ -4,6 +4,8 @@ import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/state_manager.dart';
 
 // ignore: must_be_immutable
 class CommunityPreviewView extends StatelessWidget {
@@ -56,14 +58,14 @@ class CommunityPreviewView extends StatelessWidget {
   /// 构建社群卡片
   Widget _buildCommunityCard(CommunityModel community) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16, top: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: GbsColors.lightDivider,
-          width: 0.5,
-        ),
+        // border: Border.all(
+        //   color: GbsColors.lightDivider,
+        //   width: 0.5,
+        // ),
         // boxShadow: [
         //   BoxShadow(
         //     color: Colors.grey.withOpacity(0.1),
@@ -196,6 +198,7 @@ class CommunityPreviewView extends StatelessWidget {
                     CommonButton(
                       enabled: true,
                       text: '加入社群', onPressed: () {
+                        Get.back();
                       onConfirm();
                     }, fontSize: 16,),
                   ],

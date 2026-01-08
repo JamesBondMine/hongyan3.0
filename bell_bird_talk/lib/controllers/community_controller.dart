@@ -127,7 +127,7 @@ class CommunityController extends GetxController {
 
   /// 获取社群信息
   /// @param cmtyId 社群ID
-  Future<Map<String, dynamic>?> getCommunityInfo({
+  Future<CommunityModel?> getCommunityInfo({
     required String cmtyId,
   }) async {
     try {
@@ -140,7 +140,7 @@ class CommunityController extends GetxController {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
           final data = json.decode(dataStr) as Map<String, dynamic>;
-          return data;
+          return CommunityModel.fromJson(data);
         }
       } else {
         print('获取社群信息失败: ${result['message']}');

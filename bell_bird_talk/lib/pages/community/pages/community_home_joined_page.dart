@@ -34,7 +34,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   bool _hasMore = true;
 
   // 当前社群详情
-  Map<String, dynamic>? currentCommunityInfo;
+  CommunityModel? currentCommunityInfo;
 
   @override
   void initState() {
@@ -173,11 +173,13 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                     _showCommunitySettingView(cm);
                     return;
                   }
-                  currentCommunityInfo = await _communityController
-                      .getCommunityInfo(cmtyId: cm.id);
+                  
                   setState(() {
+                    currentCommunityInfo = cm;
                     _selectedCommunityIndex = index;
                   });
+                  currentCommunityInfo = await _communityController
+                      .getCommunityInfo(cmtyId: cm.id);
                 },
                 child: Column(
                   children: [
@@ -246,7 +248,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   void _showCommunitySettingView(CommunityModel cm) {
     gbs.shower.showScreenViewCustom(
       context,
-      450,
+      350,
       Container(
         width: Get.width,
         // padding: EdgeInsets.only(top: 12),
@@ -302,6 +304,8 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
       if (res == true) {
         EasyLoading.dismiss();
         EasyLoading.showSuccess('申请已提交，请等待审核');
+        // 刷新页面
+        _loadCommunities();
       }
     }
   }
