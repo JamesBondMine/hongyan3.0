@@ -5,6 +5,7 @@ import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class CommunityPreviewView extends StatelessWidget {
 
   final VoidCallback onConfirm;

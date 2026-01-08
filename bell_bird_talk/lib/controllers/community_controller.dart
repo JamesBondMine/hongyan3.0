@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CommunityController extends GetxController {
   static CommunityController get to => Get.put(CommunityController());
@@ -14,6 +15,23 @@ class CommunityController extends GetxController {
   
   // 是否正在加载
   final RxBool isLoading = false.obs;
+
+  // 缓存相关方法
+  Future<List<CommunityModel>> _loadCachedCommunities() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString('community_list');
+    if (cachedData != null) {
+      final data = json.decode(cachedData) as List<dynamic>;
+      return data.map((item) => CommunityModel.fromJson(item)).toList();
+    }
+    return [];
+  }
+
+  Future<void> _saveCommunitiesToCache(List<CommunityModel> communities) async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = json.encode(communities.map((c) => c.toJson()).toList());
+    await prefs.setString('community_list', data);
+  }
 
   // 刷新
   String menuSliderRefreshId = 'menuSliderRefreshId';
@@ -35,6 +53,12 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
       
+      // Load from cache first if page == 1
+      final cachedCommunities = await _loadCachedCommunities();
+      if (cachedCommunities.isNotEmpty && page == 1) {
+        communityList.value = cachedCommunities;
+      }
+      
       final result = await _nativeService.imGetCommunityList(
         page: page,
         pageSize: pageSize,
@@ -52,6 +76,8 @@ class CommunityController extends GetxController {
           
           if (page == 1) {
             communityList.value = communities;
+            // Save to cache
+            await _saveCommunitiesToCache(communities);
           } else {
             communityList.addAll(communities);
           }
@@ -59,11 +85,15 @@ class CommunityController extends GetxController {
         }
       } else {
         print('获取社群列表失败: ${result['message']}');
+        // Return cached data if available
+        return cachedCommunities;
       }
-      return [];
+      return cachedCommunities;
     } catch (e) {
       print('获取社群列表异常: $e');
-      return [];
+      // Return cached data if available
+      final cachedCommunities = await _loadCachedCommunities();
+      return cachedCommunities;
     } finally {
       isLoading.value = false;
     }

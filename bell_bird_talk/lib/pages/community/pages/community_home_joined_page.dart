@@ -1,11 +1,8 @@
-import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
-
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_child_page.dart';
 import 'package:bell_bird_talk/pages/community/views/community_preview_view.dart';
-import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
