@@ -1066,43 +1066,6 @@ class IOSNativeService {
   
   // ---------- 社群管理 ----------
   
-  /// 获取社群列表
-  /// @param page 页码（从1开始）
-  /// @param pageSize 每页数量
-  /// @return 社群列表结果
-  Future<Map<String, dynamic>> imGetCommunityList({
-    int page = 1,
-    int pageSize = 20,
-  }) async {
-    try {
-      final result = await _bridge.invokeMethod<Map>('imGetCommunityList', {
-        'page': page,
-        'page_size': pageSize,
-      });
-      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
-    } catch (e) {
-      print('获取社群列表错误: $e');
-      return {'errorCode': -999, 'message': e.toString()};
-    }
-  }
-
-  /// 加入社群
-  /// @param cmtyId 社群ID
-  /// @return 加入结果
-  Future<Map<String, dynamic>> imJoinCommunity({
-    required String cmtyId,
-  }) async {
-    try {
-      final result = await _bridge.invokeMethod<Map>('imJoinCommunity', {
-        'cmtyId': cmtyId,
-      });
-      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
-    } catch (e) {
-      print('加入社群错误: $e');
-      return {'errorCode': -999, 'message': e.toString()};
-    }
-  }
-  
   /// 获取群成员列表
   Future<Map<String, dynamic>> imGetGroupMembers({
     required String groupId,
@@ -2170,6 +2133,89 @@ class IOSNativeService {
     } catch (e) {
       stopwatch.stop();
       NativeLogger.log('imCreateGroup', {'groupName': groupName, 'memberIds': memberIds}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  // ======================== 社群管理 ========================
+
+  /// 获取社群列表
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 社群列表
+  Future<Map<String, dynamic>> imGetCommunityList({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'page': page,
+        'page_size': pageSize,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityList', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityList', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityList', {'page': page, 'pageSize': pageSize}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 获取社群信息
+  /// @param cmtyId 社群ID
+  /// @return 社群详细信息
+  Future<Map<String, dynamic>> imGetCommunityInfo({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityInfo', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityInfo', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityInfo', {'cmtyId': cmtyId}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 加入社群
+  /// @param cmtyId 社群ID
+  /// @return 加入结果
+  Future<Map<String, dynamic>> imJoinCommunity({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imJoinCommunity', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imJoinCommunity', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imJoinCommunity', {'cmtyId': cmtyId}, e.toString(), stopwatch.elapsed, isError: true);
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

@@ -11,6 +11,11 @@
 		2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */; };
+		2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */; };
+		2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */; };
+		2A74363F2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */; };
+		2A7436402F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */; };
 		2A7ADB6C2EDD2A6F00D0B045 /* libnet_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */; };
 		2A7ADED02EDD7AAF00D0B045 /* libabsl_random_distributions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEA62EDD7AAF00D0B045 /* libabsl_random_distributions.a */; };
 		2A7ADED12EDD7AAF00D0B045 /* libabsl_scoped_set_env.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEB32EDD7AAF00D0B045 /* libabsl_scoped_set_env.a */; };
@@ -213,6 +218,16 @@
 		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyMemberPb.pbobjc.h; sourceTree = "<group>"; };
+		2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyMemberPb.pbobjc.m; sourceTree = "<group>"; };
+		2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyCategoryPb.pbobjc.h; sourceTree = "<group>"; };
+		2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyCategoryPb.pbobjc.m; sourceTree = "<group>"; };
+		2A7436372F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyChannelPb.pbobjc.h; sourceTree = "<group>"; };
+		2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyChannelPb.pbobjc.m; sourceTree = "<group>"; };
+		2A7436392F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyConfigPb.pbobjc.h; sourceTree = "<group>"; };
+		2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyConfigPb.pbobjc.m; sourceTree = "<group>"; };
+		2A74363B2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyInvitePb.pbobjc.h; sourceTree = "<group>"; };
+		2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyInvitePb.pbobjc.m; sourceTree = "<group>"; };
 		2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnet_core.a; sourceTree = "<group>"; };
 		2A7ADB732EDD3E6B00D0B045 /* network_lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = network_lib.h; sourceTree = "<group>"; };
 		2A7ADE6D2EDD7AAF00D0B045 /* libabsl_bad_any_cast_impl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libabsl_bad_any_cast_impl.a; sourceTree = "<group>"; };
@@ -689,6 +704,16 @@
 		2ADEF7272F0E0AA500AB984D /* cmty */ = {
 			isa = PBXGroup;
 			children = (
+				2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */,
+				2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */,
+				2A7436372F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.h */,
+				2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */,
+				2A7436392F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.h */,
+				2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */,
+				2A74363B2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.h */,
+				2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */,
+				2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */,
+				2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */,
 				2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */,
 				2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */,
 			);
@@ -1135,6 +1160,7 @@
 				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
 				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
 				2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */,
+				2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */,
 				2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
@@ -1144,6 +1170,10 @@
 				2AF663BB2EFBC3A000A18180 /* system_pb.proto in Sources */,
 				2AF663BC2EFBC3A000A18180 /* contact_pb.proto in Sources */,
 				2AF663BD2EFBC3A000A18180 /* captcha_pb.proto in Sources */,
+				2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */,
+				2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */,
+				2A74363F2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m in Sources */,
+				2A7436402F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m in Sources */,
 				2AF663BE2EFBC3A000A18180 /* ban_pb.proto in Sources */,
 				2AF663BF2EFBC3A000A18180 /* invite_pb.proto in Sources */,
 				2AF663C02EFBC3A000A18180 /* presence_pb.proto in Sources */,

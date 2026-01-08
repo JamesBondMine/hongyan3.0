@@ -125,4 +125,31 @@ class CommunityController extends GetxController {
     }
   }
 
+  /// 获取社群信息
+  /// @param cmtyId 社群ID
+  Future<Map<String, dynamic>?> getCommunityInfo({
+    required String cmtyId,
+  }) async {
+    try {
+      final result = await _nativeService.imGetCommunityInfo(
+        cmtyId: cmtyId,
+      );
+
+      if (result['errorCode'] == 0) {
+        // 解析社群信息
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+          return data;
+        }
+      } else {
+        print('获取社群信息失败: ${result['message']}');
+      }
+      return null;
+    } catch (e) {
+      print('获取社群信息异常: $e');
+      return null;
+    }
+  }
+
 }

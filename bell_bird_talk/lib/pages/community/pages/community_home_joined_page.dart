@@ -33,6 +33,9 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   bool _isLoading = false;
   bool _hasMore = true;
 
+  // 当前社群详情
+  Map<String, dynamic>? currentCommunityInfo;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +77,12 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
         _refreshController.refreshCompleted();
       } else {
         _refreshController.loadComplete();
+      }
+      // 如果 加载成功有社群数据--则请求当前社群的详情信息
+      if (newCommunities.isNotEmpty) {
+        currentCommunityInfo = await _communityController.getCommunityInfo(
+          cmtyId: newCommunities.first.id,
+        );
       }
     } catch (e) {
       print('加载社群列表失败: $e');
@@ -158,12 +167,14 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
 
               CommunityModel cm = communities[index];
               return GestureDetector(
-                onTap: () {
+                onTap: () async {
                   if (cm.isJoined == false) {
                     // 弹出社群预览
                     _showCommunitySettingView(cm);
                     return;
                   }
+                  currentCommunityInfo = await _communityController
+                      .getCommunityInfo(cmtyId: cm.id);
                   setState(() {
                     _selectedCommunityIndex = index;
                   });
