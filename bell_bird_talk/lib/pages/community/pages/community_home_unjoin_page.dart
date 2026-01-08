@@ -19,7 +19,8 @@ class CommunityHomeUnjoinPage extends StatefulWidget {
   const CommunityHomeUnjoinPage({super.key});
 
   @override
-  State<CommunityHomeUnjoinPage> createState() => _CommunityHomeUnjoinPageState();
+  State<CommunityHomeUnjoinPage> createState() =>
+      _CommunityHomeUnjoinPageState();
 }
 
 class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
@@ -29,28 +30,33 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
 
   final IOSNativeService _nativeService = IOSNativeService();
   final CommunityController _communityController = CommunityController.to;
-  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+  final RefreshController _refreshController = RefreshController(
+    initialRefresh: false,
+  );
 
   @override
   void initState() {
     super.initState();
     _loadCommunities();
   }
-  
+
   @override
   void dispose() {
     _refreshController.dispose();
     super.dispose();
   }
-  
+
   /// 加载社群列表
   Future<void> _loadCommunities() async {
-    List<CommunityModel> res = await _communityController.getCommunityList(page: 1, pageSize: 12);
+    List<CommunityModel> res = await _communityController.getCommunityList(
+      page: 1,
+      pageSize: 12,
+    );
 
     // 如果已经加入过社群、则直接显示已经加入的状态
     if (res.isNotEmpty) {
       for (var element in res) {
-        if (element.isJoined==true) {
+        if (element.isJoined == true) {
           //
           GlobalController.to.joinedCommunitys = [element];
           GlobalController.to.updatecommunityTabRefresh();
@@ -59,7 +65,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       }
       return;
     }
-    
+
     if (mounted) {
       setState(() {
         _communities.clear();
@@ -75,30 +81,34 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
     await _loadCommunities();
     _refreshController.refreshCompleted();
   }
-  
+
   /// 筛选社群
   void _filterCommunities() {
     setState(() {
       _filteredCommunities.clear();
-      _filteredCommunities.addAll(_communities.where((community) {
-        final matchCategory = _selectedCategory == '全部' || community.category == _selectedCategory;
-        return matchCategory;
-      }).toList());
+      _filteredCommunities.addAll(
+        _communities.where((community) {
+          final matchCategory =
+              _selectedCategory == '全部' ||
+              community.category == _selectedCategory;
+          return matchCategory;
+        }).toList(),
+      );
     });
   }
-  
+
   /// 申请加入社群
   Future<void> _applyToJoin(CommunityModel community) async {
     if (community.isJoined) {
       EasyLoading.showInfo('您已加入该社群');
       return;
     }
-    
+
     if (community.hasApplied) {
       EasyLoading.showInfo('您已申请加入，请等待审核');
       return;
     }
-    
+
     if (community.isFull) {
       EasyLoading.showError('该社群已满员');
       return;
@@ -112,71 +122,49 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       showCancel: true,
     );
     bool confirmed = result != null && result['action'] == 'confirm';
-    
 
-    
     if (confirmed == true) {
       EasyLoading.show(status: '正在申请...');
-      Map<String, dynamic> res = await CommunityController.to.joinCommunity(cmtyId: community.id);
+      bool res = await CommunityController.to.joinCommunity(
+        cmtyId: community.id,
+      );
       print(res);
       // 模拟申请过程
-      await Future.delayed(const Duration(seconds: 1));
-      GlobalController.to.joinedCommunitys = [community,CommunityModel(
-          id: '2',
-          name: '美食分享圈',
-          description: '分享各地美食，交流烹饪心得，发现身边的美食小店',
-          avatar: null,
-          memberCount: 890,
-          maxMembers: 1000,
-          category: '生活',
-          isPublic: true,
-          ownerName: '美食达人',
-          createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 20,
-        ),
-        CommunityModel(
-          id: '3',
-          name: '电影爱好者',
-          description: '一起讨论最新电影，分享观影感受，推荐好片',
-          avatar: null,
-          memberCount: 2100,
-          maxMembers: 3000,
-          category: '娱乐',
-          isPublic: true,
-          ownerName: '影评人',
-          createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 60,
-        ),];
-              GlobalController.to.updatecommunityTabRefresh();
-      
+      if (res == true) {
+        GlobalController.to.joinedCommunitys = [community];
+        GlobalController.to.updatecommunityTabRefresh();
+      }
+
       // 更新状态
       if (mounted) {
         setState(() {
-        final index = _communities.indexWhere((c) => c.id == community.id);
-        if (index != -1) {
-          _communities[index] = CommunityModel(
-            id: community.id,
-            name: community.name,
-            description: community.description,
-            avatar: community.avatar,
-            memberCount: community.memberCount,
-            maxMembers: community.maxMembers,
-            category: community.category,
-            isPublic: community.isPublic,
-            ownerId: community.ownerId,
-            ownerName: community.ownerName,
-            createTime: community.createTime,
-            isJoined: false,
-            hasApplied: true,
-          );
-        }
-        _filterCommunities();
-      });
+          final index = _communities.indexWhere((c) => c.id == community.id);
+          if (index != -1) {
+            _communities[index] = CommunityModel(
+              id: community.id,
+              name: community.name,
+              description: community.description,
+              avatar: community.avatar,
+              memberCount: community.memberCount,
+              maxMembers: community.maxMembers,
+              category: community.category,
+              isPublic: community.isPublic,
+              ownerId: community.ownerId,
+              ownerName: community.ownerName,
+              createTime: community.createTime,
+              isJoined: false,
+              hasApplied: true,
+            );
+          }
+          _filterCommunities();
+        });
       }
-      
+
       EasyLoading.dismiss();
       EasyLoading.showSuccess('申请已提交，请等待审核');
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,7 +186,10 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(26),
@@ -216,22 +207,21 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
               ),
             ),
           ),
-          
+
           // 社群列表
           Expanded(
             child: Obx(() {
-              if (_communityController.isLoading.value && _filteredCommunities.isEmpty) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+              if (_communityController.isLoading.value &&
+                  _filteredCommunities.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (_filteredCommunities.isEmpty) {
                 return Center(
-                  child: EmptyView(message: '暂无社群',community: true,),
+                  child: EmptyView(message: '暂无社群', community: true),
                 );
               }
-              
+
               return SmartRefresher(
                 controller: _refreshController,
                 onRefresh: _onRefresh,
@@ -250,7 +240,6 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       ),
     );
   }
-
 
   PreferredSizeWidget _buildNormalAppBar() {
     final globalController = Get.find<GlobalController>();
@@ -275,11 +264,8 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
       elevation: 0,
-     
     );
   }
-
-  
 
   Widget _userHeadImgView(String avatar, String nickname, String userId) {
     return FutureBuilder(
@@ -299,8 +285,12 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
           }
         }
 
-        Color bgColor = bg.isEmpty ? Colors.blue : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
-        Color txtColor = bg.isEmpty ? Colors.blue : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
+        Color bgColor = bg.isEmpty
+            ? Colors.blue
+            : Color(int.parse(bgcolorStr.replaceFirst('#', '0xFF')));
+        Color txtColor = bg.isEmpty
+            ? Colors.blue
+            : Color(int.parse(txtcolorStr.replaceFirst('#', '0xFF')));
 
         return CircleAvatar(
           radius: 18,
@@ -322,51 +312,48 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   }
 
   // 显示侧边栏菜单
-void showSideMenu(BuildContext context) {
-  final screenWidth = MediaQuery.of(context).size.width;
-  final menuWidth = screenWidth * 0.85; // 3/4 屏幕宽度
-  
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: 'SideMenu',
-    barrierColor: Colors.black54,
-    transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: menuWidth,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+  void showSideMenu(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final menuWidth = screenWidth * 0.85; // 3/4 屏幕宽度
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'SideMenu',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: menuWidth,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
               ),
+              child: const SideMenuContent(),
             ),
-            child: const SideMenuContent(),
           ),
-        ),
-      );
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1, 0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        )),
-        child: child,
-      );
-    },
-  );
-}
-  
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
+          child: child,
+        );
+      },
+    );
+  }
+
   /// 构建社群卡片
   Widget _buildCommunityCard(CommunityModel community) {
     return Container(
@@ -374,10 +361,7 @@ void showSideMenu(BuildContext context) {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: GbsColors.lightDivider,
-          width: 0.5,
-        ),
+        border: Border.all(color: GbsColors.lightDivider, width: 0.5),
         // boxShadow: [
         //   BoxShadow(
         //     color: Colors.grey.withOpacity(0.1),
@@ -406,7 +390,6 @@ void showSideMenu(BuildContext context) {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
- 
               // 内容
               Expanded(
                 child: Column(
@@ -417,106 +400,112 @@ void showSideMenu(BuildContext context) {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // 头像
-              Container(
-                width: 32,
-                height: 32,
-                margin: EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: community.avatar != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          community.avatar!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.group,
-                              color: Colors.blue[700],
-                              size: 30,
-                            );
-                          },
+                        Container(
+                          width: 32,
+                          height: 32,
+                          margin: EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: community.avatar != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    community.avatar!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.group,
+                                        color: Colors.blue[700],
+                                        size: 30,
+                                      );
+                                    },
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.group,
+                                  color: Colors.blue[700],
+                                  size: 30,
+                                ),
                         ),
-                      )
-                    : Icon(
-                        Icons.group,
-                        color: Colors.blue[700],
-                        size: 30,
-                      ),
-              ),
                         Text(
-                            community.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: GbsColors.des1Color
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
+                          community.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: GbsColors.des1Color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
-                    
-           
+
                     // 描述
-                    Padding(padding: EdgeInsetsGeometry.only(top: 16, bottom: 16), child: Text(
-                      community.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: GbsColors.des6Color,
+                    Padding(
+                      padding: EdgeInsetsGeometry.only(top: 16, bottom: 16),
+                      child: Text(
+                        community.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: GbsColors.des6Color,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),),
-                    
-          
+                    ),
+
                     // 成员数和操作按钮
                     Container(
                       margin: EdgeInsets.only(bottom: 16),
-                      padding: EdgeInsetsGeometry.symmetric(horizontal: 32),child: Row(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(right: 4),
-                          width: 8,
-                          height: 8,
-                         decoration: BoxDecoration(
-                            color: GbsColors.lightPrimaryButton,
-                            borderRadius: BorderRadius.circular(4),
+                      padding: EdgeInsetsGeometry.symmetric(horizontal: 32),
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(right: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: GbsColors.lightPrimaryButton,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${community.memberCount}在线',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GbsColors.lightPrimaryButton,
+                          Text(
+                            '${community.memberCount}在线',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: GbsColors.lightPrimaryButton,
+                            ),
                           ),
-                        ),
-                        Spacer(),
-                        Container(
-                          margin: EdgeInsets.only(right: 4),
-                          width: 8,
-                          height: 8,
-                         decoration: BoxDecoration(
-                            color: GbsColors.des9Color,
-                            borderRadius: BorderRadius.circular(4),
+                          Spacer(),
+                          Container(
+                            margin: EdgeInsets.only(right: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: GbsColors.des9Color,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${community.maxMembers}成员',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GbsColors.des9Color,
+                          Text(
+                            '${community.maxMembers}成员',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: GbsColors.des9Color,
+                            ),
                           ),
-                        )
-                      ],
-                    ),),
+                        ],
+                      ),
+                    ),
                     CommonButton(
                       enabled: true,
-                      text: '加入社群', onPressed: () {
-                      _applyToJoin(community);
-                    }, fontSize: 16,),
+                      text: '加入社群',
+                      onPressed: () {
+                        _applyToJoin(community);
+                      },
+                      fontSize: 16,
+                    ),
                   ],
                 ),
               ),
@@ -527,4 +516,3 @@ void showSideMenu(BuildContext context) {
     );
   }
 }
-

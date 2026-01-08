@@ -71,26 +71,27 @@ class CommunityController extends GetxController {
 
   /// 加入社群
   /// @param cmtyId 社群ID
-  Future<Map<String, dynamic>> joinCommunity({
+  Future<bool> joinCommunity({
     required String cmtyId,
   }) async {
+    bool success = false;
     try {
       final result = await _nativeService.imJoinCommunity(
         cmtyId: cmtyId,
       );
 
       if (result['errorCode'] == 0) {
-        print('加入社群成功: $cmtyId');
+        success = true;
         // 可以在这里更新本地状态，比如刷新社群列表
         await getCommunityList(page: 1, pageSize: 20);
       } else {
         print('加入社群失败: ${result['message']}');
       }
 
-      return result;
+      return success;
     } catch (e) {
       print('加入社群异常: $e');
-      return {'errorCode': -999, 'message': e.toString()};
+      return success;
     }
   }
 
