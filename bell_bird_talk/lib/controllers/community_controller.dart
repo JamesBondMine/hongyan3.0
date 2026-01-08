@@ -152,4 +152,144 @@ class CommunityController extends GetxController {
     }
   }
 
+  /// 获取社群分组和频道（分组里嵌套频道）
+  /// @param cmtyId 社群ID
+  /// @return 返回Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
+  Future<Map<String, List<String>>> getCommunityGroupsWithChannels({
+    required String cmtyId,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      // 1. 获取分组列表
+      final groupsResult = await _nativeService.imGetCommunityGroups(
+        cmtyId: cmtyId,
+      );
+      
+      if (groupsResult['errorCode'] != 0) {
+        print('获取分组列表失败: ${groupsResult['message']}');
+        return {};
+      }
+      
+      // 解析分组列表
+      final groupsDataStr = groupsResult['data'] as String? ?? '';
+      List<dynamic> groupsList = [];
+      if (groupsDataStr.isNotEmpty) {
+        try {
+          final groupsData = json.decode(groupsDataStr);
+          // 可能是数组或包含groups字段的对象
+          if (groupsData is List) {
+            groupsList = groupsData;
+          } else if (groupsData is Map && groupsData['groups'] != null) {
+            groupsList = groupsData['groups'] as List<dynamic>? ?? [];
+          }
+        } catch (e) {
+          print('解析分组列表失败: $e');
+        }
+      }
+      
+      // 2. 获取频道列表
+      final channelsResult = await _nativeService.imGetChannels(
+        cmtyId: cmtyId,
+      );
+      
+      if (channelsResult['errorCode'] != 0) {
+        print('获取频道列表失败: ${channelsResult['message']}');
+        // 即使获取频道失败，也返回分组（频道为空）
+        return _buildGroupsWithChannels(groupsList, []);
+      }
+      
+      // 解析频道列表
+      final channelsDataStr = channelsResult['data'] as String? ?? '';
+      List<dynamic> channelsList = [];
+      if (channelsDataStr.isNotEmpty) {
+        try {
+          final channelsData = json.decode(channelsDataStr);
+          // 可能是数组或包含channels字段的对象
+          if (channelsData is List) {
+            channelsList = channelsData;
+          } else if (channelsData is Map && channelsData['channels'] != null) {
+            channelsList = channelsData['channels'] as List<dynamic>? ?? [];
+          }
+        } catch (e) {
+          print('解析频道列表失败: $e');
+        }
+      }
+      
+      // 3. 组合成分组嵌套频道的结构
+      return _buildGroupsWithChannels(groupsList, channelsList);
+    } catch (e) {
+      print('获取分组和频道异常: $e');
+      return {};
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 构建分组嵌套频道的结构
+  /// @param groupsList 分组列表
+  /// @param channelsList 频道列表
+  /// @return Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
+  Map<String, List<String>> _buildGroupsWithChannels(
+    List<dynamic> groupsList,
+    List<dynamic> channelsList,
+  ) {
+    final Map<String, List<String>> result = {};
+    
+    // 遍历分组
+    for (var group in groupsList) {
+      if (group is! Map<String, dynamic>) continue;
+      
+      // 获取分组信息（根据实际API返回的字段名调整）
+      final groupId = group['id']?.toString() ?? group['group_id']?.toString() ?? '';
+      final groupName = group['name']?.toString() ?? 
+                       group['group_name']?.toString() ?? 
+                       group['title']?.toString() ?? 
+                       '未命名分组';
+      
+      // 查找该分组下的频道
+      List<String> channelNames = [];
+      for (var channel in channelsList) {
+        if (channel is! Map<String, dynamic>) continue;
+        
+        // 获取频道的分组ID（根据实际API返回的字段名调整）
+        final channelGroupId = channel['group_id']?.toString() ?? 
+                              channel['groupId']?.toString() ?? 
+                              channel['parent_id']?.toString() ?? '';
+        
+        // 如果频道属于当前分组
+        if (channelGroupId == groupId || (groupId.isEmpty && channelGroupId.isEmpty)) {
+          final channelName = channel['name']?.toString() ?? 
+                             channel['channel_name']?.toString() ?? 
+                             channel['title']?.toString() ?? 
+                             '未命名频道';
+          channelNames.add(channelName);
+        }
+      }
+      
+      // 如果分组有频道或者分组本身存在，就添加到结果中
+      if (channelNames.isNotEmpty || groupName.isNotEmpty) {
+        result[groupName] = channelNames;
+      }
+    }
+    
+    // 如果没有任何分组，但存在频道，创建一个默认分组
+    if (result.isEmpty && channelsList.isNotEmpty) {
+      List<String> channelNames = [];
+      for (var channel in channelsList) {
+        if (channel is! Map<String, dynamic>) continue;
+        final channelName = channel['name']?.toString() ?? 
+                           channel['channel_name']?.toString() ?? 
+                           channel['title']?.toString() ?? 
+                           '未命名频道';
+        channelNames.add(channelName);
+      }
+      if (channelNames.isNotEmpty) {
+        result['默认分组'] = channelNames;
+      }
+    }
+    
+    return result;
+  }
+
 }

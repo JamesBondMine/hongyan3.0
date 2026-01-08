@@ -51,6 +51,23 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
 /// /// @param cmtyId 社群ID
 - (int)leaveCommunityWithCmtyId:(NSString *)cmtyId
                      completion:(IMSDKCommunityCompletion)completion;
+
+// ==================== 分组和频道 ====================
+
+/// 获取分组列表
+/// @param cmtyId 社群ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getCommunityGroupsWithCmtyId:(NSString *)cmtyId
+                          completion:(IMSDKCommunityCompletion)completion;
+
+/// 获取频道列表
+/// @param cmtyId 社群ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getChannelsWithCmtyId:(NSString *)cmtyId
+                  completion:(IMSDKCommunityCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

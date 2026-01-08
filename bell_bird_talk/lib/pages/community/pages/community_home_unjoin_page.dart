@@ -214,17 +214,12 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                   _filteredCommunities.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
-
-              if (_filteredCommunities.isEmpty) {
-                return Center(
-                  child: EmptyView(message: '暂无社群', community: true),
-                );
-              }
-
               return SmartRefresher(
                 controller: _refreshController,
                 onRefresh: _onRefresh,
-                child: ListView.builder(
+                child: _filteredCommunities.isEmpty ? Center(
+                  child: EmptyView(message: '暂无社群', community: true),
+                ) : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _filteredCommunities.length,
                   itemBuilder: (context, index) {

@@ -2220,6 +2220,57 @@ class IOSNativeService {
     }
   }
 
+  /// 获取分组列表
+  /// @param cmtyId 社群ID
+  /// @return 分组列表
+  Future<Map<String, dynamic>> imGetCommunityGroups({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityGroups', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityGroups', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityGroups', {'cmtyId': cmtyId}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 获取频道列表
+  /// @param cmtyId 社群ID
+  /// @return 频道列表
+  Future<Map<String, dynamic>> imGetChannels({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetChannels', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetChannels', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetChannels', {'cmtyId': cmtyId}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
 
   /// 注销用户
   /// @param userId 用户ID（必填）

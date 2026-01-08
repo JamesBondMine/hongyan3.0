@@ -65,22 +65,13 @@ class FriendController extends GetxController {
       
       // 2. 从数据库获取所有联系人（按分组名分组）
       final groupedContactsByName = await _messageDatabase.getContactsByGroup(currentUserId);
-      
-      // 3. 创建分组ID到分组名的映射（用于快速查找）
-      final Map<String, String> groupIdToNameMap = {};
-      final Map<String, FriendGroup> groupNameToGroupMap = {};
-      for (final group in groups) {
-        groupIdToNameMap[group.id] = group.name;
-        groupNameToGroupMap[group.name] = group;
-      }
-      
+
       // 4. 构建结果，结合分组信息和联系人列表
       final Map<String, Map<String, dynamic>> result = {};
       
       // 处理有分组ID的分组（从服务器获取的分组）
       for (final group in groups) {
-        final groupName = group.name;
-        final contacts = groupedContactsByName[groupName] ?? [];
+        final contacts = groupedContactsByName[group.id] ?? [];
         final contactModels = contacts.map((contact) => FriendModel.fromJson(contact)).toList();
         
         result[group.id] = {

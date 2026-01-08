@@ -350,6 +350,10 @@ class NativeBridgeHandler: NSObject {
             imJoinCommunity(call: call, result: result)
         case "imGetCommunityInfo":
             imGetCommunityInfo(call: call, result: result)
+        case "imGetCommunityGroups":
+            imGetCommunityGroups(call: call, result: result)
+        case "imGetChannels":
+            imGetChannels(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -3738,6 +3742,54 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "GET_COMMUNITY_INFO_ERROR",
                               message: "获取社群信息请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取分组列表
+    private func imGetCommunityGroups(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("📁 获取分组列表: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().getCommunityGroups(withCmtyId: cmtyId, completion: { errorCode, reqId, data in
+            print("📁 获取分组列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_COMMUNITY_GROUPS_ERROR",
+                              message: "获取分组列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取频道列表
+    private func imGetChannels(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("📁 获取频道列表: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().getChannelsWithCmtyId(cmtyId, completion:  { errorCode, reqId, data in
+            print("📁 获取频道列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_CHANNELS_ERROR",
+                              message: "获取频道列表请求发送失败: \(code)",
                               details: nil))
         }
     }

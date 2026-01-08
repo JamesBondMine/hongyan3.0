@@ -7,6 +7,8 @@
 
 #import "IMSDKCommunityManager.h"
 #import "CmtyPb.pbobjc.h"
+#import "CmtyCategoryPb.pbobjc.h"
+#import "CmtyChannelPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
 #import <UIKit/UIKit.h>
 #include "network_lib.h"
@@ -223,6 +225,72 @@ static void GetCommunityInfoCallback(int errorCode, const char* data, int dataLe
     });
 }
 
+/// 获取分组列表回调
+static void GetCommunityGroupsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 获取分组列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 获取分组列表响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 获取频道列表回调
+static void GetChannelsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 获取频道列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 获取频道列表响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现 ====================
 
 @implementation IMSDKCommunityManager
@@ -347,6 +415,62 @@ static void GetCommunityInfoCallback(int errorCode, const char* data, int dataLe
     uint64_t reqId = 0;
     int code = leave_community(
                                LeaveCommunityCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+#pragma mark - 分组和频道
+
+- (int)getCommunityGroupsWithCmtyId:(NSString *)cmtyId
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 获取分组列表: cmtyId=%@", cmtyId);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    CmtyCategoryList *cl = [CmtyCategoryList message];
+    
+    // 创建空的查询参数（如果需要的话）
+    NSData *protoData = [cl data];
+    
+    uint64_t reqId = 0;
+    int code = list_community_groups(
+        GetCommunityGroupsCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)getChannelsWithCmtyId:(NSString *)cmtyId
+                  completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 获取频道列表: cmtyId=%@", cmtyId);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    CmtyChannelsQuery *cl = [CmtyChannelsQuery message];
+    
+    // 创建空的查询参数（如果需要的话）
+    NSData *protoData = [cl data];
+    
+    uint64_t reqId = 0;
+    int code = get_channels(
+        GetChannelsCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],

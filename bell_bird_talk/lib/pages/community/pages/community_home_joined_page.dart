@@ -34,6 +34,8 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   bool _hasMore = true;
 
   // 当前社群详情
+  // 子页面刷新
+  final GlobalKey<CommunityChildPageState> _communityChildPageKey = GlobalKey();
   CommunityModel? currentCommunityInfo;
 
   @override
@@ -80,9 +82,12 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
       }
       // 如果 加载成功有社群数据--则请求当前社群的详情信息
       if (newCommunities.isNotEmpty) {
-        currentCommunityInfo = await _communityController.getCommunityInfo(
-          cmtyId: newCommunities.first.id,
-        );
+        currentCommunityInfo = newCommunities.first;
+        // currentCommunityInfo = await _communityController.getCommunityInfo(
+        //   cmtyId: newCommunities.first.id,
+        // );
+        // 刷新社群详情
+        _communityChildPageKey.currentState?.refreshCommunityInfo(currentCommunityInfo!);
       }
     } catch (e) {
       print('加载社群列表失败: $e');
@@ -121,7 +126,9 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
           // 左侧社群列表
           _buildCommunityList(),
           // 右侧内容
-          Expanded(child: CommunityChildPage()),
+          Expanded(child: CommunityChildPage(
+            key: _communityChildPageKey,
+            cmty: currentCommunityInfo)),
         ],
       ),
     );

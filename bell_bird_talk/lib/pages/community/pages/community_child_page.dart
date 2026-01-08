@@ -1,4 +1,5 @@
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
@@ -12,22 +13,26 @@ import 'package:bell_bird_talk/pages/community/views/community_setting_view.dart
 import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 
 class CommunityChildPage extends StatefulWidget {
-  const CommunityChildPage({super.key});
+  final CommunityModel? cmty; // 社群ID（可选，可以从路由参数获取）
+  
+  const CommunityChildPage({super.key, this.cmty});
 
   @override
   State<StatefulWidget> createState() {
-    return _CommunityChildPageState();
+    return CommunityChildPageState();
   }
 }
 
-class _CommunityChildPageState extends State<CommunityChildPage> {
+class CommunityChildPageState extends State<CommunityChildPage> {
   final IOSNativeService _nativeService = IOSNativeService();
+  final CommunityController _controller = CommunityController.to;
 
   Map<String, List<String>> categories = {
     '文字频道': ['情感频道', '理财频道', '科技频道'],
@@ -37,6 +42,9 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
 
   // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
   String? _expandedCategory;
+
+
+  CommunityModel? _cmty;
 
   // 分类图标映射
   Map<String, IconData> categoryIcons = {
@@ -53,6 +61,39 @@ class _CommunityChildPageState extends State<CommunityChildPage> {
       return Icons.volume_up;
     } else {
       return Icons.chat;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void refreshCommunityInfo(CommunityModel cmty) {
+    _loadGroupsAndChannels(cmty);
+  }
+
+  /// 加载分组和频道数据
+  Future<void> _loadGroupsAndChannels(CommunityModel cmty) async {
+
+    try {
+      EasyLoading.show(status: '加载中...');
+      final result = await _controller.getCommunityGroupsWithChannels(
+        cmtyId: cmty.id,
+      );
+      
+      if (result.isNotEmpty) {
+        setState(() {
+          categories = result;
+        });
+      } else {
+        print('⚠️ 未获取到分组和频道数据');
+      }
+    } catch (e) {
+      print('❌ 加载分组和频道数据失败: $e');
+      EasyLoading.showError('加载失败');
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 

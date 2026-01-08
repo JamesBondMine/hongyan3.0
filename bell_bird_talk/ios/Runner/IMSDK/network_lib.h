@@ -1036,6 +1036,114 @@ NET_API int kick_community_member(CB_I_S_I_U cCallback, const char* data, int le
  */
 NET_API int get_community_banned_members(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
+/**
+ * 进入频道
+ * Topic: /im/CMTY/{channelId}/enterChannel
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 进入频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int enter_channel(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 退出频道
+ * Topic: /im/CMTY/{channelId}/leaveChannel
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 退出频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int leave_channel(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 查询频道在线用户
+ * Topic: /im/CMTY/{channelId}/getOnlineUsers
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_channel_online_users(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 获取频道列表
+ * Topic: /im/CMTY/{cmtyId}/channels
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_channels(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取分组列表
+ * Topic: /im/CMTY/{cmtyId}/listGroups
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int list_community_groups(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 创建频道
+ * Topic: /im/CMTY/{cmtyId}/createChannel
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 创建频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int create_channel(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 更新频道
+ * Topic: /im/CMTY/{channelId}/updateChannel
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 更新频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int update_channel(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 删除频道
+ * Topic: /im/CMTY/{channelId}/deleteChannel
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 删除频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int delete_channel(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 获取频道设置
+ * Topic: /im/CMTY/{channelId}/channelSettings
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_channel_settings(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
 // ============================================
 // 消息拉取接口
 // ============================================
