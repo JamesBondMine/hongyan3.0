@@ -356,6 +356,10 @@ class NativeBridgeHandler: NSObject {
             imGetChannels(call: call, result: result)
         case "imCreateChannel":
             imCreateChannel(call: call, result: result)
+        case "imUpdateChannel":
+            imUpdateChannel(call: call, result: result)
+        case "imDeleteChannel":
+            imDeleteChannel(call: call, result: result)
         case "imCreateChannelGroup":
             imCreateChannelGroup(call: call, result: result)
         case "imUpdateChannelGroup":
@@ -3827,6 +3831,58 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "CREATE_CHANNEL_ERROR",
                               message: "创建频道请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 更新频道
+    private func imUpdateChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let channelId = args["channelId"] as? String ?? ""
+        let channelName = args["channelName"] as? String
+        let pauseInvite = args["pauseInvite"] as? Bool
+        let muteAll = args["muteAll"] as? Bool
+        let notificationType = args["notificationType"] as? Int32
+        
+        print("📁 更新频道: channelId=\(channelId), channelName=\(channelName ?? ""), pauseInvite=\(pauseInvite?.description ?? "nil"), muteAll=\(muteAll?.description ?? "nil")")
+        
+        let code = IMSDKCommunityManager.shared().updateChannel(withChannelId: channelId, channelName: channelName, pauseInvite: pauseInvite ?? false, muteAll: muteAll ?? false, notificationType: notificationType ?? -1, completion: { errorCode, reqId, data in
+            print("📁 更新频道回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "更新成功" : "更新失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_CHANNEL_ERROR",
+                              message: "更新频道请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 删除频道
+    private func imDeleteChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let channelId = args["channelId"] as? String ?? ""
+        
+        print("📁 删除频道: channelId=\(channelId)")
+        
+        let code = IMSDKCommunityManager.shared().deleteChannel(withChannelId: channelId, completion: { errorCode, reqId, data in
+            print("📁 删除频道回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "删除成功" : "删除失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_CHANNEL_ERROR",
+                              message: "删除频道请求发送失败: \(code)",
                               details: nil))
         }
     }

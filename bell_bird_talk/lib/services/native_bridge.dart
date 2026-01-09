@@ -2322,6 +2322,82 @@ class IOSNativeService {
     }
   }
 
+  /// 更新频道
+  /// @param channelId 频道ID
+  /// @param channelName 频道名称（可选）
+  /// @param pauseInvite 是否暂停邀请（可选）
+  /// @param muteAll 是否禁止发言（可选）
+  /// @param notificationType 通知类型（可选）
+  /// @return 更新结果
+  Future<Map<String, dynamic>> imUpdateChannel({
+    required String channelId,
+    String? channelName,
+    bool? pauseInvite,
+    bool? muteAll,
+    int? notificationType,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'channelId': channelId,
+      };
+      if (channelName != null && channelName.isNotEmpty) {
+        params['channelName'] = channelName;
+      }
+      if (pauseInvite != null) {
+        params['pauseInvite'] = pauseInvite;
+      }
+      if (muteAll != null) {
+        params['muteAll'] = muteAll;
+      }
+      if (notificationType != null && notificationType >= 0) {
+        params['notificationType'] = notificationType;
+      }
+
+      final result = await _bridge.invokeMethod<Map>('imUpdateChannel', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imUpdateChannel', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imUpdateChannel', {
+        'channelId': channelId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 删除频道
+  /// @param channelId 频道ID
+  /// @return 删除结果
+  Future<Map<String, dynamic>> imDeleteChannel({
+    required String channelId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'channelId': channelId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imDeleteChannel', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imDeleteChannel', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imDeleteChannel', {
+        'channelId': channelId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 创建频道分组
   /// @param cmtyId 社群ID
   /// @param categoryName 分组名称

@@ -1,5 +1,6 @@
 
 
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
@@ -9,12 +10,12 @@ class ChannelSettingView extends StatelessWidget {
   final ValueChanged<int> onConfirm;
 
   /// 当前频道
-  String channelId;
+  ChannelModel channel;
   
   ChannelSettingView({
     super.key,
     required this.onConfirm,
-    required this.channelId,
+    required this.channel,
   });
 
 
@@ -22,7 +23,7 @@ class ChannelSettingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundB,
-      appBar:  CommonAppBarView(title: '# $channelId', appBarType: AppBarType.close,),
+      appBar:  CommonAppBarView(title: '# ${channel.channelName}', appBarType: AppBarType.close,),
       body: ListView(
         children: [
           _buildCard([

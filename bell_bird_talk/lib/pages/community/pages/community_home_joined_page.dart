@@ -313,7 +313,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
         EasyLoading.dismiss();
         EasyLoading.showSuccess('申请已提交，请等待审核');
         // 刷新页面
-        _loadCommunities();
+        _refreshController.requestRefresh();
       }
     }
   }

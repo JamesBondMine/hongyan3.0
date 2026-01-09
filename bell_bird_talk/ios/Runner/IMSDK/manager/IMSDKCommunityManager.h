@@ -85,6 +85,28 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
                       maxMembers:(int32_t)maxMembers
                       completion:(IMSDKCommunityCompletion)completion;
 
+/// 更新频道
+/// @param channelId 频道ID
+/// @param channelName 频道名称（可选）
+/// @param pauseInvite 是否暂停邀请（可选）
+/// @param muteAll 是否禁止发言（可选）
+/// @param notificationType 通知类型（可选）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)updateChannelWithChannelId:(NSString *)channelId
+                      channelName:(NSString * _Nullable)channelName
+                      pauseInvite:(BOOL)pauseInvite
+                      muteAll:(BOOL)muteAll
+                      notificationType:(int32_t)notificationType
+                      completion:(IMSDKCommunityCompletion)completion;
+
+/// 删除频道
+/// @param channelId 频道ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)deleteChannelWithChannelId:(NSString *)channelId
+                      completion:(IMSDKCommunityCompletion)completion;
+
 /// 创建频道分组
 /// @param cmtyId 社群ID
 /// @param categoryName 分组名称

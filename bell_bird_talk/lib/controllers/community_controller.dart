@@ -154,10 +154,11 @@ class CommunityController extends GetxController {
 
   /// 获取社群分组和频道（分组里嵌套频道）
   /// @param cmtyId 社群ID
-  /// @return 返回Map，包含：
-  ///   - 'categories': Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
-  ///   - 'categoryIdMap': Map<String, String>，key为分组名，value为分组ID
-  Future<Map<String, dynamic>> getCommunityGroupsWithChannels({
+  /// @return 返回 CommunityGChannels，包含：
+  ///   - categories: Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
+  ///   - categoryIdMap: Map<String, String>，key为分组名，value为分组ID
+  ///   - channels: List<ChannelModel>，所有频道列表（使用 ChannelModel 模型）
+  Future<CommunityGChannels> getCommunityGroupsWithChannels({
     required String cmtyId,
   }) async {
     try {
@@ -170,7 +171,11 @@ class CommunityController extends GetxController {
       
       if (groupsResult['errorCode'] != 0) {
         print('获取分组列表失败: ${groupsResult['message']}');
-        return {};
+        return CommunityGChannels(
+          categories: <String, List<String>>{},
+          categoryIdMap: <String, String>{},
+          channels: <ChannelModel>[],
+        );
       }
       
       // 解析分组列表
@@ -199,24 +204,37 @@ class CommunityController extends GetxController {
         print('获取频道列表失败: ${channelsResult['message']}');
         // 即使获取频道失败，也返回分组（频道为空）
         final result = _buildGroupsWithChannels(groupsList, []);
-        return {
-          'categories': result['categories'],
-          'categoryIdMap': result['categoryIdMap'],
-        };
+        return CommunityGChannels(
+          categories: result['categories'] as Map<String, List<String>>,
+          categoryIdMap: result['categoryIdMap'] as Map<String, String>,
+          channels: result['channels'] as List<ChannelModel>,
+        );
       }
       
       // 解析频道列表
       final channelsDataStr = channelsResult['data'] as String? ?? '';
-      List<dynamic> channelsList = [];
+      List<ChannelModel> channelsList = [];
       if (channelsDataStr.isNotEmpty) {
         try {
           final channelsData = json.decode(channelsDataStr);
           // 可能是数组或包含channels字段的对象
+          List<dynamic> channelsRawList = [];
           if (channelsData is List) {
-            channelsList = channelsData;
+            channelsRawList = channelsData;
           } else if (channelsData is Map && channelsData['channels'] != null) {
-            channelsList = channelsData['channels'] as List<dynamic>? ?? [];
+            channelsRawList = channelsData['channels'] as List<dynamic>? ?? [];
           }
+          
+          // 使用 ChannelModel 解析频道数据
+          channelsList = channelsRawList.map((item) {
+            if (item is Map<String, dynamic>) {
+              return ChannelModel.fromJson(item);
+            } else {
+              return ChannelModel.fromJson(Map<String, dynamic>.from(item));
+            }
+          }).toList();
+          
+          print('✅ 解析频道列表成功，共 ${channelsList.length} 个频道');
         } catch (e) {
           print('解析频道列表失败: $e');
         }
@@ -224,16 +242,18 @@ class CommunityController extends GetxController {
       
       // 3. 组合成分组嵌套频道的结构
       final result = _buildGroupsWithChannels(groupsList, channelsList);
-      return {
-        'categories': result['categories'],
-        'categoryIdMap': result['categoryIdMap'],
-      };
+      return CommunityGChannels(
+        categories: result['categories'] as Map<String, List<String>>,
+        categoryIdMap: result['categoryIdMap'] as Map<String, String>,
+        channels: result['channels'] as List<ChannelModel>,
+      );
     } catch (e) {
       print('获取分组和频道异常: $e');
-      return {
-        'categories': <String, List<String>>{},
-        'categoryIdMap': <String, String>{},
-      };
+      return CommunityGChannels(
+        categories: <String, List<String>>{},
+        categoryIdMap: <String, String>{},
+        channels: <ChannelModel>[],
+      );
     } finally {
       isLoading.value = false;
     }
@@ -241,13 +261,14 @@ class CommunityController extends GetxController {
 
   /// 构建分组嵌套频道的结构
   /// @param groupsList 分组列表
-  /// @param channelsList 频道列表
+  /// @param channelsList 频道列表（使用 ChannelModel）
   /// @return Map，包含：
   ///   - 'categories': Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
   ///   - 'categoryIdMap': Map<String, String>，key为分组名，value为分组ID
+  ///   - 'channels': List<ChannelModel>，所有频道列表
   Map<String, dynamic> _buildGroupsWithChannels(
     List<dynamic> groupsList,
-    List<dynamic> channelsList,
+    List<ChannelModel> channelsList,
   ) {
     final Map<String, List<String>> categories = {};
     final Map<String, String> categoryIdMap = {};
@@ -266,20 +287,9 @@ class CommunityController extends GetxController {
       // 查找该分组下的频道
       List<String> channelNames = [];
       for (var channel in channelsList) {
-        if (channel is! Map<String, dynamic>) continue;
-        
-        // 获取频道的分组ID（根据实际API返回的字段名调整）
-        final channelGroupId = channel['group_id']?.toString() ?? 
-                              channel['groupId']?.toString() ?? 
-                              channel['parent_id']?.toString() ?? '';
-        
         // 如果频道属于当前分组
-        if (channelGroupId == groupId || (groupId.isEmpty && channelGroupId.isEmpty)) {
-          final channelName = channel['name']?.toString() ?? 
-                             channel['channel_name']?.toString() ?? 
-                             channel['title']?.toString() ?? 
-                             '未命名频道';
-          channelNames.add(channelName);
+        if (channel.categoryId == groupId || (groupId.isEmpty && channel.categoryId.isEmpty)) {
+          channelNames.add(channel.channelName);
         }
       }
       
@@ -296,12 +306,7 @@ class CommunityController extends GetxController {
     if (categories.isEmpty && channelsList.isNotEmpty) {
       List<String> channelNames = [];
       for (var channel in channelsList) {
-        if (channel is! Map<String, dynamic>) continue;
-        final channelName = channel['name']?.toString() ?? 
-                           channel['channel_name']?.toString() ?? 
-                           channel['title']?.toString() ?? 
-                           '未命名频道';
-        channelNames.add(channelName);
+        channelNames.add(channel.channelName);
       }
       if (channelNames.isNotEmpty) {
         categories['默认分组'] = channelNames;
@@ -311,6 +316,7 @@ class CommunityController extends GetxController {
     return {
       'categories': categories,
       'categoryIdMap': categoryIdMap,
+      'channels': channelsList, // 返回完整的频道列表
     };
   }
 
@@ -351,6 +357,74 @@ class CommunityController extends GetxController {
       }
     } catch (e) {
       print('创建频道异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 更新频道
+  /// @param channelId 频道ID
+  /// @param channelName 频道名称（可选）
+  /// @param pauseInvite 是否暂停邀请（可选）
+  /// @param muteAll 是否禁止发言（可选）
+  /// @param notificationType 通知类型（可选）
+  /// @return 更新结果
+  Future<bool> updateChannel({
+    required String channelId,
+    String? channelName,
+    bool? pauseInvite,
+    bool? muteAll,
+    int? notificationType,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imUpdateChannel(
+        channelId: channelId,
+        channelName: channelName,
+        pauseInvite: pauseInvite,
+        muteAll: muteAll,
+        notificationType: notificationType,
+      );
+      
+      if (result['errorCode'] == 0) {
+        // 更新成功后，可以刷新分组和频道列表
+        return true;
+      } else {
+        print('更新频道失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('更新频道异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 删除频道
+  /// @param channelId 频道ID
+  /// @return 删除结果
+  Future<bool> deleteChannel({
+    required String channelId,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imDeleteChannel(
+        channelId: channelId,
+      );
+      
+      if (result['errorCode'] == 0) {
+        // 删除成功后，可以刷新分组和频道列表
+        return true;
+      } else {
+        print('删除频道失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('删除频道异常: $e');
       return false;
     } finally {
       isLoading.value = false;

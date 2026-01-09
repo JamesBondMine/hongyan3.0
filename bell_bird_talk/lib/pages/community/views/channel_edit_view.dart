@@ -1,20 +1,24 @@
 
 
+import 'package:bell_bird_talk/controllers/community_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
+import 'package:get/state_manager.dart';
 
 class ChannelEditView extends StatefulWidget {
 
   final ValueChanged<int> onConfirm;
 
   /// 当前频道
-  String channelId;
+  ChannelModel channel;
   
   ChannelEditView({
     super.key,
     required this.onConfirm,
-    required this.channelId,
+    required this.channel,
   });
   
   @override
@@ -32,7 +36,7 @@ class _ChannelEditViewState extends State<ChannelEditView> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _channelNameController.text = widget.channelId;
+    _channelNameController.text = widget.channel.channelName;
   }
 
 
@@ -49,7 +53,7 @@ class _ChannelEditViewState extends State<ChannelEditView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundB,
-      appBar:  CommonAppBarView(title: '# ${widget.channelId}', appBarType: AppBarType.close,),
+      appBar:  CommonAppBarView(title: '# ${widget.channel.channelName}', appBarType: AppBarType.close,),
       body: ListView(
         children: [
           _buildChannelNameField(),
@@ -58,7 +62,7 @@ class _ChannelEditViewState extends State<ChannelEditView> {
           }),
           _buildCell('禁止发言', '禁止发言后，除超级管理员和频道创建人外，其他成员不可在频道中发言', true, (value) {
 
-          })
+          }),
         ]
       )
     );
@@ -108,6 +112,13 @@ class _ChannelEditViewState extends State<ChannelEditView> {
               fontSize: 16,
               color: GbsColors.des1Color,
             ),
+            onSubmitted: (value) {
+              CommunityController.to.updateChannel(channelId:   widget.channel.channelId, channelName: value ).then((value) {
+
+                widget.onConfirm(1);
+                Get.back();
+              });
+            },
             decoration: InputDecoration(
               hintText: '请输入频道名称',
               hintStyle: TextStyle(

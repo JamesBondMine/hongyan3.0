@@ -34,14 +34,12 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   final IOSNativeService _nativeService = IOSNativeService();
   final CommunityController _controller = CommunityController.to;
 
-  Map<String, List<String>> categories = {
-    '文字频道': ['情感频道', '理财频道', '科技频道'],
-    '语音频道': ['语音聊天1', '语音聊天2'],
-    '分类C': ['频道5', '频道6'],
-  };
-
-  // 分组ID和分组名称的映射关系（用于创建频道时获取分组ID）
-  Map<String, String> categoryIdMap = {}; // key: 分组名称, value: 分组ID
+  // 分组和频道数据
+  CommunityGChannels? groupsWithChannels;
+  
+  // 兼容旧代码的访问方式
+  Map<String, List<String>> get categories => groupsWithChannels?.categories ?? {};
+  Map<String, String> get categoryIdMap => groupsWithChannels?.categoryIdMap ?? {};
 
   // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
   String? _expandedCategory;
@@ -57,7 +55,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   };
 
   // 获取频道图标
-  IconData getChannelIcon(String category, String channel) {
+  IconData getChannelIcon(String category, ChannelModel channel) {
     if (category == '文字频道') {
       return Icons.tag; // # 符号
     } else if (category == '语音频道') {
@@ -86,11 +84,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         cmtyId: cmty.id,
       );
       EasyLoading.dismiss();
-      if (result['categories'] != null && (result['categories'] as Map).isNotEmpty) {
+      if (result.isNotEmpty) {
         setState(() {
-          categories = Map<String, List<String>>.from(result['categories']);
-          categoryIdMap = Map<String, String>.from(result['categoryIdMap'] ?? {});
+          groupsWithChannels = result;
         });
+        print('✅ 加载分组和频道数据成功: ${result.categories.length} 个分组, ${result.channels.length} 个频道');
       } else {
         print('⚠️ 未获取到分组和频道数据');
       }
@@ -218,7 +216,8 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories.keys.elementAt(index);
-              final channels = categories[category]!;
+              // 使用 model 的方法获取该分组下的频道列表
+              List<ChannelModel> channels = groupsWithChannels?.getChannelsByCategory(category) ?? [];
               final isExpanded = _expandedCategory == category;
 
               return _buildCategorySection(category, channels, isExpanded);
@@ -230,7 +229,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 编辑频道
-  void _showChannelEditView(String channel) {
+  void _showChannelEditView(ChannelModel channel) {
     gbs.shower.showScreenViewCustom(
       context,
       Get.height - 260,
@@ -244,13 +243,16 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             topRight: Radius.circular(12),
           ),
         ),
-        child: ChannelEditView(onConfirm: (value) {}, channelId: channel),
+        child: ChannelEditView(onConfirm: (value) {
+          // 编辑成功后刷新
+          _loadGroupsAndChannels(_cmty!);
+        }, channel: channel),
       ),
     );
   }
 
   // 频道设置
-  void _showChannelSettingView(String channel) {
+  void _showChannelSettingView(ChannelModel channel) {
     gbs.shower.showScreenViewCustom(
       context,
       Get.height - 260,
@@ -265,7 +267,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
         ),
         child: ChannelSettingView(
-          channelId: channel,
+          channel: channel,
           onConfirm: (value) {
             switch (value) {
               case 1:
@@ -357,7 +359,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 删除频道
-  void _showDeleteChannelView(String channel) async {
+  void _showDeleteChannelView(ChannelModel channel) async {
     final result = await _nativeService.showNativeAlert(
       title: '删除频道',
       message: '确定要删除此频道吗？',
@@ -374,9 +376,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   // 离开社群
   void _showLeaveCommunityView() async {
     final result = await _nativeService.showNativeAlert(
-      title: '退出登录',
-      message: '确定要退出当前账号吗？',
-      confirmText: '退出',
+      title: '离开社群',
+      message: '确定要退出当前账号吗？离开后只能通过邀请链接进入',
+      confirmText: '离开',
       cancelText: '取消',
       showCancel: true,
     );
@@ -567,7 +569,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   /// 构建分类区域
   Widget _buildCategorySection(
     String category,
-    List<String> channels,
+    List<ChannelModel> channels,
     bool isExpanded,
   ) {
     return ExpansionTile(
@@ -701,7 +703,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   /// 构建频道项
-  Widget _buildChannelItem(String category, String channel) {
+  Widget _buildChannelItem(String category, ChannelModel channel) {
     return InkWell(
       onLongPress: () {
         _showChannelSettingView(channel);
@@ -731,7 +733,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                channel,
+                channel.channelName,
                 style: TextStyle(
                   fontSize: 14,
                   color: GbsColors.lightTitlePrimary,
