@@ -73,6 +73,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   void refreshCommunityInfo(CommunityModel cmty) {
+    _cmty = cmty;
     _loadGroupsAndChannels(cmty);
   }
 
@@ -84,7 +85,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       final result = await _controller.getCommunityGroupsWithChannels(
         cmtyId: cmty.id,
       );
-      
+      EasyLoading.dismiss();
       if (result['categories'] != null && (result['categories'] as Map).isNotEmpty) {
         setState(() {
           categories = Map<String, List<String>>.from(result['categories']);
@@ -454,21 +455,22 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
               EasyLoading.show(status: '正在创建分组...');
 
-              // try {
-              //   final result = await _nativeService.imCreateContactGroup(
-              //     groupName: gname,
-              //   );
-              //   if (result['errorCode'] == 0) {
-              //     // 刷新分组列表
-              //     await _loadFriendGroups(refresh: true);
-              //     EasyLoading.showSuccess('分组创建成功');
-              //   } else {
-              //     EasyLoading.showError(result['message'] ?? '创建失败');
-              //   }
-              // } catch (e) {
-              //   print('创建分组错误: $e');
-              //   EasyLoading.showError('创建失败，请稍后重试');
-              // }
+              try {
+                bool result = await CommunityController.to.createChannelGroup(cmtyId: _cmty!.id, categoryName: gname);
+                 EasyLoading.dismiss();
+                if (result == true) {
+                  // 刷新分组列表
+                  _loadGroupsAndChannels(_cmty!);
+                  EasyLoading.showSuccess('分组创建成功');
+                } else {
+                  EasyLoading.showError('创建失败');
+                }
+              } catch (e) {
+                EasyLoading.dismiss();
+                print('创建分组错误: $e');
+                EasyLoading.showError('创建失败，请稍后重试');
+
+              }
             },
           ),
         );

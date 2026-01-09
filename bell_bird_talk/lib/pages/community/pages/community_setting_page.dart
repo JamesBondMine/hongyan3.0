@@ -1,5 +1,6 @@
 
 import 'package:bell_bird_talk/pages/community/pages/community_member_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_roles_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class CommunitySettingPage extends StatelessWidget {
           },),
           _buildDivider(),
           _buildElement('角色', 'setting_set', () {  
+            Get.to(CommunityRolesPage());
           },),
           _buildDivider(),
           _buildElement('邀请', 'setting_invate', () {  

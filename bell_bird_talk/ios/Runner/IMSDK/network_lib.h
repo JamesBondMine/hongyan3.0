@@ -965,16 +965,16 @@ NET_API int get_community_online_count(CB_I_S_I_U cCallback, const char* data, i
 NET_API int search_community(CB_I_S_I_U cCallback, const char* data, int len, uint64_t &reqId);
 
 /**
- * 社群发言
+ * 频道发言
  * Topic: /im/CMTY/{cmtyId}/send
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
- * @param data 社群发言参数（序列化后的数据）
+ * @param data 频道发言参数（序列化后的数据）
  * @param len 数据长度
  * @param cmtyId 社群ID
  * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
  * @return 0表示成功，其它表示错误码
  */
-NET_API int send_community_message(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+NET_API int send_channel_message(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
 /**
  * 申诉封禁

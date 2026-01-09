@@ -279,10 +279,45 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                 message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
                 completion(errorCode, reqId, message);
             } else {
-                // 成功时返回响应数据
+                // 成功时解析 CmtyChannelList 对象
                 if (responseData && responseData.length > 0) {
-                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                    NSLog(@"✅ 获取频道列表响应: %@", dataStr);
+                    NSError *parseError = nil;
+                    CmtyChannelList *result = [CmtyChannelList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        NSMutableArray *channels = [NSMutableArray array];
+                        if (result.channelsArray) {
+                            for (CmtyChannel *channel in result.channelsArray) {
+                                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                                dict[@"channel_id"] = channel.channelId ?: @"";
+                                dict[@"community_id"] = channel.communityId ?: @"";
+                                dict[@"category_id"] = channel.categoryId ?: @"";
+                                dict[@"channel_name"] = channel.channelName ?: @"";
+                                dict[@"channel_type"] = @(channel.channelType);
+                                dict[@"description"] = channel.description_p ?: @"";
+                                dict[@"member_count"] = @(channel.memberCount);
+                                dict[@"max_members"] = @(channel.maxMembers);
+                                dict[@"pause_invite"] = @(channel.pauseInvite);
+                                dict[@"mute_all"] = @(channel.muteAll);
+                                dict[@"notification_type"] = @(channel.notificationType);
+                                dict[@"created_at"] = @(channel.createdAt);
+                                dict[@"updated_at"] = @(channel.updatedAt);
+                                [channels addObject:dict];
+                            }
+                        }
+                        
+                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                        json[@"channels"] = channels;
+                        
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 获取频道列表响应解析成功: %@", dataStr);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
                 }
                 completion(errorCode, reqId, dataStr);
             }
@@ -622,16 +657,13 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
                       description:(NSString *)description
                       maxMembers:(int32_t)maxMembers
                       completion:(IMSDKCommunityCompletion)completion {
-    NSLog(@"📁 创建频道: cmtyId=%@, categoryId=%@, channelName=%@, channelType=%d", cmtyId, categoryId, channelName, channelType);
-    
-    if (!cmtyId || cmtyId.length == 0 || !categoryId || categoryId.length == 0 || !channelName || channelName.length == 0) {
-        return -1; // 参数错误
-    }
+  
     
     CmtyCreateChannel *createReq = [CmtyCreateChannel message];
     createReq.communityId = cmtyId;
-    createReq.categoryId = categoryId;
-    createReq.channelName = channelName;
+    if (categoryId != nil && categoryId != @"") {
+        createReq.categoryId = categoryId;
+    }    createReq.channelName = channelName;
     createReq.channelType = (CmtyChannelType)channelType;
     if (description && description.length > 0) {
         createReq.description_p = description;
@@ -639,6 +671,8 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     if (maxMembers > 0) {
         createReq.maxMembers = maxMembers;
     }
+    
+    NSLog(@"📁 创建频道: cmtyId=%@, categoryId=%@, channelName=%@, channelType=%d", createReq.communityId, createReq.categoryId, createReq.channelName, createReq.channelType);
     
     NSData *protoData = [createReq data];
     

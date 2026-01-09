@@ -185,6 +185,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                     currentCommunityInfo = cm;
                     _selectedCommunityIndex = index;
                   });
+                  _communityChildPageKey.currentState?.refreshCommunityInfo(cm);
                   currentCommunityInfo = await _communityController
                       .getCommunityInfo(cmtyId: cm.id);
                 },
