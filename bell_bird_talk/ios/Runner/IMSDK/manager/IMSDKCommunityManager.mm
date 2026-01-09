@@ -248,8 +248,35 @@ static void GetCommunityGroupsCallback(int errorCode, const char* data, int data
             } else {
                 // 成功时返回响应数据
                 if (responseData && responseData.length > 0) {
-                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                    NSLog(@"✅ 获取分组列表响应: %@", dataStr);
+                    NSError *parseError = nil;
+                    CmtyCategoryList *result = [CmtyCategoryList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        NSMutableArray *categories = [NSMutableArray array];
+                        if (result.categoriesArray) {
+                            for (CmtyCategory *category in result.categoriesArray) {
+                                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                                dict[@"category_id"] = category.categoryId ?: @"";
+                                dict[@"community_id"] = category.communityId ?: @"";
+                                dict[@"category_name"] = category.categoryName ?: @"";
+                                dict[@"description"] = category.description ?: @"";
+                                dict[@"created_at"] = @(category.createdAt);
+                                dict[@"updated_at"] = @(category.updatedAt);
+                                [categories addObject:dict];
+                            }
+                        }
+                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                        json[@"categories"] = categories;
+                        
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 获取分组列表响应解析成功: %@", dataStr);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
                 }
                 completion(errorCode, reqId, dataStr);
             }
@@ -417,6 +444,39 @@ static void DeleteChannelCallback(int errorCode, const char* data, int dataLen, 
                 if (responseData && responseData.length > 0) {
                     dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
                     NSLog(@"✅ 删除频道响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 进入频道回调
+static void EnterChannelCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 进入频道回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 进入频道响应: %@", dataStr);
                 }
                 completion(errorCode, reqId, dataStr);
             }
@@ -815,6 +875,37 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     uint64_t reqId = 0;
     int code = delete_channel(
         DeleteChannelCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [channelId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)enterChannelWithChannelId:(NSString *)channelId
+                      completion:(IMSDKCommunityCompletion)completion {
+    
+    if (!channelId || channelId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 进入频道可能不需要额外的参数，只需要 channelId
+    // 创建一个空的 message 或者使用 CmtyDeleteChannel（因为它们结构相同，只需要 channelId）
+    CmtyDeleteChannel *enterReq = [CmtyDeleteChannel message];
+    enterReq.channelId = channelId;
+    
+    NSLog(@"📁 进入频道: channelId=%@", channelId);
+    
+    NSData *protoData = [enterReq data];
+    
+    uint64_t reqId = 0;
+    int code = enter_channel(
+        EnterChannelCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [channelId UTF8String],

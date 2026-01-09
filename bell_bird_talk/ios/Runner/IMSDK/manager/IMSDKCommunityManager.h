@@ -107,6 +107,13 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
 - (int)deleteChannelWithChannelId:(NSString *)channelId
                       completion:(IMSDKCommunityCompletion)completion;
 
+/// 进入频道
+/// @param channelId 频道ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)enterChannelWithChannelId:(NSString *)channelId
+                      completion:(IMSDKCommunityCompletion)completion;
+
 /// 创建频道分组
 /// @param cmtyId 社群ID
 /// @param categoryName 分组名称

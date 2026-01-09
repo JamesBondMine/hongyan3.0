@@ -55,14 +55,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   };
 
   // 获取频道图标
-  IconData getChannelIcon(String category, ChannelModel channel) {
-    if (category == '文字频道') {
-      return Icons.tag; // # 符号
-    } else if (category == '语音频道') {
-      return Icons.volume_up;
-    } else {
-      return Icons.chat;
+  String getChannelIcon(ChannelModel channel) {
+    if (channel.channelType == 0) {
+      return 'assets/img/community/channel_txt.png'; // # 符号
     }
+    return 'assets/img/community/channel_txt.png';
   }
 
   @override
@@ -709,10 +706,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         _showChannelSettingView(channel);
       },
       onTap: () {
-        // 处理频道点击
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('点击了 $channel')));
+        _enterChannel(channel);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -725,11 +719,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         ),
         child: Row(
           children: [
-            Icon(
-              getChannelIcon(category, channel),
-              size: 16,
-              color: GbsColors.des6Color,
-            ),
+            Image.asset(getChannelIcon(channel), width: 16, height: 16,),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -744,5 +734,13 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         ),
       ),
     );
+  }
+
+  // 进入频道
+  void _enterChannel(ChannelModel channel) async {
+    bool res = await CommunityController.to.enterChannel(channelId: channel.channelId);
+    if (res) {
+      print('');
+    }
   }
 }

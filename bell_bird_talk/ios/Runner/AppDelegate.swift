@@ -360,6 +360,8 @@ class NativeBridgeHandler: NSObject {
             imUpdateChannel(call: call, result: result)
         case "imDeleteChannel":
             imDeleteChannel(call: call, result: result)
+        case "imEnterChannel":
+            imEnterChannel(call: call, result: result)
         case "imCreateChannelGroup":
             imCreateChannelGroup(call: call, result: result)
         case "imUpdateChannelGroup":
@@ -3883,6 +3885,30 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "DELETE_CHANNEL_ERROR",
                               message: "删除频道请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 进入频道
+    private func imEnterChannel(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let channelId = args["channelId"] as? String ?? ""
+        
+        print("📁 进入频道: channelId=\(channelId)")
+        
+        let code = IMSDKCommunityManager.shared().enterChannel(withChannelId: channelId, completion: { errorCode, reqId, data in
+            print("📁 进入频道回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "进入成功" : "进入失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "ENTER_CHANNEL_ERROR",
+                              message: "进入频道请求发送失败: \(code)",
                               details: nil))
         }
     }

@@ -185,10 +185,8 @@ class CommunityController extends GetxController {
         try {
           final groupsData = json.decode(groupsDataStr);
           // 可能是数组或包含groups字段的对象
-          if (groupsData is List) {
-            groupsList = groupsData;
-          } else if (groupsData is Map && groupsData['groups'] != null) {
-            groupsList = groupsData['groups'] as List<dynamic>? ?? [];
+          if (groupsData is Map && groupsData['categories'] != null) {
+            groupsList = groupsData['categories'] as List<dynamic>? ?? [];
           }
         } catch (e) {
           print('解析分组列表失败: $e');
@@ -425,6 +423,34 @@ class CommunityController extends GetxController {
       }
     } catch (e) {
       print('删除频道异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 进入频道
+  /// @param channelId 频道ID
+  /// @return 进入结果
+  Future<bool> enterChannel({
+    required String channelId,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imEnterChannel(
+        channelId: channelId,
+      );
+      
+      if (result['errorCode'] == 0) {
+        // 进入成功后，可以执行后续操作（如跳转到频道聊天页面）
+        return true;
+      } else {
+        print('进入频道失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('进入频道异常: $e');
       return false;
     } finally {
       isLoading.value = false;

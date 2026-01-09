@@ -2398,6 +2398,34 @@ class IOSNativeService {
     }
   }
 
+  /// 进入频道
+  /// @param channelId 频道ID
+  /// @return 进入结果
+  Future<Map<String, dynamic>> imEnterChannel({
+    required String channelId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'channelId': channelId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imEnterChannel', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imEnterChannel', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imEnterChannel', {
+        'channelId': channelId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 创建频道分组
   /// @param cmtyId 社群ID
   /// @param categoryName 分组名称
