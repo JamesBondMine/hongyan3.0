@@ -1097,6 +1097,66 @@ NET_API int get_channels(CB_I_S_I_U cCallback, const char* data, int len, const 
 NET_API int list_community_groups(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
 /**
+ * 创建频道分组
+ * Topic: /im/CMTY/{cmtyId}/createChannelGroup
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 创建频道分组参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int create_channel_group(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 更新频道分组
+ * Topic: /im/CMTY/{cmtyId}/updateChannelGroup
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 更新频道分组参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int update_channel_group(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 删除频道分组
+ * Topic: /im/CMTY/{cmtyId}/deleteChannelGroup
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 删除频道分组参数（序列化后的数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int delete_channel_group(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 移动频道到分组
+ * Topic: /im/CMCH/{channelId}/moveToGroup
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 移动频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int move_channel_to_group(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
+ * 从分组移除频道
+ * Topic: /im/CMCH/{channelId}/removeFromGroup
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 移除频道参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int remove_channel_from_group(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
+/**
  * 创建频道
  * Topic: /im/CMTY/{cmtyId}/createChannel
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）

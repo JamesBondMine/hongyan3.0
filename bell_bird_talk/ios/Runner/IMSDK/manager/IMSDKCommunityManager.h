@@ -85,6 +85,35 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
                       maxMembers:(int32_t)maxMembers
                       completion:(IMSDKCommunityCompletion)completion;
 
+/// 创建频道分组
+/// @param cmtyId 社群ID
+/// @param categoryName 分组名称
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)createChannelGroupWithCmtyId:(NSString *)cmtyId
+                        categoryName:(NSString *)categoryName
+                          completion:(IMSDKCommunityCompletion)completion;
+
+/// 更新频道分组
+/// @param cmtyId 社群ID
+/// @param categoryId 分组ID
+/// @param categoryName 分组名称
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)updateChannelGroupWithCmtyId:(NSString *)cmtyId
+                          categoryId:(NSString *)categoryId
+                        categoryName:(NSString *)categoryName
+                          completion:(IMSDKCommunityCompletion)completion;
+
+/// 删除频道分组
+/// @param cmtyId 社群ID
+/// @param categoryId 分组ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)deleteChannelGroupWithCmtyId:(NSString *)cmtyId
+                          categoryId:(NSString *)categoryId
+                          completion:(IMSDKCommunityCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

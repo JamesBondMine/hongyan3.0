@@ -356,6 +356,12 @@ class NativeBridgeHandler: NSObject {
             imGetChannels(call: call, result: result)
         case "imCreateChannel":
             imCreateChannel(call: call, result: result)
+        case "imCreateChannelGroup":
+            imCreateChannelGroup(call: call, result: result)
+        case "imUpdateChannelGroup":
+            imUpdateChannelGroup(call: call, result: result)
+        case "imDeleteChannelGroup":
+            imDeleteChannelGroup(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -3821,6 +3827,82 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "CREATE_CHANNEL_ERROR",
                               message: "创建频道请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 创建频道分组
+    private func imCreateChannelGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let categoryName = args["categoryName"] as? String ?? ""
+        
+        print("📁 创建频道分组: cmtyId=\(cmtyId), categoryName=\(categoryName)")
+        
+        let code = IMSDKCommunityManager.shared().createChannelGroup(withCmtyId: cmtyId, categoryName: categoryName, completion: { errorCode, reqId, data in
+            print("📁 创建频道分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "创建成功" : "创建失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "CREATE_CHANNEL_GROUP_ERROR",
+                              message: "创建频道分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 更新频道分组
+    private func imUpdateChannelGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let categoryId = args["categoryId"] as? String ?? ""
+        let categoryName = args["categoryName"] as? String ?? ""
+        
+        print("📁 更新频道分组: cmtyId=\(cmtyId), categoryId=\(categoryId), categoryName=\(categoryName)")
+        
+        let code = IMSDKCommunityManager.shared().updateChannelGroup(withCmtyId: cmtyId, categoryId: categoryId, categoryName: categoryName, completion: { errorCode, reqId, data in
+            print("📁 更新频道分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "更新成功" : "更新失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_CHANNEL_GROUP_ERROR",
+                              message: "更新频道分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 删除频道分组
+    private func imDeleteChannelGroup(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let categoryId = args["categoryId"] as? String ?? ""
+        
+        print("📁 删除频道分组: cmtyId=\(cmtyId), categoryId=\(categoryId)")
+        
+        let code = IMSDKCommunityManager.shared().deleteChannelGroup(withCmtyId: cmtyId, categoryId: categoryId, completion: { errorCode, reqId, data in
+            print("📁 删除频道分组回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "删除成功" : "删除失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "DELETE_CHANNEL_GROUP_ERROR",
+                              message: "删除频道分组请求发送失败: \(code)",
                               details: nil))
         }
     }

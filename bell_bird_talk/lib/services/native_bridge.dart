@@ -2322,6 +2322,106 @@ class IOSNativeService {
     }
   }
 
+  /// 创建频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryName 分组名称
+  /// @return 创建结果
+  Future<Map<String, dynamic>> imCreateChannelGroup({
+    required String cmtyId,
+    required String categoryName,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'categoryName': categoryName,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imCreateChannelGroup', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imCreateChannelGroup', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imCreateChannelGroup', {
+        'cmtyId': cmtyId,
+        'categoryName': categoryName,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 更新频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分组ID
+  /// @param categoryName 分组名称
+  /// @return 更新结果
+  Future<Map<String, dynamic>> imUpdateChannelGroup({
+    required String cmtyId,
+    required String categoryId,
+    required String categoryName,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+        'categoryName': categoryName,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imUpdateChannelGroup', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imUpdateChannelGroup', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imUpdateChannelGroup', {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+        'categoryName': categoryName,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 删除频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分组ID
+  /// @return 删除结果
+  Future<Map<String, dynamic>> imDeleteChannelGroup({
+    required String cmtyId,
+    required String categoryId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imDeleteChannelGroup', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imDeleteChannelGroup', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imDeleteChannelGroup', {
+        'cmtyId': cmtyId,
+        'categoryId': categoryId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 注销用户
   /// @param userId 用户ID（必填）
   /// @param reason 注销原因（可选）

@@ -357,4 +357,97 @@ class CommunityController extends GetxController {
     }
   }
 
+  /// 创建频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryName 分组名称
+  /// @return 创建结果
+  Future<bool> createChannelGroup({
+    required String cmtyId,
+    required String categoryName,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imCreateChannelGroup(
+        cmtyId: cmtyId,
+        categoryName: categoryName,
+      );
+      
+      if (result['errorCode'] == 0) {
+        return true;
+      } else {
+        print('创建频道分组失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('创建频道分组异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 更新频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分组ID
+  /// @param categoryName 分组名称
+  /// @return 更新结果
+  Future<bool> updateChannelGroup({
+    required String cmtyId,
+    required String categoryId,
+    required String categoryName,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imUpdateChannelGroup(
+        cmtyId: cmtyId,
+        categoryId: categoryId,
+        categoryName: categoryName,
+      );
+      
+      if (result['errorCode'] == 0) {
+        return true;
+      } else {
+        print('更新频道分组失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('更新频道分组异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 删除频道分组
+  /// @param cmtyId 社群ID
+  /// @param categoryId 分组ID
+  /// @return 删除结果
+  Future<bool> deleteChannelGroup({
+    required String cmtyId,
+    required String categoryId,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      final result = await _nativeService.imDeleteChannelGroup(
+        cmtyId: cmtyId,
+        categoryId: categoryId,
+      );
+      
+      if (result['errorCode'] == 0) {
+        return true;
+      } else {
+        print('删除频道分组失败: ${result['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('删除频道分组异常: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
 }

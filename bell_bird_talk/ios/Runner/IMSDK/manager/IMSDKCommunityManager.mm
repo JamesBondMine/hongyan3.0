@@ -324,6 +324,105 @@ static void CreateChannelCallback(int errorCode, const char* data, int dataLen, 
     });
 }
 
+/// 创建频道分组回调
+static void CreateChannelGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 创建频道分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 创建频道分组响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 更新频道分组回调
+static void UpdateChannelGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 更新频道分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 更新频道分组响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 删除频道分组回调
+static void DeleteChannelGroupCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📁 删除频道分组回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                    NSLog(@"✅ 删除频道分组响应: %@", dataStr);
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现 ====================
 
 @implementation IMSDKCommunityManager
@@ -546,6 +645,98 @@ static void CreateChannelCallback(int errorCode, const char* data, int dataLen, 
     uint64_t reqId = 0;
     int code = create_channel(
         CreateChannelCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+#pragma mark - 频道分组管理
+
+- (int)createChannelGroupWithCmtyId:(NSString *)cmtyId
+                        categoryName:(NSString *)categoryName
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 创建频道分组: cmtyId=%@, categoryName=%@", cmtyId, categoryName);
+    
+    if (!cmtyId || cmtyId.length == 0 || !categoryName || categoryName.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    CmtyCreateCategory *createReq = [CmtyCreateCategory message];
+    createReq.communityId = cmtyId;
+    createReq.categoryName = categoryName;
+    
+    NSData *protoData = [createReq data];
+    
+    uint64_t reqId = 0;
+    int code = create_channel_group(
+        CreateChannelGroupCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)updateChannelGroupWithCmtyId:(NSString *)cmtyId
+                          categoryId:(NSString *)categoryId
+                        categoryName:(NSString *)categoryName
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 更新频道分组: cmtyId=%@, categoryId=%@, categoryName=%@", cmtyId, categoryId, categoryName);
+    
+    if (!cmtyId || cmtyId.length == 0 || !categoryId || categoryId.length == 0 || !categoryName || categoryName.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    CmtyUpdateCategory *updateReq = [CmtyUpdateCategory message];
+    updateReq.categoryId = categoryId;
+    updateReq.categoryName = categoryName;
+    
+    NSData *protoData = [updateReq data];
+    
+    uint64_t reqId = 0;
+    int code = update_channel_group(
+        UpdateChannelGroupCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)deleteChannelGroupWithCmtyId:(NSString *)cmtyId
+                          categoryId:(NSString *)categoryId
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📁 删除频道分组: cmtyId=%@, categoryId=%@", cmtyId, categoryId);
+    
+    if (!cmtyId || cmtyId.length == 0 || !categoryId || categoryId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    CmtyDeleteCategory *deleteReq = [CmtyDeleteCategory message];
+    deleteReq.categoryId = categoryId;
+    
+    NSData *protoData = [deleteReq data];
+    
+    uint64_t reqId = 0;
+    int code = delete_channel_group(
+        DeleteChannelGroupCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],
