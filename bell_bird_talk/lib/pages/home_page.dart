@@ -131,24 +131,6 @@ class _HomePageState extends State<HomePage> {
   
   /// 处理收到的消息
   void _handleReceivedMessage(Map<String, dynamic> message) async {
-    print('📨 首页收到消息: $message');
-
-    /// 📨 首页收到消息: 
-    /// { 
-    /// ext: local_1766476862125_736, 
-    /// send_time: 1766476862209, 
-    /// to: JMFMW7ZY, 
-    /// server_msg_id: msg_6e3339f0c7134a0384bb0922cc6c7cd0, 
-    /// m_type: 0, conversation_seq: 10, 
-    /// conversation_id: 0732485658392742, 
-    /// content: 技术同事正在抢修, 
-    /// server_seq: 658579808980045824, 
-    /// conv_type: 0, 
-    /// receive_time: 1766476862276, 
-    /// msg_id: 791213767485759488, 
-    /// store_time: 0, nick: , 
-    /// from: RZNC9ZYS, conversation_type: 0}
-    
     final convType = message['conv_type'] as int?;
     final content = message['content'] as String?;
     final from = message['from'] as String?;

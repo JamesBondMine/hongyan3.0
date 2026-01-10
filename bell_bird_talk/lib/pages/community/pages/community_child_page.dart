@@ -81,14 +81,10 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         cmtyId: cmty.id,
       );
       EasyLoading.dismiss();
-      if (result.isNotEmpty) {
-        setState(() {
+       setState(() {
           groupsWithChannels = result;
         });
         print('✅ 加载分组和频道数据成功: ${result.categories.length} 个分组, ${result.channels.length} 个频道');
-      } else {
-        print('⚠️ 未获取到分组和频道数据');
-      }
     } catch (e) {
       print('❌ 加载分组和频道数据失败: $e');
       EasyLoading.showError('加载失败');
@@ -747,7 +743,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   void _enterChannel(ChannelModel channel) async {
     bool res = await CommunityController.to.enterChannel(channelId: channel.channelId);
     if (res) {
-      print('');
+      CommunityController.to.startChat(channel.channelId, channel.channelName);
     }
   }
 }

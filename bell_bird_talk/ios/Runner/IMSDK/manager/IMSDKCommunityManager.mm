@@ -326,6 +326,8 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                                 dict[@"created_at"] = @(channel.createdAt);
                                 dict[@"updated_at"] = @(channel.updatedAt);
                                 [channels addObject:dict];
+                                
+                                NSLog(@"组装频道数据: %@", channel.channelName);
                             }
                         }
                         

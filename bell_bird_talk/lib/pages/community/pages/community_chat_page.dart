@@ -726,7 +726,7 @@ class _CommunityChatPageState extends State<CommunityChatPage> {
     }
   }
 
-  /// 发送普通文本消息
+  /// 发送普通文本消息（频道发言）
   Future<void> _sendNormalTextMessage(String text) async {
     final message = ChatMessage.text(
       convId: widget.convId,
@@ -742,8 +742,66 @@ class _CommunityChatPageState extends State<CommunityChatPage> {
     _messageController.clear();
     _atMembers.clear(); // 清空@成员列表
 
-    // 通过队列发送（持久化 + 状态统一处理）
-    await _messageQueue.sendMessage(message);
+    // 频道发言：直接调用频道发言接口
+    try {
+      // 保存消息到数据库
+      await _messageDatabase.insertMessage(message);
+      
+      // 更新消息状态为发送中
+      message.status = MessageStatus.sending;
+      await _messageDatabase.updateMessageStatus(message.localId, MessageStatus.sending);
+      
+      // 调用频道发言接口
+      // widget.targetUserId 就是社群ID（cmtyId）
+      final result = await _nativeService.imSendChannelMessage(
+        content: text,
+        cmtyId: widget.convId,
+        ext: message.ext,
+      );
+      
+      if (result['errorCode'] == 0) {
+        // 更新消息状态为已发送
+        message.status = MessageStatus.sent;
+        message.sentAt = DateTime.now().millisecondsSinceEpoch;
+        
+        // 更新服务器消息ID
+        if (result['data'] != null) {
+          try {
+            final dataStr = result['data'] as String?;
+            if (dataStr != null && dataStr.isNotEmpty) {
+              final data = json.decode(dataStr);
+              if (data is Map && data['server_msg_id'] != null) {
+                message.serverId = data['server_msg_id'].toString();
+              }
+            }
+          } catch (e) {
+            print('解析频道消息ID失败: $e');
+          }
+        }
+        
+        await _messageDatabase.updateMessage(message);
+      } else {
+        // 发送失败
+        message.status = MessageStatus.failed;
+        message.errorMessage = result['message'] ?? '发送失败';
+        await _messageDatabase.updateMessageStatus(
+          message.localId,
+          MessageStatus.failed,
+          errorMessage: message.errorMessage,
+        );
+        EasyLoading.showError(message.errorMessage ?? '发送失败');
+      }
+    } catch (e) {
+      print('发送频道消息异常: $e');
+      message.status = MessageStatus.failed;
+      message.errorMessage = e.toString();
+      await _messageDatabase.updateMessageStatus(
+        message.localId,
+        MessageStatus.failed,
+        errorMessage: e.toString(),
+      );
+      EasyLoading.showError('发送失败: $e');
+    }
   }
 
   /// 发送@消息

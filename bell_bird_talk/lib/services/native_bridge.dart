@@ -1815,6 +1815,30 @@ class IOSNativeService {
     }
   }
   
+  /// 发送频道文本消息（频道发言）
+  /// @param content 文本内容
+  /// @param cmtyId 社群ID
+  /// @param ext 扩展字段（可选）
+  /// @return 发送结果
+  Future<Map<String, dynamic>> imSendChannelMessage({
+    required String content,
+    required String cmtyId,
+    String? ext,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'content': content,
+        'cmty_id': cmtyId,
+      };
+      if (ext != null) params['ext'] = ext;
+      
+      final result = await _bridge.invokeMethod<Map>('imSendChannelMessage', params);
+      return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+    } catch (e) {
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+  
   /// 发送图片消息
   /// @param imageUrl 图片URL
   /// @param conversationId 会话ID

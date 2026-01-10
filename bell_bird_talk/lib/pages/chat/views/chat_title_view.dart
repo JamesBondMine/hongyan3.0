@@ -33,13 +33,6 @@ class ChatTitleView extends StatelessWidget implements PreferredSizeWidget {
             displayName,
             style: const TextStyle(color: GbsColors.des1Color, fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          Text(
-            '会话ID: $convId',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
         ],
       ),
       leading: InkWell(

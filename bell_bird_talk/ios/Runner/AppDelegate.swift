@@ -293,6 +293,8 @@ class NativeBridgeHandler: NSObject {
             imSendVideoMessage(call: call, result: result)
         case "imSendVoiceMessage":
             imSendVoiceMessage(call: call, result: result)
+        case "imSendChannelMessage":
+            imSendChannelMessage(call: call, result: result)
         case "imSendGroupTextMessage":
             imSendGroupTextMessage(call: call, result: result)
         case "imSendGroupImageMessage":
@@ -2510,6 +2512,38 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "SEND_MESSAGE_ERROR",
                               message: "发送消息请求失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 发送频道文本消息（频道发言）
+    private func imSendChannelMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let content = args["content"] as? String,
+              let cmtyId = args["cmty_id"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let ext = args["ext"] as? String
+        let code = IMSDKMessageManager.shared().sendChannelMessage(
+            content,
+            ext: ext,
+            cmtyId: cmtyId
+        ) { errorCode, reqId, data in
+            print("AppDeleate 发送频道消息回调: errorCode=\(errorCode), reqId=\(reqId)")
+            
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "发送成功" : "发送失败",
+                "data": data ?? ""
+            ])
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "SEND_CHANNEL_MESSAGE_ERROR",
+                              message: "发送频道消息请求失败: \(code)",
                               details: nil))
         }
     }

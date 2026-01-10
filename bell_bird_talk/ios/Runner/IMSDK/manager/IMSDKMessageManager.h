@@ -216,6 +216,19 @@ typedef void (^IMSDKCommandMessageCallback)(int eventType, NSDictionary *message
                    isAll:(BOOL)isAll
               completion:(IMSDKMessageCompletion)completion;
 
+// ==================== 频道发言 ====================
+
+/// 发送频道文本消息（频道发言）
+/// @param content 文本内容
+/// @param ext 扩展字段（可选）
+/// @param cmtyId 社群ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)sendChannelMessage:(NSString *)content
+                      ext:(NSString * _Nullable)ext
+                   cmtyId:(NSString *)cmtyId
+               completion:(IMSDKMessageCompletion)completion;
+
 // ==================== 删除消息 ====================
 
 /// 删除消息

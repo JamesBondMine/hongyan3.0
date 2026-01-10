@@ -670,8 +670,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_contact_message: result=%d, reqId=%llu", result, reqId);
-    
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
     }
@@ -724,7 +722,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_contact_message (图片): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -786,8 +783,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_contact_message (视频): result=%d, reqId=%llu", result, reqId);
-    
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
     }
@@ -835,7 +830,6 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         reqId
     );
     
-    NSLog(@"📤 调用 send_contact_message (语音): result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];
@@ -1148,6 +1142,48 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
     );
     
     NSLog(@"📤 调用 send_group_message (群聊@消息): result=%d, reqId=%llu", result, reqId);
+    
+    if (result == 0 && completion) {
+        [self setCallback:completion forReqId:reqId];
+    }
+    
+    return result;
+}
+
+- (int)sendChannelMessage:(NSString *)content
+                      ext:(NSString * _Nullable)ext
+                   cmtyId:(NSString *)cmtyId
+               completion:(IMSDKMessageCompletion)completion {
+    
+    NSLog(@"📤 发送频道文本消息: content=%@, cmtyId=%@", content, cmtyId);
+    
+    // SDK 期望的是 TextMessage 的 Protobuf 数据
+    TextMessage *textMsg = [[TextMessage alloc] init];
+    textMsg.content = content;
+    if (ext) {
+        textMsg.ext = ext;
+    }
+    
+    // 序列化 TextMessage
+    NSData *protoData = [textMsg data];
+    if (!protoData || protoData.length == 0) {
+        NSLog(@"❌ TextMessage 序列化失败");
+        return -1;
+    }
+    
+    NSLog(@"📦 TextMessage 序列化成功: %lu 字节", (unsigned long)protoData.length);
+    
+    // 调用 SDK 发送频道消息
+    uint64_t reqId = 0;
+    int result = send_channel_message(
+        SendMessageCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        cmtyId.UTF8String,
+        reqId
+    );
+    
+    NSLog(@"📤 调用 send_channel_message: result=%d, reqId=%llu", result, reqId);
     
     if (result == 0 && completion) {
         [self setCallback:completion forReqId:reqId];

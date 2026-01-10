@@ -384,11 +384,6 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
     try {
       // 获取当前用户ID
       final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
-      if (currentUserId.isEmpty) {
-        EasyLoading.showError('用户未登录');
-        return;
-      }
-
       // 1. 先查询本地数据库，看是否已有该好友的单聊会话
       final existingConv = await _messageDatabase.getConversationByTargetId(
         currentUserId,

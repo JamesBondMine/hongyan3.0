@@ -1,3 +1,9 @@
+import 'package:bell_bird_talk/controllers/chat_controller.dart';
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_chat_page.dart';
+import 'package:bell_bird_talk/services/message_database.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
@@ -8,6 +14,8 @@ class CommunityController extends GetxController {
   static CommunityController get to => Get.put(CommunityController());
 
   final IOSNativeService _nativeService = IOSNativeService();
+
+  final MessageDatabase _messageDatabase = MessageDatabase();
 
   // 社群列表
   final RxList<CommunityModel> communityList = <CommunityModel>[].obs;
@@ -514,6 +522,122 @@ class CommunityController extends GetxController {
       return false;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+
+  // 社群发起会话
+  Future<void> startChat(String targetUserId, String displayName) async {
+    try {
+      // 获取当前用户ID
+      final currentUserId = GlobalController.to.currentUser.value?.id ?? '';
+      // 1. 先查询本地数据库，看是否已有该好友的单聊会话
+      final existingConv = await _messageDatabase.getConversationByTargetId(
+        currentUserId,
+        targetUserId,
+        1, // convType: 1 = 单聊
+      );
+
+      if (existingConv != null) {
+        Get.to(
+          () =>  CommunityChatPage(
+            convId: existingConv.convId,
+            displayName: existingConv.displayName,
+            avatar: existingConv.avatar,
+            targetUserId: targetUserId,
+          ),
+        )?.then((_) {
+          // 返回后清除该会话的未读数
+          ChatController.to.conversationId = "";
+        });
+
+        return;
+      }
+
+      // 2. 本地没有会话，调用 SDK 创建会话
+      EasyLoading.show(status: '创建会话中...');
+
+      final result = await _nativeService.imCreateConversation(
+        convType: 1, // 单聊
+        targetId: targetUserId,
+        displayName: displayName,
+        avatarUrl: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+      );
+
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        // 解析返回的会话数据
+        String convId = '';
+        Map<String, dynamic>? convData;
+
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            convData = json.decode(dataStr) as Map<String, dynamic>;
+            convId = convData['conv_id']?.toString() ?? '';
+          } catch (e) {
+            print('⚠️ 解析会话数据失败: $e');
+          }
+        }
+
+        // 如果没有获取到会话ID，使用默认格式
+        if (convId.isEmpty) {
+          convId = 'single_$targetUserId';
+        }
+
+        // 3. 保存会话到本地数据库
+        if (convData != null) {
+          try {
+            final conversation = ConversationModel.fromJson(convData);
+            await _messageDatabase.upsertConversation(
+              currentUserId,
+              conversation,
+            );
+            print('✅ 会话已保存到本地数据库: $convId');
+          } catch (e) {
+            print('⚠️ 保存会话到数据库失败: $e');
+            // 即使保存失败，也继续跳转
+          }
+        } else {
+          // 如果没有返回完整数据，创建一个基本的会话对象保存
+          try {
+            final conversation = ConversationModel(
+              convId: convId,
+              convType: 1,
+              targetId: targetUserId,
+              displayName: displayName,
+              avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+            );
+            await _messageDatabase.upsertConversation(
+              currentUserId,
+              conversation,
+            );
+            print('✅ 会话已保存到本地数据库: $convId');
+          } catch (e) {
+            print('⚠️ 保存会话到数据库失败: $e');
+          }
+        }
+
+        // 4. 跳转到聊天页面
+        Get.to(
+          () =>  CommunityChatPage(
+            convId: convId,
+            displayName: displayName,
+            avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+            targetUserId: targetUserId,
+          ),
+        )?.then((_) {
+          // 返回后清除该会话的未读数
+          ChatController.to.conversationId = "";
+        });
+      } else {
+        final message = result['message'] ?? '创建会话失败';
+        EasyLoading.showError(message);
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('创建会话异常: $e');
+      print('❌ 创建会话异常: $e');
     }
   }
 }
