@@ -368,7 +368,24 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     );
 
     if (result != null && result['action'] == 'confirm') {
-      EasyLoading.showSuccess('success');
+      EasyLoading.show(status: '正在删除频道...');
+      try {
+        bool success = await _controller.deleteChannel(channelId: channel.channelId);
+        EasyLoading.dismiss();
+        if (success) {
+          // 刷新分组和频道列表
+          if (_cmty != null) {
+            await _loadGroupsAndChannels(_cmty!);
+          }
+          EasyLoading.showSuccess('删除成功');
+        } else {
+          EasyLoading.showError('删除失败');
+        }
+      } catch (e) {
+        EasyLoading.dismiss();
+        print('删除频道错误: $e');
+        EasyLoading.showError('删除失败，请稍后重试');
+      }
     }
   }
 
@@ -634,16 +651,50 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           channelId: channel,
           onConfirm: (value) async {
             if (value == 2) {
+              // 删除分类
               final result = await _nativeService.showNativeAlert(
-                title: '删除频道',
-                message: '确定要删除此频道吗？',
+                title: '删除分类',
+                message: '确定要删除此分类吗？',
                 confirmText: '删除',
                 cancelText: '取消',
                 showCancel: true,
               );
 
               if (result != null && result['action'] == 'confirm') {
-                EasyLoading.showSuccess('success');
+                // 根据分类名称找到对应的分类对象
+                CmtGroupModel? category;
+                try {
+                  category = categories.firstWhere(
+                    (cat) => cat.name == channel,
+                  );
+                } catch (e) {
+                  category = null;
+                }
+                
+                if (category == null || _cmty == null) {
+                  EasyLoading.showError('分类不存在');
+                  return;
+                }
+                
+                EasyLoading.show(status: '正在删除分类...');
+                try {
+                  bool success = await _controller.deleteChannelGroup(
+                    cmtyId: _cmty!.id,
+                    categoryId: category.id,
+                  );
+                  EasyLoading.dismiss();
+                  if (success) {
+                    // 刷新分组和频道列表
+                    await _loadGroupsAndChannels(_cmty!);
+                    EasyLoading.showSuccess('删除成功');
+                  } else {
+                    EasyLoading.showError('删除失败');
+                  }
+                } catch (e) {
+                  EasyLoading.dismiss();
+                  print('删除分类错误: $e');
+                  EasyLoading.showError('删除失败，请稍后重试');
+                }
               }
               return;
             }
@@ -657,8 +708,8 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
   // 编辑分类
   void _showEditCategoryView(String channel) {
-    final controller = TextEditingController(text: '');
-    // 新增分组
+    final controller = TextEditingController(text: channel);
+    // 编辑分组
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -676,25 +727,47 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             needCancel: false,
             onTap: () async {
               final gname = controller.text.trim();
+              if (gname.isEmpty) {
+                EasyLoading.showError('分类名称不能为空');
+                return;
+              }
               Navigator.pop(context);
-
-              EasyLoading.show(status: '正在创建分组...');
-
-              // try {
-              //   final result = await _nativeService.imCreateContactGroup(
-              //     groupName: gname,
-              //   );
-              //   if (result['errorCode'] == 0) {
-              //     // 刷新分组列表
-              //     await _loadFriendGroups(refresh: true);
-              //     EasyLoading.showSuccess('分组创建成功');
-              //   } else {
-              //     EasyLoading.showError(result['message'] ?? '创建失败');
-              //   }
-              // } catch (e) {
-              //   print('创建分组错误: $e');
-              //   EasyLoading.showError('创建失败，请稍后重试');
-              // }
+              
+              // 根据分类名称找到对应的分类对象
+              CmtGroupModel? category;
+              try {
+                category = categories.firstWhere(
+                  (cat) => cat.name == channel,
+                );
+              } catch (e) {
+                category = null;
+              }
+              
+              if (category == null || _cmty == null) {
+                EasyLoading.showError('分类不存在');
+                return;
+              }
+              
+              EasyLoading.show(status: '正在更新分类...');
+              try {
+                bool success = await _controller.updateChannelGroup(
+                  cmtyId: _cmty!.id,
+                  categoryId: category.id,
+                  categoryName: gname,
+                );
+                EasyLoading.dismiss();
+                if (success) {
+                  // 刷新分组和频道列表
+                  await _loadGroupsAndChannels(_cmty!);
+                  EasyLoading.showSuccess('更新成功');
+                } else {
+                  EasyLoading.showError('更新失败');
+                }
+              } catch (e) {
+                EasyLoading.dismiss();
+                print('更新分类错误: $e');
+                EasyLoading.showError('更新失败，请稍后重试');
+              }
             },
           ),
         );

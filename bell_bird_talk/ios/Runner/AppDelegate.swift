@@ -2520,7 +2520,7 @@ class NativeBridgeHandler: NSObject {
     private func imSendChannelMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
               let content = args["content"] as? String,
-              let cmtyId = args["cmty_id"] as? String else {
+              let cid = args["cid"] as? String else {
             result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
             return
         }
@@ -2529,7 +2529,7 @@ class NativeBridgeHandler: NSObject {
         let code = IMSDKMessageManager.shared().sendChannelMessage(
             content,
             ext: ext,
-            cmtyId: cmtyId
+            cmtyId: cid
         ) { errorCode, reqId, data in
             print("AppDeleate 发送频道消息回调: errorCode=\(errorCode), reqId=\(reqId)")
             

@@ -755,7 +755,7 @@ class _CommunityChatPageState extends State<CommunityChatPage> {
       // widget.targetUserId 就是社群ID（cmtyId）
       final result = await _nativeService.imSendChannelMessage(
         content: text,
-        cmtyId: widget.convId,
+        cid: widget.convId,
         ext: message.ext,
       );
       

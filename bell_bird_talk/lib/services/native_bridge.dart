@@ -1822,13 +1822,13 @@ class IOSNativeService {
   /// @return 发送结果
   Future<Map<String, dynamic>> imSendChannelMessage({
     required String content,
-    required String cmtyId,
+    required String cid,
     String? ext,
   }) async {
     try {
       final Map<String, dynamic> params = {
         'content': content,
-        'cmty_id': cmtyId,
+        'cid': cid,
       };
       if (ext != null) params['ext'] = ext;
       

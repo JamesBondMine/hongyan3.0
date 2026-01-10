@@ -34,7 +34,7 @@ class CategorySettingView extends StatelessWidget {
           _buildCard([
             _buildElement('删除分类', 'setting_set', () {
               Navigator.of(context).pop();
-              onConfirm(3);
+              onConfirm(2);
             }),
           ]),
         ]

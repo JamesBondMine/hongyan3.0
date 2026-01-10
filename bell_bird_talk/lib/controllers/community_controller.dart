@@ -527,14 +527,25 @@ class CommunityController extends GetxController {
 
 
   // 社群发起会话
-  Future<void> startChat(String targetUserId, String displayName) async {
+  Future<void> startChat(String channelId, String displayName) async {
+    if (channelId.isNotEmpty) {
+      Get.to(
+          () =>  CommunityChatPage(
+            convId: channelId,
+            displayName: displayName,
+            avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+            targetUserId: channelId,
+          ),
+        );
+        return;
+    }
     try {
       // 获取当前用户ID
       final currentUserId = GlobalController.to.currentUser.value?.id ?? '';
       // 1. 先查询本地数据库，看是否已有该好友的单聊会话
       final existingConv = await _messageDatabase.getConversationByTargetId(
         currentUserId,
-        targetUserId,
+        channelId,
         1, // convType: 1 = 单聊
       );
 
@@ -544,7 +555,7 @@ class CommunityController extends GetxController {
             convId: existingConv.convId,
             displayName: existingConv.displayName,
             avatar: existingConv.avatar,
-            targetUserId: targetUserId,
+            targetUserId: channelId,
           ),
         )?.then((_) {
           // 返回后清除该会话的未读数
@@ -559,7 +570,7 @@ class CommunityController extends GetxController {
 
       final result = await _nativeService.imCreateConversation(
         convType: 1, // 单聊
-        targetId: targetUserId,
+        targetId: channelId,
         displayName: displayName,
         avatarUrl: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
       );
@@ -582,7 +593,7 @@ class CommunityController extends GetxController {
 
         // 如果没有获取到会话ID，使用默认格式
         if (convId.isEmpty) {
-          convId = 'single_$targetUserId';
+          convId = 'single_$channelId';
         }
 
         // 3. 保存会话到本地数据库
@@ -604,7 +615,7 @@ class CommunityController extends GetxController {
             final conversation = ConversationModel(
               convId: convId,
               convType: 1,
-              targetId: targetUserId,
+              targetId: channelId,
               displayName: displayName,
               avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
             );
@@ -624,7 +635,7 @@ class CommunityController extends GetxController {
             convId: convId,
             displayName: displayName,
             avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
-            targetUserId: targetUserId,
+            targetUserId: channelId,
           ),
         )?.then((_) {
           // 返回后清除该会话的未读数
