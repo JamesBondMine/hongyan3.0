@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
@@ -9,10 +8,10 @@ class CommunityController extends GetxController {
   static CommunityController get to => Get.put(CommunityController());
 
   final IOSNativeService _nativeService = IOSNativeService();
-  
+
   // 社群列表
   final RxList<CommunityModel> communityList = <CommunityModel>[].obs;
-  
+
   // 是否正在加载
   final RxBool isLoading = false.obs;
 
@@ -52,28 +51,28 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       // Load from cache first if page == 1
       final cachedCommunities = await _loadCachedCommunities();
       if (cachedCommunities.isNotEmpty && page == 1) {
         communityList.value = cachedCommunities;
       }
-      
+
       final result = await _nativeService.imGetCommunityList(
         page: page,
         pageSize: pageSize,
       );
-      
+
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String? ?? '';
         if (dataStr.isNotEmpty) {
           final data = json.decode(dataStr) as Map<String, dynamic>;
           final communitiesData = data['communities'] as List<dynamic>? ?? [];
-          
+
           List<CommunityModel> communities = communitiesData.map((item) {
             return CommunityModel.fromJson(Map<String, dynamic>.from(item));
           }).toList();
-          
+
           if (page == 1) {
             communityList.value = communities;
             // Save to cache
@@ -101,14 +100,10 @@ class CommunityController extends GetxController {
 
   /// 加入社群
   /// @param cmtyId 社群ID
-  Future<bool> joinCommunity({
-    required String cmtyId,
-  }) async {
+  Future<bool> joinCommunity({required String cmtyId}) async {
     bool success = false;
     try {
-      final result = await _nativeService.imJoinCommunity(
-        cmtyId: cmtyId,
-      );
+      final result = await _nativeService.imJoinCommunity(cmtyId: cmtyId);
 
       if (result['errorCode'] == 0) {
         success = true;
@@ -127,13 +122,9 @@ class CommunityController extends GetxController {
 
   /// 获取社群信息
   /// @param cmtyId 社群ID
-  Future<CommunityModel?> getCommunityInfo({
-    required String cmtyId,
-  }) async {
+  Future<CommunityModel?> getCommunityInfo({required String cmtyId}) async {
     try {
-      final result = await _nativeService.imGetCommunityInfo(
-        cmtyId: cmtyId,
-      );
+      final result = await _nativeService.imGetCommunityInfo(cmtyId: cmtyId);
 
       if (result['errorCode'] == 0) {
         // 解析社群信息
@@ -152,104 +143,97 @@ class CommunityController extends GetxController {
     }
   }
 
+  // 获取社群频道分组
+  Future<List<CmtGroupModel>> getChannelGroups(String cmtyId) async {
+    try {
+      final nativeService = IOSNativeService(); // Create new instance
+      final groupsResult = await nativeService.imGetCommunityGroups(
+        cmtyId: cmtyId,
+      );
+      if (groupsResult['errorCode'] != 0) {
+        return [];
+      }
+      // 解析分组列表
+      final groupsDataStr = groupsResult['data'] as String? ?? '';
+      if (groupsDataStr.isNotEmpty) {
+        final groupsData = json.decode(groupsDataStr);
+        List gdataList = groupsData is List ? groupsData : [];
+        return gdataList.map((item) {
+          return CmtGroupModel.fromJson(Map<String, dynamic>.from(item));
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      print('获取社群分组和频道异常: $e');
+      return [];
+    }
+  }
+
+  // 获取社群频道列表
+  static Future<List<ChannelModel>> getChannel(String cmtyId) async {
+    try {
+      final nativeService = IOSNativeService(); // Create new instance
+      final channelsResult = await nativeService.imGetChannels(cmtyId: cmtyId);
+      if (channelsResult['errorCode'] != 0) {
+        return [];
+      }
+      // 解析分组列表
+      final channelsDataStr = channelsResult['data'] as String? ?? '';
+      if (channelsDataStr.isNotEmpty) {
+        final channelsData = json.decode(channelsDataStr);
+        if (channelsData is List) {
+          List rawList = channelsData;
+          return rawList.map((item) => ChannelModel.fromJson(item)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('获取社群分组和频道异常: $e');
+      return [];
+    }
+  }
+
   /// 获取社群分组和频道（分组里嵌套频道）
-  /// @param cmtyId 社群ID
-  /// @return 返回 CommunityGChannels，包含：
-  ///   - categories: Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
-  ///   - categoryIdMap: Map<String, String>，key为分组名，value为分组ID
-  ///   - channels: List<ChannelModel>，所有频道列表（使用 ChannelModel 模型）
   Future<CommunityGChannels> getCommunityGroupsWithChannels({
     required String cmtyId,
   }) async {
     try {
       isLoading.value = true;
-      
+
       // 1. 获取分组列表
-      final groupsResult = await _nativeService.imGetCommunityGroups(
-        cmtyId: cmtyId,
-      );
-      
-      if (groupsResult['errorCode'] != 0) {
-        print('获取分组列表失败: ${groupsResult['message']}');
+      List<CmtGroupModel> groupsList = await getChannelGroups(cmtyId);
+
+      if (groupsList.isEmpty) {
         return CommunityGChannels(
-          categories: <String, List<String>>{},
-          categoryIdMap: <String, String>{},
+          categories: [],
+          categoryIdMap: {},
           channels: <ChannelModel>[],
         );
       }
-      
-      // 解析分组列表
-      final groupsDataStr = groupsResult['data'] as String? ?? '';
-      List<dynamic> groupsList = [];
-      if (groupsDataStr.isNotEmpty) {
-        try {
-          final groupsData = json.decode(groupsDataStr);
-          // 可能是数组或包含groups字段的对象
-          if (groupsData is Map && groupsData['categories'] != null) {
-            groupsList = groupsData['categories'] as List<dynamic>? ?? [];
-          }
-        } catch (e) {
-          print('解析分组列表失败: $e');
-        }
-      }
-      
+
       // 2. 获取频道列表
-      final channelsResult = await _nativeService.imGetChannels(
-        cmtyId: cmtyId,
-      );
-      
-      if (channelsResult['errorCode'] != 0) {
-        print('获取频道列表失败: ${channelsResult['message']}');
+      List<ChannelModel> channelsList = await getChannel(cmtyId);
+      if (channelsList.isEmpty) {
         // 即使获取频道失败，也返回分组（频道为空）
         final result = _buildGroupsWithChannels(groupsList, []);
         return CommunityGChannels(
-          categories: result['categories'] as Map<String, List<String>>,
-          categoryIdMap: result['categoryIdMap'] as Map<String, String>,
+          categories: [],
+          categoryIdMap: {},
           channels: result['channels'] as List<ChannelModel>,
         );
       }
-      
-      // 解析频道列表
-      final channelsDataStr = channelsResult['data'] as String? ?? '';
-      List<ChannelModel> channelsList = [];
-      if (channelsDataStr.isNotEmpty) {
-        try {
-          final channelsData = json.decode(channelsDataStr);
-          // 可能是数组或包含channels字段的对象
-          List<dynamic> channelsRawList = [];
-          if (channelsData is List) {
-            channelsRawList = channelsData;
-          } else if (channelsData is Map && channelsData['channels'] != null) {
-            channelsRawList = channelsData['channels'] as List<dynamic>? ?? [];
-          }
-          
-          // 使用 ChannelModel 解析频道数据
-          channelsList = channelsRawList.map((item) {
-            if (item is Map<String, dynamic>) {
-              return ChannelModel.fromJson(item);
-            } else {
-              return ChannelModel.fromJson(Map<String, dynamic>.from(item));
-            }
-          }).toList();
-          
-          print('✅ 解析频道列表成功，共 ${channelsList.length} 个频道');
-        } catch (e) {
-          print('解析频道列表失败: $e');
-        }
-      }
-      
       // 3. 组合成分组嵌套频道的结构
       final result = _buildGroupsWithChannels(groupsList, channelsList);
       return CommunityGChannels(
-        categories: result['categories'] as Map<String, List<String>>,
-        categoryIdMap: result['categoryIdMap'] as Map<String, String>,
+        categories: result['categories'] as List<CmtGroupModel>,
+        categoryIdMap: result['categoryIdMap'],
         channels: result['channels'] as List<ChannelModel>,
       );
     } catch (e) {
       print('获取分组和频道异常: $e');
       return CommunityGChannels(
-        categories: <String, List<String>>{},
-        categoryIdMap: <String, String>{},
+        categories: [],
+        categoryIdMap: {},
         channels: <ChannelModel>[],
       );
     } finally {
@@ -261,56 +245,47 @@ class CommunityController extends GetxController {
   /// @param groupsList 分组列表
   /// @param channelsList 频道列表（使用 ChannelModel）
   /// @return Map，包含：
-  ///   - 'categories': Map<String, List<String>>，key为分组名，value为该分组下的频道名列表
-  ///   - 'categoryIdMap': Map<String, String>，key为分组名，value为分组ID
-  ///   - 'channels': List<ChannelModel>，所有频道列表
   Map<String, dynamic> _buildGroupsWithChannels(
-    List<dynamic> groupsList,
+    List<CmtGroupModel> groupsList,
     List<ChannelModel> channelsList,
   ) {
-    final Map<String, List<String>> categories = {};
-    final Map<String, String> categoryIdMap = {};
-    
+    final List<CmtGroupModel> categories = groupsList;
+    final Map<String, List<ChannelModel>> categoryIdMap = {};
+
     // 遍历分组
     for (var group in groupsList) {
-      if (group is! Map<String, dynamic>) continue;
-      
       // 获取分组信息（根据实际API返回的字段名调整）
-      final groupId = group['id']?.toString() ?? group['group_id']?.toString() ?? '';
-      final groupName = group['name']?.toString() ?? 
-                       group['group_name']?.toString() ?? 
-                       group['title']?.toString() ?? 
-                       '未命名分组';
-      
+      final groupId = group.id;
       // 查找该分组下的频道
-      List<String> channelNames = [];
+      List<ChannelModel> channels = [];
       for (var channel in channelsList) {
         // 如果频道属于当前分组
-        if (channel.categoryId == groupId || (groupId.isEmpty && channel.categoryId.isEmpty)) {
-          channelNames.add(channel.channelName);
+        if (channel.categoryId == groupId) {
+          channels.add(channel);
         }
       }
-      
-      // 如果分组有频道或者分组本身存在，就添加到结果中
-      if (channelNames.isNotEmpty || groupName.isNotEmpty) {
-        categories[groupName] = channelNames;
-        if (groupId.isNotEmpty) {
-          categoryIdMap[groupName] = groupId;
-        }
+      // 组装数据
+      categoryIdMap[groupId] = channels.isEmpty ? [] : channels;
+    }
+
+    // 如果部分频道没有分组、那么这些频道和分组放在一个层级啊
+    List<ChannelModel> freeChannelsList = channelsList
+        .where((e) => e.categoryId.isEmpty)
+        .toList();
+    if (freeChannelsList.isNotEmpty) {
+      for (var i = 0; i < freeChannelsList.length; i++) {
+        ChannelModel cm = freeChannelsList[i];
+        CmtGroupModel gm = CmtGroupModel(
+          id: cm.channelId,
+          name: cm.channelName,
+          communityId: cm.communityId,
+          description: '',
+        );
+        gm.isChannel = true;
+        categories.insert(0, gm);
       }
     }
-    
-    // 如果没有任何分组，但存在频道，创建一个默认分组
-    if (categories.isEmpty && channelsList.isNotEmpty) {
-      List<String> channelNames = [];
-      for (var channel in channelsList) {
-        channelNames.add(channel.channelName);
-      }
-      if (channelNames.isNotEmpty) {
-        categories['默认分组'] = channelNames;
-      }
-    }
-    
+    // 如果没有任何分组，但存在频道，直接展示频道即可
     return {
       'categories': categories,
       'categoryIdMap': categoryIdMap,
@@ -336,7 +311,7 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       final result = await _nativeService.imCreateChannel(
         cmtyId: cmtyId,
         categoryId: categoryId,
@@ -345,7 +320,7 @@ class CommunityController extends GetxController {
         description: description,
         maxMembers: maxMembers,
       );
-      
+
       if (result['errorCode'] == 0) {
         // 创建成功后，刷新分组和频道列表
         return true;
@@ -377,7 +352,7 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       final result = await _nativeService.imUpdateChannel(
         channelId: channelId,
         channelName: channelName,
@@ -385,7 +360,7 @@ class CommunityController extends GetxController {
         muteAll: muteAll,
         notificationType: notificationType,
       );
-      
+
       if (result['errorCode'] == 0) {
         // 更新成功后，可以刷新分组和频道列表
         return true;
@@ -404,16 +379,12 @@ class CommunityController extends GetxController {
   /// 删除频道
   /// @param channelId 频道ID
   /// @return 删除结果
-  Future<bool> deleteChannel({
-    required String channelId,
-  }) async {
+  Future<bool> deleteChannel({required String channelId}) async {
     try {
       isLoading.value = true;
-      
-      final result = await _nativeService.imDeleteChannel(
-        channelId: channelId,
-      );
-      
+
+      final result = await _nativeService.imDeleteChannel(channelId: channelId);
+
       if (result['errorCode'] == 0) {
         // 删除成功后，可以刷新分组和频道列表
         return true;
@@ -432,16 +403,12 @@ class CommunityController extends GetxController {
   /// 进入频道
   /// @param channelId 频道ID
   /// @return 进入结果
-  Future<bool> enterChannel({
-    required String channelId,
-  }) async {
+  Future<bool> enterChannel({required String channelId}) async {
     try {
       isLoading.value = true;
-      
-      final result = await _nativeService.imEnterChannel(
-        channelId: channelId,
-      );
-      
+
+      final result = await _nativeService.imEnterChannel(channelId: channelId);
+
       if (result['errorCode'] == 0) {
         // 进入成功后，可以执行后续操作（如跳转到频道聊天页面）
         return true;
@@ -467,12 +434,12 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       final result = await _nativeService.imCreateChannelGroup(
         cmtyId: cmtyId,
         categoryName: categoryName,
       );
-      
+
       if (result['errorCode'] == 0) {
         return true;
       } else {
@@ -499,13 +466,13 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       final result = await _nativeService.imUpdateChannelGroup(
         cmtyId: cmtyId,
         categoryId: categoryId,
         categoryName: categoryName,
       );
-      
+
       if (result['errorCode'] == 0) {
         return true;
       } else {
@@ -530,12 +497,12 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      
+
       final result = await _nativeService.imDeleteChannelGroup(
         cmtyId: cmtyId,
         categoryId: categoryId,
       );
-      
+
       if (result['errorCode'] == 0) {
         return true;
       } else {
@@ -549,5 +516,4 @@ class CommunityController extends GetxController {
       isLoading.value = false;
     }
   }
-
 }

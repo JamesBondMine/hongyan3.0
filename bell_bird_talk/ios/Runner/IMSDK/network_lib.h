@@ -1204,6 +1204,18 @@ NET_API int delete_channel(CB_I_S_I_U cCallback, const char* data, int len, cons
  */
 NET_API int get_channel_settings(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
 
+/**
+ * 查询频道历史消息
+ * Topic: /im/CMCH/{channelId}/history
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的数据）
+ * @param len 数据长度
+ * @param channelId 频道ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_channel_history(CB_I_S_I_U cCallback, const char* data, int len, const char* channelId, uint64_t &reqId);
+
 // ============================================
 // 消息拉取接口
 // ============================================

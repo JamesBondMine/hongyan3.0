@@ -172,10 +172,10 @@ class ChannelModel {
 /// 社群分组和频道数据模型
 class CommunityGChannels {
   /// 分组名到频道名列表的映射
-  final Map<String, List<String>> categories;
+  final List<CmtGroupModel> categories;
   
-  /// 分组名到分组ID的映射
-  final Map<String, String> categoryIdMap;
+  /// 分组ID的映射
+  final Map<String, List<ChannelModel>> categoryIdMap;
   
   /// 所有频道列表（使用 ChannelModel 模型）
   final List<ChannelModel> channels;
@@ -189,19 +189,8 @@ class CommunityGChannels {
   /// 从 Map 创建（兼容旧的返回格式）
   factory CommunityGChannels.fromMap(Map<String, dynamic> map) {
     return CommunityGChannels(
-      categories: map['categories'] != null
-          ? Map<String, List<String>>.from(
-              (map['categories'] as Map).map(
-                (key, value) => MapEntry(
-                  key.toString(),
-                  List<String>.from(value as List),
-                ),
-              ),
-            )
-          : <String, List<String>>{},
-      categoryIdMap: map['categoryIdMap'] != null
-          ? Map<String, String>.from(map['categoryIdMap'])
-          : <String, String>{},
+      categories: map['categories'] ?? [],
+      categoryIdMap: {},
       channels: map['channels'] != null
           ? (map['channels'] as List).map((item) {
               if (item is ChannelModel) {
@@ -231,11 +220,11 @@ class CommunityGChannels {
   /// 是否有数据
   bool get isNotEmpty => !isEmpty;
   
-  /// 获取指定分组下的频道列表（返回 ChannelModel）
-  List<ChannelModel> getChannelsByCategory(String categoryName) {
-    final channelNames = categories[categoryName] ?? [];
-    return channels.where((channel) => channelNames.contains(channel.channelName)).toList();
-  }
+  // /// 获取指定分组下的频道列表（返回 ChannelModel）
+  // List<ChannelModel> getChannelsByCategory(String categoryId) {
+  //   final channelNames = categories[categoryId] ?? [];
+  //   return channels.where((channel) => channelNames.contains(channel.channelName)).toList();
+  // }
   
   /// 根据频道ID获取频道
   ChannelModel? getChannelById(String channelId) {
@@ -255,3 +244,59 @@ class CommunityGChannels {
     }
   }
 }
+
+
+// =
+// "created_at" -> 1767951870533
+// 1 =
+// "category_name" -> "我是新分类1111"
+// 2 =
+// "updated_at" -> 1767955553349
+// 3 =
+// "category_id" -> "WKY79XNX"
+// 4 =
+// "community_id" -> "KQYRLQC1LR"
+// 5 =
+// "description" -> 
+
+// 社群分组
+class CmtGroupModel {
+  final String id;
+  final String name;
+  final String description;
+  final String communityId;
+  final int memberCount;
+
+  // 分组状态的频道
+  bool isChannel = false;
+
+  
+  CmtGroupModel({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.communityId,
+    this.memberCount = 0,
+  });
+  
+  factory CmtGroupModel.fromJson(Map<String, dynamic> json) {
+    return CmtGroupModel(
+      id: json['category_id'] ?? '',
+      name: json['category_name'] ?? '',
+      description: json['description'] ?? '',
+      communityId: json['community_id'],
+    );
+  }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'community_id': communityId,
+    };
+  }
+  
+
+}
+

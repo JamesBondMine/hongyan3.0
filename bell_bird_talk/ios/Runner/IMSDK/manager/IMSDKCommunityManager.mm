@@ -264,10 +264,7 @@ static void GetCommunityGroupsCallback(int errorCode, const char* data, int data
                                 [categories addObject:dict];
                             }
                         }
-                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
-                        json[@"categories"] = categories;
-                        
-                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:categories options:0 error:nil];
                         if (jsonData) {
                             dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                         }
@@ -332,10 +329,7 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                             }
                         }
                         
-                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
-                        json[@"channels"] = channels;
-                        
-                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:channels options:0 error:nil];
                         if (jsonData) {
                             dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                         }
@@ -789,7 +783,8 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     createReq.communityId = cmtyId;
     if (categoryId != nil && categoryId != @"") {
         createReq.categoryId = categoryId;
-    }    createReq.channelName = channelName;
+    }
+    createReq.channelName = channelName;
     createReq.channelType = (CmtyChannelType)channelType;
     if (description && description.length > 0) {
         createReq.description_p = description;

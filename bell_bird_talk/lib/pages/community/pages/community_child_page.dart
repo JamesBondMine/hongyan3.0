@@ -38,8 +38,8 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   CommunityGChannels? groupsWithChannels;
   
   // 兼容旧代码的访问方式
-  Map<String, List<String>> get categories => groupsWithChannels?.categories ?? {};
-  Map<String, String> get categoryIdMap => groupsWithChannels?.categoryIdMap ?? {};
+  List<CmtGroupModel> get categories => groupsWithChannels?.categories ?? [];
+  Map<String, dynamic> get categoryIdMap => groupsWithChannels?.categoryIdMap ?? {};
 
   // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
   String? _expandedCategory;
@@ -59,7 +59,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     if (channel.channelType == 0) {
       return 'assets/img/community/channel_txt.png'; // # 符号
     }
-    return 'assets/img/community/channel_txt.png';
+    return 'assets/img/community/channel_voice.png';
   }
 
   @override
@@ -77,7 +77,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
     try {
       EasyLoading.show(status: '加载中...');
-      final result = await _controller.getCommunityGroupsWithChannels(
+      CommunityGChannels result = await _controller.getCommunityGroupsWithChannels(
         cmtyId: cmty.id,
       );
       EasyLoading.dismiss();
@@ -212,12 +212,18 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           child: ListView.builder(
             itemCount: categories.length,
             itemBuilder: (context, index) {
-              final category = categories.keys.elementAt(index);
+              CmtGroupModel category = categories[index];
+              // 如果是频道模式。则直接展示频道
+              if (category.isChannel) {
+                ChannelModel channel = ChannelModel(channelId: category.id, channelName: category.name, channelType: 0, communityId: category.communityId);
+                return _buildChannelItem(category.name, channel);
+              }
               // 使用 model 的方法获取该分组下的频道列表
-              List<ChannelModel> channels = groupsWithChannels?.getChannelsByCategory(category) ?? [];
-              final isExpanded = _expandedCategory == category;
+              List<ChannelModel> channels = groupsWithChannels!.categoryIdMap[category.id] ?? [];
+              // channels = groupsWithChannels?.getChannelsByCategory(category.id) ?? [];
+              final isExpanded = _expandedCategory == category.id;
 
-              return _buildCategorySection(category, channels, isExpanded);
+              return _buildCategorySection(category.name, channels, isExpanded);
             },
           ),
         ),
@@ -493,6 +499,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
         ),
         child: ChannelCreateView(
+          communityId: _cmty!.id,
           onlyTextChannel: onlyTextChannel,
           onConfirm: (channelData) async {
             if (channelData == null) return;

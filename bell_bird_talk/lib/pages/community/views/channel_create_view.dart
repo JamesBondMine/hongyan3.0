@@ -1,4 +1,5 @@
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_btn_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_category_sel_view.dart';
 import 'package:bell_bird_talk/pages/community/views/slider_label_view.dart';
@@ -12,8 +13,9 @@ import 'package:get/instance_manager.dart';
 class ChannelCreateView extends StatefulWidget {
   final ValueChanged<Map<String, dynamic>?> onConfirm;
   bool onlyTextChannel = false;
+  String communityId;
 
-  ChannelCreateView({super.key, required this.onConfirm, this.onlyTextChannel = false});
+  ChannelCreateView({super.key, required this.communityId, required this.onConfirm, this.onlyTextChannel = false});
   
   @override
   State<StatefulWidget> createState() {
@@ -33,7 +35,7 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
   final TextEditingController _channelDescriptionController = TextEditingController();
   
   // 选中的分类（null 表示暂不选择）
-  String _selectedCategory = '';
+  CmtGroupModel? _selectedCategory;
 
   // 频道最大人数
   bool channelMaxOpen = true;
@@ -113,7 +115,7 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
                     'channelName': channelName,
                     'description': _channelDescriptionController.text.trim(),
                     'channelType': createTextChannel ? 0 : 1, // 0=文字频道，1=语音频道
-                    'categoryId': _selectedCategory.isEmpty ? '' : _selectedCategory,
+                    'categoryId': _selectedCategory == null ? '' : _selectedCategory!.id,
                     'maxMembers': channelMaxOpen ? 50 : 0, // 这里可以根据实际需求设置
                   };
                   
@@ -388,7 +390,7 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedCategory.isEmpty ? '暂不选择' : _selectedCategory,
+                  _selectedCategory==null ? '暂不选择' : _selectedCategory!.name,
                   style: TextStyle(
                     fontSize: 14,
                     color: GbsColors.des1Color,
@@ -417,11 +419,12 @@ class _ChannelCreateViewState extends State<ChannelCreateView> {
         borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
       ),
       child: ChannelCategorySelView(
-        selectedCategory: _selectedCategory.isEmpty ? -1 : int.parse(_selectedCategory) ,
+        communityId: widget.communityId,
+        selectedCategoryId : _selectedCategory!= null ? _selectedCategory!.id : '',
         onConfirm:   (value) {
         if (mounted) {
           setState(() {
-            _selectedCategory = value.toString();
+            _selectedCategory = value;
           });
         }
       }),
