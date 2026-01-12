@@ -1,4 +1,6 @@
 
+import 'package:bell_bird_talk/pages/community/pages/community_find_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_invate_set_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_member_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_roles_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
@@ -8,7 +10,9 @@ import 'package:flutter/widgets.dart';
 import 'package:get/route_manager.dart';
 
 class CommunitySettingPage extends StatelessWidget {
-  const CommunitySettingPage({super.key});
+  final String? cmtyId; // 社群ID（可选）
+  
+  const CommunitySettingPage({super.key, this.cmtyId});
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +23,19 @@ class CommunitySettingPage extends StatelessWidget {
         _buildTitle('成员管理'),
         _buildCard([
           _buildElement('成员', 'cunty_member', () {  
-            Get.to(CommunityMemberPage());
+            Get.to(CommunityMemberPage(cmtyId: cmtyId));
           },),
           _buildDivider(),
           _buildElement('角色', 'setting_set', () {  
             Get.to(CommunityRolesPage());
           },),
           _buildDivider(),
-          _buildElement('邀请', 'setting_invate', () {  
+          _buildElement('邀请', 'setting_invate', () { 
+            Get.to(CommunityInvateSettingPage(cmtyId: cmtyId)); 
           },),
           _buildDivider(),
           _buildElement('访问', 'cunty_go', () {  
+            Get.to(CommunityFindSettingPage(cmtyId: cmtyId));
           },),
         ]),
         _buildTitle('安全管理'),

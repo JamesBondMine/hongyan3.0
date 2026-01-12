@@ -9,6 +9,7 @@ enum AppBarType { normal, close, backAndClose }
 class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Color backgroundColor;
+  final Widget? btn;
 
   //
   final AppBarType appBarType;
@@ -18,6 +19,9 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.backgroundColor = GbsColors.lightAppBarColorB,
     this.appBarType = AppBarType.normal,
+    this.btn,
+  
+
   });
 
   @override
@@ -51,6 +55,44 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       );
+    }
+
+    if (btn != null) {
+      return PreferredSize(
+      preferredSize: Size(Get.width, 64),
+      child: Container(
+        color: backgroundColor,
+        child: SafeArea(
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  Get.back();
+                },
+                child: Container(
+                  height: 44,
+                  width: 64,
+                  padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+                  child: Icon(Icons.arrow_back_ios_new),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: GbsColors.des1Color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              btn!,
+            ],
+          ),
+        ),
+      ),
+    );
     }
     return PreferredSize(
       preferredSize: Size(Get.width, 64),

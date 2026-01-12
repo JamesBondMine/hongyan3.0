@@ -2550,6 +2550,114 @@ class IOSNativeService {
     }
   }
 
+  /// 获取社群成员列表
+  /// @param cmtyId 社群ID
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 成员列表结果
+  Future<Map<String, dynamic>> imGetCommunityMembers({
+    required String cmtyId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'page': page,
+        'pageSize': pageSize,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityMembers', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityMembers', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityMembers', {
+        'cmtyId': cmtyId,
+        'page': page,
+        'pageSize': pageSize,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 禁言社群成员
+  /// @param cmtyId 社群ID
+  /// @param userId 用户ID
+  /// @param mute 是否禁言（true=禁言，false=解除禁言）
+  /// @param muteUntil 禁言到期时间戳（可选，0或未设置表示永久禁言，>0表示临时禁言）
+  /// @return 禁言结果
+  Future<Map<String, dynamic>> imMuteCommunityMember({
+    required String cmtyId,
+    required String userId,
+    required bool mute,
+    int muteUntil = 0,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'userId': userId,
+        'mute': mute,
+        'muteUntil': muteUntil,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imMuteCommunityMember', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imMuteCommunityMember', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imMuteCommunityMember', {
+        'cmtyId': cmtyId,
+        'userId': userId,
+        'mute': mute,
+        'muteUntil': muteUntil,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 踢出社群成员
+  /// @param cmtyId 社群ID
+  /// @param userId 用户ID
+  /// @return 踢出结果
+  Future<Map<String, dynamic>> imKickCommunityMember({
+    required String cmtyId,
+    required String userId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'userId': userId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imKickCommunityMember', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imKickCommunityMember', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imKickCommunityMember', {
+        'cmtyId': cmtyId,
+        'userId': userId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 注销用户
   /// @param userId 用户ID（必填）
   /// @param reason 注销原因（可选）

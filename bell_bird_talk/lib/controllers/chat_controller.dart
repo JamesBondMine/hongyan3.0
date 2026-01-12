@@ -1,4 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:video_compress/video_compress.dart';
 import '../services/native_bridge.dart';
 import '../services/message_database.dart';
 import 'dart:convert';
@@ -274,4 +280,107 @@ class ChatController extends GetxController {
       return [];
     }
   }
+
+
+
+  /// 压缩图片，返回压缩后的路径（失败则返回 null）。
+  /// 规则：仅对大于1MB的文件压缩，目标不超过1MB，分层次降低质量。
+  Future<String?> compressImage(String sourcePath) async {
+    const int oneMB = 1024 * 1024;
+    try {
+      final srcFile = File(sourcePath);
+      if (!await srcFile.exists()) return null;
+      final srcSize = await srcFile.length();
+      if (srcSize <= oneMB) {
+        // 小于等于1MB无需压缩
+        return null;
+      }
+
+      final targetDir = await getTemporaryDirectory();
+      final baseName = 'cmp_${DateTime.now().millisecondsSinceEpoch}';
+      final tryQualities = [80, 70, 60, 50, 40, 30];
+
+      for (final q in tryQualities) {
+        final targetPath = '${targetDir.path}/$baseName\_q$q.jpg';
+        final result = await FlutterImageCompress.compressAndGetFile(
+          sourcePath,
+          targetPath,
+          quality: q,
+          minWidth: 1280,
+          minHeight: 1280,
+        );
+        if (result != null && File(result.path).existsSync()) {
+          final newSize = await File(result.path).length();
+          print('✅ 图片压缩: q=$q size=${newSize / 1024}KB path=${result.path}');
+          if (newSize <= oneMB) {
+            return result.path;
+          } else {
+            // 继续尝试更低质量
+            continue;
+          }
+        }
+      }
+
+      // 最低质量后仍大于1MB，则使用最后结果（已尽力）
+      final fallbackPath = '${targetDir.path}/$baseName\_fallback.jpg';
+      final fallback = await FlutterImageCompress.compressAndGetFile(
+        sourcePath,
+        fallbackPath,
+        quality: 20,
+        minWidth: 1280,
+        minHeight: 1280,
+      );
+      if (fallback != null && File(fallback.path).existsSync()) {
+        print('⚠️ 图片压缩未达1MB，使用最低质量结果: ${fallback.path}');
+        return fallback.path;
+      }
+
+      print('⚠️ 图片压缩失败，使用原图');
+      return null;
+    } catch (e) {
+      print('⚠️ 图片压缩异常，使用原图: $e');
+      return null;
+    }
+  }
+
+
+
+  /// 压缩视频，返回压缩后的路径（失败则返回 null）
+  Future<String?> compressVideo(String sourcePath) async {
+    try {
+      print('🎬 开始压缩视频: $sourcePath');
+      EasyLoading.show(status: '正在压缩视频...');
+
+      // 压缩视频
+      final mediaInfo = await VideoCompress.compressVideo(
+        sourcePath,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false,
+        includeAudio: true,
+      );
+
+      if (mediaInfo != null &&
+          mediaInfo.path != null &&
+          File(mediaInfo.path!).existsSync()) {
+        final originalSize = await File(sourcePath).length();
+        final compressedSize =
+            mediaInfo.filesize ?? await File(mediaInfo.path!).length();
+        final ratio = (compressedSize / originalSize * 100).toStringAsFixed(1);
+        print(
+          '✅ 视频压缩成功: ${originalSize / 1024 / 1024}MB -> ${compressedSize / 1024 / 1024}MB (${ratio}%)',
+        );
+        EasyLoading.dismiss();
+        return mediaInfo.path;
+      } else {
+        print('⚠️ 视频压缩失败: 返回路径为空或文件不存在');
+        EasyLoading.dismiss();
+        return null;
+      }
+    } catch (e) {
+      print('⚠️ 视频压缩失败: $e');
+      EasyLoading.dismiss();
+      return null;
+    }
+  }
+
 }

@@ -525,19 +525,137 @@ class CommunityController extends GetxController {
     }
   }
 
+  /// 获取社群成员列表
+  /// @param cmtyId 社群ID
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 成员列表
+  Future<List<CommunityMemberModel>> getCommunityMembers({
+    required String cmtyId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _nativeService.imGetCommunityMembers(
+        cmtyId: cmtyId,
+        page: page,
+        pageSize: pageSize,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+
+          // 解析成员列表
+          final membersData = data['members'] as List<dynamic>? ?? [];
+          List<CommunityMemberModel> members = membersData
+              .map(
+                (item) => CommunityMemberModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              .toList();
+
+          return members;
+        }
+      } else {
+        print('获取社群成员列表失败: ${result['message']}');
+      }
+      return [];
+    } catch (e) {
+      print('获取社群成员列表异常: $e');
+      return [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 禁言社群成员
+  /// @param cmtyId 社群ID
+  /// @param userId 用户ID
+  /// @param mute 是否禁言（true=禁言，false=解除禁言）
+  /// @param muteUntil 禁言到期时间戳（可选，0或未设置表示永久禁言，>0表示临时禁言）
+  /// @return 操作结果，true表示成功，false表示失败
+  Future<bool> muteCommunityMember(
+    String cmtyId,
+    String userId,
+    bool mute, {
+    int muteUntil = 0,
+  }) async {
+    try {
+      isLoading.value = true;
+      EasyLoading.show();
+      final result = await _nativeService.imMuteCommunityMember(
+        cmtyId: cmtyId,
+        userId: userId,
+        mute: mute,
+        muteUntil: muteUntil,
+      );
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('${mute ? "禁言" : "解除禁言"}社群成员成功');
+        return true;
+      } else {
+        EasyLoading.showError('${mute ? "禁言" : "解除禁言"}社群成员失败');
+        return false;
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      print('${mute ? "禁言" : "解除禁言"}社群成员异常: $e');
+      return false;
+    } finally {
+      EasyLoading.dismiss();
+      isLoading.value = false;
+    }
+  }
+
+  /// 踢出社群成员
+  /// @param cmtyId 社群ID
+  /// @param userId 用户ID
+  /// @return 操作结果，true表示成功，false表示失败
+  Future<bool> kickCommunityMember(String cmtyId, String userId) async {
+    try {
+      EasyLoading.show();
+      isLoading.value = true;
+
+      final result = await _nativeService.imKickCommunityMember(
+        cmtyId: cmtyId,
+        userId: userId,
+      );
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('踢出成功');
+        return true;
+      } else {
+        EasyLoading.showError('踢出失败');
+        return false;
+      }
+    } catch (e) {
+      print('踢出社群成员异常: $e');
+      EasyLoading.dismiss();
+      return false;
+    } finally {
+      EasyLoading.dismiss();
+      isLoading.value = false;
+    }
+  }
 
   // 社群发起会话
   Future<void> startChat(String channelId, String displayName) async {
     if (channelId.isNotEmpty) {
       Get.to(
-          () =>  CommunityChatPage(
-            convId: channelId,
-            displayName: displayName,
-            avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
-            targetUserId: channelId,
-          ),
-        );
-        return;
+        () => CommunityChatPage(
+          convId: channelId,
+          displayName: displayName,
+          avatar:
+              'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+          targetUserId: channelId,
+        ),
+      );
+      return;
     }
     try {
       // 获取当前用户ID
@@ -551,7 +669,7 @@ class CommunityController extends GetxController {
 
       if (existingConv != null) {
         Get.to(
-          () =>  CommunityChatPage(
+          () => CommunityChatPage(
             convId: existingConv.convId,
             displayName: existingConv.displayName,
             avatar: existingConv.avatar,
@@ -572,7 +690,8 @@ class CommunityController extends GetxController {
         convType: 1, // 单聊
         targetId: channelId,
         displayName: displayName,
-        avatarUrl: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+        avatarUrl:
+            'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
       );
 
       EasyLoading.dismiss();
@@ -617,7 +736,8 @@ class CommunityController extends GetxController {
               convType: 1,
               targetId: channelId,
               displayName: displayName,
-              avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+              avatar:
+                  'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
             );
             await _messageDatabase.upsertConversation(
               currentUserId,
@@ -631,10 +751,11 @@ class CommunityController extends GetxController {
 
         // 4. 跳转到聊天页面
         Get.to(
-          () =>  CommunityChatPage(
+          () => CommunityChatPage(
             convId: convId,
             displayName: displayName,
-            avatar: 'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
+            avatar:
+                'https://gips1.baidu.com/it/u=1971954603,2916157720&fm=3028&app=3028&f=JPEG&fmt=auto?w=1920&h=2560',
             targetUserId: channelId,
           ),
         )?.then((_) {

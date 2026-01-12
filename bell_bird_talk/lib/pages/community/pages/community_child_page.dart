@@ -3,6 +3,7 @@ import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/voice_channel_page.dart';
 import 'package:bell_bird_talk/pages/community/views/category_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_edit_view.dart';
@@ -76,7 +77,6 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   Future<void> _loadGroupsAndChannels(CommunityModel cmty) async {
 
     try {
-      EasyLoading.show(status: '加载中...');
       CommunityGChannels result = await _controller.getCommunityGroupsWithChannels(
         cmtyId: cmty.id,
       );
@@ -84,7 +84,6 @@ class CommunityChildPageState extends State<CommunityChildPage> {
        setState(() {
           groupsWithChannels = result;
         });
-        print('✅ 加载分组和频道数据成功: ${result.categories.length} 个分组, ${result.channels.length} 个频道');
     } catch (e) {
       print('❌ 加载分组和频道数据失败: $e');
       EasyLoading.showError('加载失败');
@@ -295,7 +294,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
               case 6:
                 // 频道通知
-                _showSettingNotiWithCommunityView();
+                _showSettingNotiWithCommunityView(false, channel);
                 break;
             }
           },
@@ -328,7 +327,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
               case 2:
                 // 处理社群设置
-                Get.to(CommunitySettingPage());
+                Get.to(CommunitySettingPage(cmtyId: _cmty?.id));
                 break;
               case 3:
                 // 处理创建频道
@@ -340,7 +339,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
               case 5:
                 // 处理通知设置
-                _showSettingNotiWithCommunityView();
+                _showSettingNotiWithCommunityView(true,null);
                 break;
               case 6:
                 // 处理隐私设置
@@ -428,7 +427,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 通知设置
-  void _showSettingNotiWithCommunityView() {
+  void _showSettingNotiWithCommunityView(bool cmty,  ChannelModel? channel) {
     gbs.shower.showScreenViewCustom(
       context,
       400,
@@ -444,7 +443,21 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         ),
         child: CommunityNotiSettingView(
           selectedCategory: 0,
-          onConfirm: (value) {},
+          onConfirm: (value) {
+            if (cmty) {
+              // 社群的通知设置
+              EasyLoading.showError('更新社群通知');
+              return;
+            }
+            // 频道的通知设置
+            CommunityController.to
+                      .updateChannel(
+                        channelId: channel!.channelId,
+                        notificationType: value,
+                      )
+                      .then((value) {
+                      });
+          },
         ),
       ),
     );
@@ -814,6 +827,16 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
   // 进入频道
   void _enterChannel(ChannelModel channel) async {
+    if (channel.channelType == 1) {
+      // 语音频道
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VoiceChannelPage(channel: channel),
+        ),
+      );
+      return;
+    }
     bool res = await CommunityController.to.enterChannel(channelId: channel.channelId);
     if (res) {
       CommunityController.to.startChat(channel.channelId, channel.channelName);

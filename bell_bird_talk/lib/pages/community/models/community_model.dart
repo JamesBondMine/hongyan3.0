@@ -93,6 +93,7 @@ class ChannelModel {
   final int notificationType; // 通知类型
   final int createdAt; // 创建时间
   final int updatedAt; // 更新时间
+
   
   ChannelModel({
     required this.channelId,
@@ -298,5 +299,74 @@ class CmtGroupModel {
   }
   
 
+}
+
+/// 社群成员模型
+class CommunityMemberModel {
+  final String id;
+  final String username;
+  final String? nickname;
+  final String? avatar;
+  final String role; // 角色，如 'owner', 'admin', 'member'
+  final int joinTime;
+  final bool isMuted; // 是否被禁言
+  final int muteUntil; // 禁言到期时间
+
+  CommunityMemberModel({
+    required this.id,
+    required this.username,
+    this.nickname,
+    this.avatar,
+    this.role = 'member',
+    this.joinTime = 0,
+    this.isMuted = false,
+    this.muteUntil = 0,
+  });
+
+  factory CommunityMemberModel.fromJson(Map<String, dynamic> json) {
+    return CommunityMemberModel(
+      id: json['user_id'] ?? '',
+      username: json['username'] ?? '',
+      nickname: json['nickname'] ?? '',
+      avatar: json['avatar'],
+      role: '${json['role'] ?? '0'}',
+      joinTime: json['join_time'] ?? 0,
+      isMuted: json['is_muted'] ?? false,
+      muteUntil: json['mute_until'] ?? 0,
+
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'nickname': nickname,
+      'avatar': avatar,
+      'role': role,
+      'join_time': joinTime,
+      'is_muted': isMuted,
+      'mute_until': muteUntil,
+    };
+  }
+
+  /// 角色显示文本
+  String get roleText {
+    switch (role) {
+      case 'owner':
+        return '群主';
+      case 'admin':
+        return '管理员';
+      case 'member':
+      default:
+        return '成员';
+    }
+  }
+
+  /// 是否为管理员或群主
+  bool get isAdmin => role == 'admin' || role == 'owner';
+
+  /// 是否为群主
+  bool get isOwner => role == 'owner';
 }
 

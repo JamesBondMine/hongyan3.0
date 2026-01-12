@@ -23,10 +23,15 @@ class ChannelEditView extends StatefulWidget {
 class _ChannelEditViewState extends State<ChannelEditView> {
   final TextEditingController _channelNameController = TextEditingController();
 
+  bool pauseInvite = false;
+  bool muteAll = false;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    pauseInvite = widget.channel.pauseInvite;
+    muteAll = widget.channel.muteAll;
     _channelNameController.text = widget.channel.channelName;
   }
 
@@ -41,7 +46,8 @@ class _ChannelEditViewState extends State<ChannelEditView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundB,
-      resizeToAvoidBottomInset: false, // 防止 Scaffold 自动调整，由 showScreenViewCustom 的 AnimatedPadding 处理
+      resizeToAvoidBottomInset:
+          false, // 防止 Scaffold 自动调整，由 showScreenViewCustom 的 AnimatedPadding 处理
       appBar: CommonAppBarView(
         title: '# ${widget.channel.channelName}',
         appBarType: AppBarType.close,
@@ -67,10 +73,7 @@ class _ChannelEditViewState extends State<ChannelEditView> {
                   const SizedBox(width: 4),
                   Text(
                     '*',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: GbsColors.lightError,
-                    ),
+                    style: TextStyle(fontSize: 14, color: GbsColors.lightError),
                   ),
                 ],
               ),
@@ -80,15 +83,40 @@ class _ChannelEditViewState extends State<ChannelEditView> {
             _buildCell(
               '暂停邀请',
               '暂停邀请后，除超级管理员和频道创建人外，其他成员不可邀请新人加入频道',
-              true,
-              (value) {},
+              pauseInvite,
+              (value) {
+                if (mounted) {
+                  setState(() {
+                    pauseInvite = value;
+                  });
+                  CommunityController.to
+                      .updateChannel(
+                        channelId: widget.channel.channelId,
+                        pauseInvite: value,
+                      )
+                      .then((value) {
+                        widget.onConfirm(1);
+                      });
+                }
+              },
             ),
-            _buildCell(
-              '禁止发言',
-              '禁止发言后，除超级管理员和频道创建人外，其他成员不可在频道中发言',
-              true,
-              (value) {},
-            ),
+            _buildCell('禁止发言', '禁止发言后，除超级管理员和频道创建人外，其他成员不可在频道中发言', muteAll, (
+              value,
+            ) {
+              if (mounted) {
+                setState(() {
+                  muteAll = value;
+                });
+              }
+              CommunityController.to
+                  .updateChannel(
+                    channelId: widget.channel.channelId,
+                    muteAll: value,
+                  )
+                  .then((value) {
+                    widget.onConfirm(1);
+                  });
+            }),
             // 底部间距，确保内容不被遮挡
             const SizedBox(height: 16),
           ],

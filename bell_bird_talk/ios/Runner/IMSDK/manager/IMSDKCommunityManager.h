@@ -143,6 +143,41 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
                           categoryId:(NSString *)categoryId
                           completion:(IMSDKCommunityCompletion)completion;
 
+// ==================== 成员管理 ====================
+
+/// 获取社群成员列表
+/// @param cmtyId 社群ID
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getCommunityMembersWithCmtyId:(NSString *)cmtyId
+                                  page:(int)page
+                              pageSize:(int)pageSize
+                            completion:(IMSDKCommunityCompletion)completion;
+
+/// 禁言社群成员
+/// @param cmtyId 社群ID
+/// @param userId 用户ID
+/// @param mute 是否禁言（true=禁言，false=解除禁言）
+/// @param muteUntil 禁言到期时间戳（可选，0或未设置表示永久禁言，>0表示临时禁言）
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)muteCommunityMemberWithCmtyId:(NSString *)cmtyId
+                               userId:(NSString *)userId
+                                 mute:(BOOL)mute
+                            muteUntil:(int64_t)muteUntil
+                           completion:(IMSDKCommunityCompletion)completion;
+
+/// 踢出社群成员
+/// @param cmtyId 社群ID
+/// @param userId 用户ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)kickCommunityMemberWithCmtyId:(NSString *)cmtyId
+                               userId:(NSString *)userId
+                           completion:(IMSDKCommunityCompletion)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

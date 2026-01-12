@@ -11,18 +11,18 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-class CommunityMemberPage extends StatefulWidget {
+class CommunityInvateSettingPage extends StatefulWidget {
   final String? cmtyId; // 社群ID（可选，如果未提供则从全局获取）
-
-  const CommunityMemberPage({super.key, this.cmtyId});
+  
+  const CommunityInvateSettingPage({super.key, this.cmtyId});
 
   @override
   State<StatefulWidget> createState() {
-    return CommunityMemberPageState();
+    return CommunityInvateSettingPageState();
   }
 }
 
-class CommunityMemberPageState extends State<CommunityMemberPage> {
+class CommunityInvateSettingPageState extends State<CommunityInvateSettingPage> {
   final CommunityController _controller = CommunityController.to;
   final RefreshController _refreshController = RefreshController(
     initialRefresh: false,
@@ -74,7 +74,7 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
 
     try {
       int page = isRefresh ? 1 : _currentPage;
-
+      
       final members = await _controller.getCommunityMembers(
         cmtyId: _cmtyId!,
         page: page,
@@ -108,13 +108,13 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
       setState(() {
         _isLoading = false;
       });
-
+      
       if (isRefresh) {
         _refreshController.refreshFailed();
       } else {
         _refreshController.loadFailed();
       }
-
+      
       EasyLoading.showError('加载失败，请稍后重试');
     }
   }
@@ -129,28 +129,87 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
     _loadMembers(isRefresh: false);
   }
 
+  // header
+  Widget _buildHeader() {
+    return Container(
+      height: 40,
+      margin: EdgeInsets.only(left: 16, right: 16, top: 20),
+      padding: EdgeInsets.only(left: 16, right: 16,),
+      decoration: BoxDecoration(
+        color: GbsColors.lightBackgroundA,
+        borderRadius: BorderRadius.circular(12)
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: Text(
+                '成员',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              )),
+              SizedBox(width: 80,child: Text(
+                '邀请人数',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),),
+              SizedBox(width: 80,child: Text(
+                '加入人数',
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),)
+            ]
+          )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_cmtyId == null || _cmtyId!.isEmpty) {
       return Scaffold(
         backgroundColor: GbsColors.lightBackgroundA,
         appBar: CommonAppBarView(
-          title: '社群成员',
+          title: '社群邀请',
           backgroundColor: GbsColors.lightBackgroundA,
         ),
         body: Center(
-          child: Text('未选择社群', style: TextStyle(color: GbsColors.des6Color)),
+          child: Text(
+            '',
+            style: TextStyle(color: GbsColors.des6Color),
+          ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: GbsColors.lightBackgroundA,
+      backgroundColor: GbsColors.lightBackgroundB,
       appBar: CommonAppBarView(
-        title: '社群成员',
-        backgroundColor: GbsColors.lightBackgroundA,
+        title: '社群邀请',
+        backgroundColor: GbsColors.lightAppBarColorA,
+        btn: InkWell(
+          onTap: () {
+            
+          },
+          child: Container(
+            margin: EdgeInsets.only(right: 16),
+            alignment: Alignment.center,
+            width: 64, height: 36,
+          decoration: BoxDecoration(
+            color: GbsColors.primaryColor,
+            borderRadius: BorderRadius.circular(12)
+
+          ),
+          child: Text('开放邀请', style: TextStyle(color: GbsColors.white, fontSize: 12),)),
+        ),
       ),
-      body: SmartRefresher(
+      body: Column(children: [
+        _buildHeader(),
+        Expanded(child: SmartRefresher(
         controller: _refreshController,
         enablePullDown: true,
         enablePullUp: _hasMore,
@@ -175,10 +234,10 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
                 : ListView.builder(
                     itemCount: _members.length,
                     itemBuilder: (BuildContext context, int index) {
-                      final member = _members[index];
+                      CommunityMemberModel member = _members[index];
                       final avatar = member.avatar;
                       final roleText = member.roleText;
-
+                      
                       return _buildElement(
                         member.nickname!,
                         member.username,
@@ -202,17 +261,13 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
                                 onConfirm: (index) {
                                   switch (index) {
                                     case 1:
-                                      CommunityController.to
-                                          .muteCommunityMember(
-                                            _cmtyId!,
-                                            member.id,
-                                            true,
-                                          );
+                                      
                                       break;
                                     case 2:
-                                    CommunityController.to.kickCommunityMember(_cmtyId!, member.id);
+                                      
                                       break;
                                     case 3:
+                                      
                                       break;
                                     default:
                                   }
@@ -226,19 +281,22 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
                   ),
           ),
         ]),
-      ),
+      ),)
+      ],)
     );
   }
 
   /// 空状态视图
   Widget _buildEmptyView() {
-    return Center(child: EmptyView(community: true));
+    return Center(
+      child: EmptyView(community: true,)
+    );
   }
 
   // 分割线
   Widget _buildDivider() {
     return Container(
-      margin: const EdgeInsets.only(left: 36, top: 10),
+      margin: const EdgeInsets.only(left: 36),
       height: 0.8,
       color: GbsColors.lightDivider,
     );
@@ -284,40 +342,17 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
+                      Text(
                             nickname,
                             style: const TextStyle(
                               fontSize: 16,
                               color: GbsColors.des1Color,
                             ),
                           ),
-                          if (roleText != null && roleText.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: GbsColors.des6Color.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                roleText,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: GbsColors.des6Color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
                       const SizedBox(height: 2),
                       Text(
                         username,
+                        maxLines: 1,
                         style: const TextStyle(
                           fontSize: 14,
                           color: GbsColors.des6Color,
@@ -326,7 +361,20 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: GbsColors.des6Color),
+                 SizedBox(width: 60,child: Text(
+                '12',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),),
+              SizedBox(width: 80,child: Text(
+                '12',
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  fontSize: 12,
+                ),
+              ),)
               ],
             ),
             _buildDivider(),
@@ -348,4 +396,5 @@ class CommunityMemberPageState extends State<CommunityMemberPage> {
       child: Column(children: children),
     );
   }
+
 }

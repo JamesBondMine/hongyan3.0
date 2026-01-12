@@ -117,6 +117,7 @@
 		2A7ADF312EDD7AAF00D0B045 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEC42EDD7AAF00D0B045 /* libcrypto.a */; };
 		2A7ADF332EDD7D6100D0B045 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */; };
 		2A7ADF352EDD807300D0B045 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF342EDD807300D0B045 /* libcurses.tbd */; };
+		2AC476FF2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */; };
 		2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */; };
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
@@ -330,6 +331,8 @@
 		2A7ADECE2EDD7AAF00D0B045 /* libutf8_validity.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libutf8_validity.a; sourceTree = "<group>"; };
 		2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		2A7ADF342EDD807300D0B045 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
+		2AC476FD2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtySecurityPb.pbobjc.h; sourceTree = "<group>"; };
+		2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtySecurityPb.pbobjc.m; sourceTree = "<group>"; };
 		2AD9E3352ED409A800C4E6A3 /* DataTransViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTransViewController.h; sourceTree = "<group>"; };
 		2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransViewController.mm; sourceTree = "<group>"; };
 		2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DataTransViewController.xib; sourceTree = "<group>"; };
@@ -704,6 +707,8 @@
 		2ADEF7272F0E0AA500AB984D /* cmty */ = {
 			isa = PBXGroup;
 			children = (
+				2AC476FD2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.h */,
+				2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */,
 				2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */,
 				2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */,
 				2A7436372F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.h */,
@@ -1180,6 +1185,7 @@
 				2AF663C12EFBC3A000A18180 /* device_pb.proto in Sources */,
 				2AF663C22EFBC3A000A18180 /* translate_pb.proto in Sources */,
 				2AF663C32EFBC3A000A18180 /* connect_pb.proto in Sources */,
+				2AC476FF2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m in Sources */,
 				2AF663C42EFBC3A000A18180 /* app_pb.proto in Sources */,
 				2ADEF6EA2F0CC30600AB984D /* AppPb.pbobjc.m in Sources */,
 				2AF663C52EFBC3A000A18180 /* conv_pb.proto in Sources */,

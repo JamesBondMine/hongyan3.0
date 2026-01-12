@@ -9,6 +9,8 @@
 #import "CmtyPb.pbobjc.h"
 #import "CmtyCategoryPb.pbobjc.h"
 #import "CmtyChannelPb.pbobjc.h"
+#import "CmtyMemberPb.pbobjc.h"
+#import "CmtySecurityPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
 #import <UIKit/UIKit.h>
 #include "network_lib.h"
@@ -580,6 +582,134 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     });
 }
 
+/// 获取社群成员列表回调
+static void GetCommunityMembersCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"👥 获取社群成员列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时解析 CmtyMemberList 对象
+                if (responseData && responseData.length > 0) {
+                    NSError *parseError = nil;
+                    CmtyMemberList *result = [CmtyMemberList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        NSMutableArray *members = [NSMutableArray array];
+                        if (result.membersArray) {
+                            for (CmtyMember *member in result.membersArray) {
+                                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                                dict[@"user_id"] = member.userId ?: @"";
+                                dict[@"nickname"] = member.nickname ?: @"";
+                                dict[@"username"] = member.username ?: @"";
+                                dict[@"avatar"] = member.avatar ?: @"";
+                                dict[@"role"] = @(member.role);
+                                dict[@"joined_at"] = @(member.joinedAt);
+                                dict[@"join_way"] = member.joinWay ?: @"";
+                                dict[@"invite_count"] = @(member.inviteCount);
+                                [members addObject:dict];
+                            }
+                        }
+                        
+                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                        json[@"members"] = members;
+                        json[@"total"] = @(result.total);
+                        
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 获取社群成员列表响应解析成功: 成员数=%lu, 总数=%d", (unsigned long)members.count, result.total);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 禁言社群成员回调
+static void MuteCommunityMemberCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🔇 禁言社群成员回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 踢出社群成员回调
+static void KickCommunityMemberCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"👢 踢出社群成员回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 // ==================== 实现 ====================
 
 @implementation IMSDKCommunityManager
@@ -956,7 +1086,6 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     if (!cmtyId || cmtyId.length == 0 || !categoryId || categoryId.length == 0 || !categoryName || categoryName.length == 0) {
         return -1; // 参数错误
     }
-    
     CmtyUpdateCategory *updateReq = [CmtyUpdateCategory message];
     updateReq.categoryId = categoryId;
     updateReq.categoryName = categoryName;
@@ -995,6 +1124,111 @@ static void DeleteChannelGroupCallback(int errorCode, const char* data, int data
     uint64_t reqId = 0;
     int code = delete_channel_group(
         DeleteChannelGroupCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+#pragma mark - 成员管理
+
+- (int)getCommunityMembersWithCmtyId:(NSString *)cmtyId
+                                  page:(int)page
+                              pageSize:(int)pageSize
+                            completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"👥 获取社群成员列表: cmtyId=%@, page=%d, pageSize=%d", cmtyId, page, pageSize);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建查询参数 CmtyMembersQuery
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 20;
+    
+    CmtyMembersQuery *query = [CmtyMembersQuery message];
+    query.page = pg;
+    
+    NSData *protoData = [query data];
+    
+    uint64_t reqId = 0;
+    int code = get_community_members(
+        GetCommunityMembersCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+#pragma mark - 成员管理（续）
+
+- (int)muteCommunityMemberWithCmtyId:(NSString *)cmtyId
+                               userId:(NSString *)userId
+                                 mute:(BOOL)mute
+                            muteUntil:(int64_t)muteUntil
+                           completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"🔇 禁言社群成员: cmtyId=%@, userId=%@, mute=%d, muteUntil=%lld", cmtyId, userId, mute, muteUntil);
+    
+    if (!cmtyId || cmtyId.length == 0 || !userId || userId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建禁言参数 CmtyMuteMember
+    CmtyMuteMember *muteReq = [CmtyMuteMember message];
+    muteReq.userId = userId;
+    muteReq.mute = mute;
+    if (muteUntil > 0) {
+        muteReq.muteUntil = muteUntil;
+    }
+    
+    NSData *protoData = [muteReq data];
+    
+    uint64_t reqId = 0;
+    int code = mute_community_member(
+        MuteCommunityMemberCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)kickCommunityMemberWithCmtyId:(NSString *)cmtyId
+                               userId:(NSString *)userId
+                           completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"👢 踢出社群成员: cmtyId=%@, userId=%@", cmtyId, userId);
+    
+    if (!cmtyId || cmtyId.length == 0 || !userId || userId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建踢出参数 Param (param=user_id)
+    Param *kickReq = [Param message];
+    kickReq.param = userId;
+    
+    NSData *protoData = [kickReq data];
+    
+    uint64_t reqId = 0;
+    int code = kick_community_member(
+        KickCommunityMemberCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],

@@ -370,6 +370,12 @@ class NativeBridgeHandler: NSObject {
             imUpdateChannelGroup(call: call, result: result)
         case "imDeleteChannelGroup":
             imDeleteChannelGroup(call: call, result: result)
+        case "imGetCommunityMembers":
+            imGetCommunityMembers(call: call, result: result)
+        case "imMuteCommunityMember":
+            imMuteCommunityMember(call: call, result: result)
+        case "imKickCommunityMember":
+            imKickCommunityMember(call: call, result: result)
         
         // ---------- 云存储 ----------
         case "initAliyunOSS", "initTencentCOS", "initAWSS3",
@@ -4019,6 +4025,84 @@ class NativeBridgeHandler: NSObject {
         if code != 0 {
             result(FlutterError(code: "DELETE_CHANNEL_GROUP_ERROR",
                               message: "删除频道分组请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取社群成员列表
+    private func imGetCommunityMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["pageSize"] as? Int ?? 20
+        
+        print("👥 获取社群成员列表: cmtyId=\(cmtyId), page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKCommunityManager.shared().getCommunityMembers(withCmtyId: cmtyId, page: Int32(page), pageSize: Int32(pageSize), completion: { errorCode, reqId, data in
+            print("👥 获取社群成员列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_COMMUNITY_MEMBERS_ERROR",
+                              message: "获取社群成员列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 禁言社群成员
+    private func imMuteCommunityMember(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let userId = args["userId"] as? String ?? ""
+        let mute = args["mute"] as? Bool ?? true
+        let muteUntil = args["muteUntil"] as? Int64 ?? 0
+        
+        print("🔇 禁言社群成员: cmtyId=\(cmtyId), userId=\(userId), mute=\(mute), muteUntil=\(muteUntil)")
+        
+        let code = IMSDKCommunityManager.shared().muteCommunityMember(withCmtyId: cmtyId, userId: userId, mute: mute, muteUntil: muteUntil, completion: { errorCode, reqId, data in
+            print("🔇 禁言社群成员回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "操作成功" : "操作失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "MUTE_COMMUNITY_MEMBER_ERROR",
+                              message: "禁言社群成员请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 踢出社群成员
+    private func imKickCommunityMember(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let userId = args["userId"] as? String ?? ""
+        
+        print("👢 踢出社群成员: cmtyId=\(cmtyId), userId=\(userId)")
+        
+        let code = IMSDKCommunityManager.shared().kickCommunityMember(withCmtyId: cmtyId, userId: userId, completion: { errorCode, reqId, data in
+            print("👢 踢出社群成员回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "踢出成功" : "踢出失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "KICK_COMMUNITY_MEMBER_ERROR",
+                              message: "踢出社群成员请求发送失败: \(code)",
                               details: nil))
         }
     }
