@@ -1595,7 +1595,7 @@ class _CommunityChatPageState extends State<CommunityChatPage> {
                                   _pickImageFromGallery();
                                 },
                           child: Padding(
-                            padding: EdgeInsetsGeometry.only(left: 8),
+                            padding: EdgeInsetsGeometry.only(left: 8, right: 12),
                             child: Image.asset(
                               'assets/img/msg/img.png',
                               width: 22,

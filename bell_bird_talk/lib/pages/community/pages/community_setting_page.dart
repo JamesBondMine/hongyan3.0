@@ -3,6 +3,7 @@ import 'package:bell_bird_talk/pages/community/pages/community_find_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_set_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_member_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_roles_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_safe_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,7 @@ class CommunitySettingPage extends StatelessWidget {
         _buildTitle('安全管理'),
         _buildCard([
           _buildElement('安全管理', 'cunty_safe', () {  
+            Get.to(CommunitySafePage(cmtyId: cmtyId));
           },),
           _buildDivider(),
           _buildElement('封禁用户', 'cunty_xvxv', () {  

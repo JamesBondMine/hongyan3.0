@@ -4,7 +4,7 @@ import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/utils.dart';
 
 // 不同风格的appBar
-enum AppBarType { normal, close, backAndClose }
+enum AppBarType { normal, close, backAndClose, sheetbackAndClose }
 
 class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -20,8 +20,6 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor = GbsColors.lightAppBarColorB,
     this.appBarType = AppBarType.normal,
     this.btn,
-  
-
   });
 
   @override
@@ -40,7 +38,7 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
                   title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     color: GbsColors.des1Color,
                     fontWeight: FontWeight.w500,
                   ),
@@ -57,42 +55,86 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
-    if (btn != null) {
+    if (appBarType == AppBarType.sheetbackAndClose) {
       return PreferredSize(
-      preferredSize: Size(Get.width, 64),
-      child: Container(
-        color: backgroundColor,
-        child: SafeArea(
-          child: Row(
-            children: [
-              InkWell(
-                onTap: () {
-                  Get.back();
-                },
-                child: Container(
-                  height: 44,
-                  width: 64,
-                  padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
-                  child: Icon(Icons.arrow_back_ios_new),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: GbsColors.des1Color,
-                    fontWeight: FontWeight.w500,
+        preferredSize: Size(Get.width, 64),
+        child: Container(
+          color: backgroundColor,
+          padding: EdgeInsets.only(top: 8),
+          child: SafeArea(
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () {
+                    Get.back();
+                  },
+                  child: Container(
+                    height: 44,
+                    width: Get.width * 2 / 3,
+                    padding: EdgeInsetsGeometry.only(right: 12, left: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.arrow_back_ios_new),
+                        SizedBox(width: 12),
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: GbsColors.des1Color,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              btn!,
-            ],
+
+                Spacer(),
+                btn!,
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (btn != null) {
+      return PreferredSize(
+        preferredSize: Size(Get.width, 64),
+        child: Container(
+          color: backgroundColor,
+          child: SafeArea(
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () {
+                    Get.back();
+                  },
+                  child: Container(
+                    height: 44,
+                    width: 64,
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+                    child: Icon(Icons.arrow_back_ios_new),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: GbsColors.des1Color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                btn!,
+              ],
+            ),
+          ),
+        ),
+      );
     }
     return PreferredSize(
       preferredSize: Size(Get.width, 64),

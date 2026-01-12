@@ -1,6 +1,10 @@
+import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/pages/community/views/cmt_role_msgsend_selview.dart';
+import 'package:bell_bird_talk/pages/community/views/community_pri_setting_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CommunityRolesPage extends StatefulWidget {
   const CommunityRolesPage({Key? key}) : super(key: key);
@@ -11,6 +15,15 @@ class CommunityRolesPage extends StatefulWidget {
 
 class CommunityChildPageState extends State<CommunityRolesPage> {
   bool valueCheckChannel = true;
+
+  MemberSendMsg sendMsgs = MemberSendMsg();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    sendMsgs = MemberSendMsg();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +48,9 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
               });
             }),
             _buildDivider(),
-            _buildTxtItem('查看频道', '默认允许角色查看频道', (value) {
-              setState(() {
-                valueCheckChannel = value;
-              });
+            _buildTxtItem('发送消息类型', '如文字、图片、表情', (value) {
+              // 查看频道
+              checkChannelEvent();
             }),
             _buildDivider(),
             _buildItem('查看频道', '默认允许角色查看频道', valueCheckChannel, (value) {
@@ -112,6 +124,31 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
     );
   }
 
+  // 查看频道
+  void checkChannelEvent() {
+    gbs.shower.showScreenViewCustom(
+      context,
+      360,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: CmtRoleMsgSendSelView(msgs: sendMsgs, onConfirm: (msgs) {
+          setState(() {
+            this.sendMsgs = msgs;
+          });
+        })
+      ),
+    );
+    
+  }
+
   // 角色卡片
   Widget _buildRoleCard() {
     return Row(
@@ -121,7 +158,7 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
           height: 28,
           alignment: Alignment.center,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 206, 220, 247),
             borderRadius: BorderRadius.circular(14),
@@ -217,7 +254,9 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
 
   // 元素
   Widget _buildTxtItem(String title, String des, Function(bool) onChanged) {
-    return Container(
+    return InkWell(onTap: () {
+      onChanged(true);
+    },child: Container(
       padding: const EdgeInsets.only(left: 16, top: 12),
       alignment: Alignment.centerLeft,
       child: Row(
@@ -245,7 +284,7 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
           ),
 
           Text(
-            '文字',
+            '${sendMsgs.txt==true ? '文本' : ''} ${sendMsgs.img==true ? '图片' : ''} ${sendMsgs.emoji==true ? '表情' : ''}',
             style: const TextStyle(fontSize: 12, color: GbsColors.des6Color),
           ),
           Padding(
@@ -258,6 +297,6 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

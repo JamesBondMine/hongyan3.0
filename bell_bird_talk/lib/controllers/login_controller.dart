@@ -655,7 +655,7 @@ class LoginController extends GetxController {
       // 跳转到首页
       Get.offAllNamed('/home');
     } else {
-      EasyLoading.showError(result['message'] ?? '登录失败');
+      EasyLoading.showError(result['data'] ?? result['data'] ?? '登录失败');
     }
   }
 

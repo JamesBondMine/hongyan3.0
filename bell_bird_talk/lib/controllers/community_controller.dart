@@ -23,6 +23,26 @@ class CommunityController extends GetxController {
   // 是否正在加载
   final RxBool isLoading = false.obs;
 
+
+  // 刷新发送消息的选择状态
+  String roleSendMsgSelRefreshId = 'roleSendMsgSelRefreshId';
+  void updateRoleSendMsgSel(){
+    update([roleSendMsgSelRefreshId]);
+  }
+
+
+  // 刷新社群发送消息的选择状态
+  String cmtSendMsgSelRefreshId = 'cmtSendMsgSelRefreshId';
+  void updateCmtSendMsgSel(){
+    update([cmtSendMsgSelRefreshId]);
+  }
+
+  // 发言上限刷新
+  String cmtSendMaxRefreshId = 'cmtSendMaxRefreshId';
+  void updateCmtSendMax(){
+    update([cmtSendMaxRefreshId]);
+  }
+
   // 缓存相关方法
   Future<List<CommunityModel>> _loadCachedCommunities() async {
     final prefs = await SharedPreferences.getInstance();
