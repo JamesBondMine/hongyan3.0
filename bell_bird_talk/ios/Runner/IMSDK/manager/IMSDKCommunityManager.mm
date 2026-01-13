@@ -27,8 +27,7 @@
 
 /// 获取社群列表回调
 static void ListCommunitiesCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 获取社群列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    
+
     NSData *responseData = nil;
     if (data && dataLen > 0) {
         responseData = [NSData dataWithBytes:data length:dataLen];
@@ -89,7 +88,6 @@ static void ListCommunitiesCallback(int errorCode, const char* data, int dataLen
                     if (jsonData) {
                         dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     }
-                    NSLog(@"✅ 获取社群列表响应解析成功: %@", dataStr);
                 } else {
                     // 尝试直接作为 JSON 解析
                     dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -229,8 +227,7 @@ static void GetCommunityInfoCallback(int errorCode, const char* data, int dataLe
 
 /// 获取分组列表回调
 static void GetCommunityGroupsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 获取分组列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    
+
     NSData *responseData = nil;
     if (data && dataLen > 0) {
         responseData = [NSData dataWithBytes:data length:dataLen];
@@ -270,7 +267,6 @@ static void GetCommunityGroupsCallback(int errorCode, const char* data, int data
                         if (jsonData) {
                             dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                         }
-                        NSLog(@"✅ 获取分组列表响应解析成功: %@", dataStr);
                     } else {
                         // 尝试直接作为 JSON 解析
                         dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -286,8 +282,6 @@ static void GetCommunityGroupsCallback(int errorCode, const char* data, int data
 
 /// 获取频道列表回调
 static void GetChannelsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"📁 获取频道列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    
     NSData *responseData = nil;
     if (data && dataLen > 0) {
         responseData = [NSData dataWithBytes:data length:dataLen];
@@ -328,8 +322,6 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                                 dict[@"created_at"] = @(channel.createdAt);
                                 dict[@"updated_at"] = @(channel.updatedAt);
                                 [channels addObject:dict];
-                                
-                                NSLog(@"组装频道数据: %@", channel.channelName);
                             }
                         }
                         
@@ -337,7 +329,6 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                         if (jsonData) {
                             dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                         }
-                        NSLog(@"✅ 获取频道列表响应解析成功: %@", dataStr);
                     } else {
                         // 尝试直接作为 JSON 解析
                         dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -736,8 +727,7 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
 - (int)getCommunityListWithPage:(int)page
                         pageSize:(int)pageSize
                       completion:(IMSDKCommunityCompletion)completion {
-    NSLog(@"📁 获取社群列表: page=%d, pageSize=%d", page, pageSize);
-    
+
     Page *pg = [Page message];
     pg.page = page > 0 ? page : 1;
     pg.size = pageSize > 0 ? pageSize : 20;
@@ -850,11 +840,6 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
 
 - (int)getCommunityGroupsWithCmtyId:(NSString *)cmtyId
                           completion:(IMSDKCommunityCompletion)completion {
-    NSLog(@"📁 获取分组列表: cmtyId=%@", cmtyId);
-    
-    if (!cmtyId || cmtyId.length == 0) {
-        return -1; // 参数错误
-    }
     CmtyCategoryList *cl = [CmtyCategoryList message];
     
     // 创建空的查询参数（如果需要的话）
@@ -877,8 +862,6 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
 
 - (int)getChannelsWithCmtyId:(NSString *)cmtyId
                   completion:(IMSDKCommunityCompletion)completion {
-    NSLog(@"📁 获取频道列表: cmtyId=%@", cmtyId);
-    
     if (!cmtyId || cmtyId.length == 0) {
         return -1; // 参数错误
     }

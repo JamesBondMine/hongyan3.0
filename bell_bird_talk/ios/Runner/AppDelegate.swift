@@ -3733,11 +3733,8 @@ class NativeBridgeHandler: NSObject {
         let args = call.arguments as? [String: Any] ?? [:]
         let page = args["page"] as? Int ?? 1
         let pageSize = args["page_size"] as? Int ?? 20
-        
-        print("📁 获取社群列表: page=\(page), pageSize=\(pageSize)")
-        
+
         let code = IMSDKCommunityManager.shared().getCommunityList(withPage: Int32(page), pageSize: Int32(pageSize), completion: { errorCode, reqId, data in
-            print("📁 社群列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,
@@ -3804,11 +3801,8 @@ class NativeBridgeHandler: NSObject {
     private func imGetCommunityGroups(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as? [String: Any] ?? [:]
         let cmtyId = args["cmtyId"] as? String ?? ""
-        
-        print("📁 获取分组列表: cmtyId=\(cmtyId)")
-        
         let code = IMSDKCommunityManager.shared().getCommunityGroups(withCmtyId: cmtyId, completion: { errorCode, reqId, data in
-            print("📁 获取分组列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,
@@ -3828,11 +3822,9 @@ class NativeBridgeHandler: NSObject {
     private func imGetChannels(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as? [String: Any] ?? [:]
         let cmtyId = args["cmtyId"] as? String ?? ""
-        
-        print("📁 获取频道列表: cmtyId=\(cmtyId)")
-        
+
         let code = IMSDKCommunityManager.shared().getChannelsWithCmtyId(cmtyId, completion:  { errorCode, reqId, data in
-            print("📁 获取频道列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,

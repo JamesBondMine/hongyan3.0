@@ -649,19 +649,23 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           }
         });
       },
+      leading: Icon(
+        _expandedCategory == category ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+        color: GbsColors.lightTitlePrimary,
+        size: 18,
+      ),
+      trailing: const SizedBox.shrink(), // 隐藏右侧默认箭头
       title: GestureDetector(
         onLongPress: () {
           // 分类设置
           _showCategorySettingView(category);
         },
-        child: Container(
-          child: Text(
-            category,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: GbsColors.lightTitlePrimary,
-            ),
+        child: Text(
+          category,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: GbsColors.lightTitlePrimary,
           ),
         ),
       ),
