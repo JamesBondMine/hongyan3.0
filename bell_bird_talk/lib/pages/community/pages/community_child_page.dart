@@ -23,8 +23,8 @@ import 'package:get/get.dart';
 
 class CommunityChildPage extends StatefulWidget {
   final CommunityModel? cmty; // 社群ID（可选，可以从路由参数获取）
-  
-  const CommunityChildPage({super.key, this.cmty});
+  VoidCallback onCommunityChange;
+  CommunityChildPage({super.key, required this.onCommunityChange, this.cmty});
 
   @override
   State<StatefulWidget> createState() {
@@ -38,14 +38,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
   // 分组和频道数据
   CommunityGChannels? groupsWithChannels;
-  
+
   // 兼容旧代码的访问方式
   List<CmtGroupModel> get categories => groupsWithChannels?.categories ?? [];
-  Map<String, dynamic> get categoryIdMap => groupsWithChannels?.categoryIdMap ?? {};
+  Map<String, dynamic> get categoryIdMap =>
+      groupsWithChannels?.categoryIdMap ?? {};
 
   // 使用分类名作为key管理展开状态（手风琴效果：一次只能展开一个）
   String? _expandedCategory;
-
 
   CommunityModel? _cmty;
 
@@ -76,15 +76,13 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
   /// 加载分组和频道数据
   Future<void> _loadGroupsAndChannels(CommunityModel cmty) async {
-
     try {
-      CommunityGChannels result = await _controller.getCommunityGroupsWithChannels(
-        cmtyId: cmty.id,
-      );
+      CommunityGChannels result = await _controller
+          .getCommunityGroupsWithChannels(cmtyId: cmty.id);
       EasyLoading.dismiss();
-       setState(() {
-          groupsWithChannels = result;
-        });
+      setState(() {
+        groupsWithChannels = result;
+      });
     } catch (e) {
       print('❌ 加载分组和频道数据失败: $e');
       EasyLoading.showError('加载失败');
@@ -122,30 +120,34 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      _showCommunitySettingView();
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 16, bottom: 16),
-                      child: Row(
-                        children: [
-                          Text(
-                            '服务器选择',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+              SizedBox(
+                width: Get.width - 120,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        _showCommunitySettingView();
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 16, bottom: 16),
+                        child: Row(
+                          children: [
+                            Text(
+                              _cmty==null ? '' : _cmty!.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Icon(Icons.arrow_drop_down),
-                        ],
+                            Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -211,11 +213,17 @@ class CommunityChildPageState extends State<CommunityChildPage> {
               CmtGroupModel category = categories[index];
               // 如果是频道模式。则直接展示频道
               if (category.isChannel) {
-                ChannelModel channel = ChannelModel(channelId: category.id, channelName: category.name, channelType: 0, communityId: category.communityId);
+                ChannelModel channel = ChannelModel(
+                  channelId: category.id,
+                  channelName: category.name,
+                  channelType: 0,
+                  communityId: category.communityId,
+                );
                 return _buildChannelItem(category.name, channel);
               }
               // 使用 model 的方法获取该分组下的频道列表
-              List<ChannelModel> channels = groupsWithChannels!.categoryIdMap[category.id] ?? [];
+              List<ChannelModel> channels =
+                  groupsWithChannels!.categoryIdMap[category.id] ?? [];
               // channels = groupsWithChannels?.getChannelsByCategory(category.id) ?? [];
               final isExpanded = _expandedCategory == category.id;
 
@@ -242,10 +250,13 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             topRight: Radius.circular(12),
           ),
         ),
-        child: ChannelEditView(onConfirm: (value) {
-          // 编辑成功后刷新
-          _loadGroupsAndChannels(_cmty!);
-        }, channel: channel),
+        child: ChannelEditView(
+          onConfirm: (value) {
+            // 编辑成功后刷新
+            _loadGroupsAndChannels(_cmty!);
+          },
+          channel: channel,
+        ),
       ),
     );
   }
@@ -297,7 +308,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 // 频道通知
                 _showSettingNotiWithCommunityView(false, channel);
                 break;
-                case 7:
+              case 7:
                 // 发言设置
                 _showSettingSendMsgWithChannelView(true, channel);
                 break;
@@ -344,7 +355,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
               case 5:
                 // 处理通知设置
-                _showSettingNotiWithCommunityView(true,null);
+                _showSettingNotiWithCommunityView(true, null);
                 break;
               case 6:
                 // 处理隐私设置
@@ -374,7 +385,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     if (result != null && result['action'] == 'confirm') {
       EasyLoading.show(status: '正在删除频道...');
       try {
-        bool success = await _controller.deleteChannel(channelId: channel.channelId);
+        bool success = await _controller.deleteChannel(
+          channelId: channel.channelId,
+        );
         EasyLoading.dismiss();
         if (success) {
           // 刷新分组和频道列表
@@ -404,7 +417,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     );
 
     if (result != null && result['action'] == 'confirm') {
-      EasyLoading.showSuccess('success');
+      CommunityController.to.leaveCommunity(cmtyId: _cmty!.id).then((success) {
+        if (success) {
+          widget.onCommunityChange();
+        }
+      });
     }
   }
 
@@ -431,9 +448,8 @@ class CommunityChildPageState extends State<CommunityChildPage> {
     );
   }
 
-
   // 发言设置
-  void _showSettingSendMsgWithChannelView(bool cmty,  ChannelModel? channel) {
+  void _showSettingSendMsgWithChannelView(bool cmty, ChannelModel? channel) {
     gbs.shower.showScreenViewCustom(
       context,
       Get.height - 150,
@@ -447,13 +463,13 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             topRight: Radius.circular(12),
           ),
         ),
-        child: ChannelMsgSettingView(ccmodel: channel!, cmtyId: _cmty!.id,),
+        child: ChannelMsgSettingView(ccmodel: channel!, cmtyId: _cmty!.id),
       ),
     );
   }
 
   // 通知设置
-  void _showSettingNotiWithCommunityView(bool cmty,  ChannelModel? channel) {
+  void _showSettingNotiWithCommunityView(bool cmty, ChannelModel? channel) {
     gbs.shower.showScreenViewCustom(
       context,
       400,
@@ -477,12 +493,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             }
             // 频道的通知设置
             CommunityController.to
-                      .updateChannel(
-                        channelId: channel!.channelId,
-                        notificationType: value,
-                      )
-                      .then((value) {
-                      });
+                .updateChannel(
+                  channelId: channel!.channelId,
+                  notificationType: value,
+                )
+                .then((value) {});
           },
         ),
       ),
@@ -513,8 +528,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
               EasyLoading.show(status: '正在创建分组...');
 
               try {
-                bool result = await CommunityController.to.createChannelGroup(cmtyId: _cmty!.id, categoryName: gname);
-                 EasyLoading.dismiss();
+                bool result = await CommunityController.to.createChannelGroup(
+                  cmtyId: _cmty!.id,
+                  categoryName: gname,
+                );
+                EasyLoading.dismiss();
                 if (result == true) {
                   // 刷新分组列表
                   _loadGroupsAndChannels(_cmty!);
@@ -526,7 +544,6 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 EasyLoading.dismiss();
                 print('创建分组错误: $e');
                 EasyLoading.showError('创建失败，请稍后重试');
-
               }
             },
           ),
@@ -555,20 +572,20 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           onlyTextChannel: onlyTextChannel,
           onConfirm: (channelData) async {
             if (channelData == null) return;
-            
+
             // 获取当前社群信息
             final cmty = widget.cmty ?? _cmty;
             if (cmty == null) {
               EasyLoading.showError('未选择社群');
               return;
             }
-            
+
             // 获取分类ID（如果用户选择了分类）
             // channelData['categoryId'] 是分类索引（int转String），需要从分组列表中获取对应的分组ID
             String categoryId = channelData['categoryId'] as String? ?? '';
             try {
               EasyLoading.show(status: '创建中...');
-              
+
               final success = await _controller.createChannel(
                 cmtyId: cmty.id,
                 categoryId: categoryId,
@@ -577,7 +594,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 description: channelData['description'] as String?,
                 maxMembers: channelData['maxMembers'] as int?,
               );
-              
+
               if (success) {
                 EasyLoading.showSuccess('创建成功');
                 await _loadGroupsAndChannels(cmty);
@@ -655,27 +672,34 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       //   size: 18,
       // ),
       trailing: const SizedBox.shrink(), // 隐藏右侧默认箭头
-      title: Row(children: [
-        Padding(padding: EdgeInsetsGeometry.only(right: 8), child: Icon(
-        _expandedCategory == category ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
-        color: GbsColors.lightTitlePrimary,
-        size: 18,
-      ),),
-        GestureDetector(
-        onLongPress: () {
-          // 分类设置
-          _showCategorySettingView(category);
-        },
-        child: Text(
-          category,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: GbsColors.lightTitlePrimary,
+      title: Row(
+        children: [
+          Padding(
+            padding: EdgeInsetsGeometry.only(right: 8),
+            child: Icon(
+              _expandedCategory == category
+                  ? Icons.keyboard_arrow_down
+                  : Icons.keyboard_arrow_right,
+              color: GbsColors.lightTitlePrimary,
+              size: 18,
+            ),
           ),
-        ),
-      )
-      ],),
+          GestureDetector(
+            onLongPress: () {
+              // 分类设置
+              _showCategorySettingView(category);
+            },
+            child: Text(
+              category,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: GbsColors.lightTitlePrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
       children: channels
           .map((channel) => _buildChannelItem(category, channel))
           .toList(),
@@ -720,12 +744,12 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 } catch (e) {
                   category = null;
                 }
-                
+
                 if (category == null || _cmty == null) {
                   EasyLoading.showError('分类不存在');
                   return;
                 }
-                
+
                 EasyLoading.show(status: '正在删除分类...');
                 try {
                   bool success = await _controller.deleteChannelGroup(
@@ -782,22 +806,20 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 return;
               }
               Navigator.pop(context);
-              
+
               // 根据分类名称找到对应的分类对象
               CmtGroupModel? category;
               try {
-                category = categories.firstWhere(
-                  (cat) => cat.name == channel,
-                );
+                category = categories.firstWhere((cat) => cat.name == channel);
               } catch (e) {
                 category = null;
               }
-              
+
               if (category == null || _cmty == null) {
                 EasyLoading.showError('分类不存在');
                 return;
               }
-              
+
               EasyLoading.show(status: '正在更新分类...');
               try {
                 bool success = await _controller.updateChannelGroup(
@@ -845,7 +867,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
         ),
         child: Row(
           children: [
-            Image.asset(getChannelIcon(channel), width: 16, height: 16,),
+            Image.asset(getChannelIcon(channel), width: 16, height: 16),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -874,7 +896,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       );
       return;
     }
-    bool res = await CommunityController.to.enterChannel(channelId: channel.channelId);
+    bool res = await CommunityController.to.enterChannel(
+      channelId: channel.channelId,
+    );
     if (res) {
       CommunityController.to.startChat(channel.channelId, channel.channelName);
     }

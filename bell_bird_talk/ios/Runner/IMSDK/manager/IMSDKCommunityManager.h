@@ -156,6 +156,17 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
                               pageSize:(int)pageSize
                             completion:(IMSDKCommunityCompletion)completion;
 
+/// 获取社群封禁成员列表
+/// @param cmtyId 社群ID
+/// @param page 页码（从1开始）
+/// @param pageSize 每页数量
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getCommunityBannedMembersWithCmtyId:(NSString *)cmtyId
+                                      page:(int)page
+                                  pageSize:(int)pageSize
+                                completion:(IMSDKCommunityCompletion)completion;
+
 /// 禁言社群成员
 /// @param cmtyId 社群ID
 /// @param userId 用户ID

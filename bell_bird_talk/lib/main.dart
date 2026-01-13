@@ -149,23 +149,9 @@ class _SplashPageState extends State<SplashPage> {
       if (globalCtrl.needAutoLogin()) {
         // 有保存的 Token，尝试自动登录
         setState(() => _statusText = '正在自动登录...');
-        print('📱 检测到本地 Token，开始自动登录...');
-
-        // final autoLoginSuccess = await globalCtrl.autoLoginWithToken();
-
-        // if (autoLoginSuccess) {
-          // 自动登录成功，跳转首页
-          print('✅ 自动登录成功，跳转首页');
-          setState(() => _statusText = '登录成功');
-          await Future.delayed(const Duration(milliseconds: 300));
-          Get.off(() => const HomePage());
-        // } else {
-        //   // 自动登录失败，跳转登录页
-        //   print('❌ 自动登录失败，跳转登录页');
-        //   setState(() => _statusText = '登录已过期');
-        //   await Future.delayed(const Duration(milliseconds: 500));
-        //   Get.off(() => const LoginPage());
-        // }
+        setState(() => _statusText = '登录成功');
+        await Future.delayed(const Duration(milliseconds: 300));
+        Get.off(() => const HomePage());
       } else {
         // 没有保存的 Token，直接跳转登录页
         print('📱 没有本地 Token，跳转登录页');

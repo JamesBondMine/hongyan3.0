@@ -1,4 +1,7 @@
+import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../config/translations.dart';
 import '../../utils/storage_util.dart';
@@ -55,55 +58,63 @@ class _LanguagePageState extends State<LanguagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text('language_settings'.tr),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: GbsColors.lightBackgroundA,
+      appBar: CommonAppBarView(title: 'language_settings'.tr),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 当前语言提示
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Colors.blue.withOpacity(0.1),
+            height: 52.h,
+            alignment: Alignment.center,
+            margin: EdgeInsets.only(top: 16,left: 16, right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                Image.asset('assets/img/user/settingglobal.png', width: 20.w, height: 20.h,),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${'current_language'.tr}: ${_getCurrentLanguageName()}',
+                    'current_language'.tr,
                     style: TextStyle(
-                      color: Colors.blue[700],
+                      color: GbsColors.des1Color,
                       fontSize: 14,
                     ),
                   ),
                 ),
+                Text(
+                    _getCurrentLanguageName(),
+                    style: TextStyle(
+                      color: GbsColors.des6Color,
+                      fontSize: 14,
+                    ),
+                  ),
+                Icon(Icons.arrow_forward_ios_outlined,color: GbsColors.des9Color,size: 14.sp,)
               ],
             ),
           ),
           
-          // 标题
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-            child: Text(
-              'select_language'.tr,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          // // 标题
+          // Padding(
+          //   padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          //   child: Text(
+          //     'select_language'.tr,
+          //     style: TextStyle(
+          //       fontSize: 14,
+          //       color: Colors.grey[600],
+          //       fontWeight: FontWeight.w500,
+          //     ),
+          //   ),
+          // ),
           
           // 语言列表
           Expanded(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -162,21 +173,21 @@ class _LanguagePageState extends State<LanguagePage> {
           child: Row(
             children: [
               // 国旗
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  language.flag,
-                  style: const TextStyle(fontSize: 24),
-                ),
-              ),
+              // Container(
+              //   width: 40,
+              //   height: 40,
+              //   decoration: BoxDecoration(
+              //     color: Colors.grey[100],
+              //     borderRadius: BorderRadius.circular(20),
+              //   ),
+              //   alignment: Alignment.center,
+              //   child: Text(
+              //     language.flag,
+              //     style: const TextStyle(fontSize: 24),
+              //   ),
+              // ),
               
-              const SizedBox(width: 16),
+              // const SizedBox(width: 16),
               
               // 语言名称
               Expanded(
@@ -191,14 +202,14 @@ class _LanguagePageState extends State<LanguagePage> {
                         color: isSelected ? Colors.blue : Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      language.name.tr,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[500],
-                      ),
-                    ),
+                    // const SizedBox(height: 2),
+                    // Text(
+                    //   language.name.tr,
+                    //   style: TextStyle(
+                    //     fontSize: 13,
+                    //     color: Colors.grey[500],
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -206,27 +217,13 @@ class _LanguagePageState extends State<LanguagePage> {
               // 选中图标
               if (isSelected)
                 Container(
-                  width: 24,
-                  height: 24,
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check,
-                    color: Colors.white,
-                    size: 16,
+                    color: GbsColors.primaryColor,
+                    size: 26,
                   ),
                 )
-              else
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    shape: BoxShape.circle,
-                  ),
-                ),
+              else Container()
             ],
           ),
         ),

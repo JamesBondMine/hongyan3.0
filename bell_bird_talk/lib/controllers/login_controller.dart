@@ -225,7 +225,6 @@ class LoginController extends GetxController {
         scene: 'reset_password', // 登录场景
       );
       
-      print('📬 验证码发送结果: $result');
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         // 解析 data 字段获取 captcha_id

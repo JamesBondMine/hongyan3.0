@@ -131,19 +131,43 @@ class CommunityController extends GetxController {
   Future<bool> joinCommunity({required String cmtyId}) async {
     bool success = false;
     try {
+      EasyLoading.show();
       final result = await _nativeService.imJoinCommunity(cmtyId: cmtyId);
-
+      EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         success = true;
         // 可以在这里更新本地状态，比如刷新社群列表
         await getCommunityList(page: 1, pageSize: 20);
       } else {
-        print('加入社群失败: ${result['message']}');
+        EasyLoading.showError(result['message']);
+      }
+      return success;
+    } catch (e) {
+      print('加入社群异常: $e');
+      EasyLoading.dismiss();
+      return success;
+    }
+  }
+
+  /// 离开社群
+  /// @param cmtyId 社群ID
+  Future<bool> leaveCommunity({required String cmtyId}) async {
+    bool success = false;
+    try {
+      EasyLoading.show();
+      final result = await _nativeService.imLeaveCommunity(cmtyId: cmtyId);
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        success = true;
+        EasyLoading.showSuccess('离开社群成功');
+      } else {
+        print('离开社群失败: ${result['message']}');
       }
 
       return success;
     } catch (e) {
-      print('加入社群异常: $e');
+      EasyLoading.dismiss();
+      print('离开社群异常: $e');
       return success;
     }
   }
@@ -587,6 +611,54 @@ class CommunityController extends GetxController {
       return [];
     } catch (e) {
       print('获取社群成员列表异常: $e');
+      return [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 获取社群封禁成员列表
+  /// @param cmtyId 社群ID
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 封禁成员列表
+  Future<List<CommunityMemberModel>> getCommunityBannedMembers({
+    required String cmtyId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _nativeService.imGetCommunityBannedMembers(
+        cmtyId: cmtyId,
+        page: page,
+        pageSize: pageSize,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+
+          // 解析封禁成员列表
+          final membersData = data['members'] as List<dynamic>? ?? [];
+          List<CommunityMemberModel> bannedMembers = membersData
+              .map(
+                (item) => CommunityMemberModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              .toList();
+
+          return bannedMembers;
+        }
+      } else {
+        print('获取社群封禁成员列表失败: ${result['message']}');
+      }
+      return [];
+    } catch (e) {
+      print('获取社群封禁成员列表异常: $e');
       return [];
     } finally {
       isLoading.value = false;

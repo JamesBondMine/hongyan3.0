@@ -637,6 +637,72 @@ static void GetCommunityMembersCallback(int errorCode, const char* data, int dat
     });
 }
 
+/// 获取社群封禁成员列表回调
+static void GetCommunityBannedMembersCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🚫 获取社群封禁成员列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时解析 CmtyMemberList 对象（封禁成员列表使用相同的数据结构）
+                if (responseData && responseData.length > 0) {
+                    NSError *parseError = nil;
+                    CmtyMemberList *result = [CmtyMemberList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        NSMutableArray *bannedMembers = [NSMutableArray array];
+                        if (result.membersArray) {
+                            for (CmtyMember *member in result.membersArray) {
+                                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                                dict[@"user_id"] = member.userId ?: @"";
+                                dict[@"nickname"] = member.nickname ?: @"";
+                                dict[@"username"] = member.username ?: @"";
+                                dict[@"avatar"] = member.avatar ?: @"";
+                                dict[@"role"] = @(member.role);
+                                dict[@"joined_at"] = @(member.joinedAt);
+                                dict[@"join_way"] = member.joinWay ?: @"";
+                                dict[@"invite_count"] = @(member.inviteCount);
+                                // 封禁成员可能有额外的封禁信息
+                                dict[@"banned_at"] = @(member.joinedAt); // 这里可能需要根据实际数据结构调整
+                                [bannedMembers addObject:dict];
+                            }
+                        }
+                        
+                        NSMutableDictionary *json = [NSMutableDictionary dictionary];
+                        json[@"members"] = bannedMembers;
+                        json[@"total"] = @(result.total);
+                        
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 获取社群封禁成员列表响应解析成功: 封禁成员数=%lu, 总数=%d", (unsigned long)bannedMembers.count, result.total);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 /// 禁言社群成员回调
 static void MuteCommunityMemberCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"🔇 禁言社群成员回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -1144,6 +1210,41 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
     uint64_t reqId = 0;
     int code = get_community_members(
         GetCommunityMembersCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)getCommunityBannedMembersWithCmtyId:(NSString *)cmtyId
+                                      page:(int)page
+                                  pageSize:(int)pageSize
+                                completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"🚫 获取社群封禁成员列表: cmtyId=%@, page=%d, pageSize=%d", cmtyId, page, pageSize);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建查询参数 CmtyMembersQuery
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 20;
+    
+    CmtyMembersQuery *query = [CmtyMembersQuery message];
+    query.page = pg;
+    
+    NSData *protoData = [query data];
+    
+    uint64_t reqId = 0;
+    int code = get_community_banned_members(
+        GetCommunityBannedMembersCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],

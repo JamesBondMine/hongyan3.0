@@ -128,7 +128,10 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
           // 右侧内容
           Expanded(child: CommunityChildPage(
             key: _communityChildPageKey,
-            cmty: currentCommunityInfo)),
+            cmty: currentCommunityInfo,
+             onCommunityChange: () { 
+              _refreshController.requestRefresh();
+              },)),
         ],
       ),
     );

@@ -350,6 +350,8 @@ class NativeBridgeHandler: NSObject {
             imGetCommunityList(call: call, result: result)
         case "imJoinCommunity":
             imJoinCommunity(call: call, result: result)
+        case "imLeaveCommunity":
+            imLeaveCommunity(call: call, result: result)
         case "imGetCommunityInfo":
             imGetCommunityInfo(call: call, result: result)
         case "imGetCommunityGroups":
@@ -372,6 +374,8 @@ class NativeBridgeHandler: NSObject {
             imDeleteChannelGroup(call: call, result: result)
         case "imGetCommunityMembers":
             imGetCommunityMembers(call: call, result: result)
+        case "imGetCommunityBannedMembers":
+            imGetCommunityBannedMembers(call: call, result: result)
         case "imMuteCommunityMember":
             imMuteCommunityMember(call: call, result: result)
         case "imKickCommunityMember":
@@ -3773,6 +3777,30 @@ class NativeBridgeHandler: NSObject {
         }
     }
     
+    /// 离开社群
+    private func imLeaveCommunity(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("📁 离开社群: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().leaveCommunity(withCmtyId: cmtyId, completion: { errorCode, reqId, data in
+            print("📁 离开社群回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "离开成功" : "离开失败",
+                "data": data ?? ""
+            ])
+        })
+        
+        if code != 0 {
+            result(FlutterError(code: "LEAVE_COMMUNITY_ERROR",
+                              message: "离开社群请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
     /// 获取社群信息
     private func imGetCommunityInfo(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as? [String: Any] ?? [:]
@@ -4027,11 +4055,32 @@ class NativeBridgeHandler: NSObject {
         let cmtyId = args["cmtyId"] as? String ?? ""
         let page = args["page"] as? Int ?? 1
         let pageSize = args["pageSize"] as? Int ?? 20
-        
-        print("👥 获取社群成员列表: cmtyId=\(cmtyId), page=\(page), pageSize=\(pageSize)")
-        
         let code = IMSDKCommunityManager.shared().getCommunityMembers(withCmtyId: cmtyId, page: Int32(page), pageSize: Int32(pageSize), completion: { errorCode, reqId, data in
-            print("👥 获取社群成员列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+            result([
+                "errorCode": errorCode,
+                "reqId": reqId,
+                "message": errorCode == 0 ? "获取成功" : "获取失败",
+                "data": data ?? ""
+            ])
+        })
+        if code != 0 {
+            result(FlutterError(code: "GET_COMMUNITY_MEMBERS_ERROR",
+                              message: "获取社群成员列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    /// 获取社群封禁成员列表
+    private func imGetCommunityBannedMembers(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["pageSize"] as? Int ?? 20
+        
+        print("📁 获取社群封禁成员列表: cmtyId=\(cmtyId), page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKCommunityManager.shared().getCommunityBannedMembers(withCmtyId: cmtyId, page: Int32(page), pageSize: Int32(pageSize), completion: { errorCode, reqId, data in
+            print("📁 获取社群封禁成员列表回调: errorCode=\(errorCode), reqId=\(reqId)")
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,
@@ -4041,8 +4090,8 @@ class NativeBridgeHandler: NSObject {
         })
         
         if code != 0 {
-            result(FlutterError(code: "GET_COMMUNITY_MEMBERS_ERROR",
-                              message: "获取社群成员列表请求发送失败: \(code)",
+            result(FlutterError(code: "GET_COMMUNITY_BANNED_MEMBERS_ERROR",
+                              message: "获取社群封禁成员列表请求发送失败: \(code)",
                               details: nil))
         }
     }

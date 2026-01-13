@@ -73,7 +73,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
               children: [
                 _buildMenuItem(
                   icon: 'settingnoti',
-                  title: '通知',
+                  title: '通知'.tr,
                   subtitle: _notificationUnread > 0 ? '未读 $_notificationUnread' : '消息提醒',
                   trailing: _notificationUnread > 0
                       ? Container(
@@ -92,19 +92,19 @@ class _SideMenuContentState extends State<SideMenuContent> {
                 ),
                 _buildMenuItem(
                   icon: 'settingaccount',
-                  title: '安全设置',
+                  title: '安全设置'.tr,
                   subtitle: '密码、隐私管理',
                   onTap: () => _openSecuritySettings(context),
                 ),
                 _buildMenuItem(
                   icon: 'settingglobal',
-                  title: '语言',
+                  title: '语言'.tr,
                   subtitle: '简体中文',
                   onTap: () => _openLanguageSettings(context),
                 ),
                 _buildMenuItem(
                   icon: 'settinginfo',
-                  title: '关于我们',
+                  title: '关于我们'.tr,
                   subtitle: '版本 1.0.0',
                   onTap: () => _openAboutPage(context),
                 ),
@@ -292,9 +292,8 @@ class _SideMenuContentState extends State<SideMenuContent> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () => _showLogoutConfirm(context, controller),
-          icon: const Icon(Icons.logout, color: Colors.red),
-          label: const Text(
-            '退出登录',
+          label: Text(
+            '退出登录'.tr,
             style: TextStyle(color: Colors.red),
           ),
           style: OutlinedButton.styleFrom(
@@ -395,7 +394,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
   /// 显示退出登录确认（使用原生 iOS Alert）
   Future<void> _showLogoutConfirm(BuildContext context, GlobalController controller) async {
     final result = await _nativeService.showNativeAlert(
-      title: '退出登录',
+      title: '退出登录'.tr,
       message: '确定要退出当前账号吗？',
       confirmText: '退出',
       cancelText: '取消',

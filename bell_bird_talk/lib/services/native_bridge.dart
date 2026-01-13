@@ -2244,6 +2244,32 @@ class IOSNativeService {
     }
   }
 
+  /// 离开社群
+  /// @param cmtyId 社群ID
+  /// @return 离开结果
+  Future<Map<String, dynamic>> imLeaveCommunity({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imLeaveCommunity', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imLeaveCommunity', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imLeaveCommunity', {'cmtyId': cmtyId}, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 获取分组列表
   /// @param cmtyId 社群ID
   /// @return 分组列表
@@ -2578,6 +2604,42 @@ class IOSNativeService {
     } catch (e) {
       stopwatch.stop();
       NativeLogger.log('imGetCommunityMembers', {
+        'cmtyId': cmtyId,
+        'page': page,
+        'pageSize': pageSize,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 获取社群封禁成员列表
+  /// @param cmtyId 社群ID
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 封禁成员列表结果
+  Future<Map<String, dynamic>> imGetCommunityBannedMembers({
+    required String cmtyId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'page': page,
+        'pageSize': pageSize,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunityBannedMembers', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityBannedMembers', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunityBannedMembers', {
         'cmtyId': cmtyId,
         'page': page,
         'pageSize': pageSize,

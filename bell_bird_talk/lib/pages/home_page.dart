@@ -4,7 +4,6 @@ import 'package:bell_bird_talk/pages/community/pages/community_home_joined_page.
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../controllers/global_controller.dart';
 import '../services/native_bridge.dart';
 import 'friends/pages/friends_home_page.dart';
@@ -237,7 +236,7 @@ class _HomePageState extends State<HomePage> {
             unreadCount: _globalCtrl.unreadCount.value,
             isSelected: _currentIndex==0
           ),
-          label: '聊天',
+          label: '聊天'.tr,
         ),
         BottomNavigationBarItem(
           icon: _buildIconWithBadge(
@@ -249,7 +248,7 @@ class _HomePageState extends State<HomePage> {
             unreadCount: _globalCtrl.groupRequestCount.value,
             isSelected: _currentIndex==1
           ),
-          label: '好友',
+          label: '好友'.tr,
         ),
         BottomNavigationBarItem(
           icon: _buildIconWithBadge(
@@ -261,7 +260,7 @@ class _HomePageState extends State<HomePage> {
             unreadCount:0,
             isSelected: _currentIndex==2
           ),
-          label: '社群',
+          label: '社群'.tr,
         ),
         BottomNavigationBarItem(
           icon: _buildIconWithBadge(
@@ -273,7 +272,7 @@ class _HomePageState extends State<HomePage> {
             unreadCount: 0,
             isSelected: _currentIndex==3
           ),
-          label: '我的',
+          label: '我的'.tr,
         ),
         // const BottomNavigationBarItem(
         //   icon: Icon(Icons.group_outlined),
@@ -339,36 +338,5 @@ class _HomePageState extends State<HomePage> {
           ),
       ],
     ));
-  }
-
-  /// 显示退出登录对话框
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出登录吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              _globalCtrl.logout();
-              EasyLoading.dismiss();
-              EasyLoading.showSuccess('已退出登录');
-              await Future.delayed(const Duration(seconds: 1));
-              Get.offAllNamed('/login');
-            },
-            child: const Text(
-              '确定',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

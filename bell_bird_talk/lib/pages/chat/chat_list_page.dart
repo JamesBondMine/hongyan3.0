@@ -915,7 +915,7 @@ class _ChatListPageState extends State<ChatListPage> {
           child: _userHeadImgView(avatar ?? '', nickname, userId),
         ),
       ),
-      title: const Text('聊天'),
+      title: Text('聊天'.tr),
       centerTitle: false,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,

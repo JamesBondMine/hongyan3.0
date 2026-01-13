@@ -1,6 +1,7 @@
 
 import 'package:bell_bird_talk/pages/community/pages/community_find_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_set_page.dart';
+import 'package:bell_bird_talk/pages/community/pages/community_member_ban_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_member_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_roles_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_safe_page.dart';
@@ -45,7 +46,8 @@ class CommunitySettingPage extends StatelessWidget {
             Get.to(CommunitySafePage(cmtyId: cmtyId));
           },),
           _buildDivider(),
-          _buildElement('封禁用户', 'cunty_xvxv', () {  
+          _buildElement('封禁用户', 'cunty_xvxv', () { 
+            Get.to(CommunityMemberBanPage(cmtyId: cmtyId)); 
           },),
         ])
       ],),
