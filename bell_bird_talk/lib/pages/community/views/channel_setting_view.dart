@@ -55,6 +55,10 @@ class ChannelSettingView extends StatelessWidget {
               Navigator.of(context).pop();
               onConfirm(6);
             }),
+            _buildElement('发言设置', 'setting_logout', () {
+              Navigator.of(context).pop();
+              onConfirm(7);
+            }),
           ]),
         ]
       )

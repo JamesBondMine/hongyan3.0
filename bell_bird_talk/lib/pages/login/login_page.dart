@@ -7,9 +7,9 @@ import 'package:bell_bird_talk/widgets/login_text_field.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../settings/language_page.dart';
-import '../settings/reset_password_page.dart';
 import 'country_code_page.dart';
 
 /// 登录页面
@@ -52,12 +52,12 @@ class LoginPage extends StatelessWidget {
                         // Logo 和标题
                         _buildHeader(),
 
-                        const SizedBox(height: 30),
+                        SizedBox(height: 30.h),
 
                         // 登录表单x
                         _buildLoginForm(controller),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
 
                         // 其他操作
                         _buildFooter(),
@@ -94,13 +94,13 @@ class LoginPage extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.language, color: Colors.white, size: 22),
-              const SizedBox(width: 4),
-              const Text(
+              Icon(Icons.language, color: Colors.white, size: 22.sp),
+              SizedBox(width: 4.w),
+              Text(
                 '语言',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -130,13 +130,13 @@ class LoginPage extends StatelessWidget {
             child: Image.asset('assets/img/logo/logo.png', fit: BoxFit.contain),
           ),
 
-          const SizedBox(height: 22),
+          SizedBox(height: 22.h),
 
           // 标题
-          const Text(
+          Text(
             '登录',
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 32.sp,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -148,7 +148,7 @@ class LoginPage extends StatelessWidget {
           Text(
             '请输入手机号/邮箱',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.black.withOpacity(0.9),
             ),
           ),
@@ -170,7 +170,7 @@ class LoginPage extends StatelessWidget {
           // 登录方式切换 Tab
           _buildLoginTypeTabs(controller),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // 登录表单内容（根据登录方式显示不同内容）
           Obx(() => _buildLoginFormContent(controller)),
@@ -180,7 +180,7 @@ class LoginPage extends StatelessWidget {
           // 登录按钮
           _buildLoginButton(controller),
 
-          const SizedBox(height: 60),
+          SizedBox(height: 60.h),
 
           // 注册按钮
           _buildRegisterButton(),
@@ -193,7 +193,7 @@ class LoginPage extends StatelessWidget {
   Widget _buildLoginTypeTabs(LoginController controller) {
     return Obx(
       () => Container(
-        height: 36,
+        height: 36.h,
         decoration: BoxDecoration(
           color: Color(0xFF1D61E7).withOpacity(0.08),
           borderRadius: BorderRadius.circular(8),
@@ -227,7 +227,7 @@ class LoginPage extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 32,
+          height: 32.h,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 0),
           decoration: BoxDecoration(
@@ -238,7 +238,7 @@ class LoginPage extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               color: isSelected ? Colors.blue : Colors.grey[600],
             ),
@@ -286,20 +286,20 @@ class LoginPage extends StatelessWidget {
                     Obx(
                       () => Text(
                         controller.selectedFlag.value,
-                        style: const TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 18.sp),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Obx(
                       () => Text(
                         controller.selectedCountryCode.value,
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: TextStyle(
+                          fontSize: 14.sp,
                           color: Colors.grey,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     const Text('|', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
@@ -324,8 +324,8 @@ class LoginPage extends StatelessWidget {
                   controller.obscurePassword.value
                       ? 'assets/img/login/eyeoff.png'
                       : 'assets/img/login/eye.png',
-                  width: 20,
-                  height: 20,
+                  width: 20.w,
+                  height: 20.h,
                   color: controller.obscurePassword.value
                       ? Colors.grey
                       : Colors.blue,
@@ -338,7 +338,7 @@ class LoginPage extends StatelessWidget {
             _buildCodeInputRow(controller),
           ],
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // 邀请码输入框
           _buildInviteCodeInput(controller),
@@ -361,7 +361,7 @@ class LoginPage extends StatelessWidget {
           onPressed: controller.toggleSmsLoginMode,
           child: Text(
             controller.smsUsePassword.value ? '验证码登录' : '密码登录',
-            style: TextStyle(color: GbsColors.lightDesPrimary, fontSize: 13),
+            style: TextStyle(color: GbsColors.lightDesPrimary, fontSize: 13.sp),
           ),
         ),
         // 右侧：忘记密码（仅在密码登录模式下显示）
@@ -392,7 +392,7 @@ class LoginPage extends StatelessWidget {
             },
             child: Text(
               '忘记密码',
-              style: TextStyle(color: GbsColors.textPrimary, fontSize: 13),
+              style: TextStyle(color: GbsColors.textPrimary, fontSize: 13.sp),
             ),
           ),
       ],
@@ -414,7 +414,7 @@ class LoginPage extends StatelessWidget {
             onChanged: _onInputChanged(),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // 根据模式显示密码或验证码
           if (controller.emailUsePassword.value) ...[
@@ -440,10 +440,7 @@ class LoginPage extends StatelessWidget {
             _buildCodeInputRow(controller),
           ],
 
-          const SizedBox(height: 8),
-
-          // 模式切换和忘记密码
-          const SizedBox(height: 8),
+          SizedBox(height: 16.h),
 
           // 邀请码输入框
           _buildInviteCodeInput(controller),
@@ -535,9 +532,9 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             child: controller.isSendingCode.value
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
+                ?  SizedBox(
+                    width: 16.w,
+                    height: 16.h,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -548,7 +545,7 @@ class LoginPage extends StatelessWidget {
                         ? '${controller.countdown.value}s'
                         : '获取验证码',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       color:
                           controller.countdown.value > 0 ||
                               controller.isSendingCode.value

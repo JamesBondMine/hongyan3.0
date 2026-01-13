@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../utils/gbs_colors.dart';
 
 /// 通用按钮组件
@@ -98,8 +99,8 @@ class CommonButton extends StatelessWidget {
         ),
         child: isLoading
             ? SizedBox(
-                width: 24,
-                height: 24,
+                width: 24.w,
+                height: 24.h,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(txtColor),

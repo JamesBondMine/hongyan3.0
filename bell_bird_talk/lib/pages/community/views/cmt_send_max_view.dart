@@ -120,35 +120,41 @@ class CmtSendMaxView extends StatelessWidget {
               left: 16,
               right: 16,
               top: 8,
-              bottom: 16,
+              bottom: 26,
             ),
-            child: TextField(
-              
-              controller: controller,
-              // focusNode: focusNode,
-              autofocus: true,
-
-              decoration: InputDecoration(
-                hintText: tip ?? '请输入备注名',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: GbsColors.primaryColor,
-                    width: 2,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16,),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      autofocus: true,
+                      onChanged: (value) {
+                        defaultItem.max = int.tryParse(value) ?? 0;
+                      },
+                      decoration: InputDecoration(
+                        hintText: tip ?? '请输入备注名',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
                   ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                  Text(
+                    '条',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

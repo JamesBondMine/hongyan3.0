@@ -7,6 +7,7 @@ import 'package:bell_bird_talk/pages/community/pages/voice_channel_page.dart';
 import 'package:bell_bird_talk/pages/community/views/category_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_create_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_edit_view.dart';
+import 'package:bell_bird_talk/pages/community/views/channel_msg_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/channel_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_noti_setting_view.dart';
 import 'package:bell_bird_talk/pages/community/views/community_pri_setting_view.dart';
@@ -296,6 +297,10 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 // 频道通知
                 _showSettingNotiWithCommunityView(false, channel);
                 break;
+                case 7:
+                // 发言设置
+                _showSettingSendMsgWithChannelView(true, channel);
+                break;
             }
           },
         ),
@@ -422,6 +427,27 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           selectedCategory: 0,
           onConfirm: (value) {},
         ),
+      ),
+    );
+  }
+
+
+  // 发言设置
+  void _showSettingSendMsgWithChannelView(bool cmty,  ChannelModel? channel) {
+    gbs.shower.showScreenViewCustom(
+      context,
+      Get.height - 150,
+      Container(
+        width: Get.width,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          ),
+        ),
+        child: ChannelMsgSettingView(ccmodel: channel!, cmtyId: _cmty!.id,),
       ),
     );
   }

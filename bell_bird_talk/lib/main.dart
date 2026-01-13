@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'pages/native_demo_page.dart';
 import 'pages/framework_test_page.dart';
 import 'pages/login/login_page.dart';
@@ -61,41 +62,48 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: '铃鸟聊天',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-        fontFamily: 'PingFang',
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: ThemeMode.system,
-      // 多语言配置
-      translations: AppTranslations(),
-      locale: const Locale('zh', 'CN'),
-      fallbackLocale: const Locale('zh', 'CN'),
-      // 使用启动页面
-      home: const SplashPage(),
-      builder: EasyLoading.init(),
-      // 路由配置
-      getPages: [
-        GetPage(name: '/login', page: () => const LoginPage()),
-        GetPage(name: '/home', page: () => const HomePage()),
-        GetPage(name: '/friends', page: () => const FriendsHomePage()),
-        GetPage(name: '/add-friend', page: () => const AddFriendPage()),
-        GetPage(name: '/demo', page: () => const NativeDemoPage()),
-        GetPage(name: '/test', page: () => const FrameworkTestPage()),
-      ],
-      // 默认转场动画
-      defaultTransition: Transition.cupertino,
-      // 调试标签
-      debugShowCheckedModeBanner: false,
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // 设计稿尺寸，根据你的设计稿调整
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return GetMaterialApp(
+          title: '铃鸟聊天',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            useMaterial3: true,
+            fontFamily: 'PingFang',
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blue,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: ThemeMode.system,
+          // 多语言配置
+          translations: AppTranslations(),
+          locale: const Locale('zh', 'CN'),
+          fallbackLocale: const Locale('zh', 'CN'),
+          // 使用启动页面
+          home: const SplashPage(),
+          builder: EasyLoading.init(),
+          // 路由配置
+          getPages: [
+            GetPage(name: '/login', page: () => const LoginPage()),
+            GetPage(name: '/home', page: () => const HomePage()),
+            GetPage(name: '/friends', page: () => const FriendsHomePage()),
+            GetPage(name: '/add-friend', page: () => const AddFriendPage()),
+            GetPage(name: '/demo', page: () => const NativeDemoPage()),
+            GetPage(name: '/test', page: () => const FrameworkTestPage()),
+          ],
+          // 默认转场动画
+          defaultTransition: Transition.cupertino,
+          // 调试标签
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }
