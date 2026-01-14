@@ -56,8 +56,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
           ? GbsColors.lightBackgroundB
           : GbsColors.lightBackgroundA,
       appBar: AppBar(
-        title: const Text(
-          '添加好友',
+        title: Text(
+          '添加好友'.tr,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -104,7 +104,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       if (result != null) {
         _isBlocked = result;
         if (result) {
-          EasyLoading.showError('用户已加入黑名单');
+          EasyLoading.showError('用户已加入黑名单'.tr);
         }
       }
       if (!mounted) {
@@ -130,7 +130,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Future<void> _searchUser() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      EasyLoading.showError('请输入搜索内容');
+      EasyLoading.showError('请输入搜索内容'.tr);
       return;
     }
 
@@ -217,14 +217,14 @@ class _AddFriendPageState extends State<AddFriendPage> {
         }
 
         if (_searchResults.isEmpty) {
-          EasyLoading.showInfo('未找到用户');
+          EasyLoading.showInfo('未找到用户'.tr);
         }
       } else {
-        EasyLoading.showError(result['message'] ?? '搜索失败');
+        EasyLoading.showError(result['message'] ?? '搜索失败'.tr);
       }
     } catch (e) {
       print('❌ 搜索用户失败: $e');
-      EasyLoading.showError('搜索失败');
+      EasyLoading.showError('搜索失败'.tr);
     } finally {
       setState(() => _isSearching = false);
     }
@@ -236,7 +236,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     String message, {
     int? groupId,
   }) async {
-    EasyLoading.show(status: '发送中...');
+    EasyLoading.show(status: '发送中...'.tr);
 
     try {
       // 确定添加渠道
@@ -262,18 +262,18 @@ class _AddFriendPageState extends State<AddFriendPage> {
       );
 
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('申请已发送');
+        EasyLoading.showSuccess('申请已发送'.tr);
         Get.back();
       } else {
         // 检查一下黑名单状态
         bool? isBlocked = await _loadBlackStatus(user.id);
         if (isBlocked != null && isBlocked == false) {
-          EasyLoading.showError(result['message'] ?? '发送失败');
+          EasyLoading.showError(result['message'] ?? '发送失败'.tr);
         }
       }
     } catch (e) {
       print('❌ 发送好友申请失败: $e');
-      EasyLoading.showError('发送失败');
+      EasyLoading.showError('发送失败'.tr);
     }
   }
 
@@ -338,7 +338,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   /// 获取搜索提示文本
   String _getSearchHint() {
-    return '输入用户ID、手机号或邮箱';
+    return '输入用户ID、手机号或邮箱'.tr;
   }
 
   /// 搜索结果区域
@@ -352,7 +352,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     }
 
     if (_searchResults.isEmpty) {
-      return EmptyView(message: '该用户不存在');
+      return EmptyView(message: '该用户不存在'.tr);
     }
 
     // 只显示第一个搜索结果
@@ -404,13 +404,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              '好友分组',
+              '好友分组'.tr,
               style: TextStyle(fontSize: 16, color: GbsColors.des1Color),
             ),
             Spacer(),
             Text(
               _friendGroups.isEmpty
-                  ? '暂无分组'
+                  ? '暂无分组'.tr
                   : _selectedGroup != null
                   ? _selectedGroup!.name
                   : '',
@@ -432,7 +432,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Widget _buildAddFriendButton(SearchUserModel user) {
     return CommonButton(
       enabled: true,
-      text: '添加好友',
+      text: '添加好友'.tr,
       onPressed: () {
         _showAddFriendDialog(user);
       },
@@ -450,19 +450,19 @@ class _AddFriendPageState extends State<AddFriendPage> {
       child: GestureDetector(
         onTap: () {
           // TODO: 实现黑名单操作
-          EasyLoading.showInfo('黑名单功能开发中');
+          EasyLoading.showInfo('黑名单功能开发中'.tr);
         },
 
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '已添加至黑名单,',
+              '已添加至黑名单,'.tr,
               style: TextStyle(fontSize: 16, color: GbsColors.des6Color),
             ),
             SizedBox(width: 8),
             Text(
-              '移出黑名单',
+              '移出黑名单'.tr,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -479,9 +479,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
   void _showMoveGroupDialog() async {
     if (_friendGroups.isEmpty) {
       final result = await _nativeService.showNativeAlert(
-        title: '请先新增分组后再设置好友分组',
+        title: '请先新增分组后再设置好友分组'.tr,
         message: '',
-        confirmText: '新增分组',
+        confirmText: '新增分组'.tr,
         cancelText: '取消'.tr,
         showCancel: true,
       );
@@ -500,13 +500,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
               ),
               child: FriendRemarkView(
                 controller: controller,
-                tip: '请输入分组名称',
-                title: '新建分组',
+                tip: '请输入分组名称'.tr,
+                title: '新建分组'.tr,
                 onTap: () async {
                   final gname = controller.text.trim();
                   Navigator.pop(context);
 
-                  EasyLoading.show(status: '正在创建分组...');
+                  EasyLoading.show(status: '正在创建分组...'.tr);
 
                   try {
                     final result = await _nativeService.imCreateContactGroup(
@@ -515,13 +515,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     if (result['errorCode'] == 0) {
                       // 刷新分组列表
                       await _loadFriendGroups(refresh: true);
-                      EasyLoading.showSuccess('分组创建成功');
+                      EasyLoading.showSuccess('分组创建成功'.tr);
                     } else {
-                      EasyLoading.showError(result['message'] ?? '创建失败');
+                      EasyLoading.showError(result['message'] ?? '创建失败'.tr);
                     }
                   } catch (e) {
                     print('创建分组错误: $e');
-                    EasyLoading.showError('创建失败，请稍后重试');
+                    EasyLoading.showError('创建失败，请稍后重试'.tr);
                   }
                 },
               ),

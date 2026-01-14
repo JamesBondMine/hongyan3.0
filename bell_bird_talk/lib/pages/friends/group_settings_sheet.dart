@@ -4,6 +4,7 @@ import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 import '../models/friend_model.dart';
 
 /// 分组设置底部弹窗
@@ -58,8 +59,8 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '设置分组',
+                Text(
+                  '设置分组'.tr,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
 
@@ -107,7 +108,7 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
               Text(
-              '按住右侧顺序按钮可拖动调整分组顺序',
+              '按住右侧顺序按钮可拖动调整分组顺序'.tr,
               style: TextStyle(fontSize: 12, color: GbsColors.des9Color),
             ),
             ],)
@@ -120,7 +121,7 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
                 // 新建分组
                 widget.onAddGroup();
               },
-              text: '新增好友分组',
+              text: '新增好友分组'.tr,
             ),
           ),
           // 底部安全区域
@@ -165,7 +166,7 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '不可删除',
+                '不可删除'.tr,
                 style: TextStyle(color: Colors.grey[500], fontSize: 12),
               ),
             )
@@ -239,7 +240,7 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
   Future<void> _saveEdit(FriendGroup group) async {
     final newName = _editController.text.trim();
     if (newName.isEmpty) {
-      EasyLoading.showError('分组名称不能为空');
+      EasyLoading.showError('分组名称不能为空'.tr);
       return;
     }
     if (newName == group.name) {
@@ -247,7 +248,7 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
       return;
     }
 
-    EasyLoading.show(status: '更新分组中...');
+    EasyLoading.show(status: '更新分组中...'.tr);
     try {
       final gid = int.tryParse(group.id) ?? 0;
       final result = await _nativeService.imUpdateContactGroup(
@@ -255,15 +256,15 @@ class _GroupSettingsSheetState extends State<GroupSettingsSheet> {
         groupName: newName,
       );
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组已更新');
+        EasyLoading.showSuccess('分组已更新'.tr);
         widget.onUpdateGroup(group);
         _cancelEdit();
         await _getGroups();
       } else {
-        EasyLoading.showError(result['message'] ?? '更新失败');
+        EasyLoading.showError(result['message'] ?? '更新失败'.tr);
       }
     } catch (e) {
-      EasyLoading.showError('更新失败，请稍后重试');
+      EasyLoading.showError('更新失败，请稍后重试'.tr);
     }
   }
 

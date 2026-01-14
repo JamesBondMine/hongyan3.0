@@ -85,7 +85,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       });
     } catch (e) {
       print('❌ 加载分组和频道数据失败: $e');
-      EasyLoading.showError('加载失败');
+      EasyLoading.showError('加载失败'.tr);
     } finally {
       EasyLoading.dismiss();
     }
@@ -175,7 +175,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                             const Icon(Icons.search, color: Colors.grey),
                             const SizedBox(width: 8),
                             Text(
-                              '搜索',
+                              '搜索'.tr,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 16,
@@ -288,7 +288,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 Clipboard.setData(
                   ClipboardData(text: 'https://example.com'),
                 ).then((value) {
-                  Get.snackbar('复制成功', '链接已复制到剪贴板');
+                  Get.snackbar('复制成功'.tr, '链接已复制到剪贴板'.tr);
                 });
 
                 break;
@@ -375,15 +375,15 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   // 删除频道
   void _showDeleteChannelView(ChannelModel channel) async {
     final result = await _nativeService.showNativeAlert(
-      title: '删除频道',
-      message: '确定要删除此频道吗？',
-      confirmText: '删除',
+      title: '删除频道'.tr,
+      message: '确定要删除此频道吗？'.tr,
+      confirmText: '删除'.tr,
       cancelText: '取消'.tr,
       showCancel: true,
     );
 
     if (result != null && result['action'] == 'confirm') {
-      EasyLoading.show(status: '正在删除频道...');
+      EasyLoading.show(status: '正在删除频道...'.tr);
       try {
         bool success = await _controller.deleteChannel(
           channelId: channel.channelId,
@@ -394,14 +394,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           if (_cmty != null) {
             await _loadGroupsAndChannels(_cmty!);
           }
-          EasyLoading.showSuccess('删除成功');
+          EasyLoading.showSuccess('删除成功'.tr);
         } else {
-          EasyLoading.showError('删除失败');
+          EasyLoading.showError('删除失败'.tr);
         }
       } catch (e) {
         EasyLoading.dismiss();
         print('删除频道错误: $e');
-        EasyLoading.showError('删除失败，请稍后重试');
+        EasyLoading.showError('删除失败，请稍后重试'.tr);
       }
     }
   }
@@ -409,9 +409,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   // 离开社群
   void _showLeaveCommunityView() async {
     final result = await _nativeService.showNativeAlert(
-      title: '离开社群',
-      message: '确定要退出当前账号吗？离开后只能通过邀请链接进入',
-      confirmText: '离开',
+      title: '离开社群'.tr,
+      message: '确定要退出当前账号吗？离开后只能通过邀请链接进入'.tr,
+      confirmText: '离开'.tr,
       cancelText: '取消'.tr,
       showCancel: true,
     );
@@ -488,7 +488,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           onConfirm: (value) {
             if (cmty) {
               // 社群的通知设置
-              EasyLoading.showError('更新社群通知');
+              EasyLoading.showError('更新社群通知'.tr);
               return;
             }
             // 频道的通知设置
@@ -519,13 +519,13 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
           child: FriendRemarkView(
             controller: controller,
-            tip: '请输入分类名称',
-            title: '分类名称',
+            tip: '请输入分类名称'.tr,
+            title: '分类名称'.tr,
             onTap: () async {
               final gname = controller.text.trim();
               Navigator.pop(context);
 
-              EasyLoading.show(status: '正在创建分组...');
+              EasyLoading.show(status: '正在创建分组...'.tr);
 
               try {
                 bool result = await CommunityController.to.createChannelGroup(
@@ -536,14 +536,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 if (result == true) {
                   // 刷新分组列表
                   _loadGroupsAndChannels(_cmty!);
-                  EasyLoading.showSuccess('分组创建成功');
+                  EasyLoading.showSuccess('分组创建成功'.tr);
                 } else {
-                  EasyLoading.showError('创建失败');
+                  EasyLoading.showError('创建失败'.tr);
                 }
               } catch (e) {
                 EasyLoading.dismiss();
                 print('创建分组错误: $e');
-                EasyLoading.showError('创建失败，请稍后重试');
+                EasyLoading.showError('创建失败，请稍后重试'.tr);
               }
             },
           ),
@@ -576,7 +576,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             // 获取当前社群信息
             final cmty = widget.cmty ?? _cmty;
             if (cmty == null) {
-              EasyLoading.showError('未选择社群');
+              EasyLoading.showError('未选择社群'.tr);
               return;
             }
 
@@ -584,7 +584,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             // channelData['categoryId'] 是分类索引（int转String），需要从分组列表中获取对应的分组ID
             String categoryId = channelData['categoryId'] as String? ?? '';
             try {
-              EasyLoading.show(status: '创建中...');
+              EasyLoading.show(status: '创建中...'.tr);
 
               final success = await _controller.createChannel(
                 cmtyId: cmty.id,
@@ -596,14 +596,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
               );
 
               if (success) {
-                EasyLoading.showSuccess('创建成功');
+                EasyLoading.showSuccess('创建成功'.tr);
                 await _loadGroupsAndChannels(cmty);
               } else {
-                EasyLoading.showError('创建失败');
+                EasyLoading.showError('创建失败'.tr);
               }
             } catch (e) {
               print('❌ 创建频道失败: $e');
-              EasyLoading.showError('创建失败');
+              EasyLoading.showError('创建失败'.tr);
             }
           },
         ),
@@ -727,9 +727,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
             if (value == 2) {
               // 删除分类
               final result = await _nativeService.showNativeAlert(
-                title: '删除分类',
-                message: '确定要删除此分类吗？',
-                confirmText: '删除',
+                title: '删除分类'.tr,
+                message: '确定要删除此分类吗？'.tr,
+                confirmText: '删除'.tr,
                 cancelText: '取消'.tr,
                 showCancel: true,
               );
@@ -746,11 +746,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 }
 
                 if (category == null || _cmty == null) {
-                  EasyLoading.showError('分类不存在');
+                  EasyLoading.showError('分类不存在'.tr);
                   return;
                 }
 
-                EasyLoading.show(status: '正在删除分类...');
+                EasyLoading.show(status: '正在删除分类...'.tr);
                 try {
                   bool success = await _controller.deleteChannelGroup(
                     cmtyId: _cmty!.id,
@@ -760,14 +760,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                   if (success) {
                     // 刷新分组和频道列表
                     await _loadGroupsAndChannels(_cmty!);
-                    EasyLoading.showSuccess('删除成功');
+                    EasyLoading.showSuccess('删除成功'.tr);
                   } else {
-                    EasyLoading.showError('删除失败');
+                    EasyLoading.showError('删除失败'.tr);
                   }
                 } catch (e) {
                   EasyLoading.dismiss();
                   print('删除分类错误: $e');
-                  EasyLoading.showError('删除失败，请稍后重试');
+                  EasyLoading.showError('删除失败，请稍后重试'.tr);
                 }
               }
               return;
@@ -795,14 +795,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
           child: FriendRemarkView(
             controller: controller,
-            tip: '请输入分类名称',
-            title: '编辑分类',
-            name: '分类名称',
+            tip: '请输入分类名称'.tr,
+            title: '编辑分类'.tr,
+            name: '分类名称'.tr,
             needCancel: false,
             onTap: () async {
               final gname = controller.text.trim();
               if (gname.isEmpty) {
-                EasyLoading.showError('分类名称不能为空');
+                EasyLoading.showError('分类名称不能为空'.tr);
                 return;
               }
               Navigator.pop(context);
@@ -816,11 +816,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
               }
 
               if (category == null || _cmty == null) {
-                EasyLoading.showError('分类不存在');
+                EasyLoading.showError('分类不存在'.tr);
                 return;
               }
 
-              EasyLoading.show(status: '正在更新分类...');
+              EasyLoading.show(status: '正在更新分类...'.tr);
               try {
                 bool success = await _controller.updateChannelGroup(
                   cmtyId: _cmty!.id,
@@ -831,14 +831,14 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 if (success) {
                   // 刷新分组和频道列表
                   await _loadGroupsAndChannels(_cmty!);
-                  EasyLoading.showSuccess('更新成功');
+                  EasyLoading.showSuccess('更新成功'.tr);
                 } else {
-                  EasyLoading.showError('更新失败');
+                  EasyLoading.showError('更新失败'.tr);
                 }
               } catch (e) {
                 EasyLoading.dismiss();
                 print('更新分类错误: $e');
-                EasyLoading.showError('更新失败，请稍后重试');
+                EasyLoading.showError('更新失败，请稍后重试'.tr);
               }
             },
           ),

@@ -84,15 +84,12 @@ static void ConversationCallback(int errorCode, const char* data, int dataLen, u
         for (int i = 0; i < MIN(dataLen, 100); i++) {
             [hexStr appendFormat:@"%02x ", (unsigned char)data[i]];
         }
-//        NSLog(@"📦 原始数据 (HEX, 立即打印): %@", hexStr);
     }
     
     NSString *jsonString = nil;
     if (data && dataLen > 0) {
         // 尝试解析为 Protobuf 数据
         NSData *responseData = [NSData dataWithBytes:data length:dataLen];
-//        NSLog(@"📦 数据拷贝后长度: %lu", (unsigned long)responseData.length);
-        
         // 尝试解析为 ConvList（会话列表响应）
         NSError *error = nil;
         ListWithUnread *convList = [ListWithUnread parseFromData:responseData error:&error];

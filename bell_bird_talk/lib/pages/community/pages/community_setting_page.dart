@@ -9,6 +9,7 @@ import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 import 'package:get/route_manager.dart';
 
 class CommunitySettingPage extends StatelessWidget {
@@ -20,33 +21,33 @@ class CommunitySettingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundA,
-      appBar:CommonAppBarView(title: '社群设置', backgroundColor: GbsColors.lightBackgroundA),
+      appBar:CommonAppBarView(title: '社群设置'.tr, backgroundColor: GbsColors.lightBackgroundA),
       body: Column(children: [
-        _buildTitle('成员管理'),
+        _buildTitle('成员管理'.tr),
         _buildCard([
-          _buildElement('成员', 'cunty_member', () {  
+          _buildElement('成员'.tr, 'cunty_member', () {  
             Get.to(CommunityMemberPage(cmtyId: cmtyId));
           },),
           _buildDivider(),
-          _buildElement('角色', 'setting_set', () {  
+          _buildElement('角色'.tr, 'setting_set', () {  
             Get.to(CommunityRolesPage());
           },),
           _buildDivider(),
-          _buildElement('邀请', 'setting_invate', () { 
+          _buildElement('邀请'.tr, 'setting_invate', () { 
             Get.to(CommunityInvateSettingPage(cmtyId: cmtyId)); 
           },),
           _buildDivider(),
-          _buildElement('访问', 'cunty_go', () {  
+          _buildElement('访问'.tr, 'cunty_go', () {  
             Get.to(CommunityFindSettingPage(cmtyId: cmtyId));
           },),
         ]),
-        _buildTitle('安全管理'),
+        _buildTitle('安全管理'.tr),
         _buildCard([
-          _buildElement('安全管理', 'cunty_safe', () {  
+          _buildElement('安全管理'.tr, 'cunty_safe', () {  
             Get.to(CommunitySafePage(cmtyId: cmtyId));
           },),
           _buildDivider(),
-          _buildElement('封禁用户', 'cunty_xvxv', () { 
+          _buildElement('封禁用户'.tr, 'cunty_xvxv', () { 
             Get.to(CommunityMemberBanPage(cmtyId: cmtyId)); 
           },),
         ])

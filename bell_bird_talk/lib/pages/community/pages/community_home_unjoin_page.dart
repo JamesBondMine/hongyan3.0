@@ -9,6 +9,7 @@ import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../models/community_model.dart';
@@ -26,7 +27,7 @@ class CommunityHomeUnjoinPage extends StatefulWidget {
 class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   final List<CommunityModel> _communities = [];
   final List<CommunityModel> _filteredCommunities = [];
-  String _selectedCategory = '全部';
+  String _selectedCategory = '全部'.tr;
 
   final IOSNativeService _nativeService = IOSNativeService();
   final CommunityController _communityController = CommunityController.to;
@@ -88,7 +89,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       _filteredCommunities.addAll(
         _communities.where((community) {
           final matchCategory =
-              _selectedCategory == '全部' ||
+              _selectedCategory == '全部'.tr ||
               community.category == _selectedCategory;
           return matchCategory;
         }).toList(),
@@ -99,23 +100,23 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
   /// 申请加入社群
   Future<void> _applyToJoin(CommunityModel community) async {
     if (community.isJoined) {
-      EasyLoading.showInfo('您已加入该社群');
+      EasyLoading.showInfo('您已加入该社群'.tr);
       return;
     }
 
     if (community.hasApplied) {
-      EasyLoading.showInfo('您已申请加入，请等待审核');
+      EasyLoading.showInfo('您已申请加入，请等待审核'.tr);
       return;
     }
 
     if (community.isFull) {
-      EasyLoading.showError('该社群已满员');
+      EasyLoading.showError('该社群已满员'.tr);
       return;
     }
 
     final result = await _nativeService.showNativeAlert(
-      title: '申请加入社群',
-      message: '社群将会给你发消息',
+      title: '申请加入社群'.tr,
+      message: '社群将会给你发消息'.tr,
       confirmText: '确认'.tr,
       cancelText: '取消'.tr,
       showCancel: true,
@@ -123,7 +124,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
     bool confirmed = result != null && result['action'] == 'confirm';
 
     if (confirmed == true) {
-      EasyLoading.show(status: '正在申请...');
+      EasyLoading.show(status: '正在申请...'.tr);
       bool res = await CommunityController.to.joinCommunity(
         cmtyId: community.id,
       );
@@ -160,7 +161,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
       }
 
       EasyLoading.dismiss();
-      EasyLoading.showSuccess('申请已提交，请等待审核');
+      EasyLoading.showSuccess('申请已提交，请等待审核'.tr);
     }
   }
 
@@ -196,10 +197,10 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                 child: Row(
                   children: [
                     const Icon(Icons.search, color: Colors.grey),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Text(
-                      '搜索',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      '搜索'.tr,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16.sp),
                     ),
                   ],
                 ),
@@ -218,7 +219,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                 controller: _refreshController,
                 onRefresh: _onRefresh,
                 child: _filteredCommunities.isEmpty ? Center(
-                  child: EmptyView(message: '暂无社群', community: true),
+                  child: EmptyView(message: '暂无社群'.tr, community: true),
                 ) : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _filteredCommunities.length,
@@ -253,7 +254,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
           child: _userHeadImgView(avatar ?? '', nickname, userId),
         ),
       ),
-      title: const Text('社群'),
+      title: Text('社群'.tr),
       centerTitle: false,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
@@ -356,19 +357,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: GbsColors.lightDivider, width: 0.5),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.grey.withOpacity(0.1),
-        //     spreadRadius: 1,
-        //     blurRadius: 5,
-        //     offset: const Offset(0, 2), // changes position of shadow
-        //   ),
-        // ],
       ),
-      // elevation: 1,
-      // shape: RoundedRectangleBorder(
-      //   borderRadius: BorderRadius.circular(12),
-      // ),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -395,8 +384,8 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                       children: [
                         // 头像
                         Container(
-                          width: 32,
-                          height: 32,
+                          width: 32.w,
+                          height: 32.h,
                           margin: EdgeInsets.only(right: 16),
                           decoration: BoxDecoration(
                             color: Colors.blue[100],
@@ -425,8 +414,8 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                         ),
                         Text(
                           community.name,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.w500,
                             color: GbsColors.des1Color,
                           ),
@@ -442,7 +431,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                       child: Text(
                         community.description,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           color: GbsColors.des6Color,
                         ),
                         maxLines: 2,
@@ -458,34 +447,34 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                         children: [
                           Container(
                             margin: EdgeInsets.only(right: 4),
-                            width: 8,
-                            height: 8,
+                            width: 8.w,
+                            height: 8.h,
                             decoration: BoxDecoration(
                               color: GbsColors.lightPrimaryButton,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                           Text(
-                            '${community.memberCount}在线',
+                            '${community.memberCount}${'在线'.tr}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               color: GbsColors.lightPrimaryButton,
                             ),
                           ),
                           Spacer(),
                           Container(
                             margin: EdgeInsets.only(right: 4),
-                            width: 8,
-                            height: 8,
+                            width: 8.w,
+                            height: 8.h,
                             decoration: BoxDecoration(
                               color: GbsColors.des9Color,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                           Text(
-                            '${community.maxMembers}成员',
+                            '${community.maxMembers}${'成员'.tr}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               color: GbsColors.des9Color,
                             ),
                           ),
@@ -494,11 +483,11 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                     ),
                     CommonButton(
                       enabled: true,
-                      text: '加入社群',
+                      text: '加入社群'.tr,
                       onPressed: () {
                         _applyToJoin(community);
                       },
-                      fontSize: 16,
+                      fontSize: 16.sp,
                     ),
                   ],
                 ),

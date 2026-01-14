@@ -96,7 +96,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
             children: [
               Image.asset('assets/img//chat/chatuseradd.png', width: 20, height: 20),
               const SizedBox(width: 8),
-              const Text('添加好友'),
+              Text('添加好友'.tr),
             ],
           ),
         ),
@@ -120,7 +120,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
             children: [
               Image.asset('assets/img//chat/chataddchat.png', width: 20, height: 20),
               const SizedBox(width: 8),
-              const Text('创建群聊'),
+              Text('创建群聊'.tr),
             ],
           ),
         ),
@@ -178,14 +178,14 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
   /// 删除分组
   void _deleteGroup(FriendGroup group) async{
     if (group.isDefault) {
-      EasyLoading.showError('默认分组不能删除');
+      EasyLoading.showError('默认分组不能删除'.tr);
       return;
     }
 
     final result = await _nativeService.showNativeAlert(
-      title: '删除分组',
-      message: '确定要删除「${group.name}」分组吗？',
-      confirmText: '删除',
+      title: '删除分组'.tr,
+      message: '确定要删除「{name}」分组吗？'.tr.replaceAll('{name}', group.name),
+      confirmText: '删除'.tr,
       cancelText: '取消'.tr,
       showCancel: true,
     );
@@ -198,22 +198,22 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
   }
 
   Future<void> _confirmDeleteGroup(FriendGroup group) async {
-    EasyLoading.show(status: '删除分组中...');
+    EasyLoading.show(status: '删除分组中...'.tr);
     try {
       final gid = int.tryParse(group.id) ?? 0;
       final result = await _nativeService.imDeleteContactGroup(groupId: gid);
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('分组已删除');
+        EasyLoading.showSuccess('分组已删除'.tr);
         if (_selectedGroupId == group.id) {
           _selectedGroupId = 'all';
         }
         // 刷新好友分组
         _friendGroupsPageKey.currentState?.refresh();
       } else {
-        EasyLoading.showError(result['message'] ?? '删除失败');
+        EasyLoading.showError(result['message'] ?? '删除失败'.tr);
       }
     } catch (e) {
-      EasyLoading.showError('删除失败，请稍后重试');
+      EasyLoading.showError('删除失败，请稍后重试'.tr);
     }
   }
 
@@ -250,7 +250,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
           child: _userHeadImgView(avatar ?? '', nickname, userId),
         ),
       ),
-      title: const Text('好友'),
+      title: Text('好友'.tr),
       centerTitle: false,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
@@ -362,7 +362,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                 icon: Icons.person_add,
                 iconColor: Colors.orange,
                 iconBgColor: Colors.orange[50]!,
-                title: '新的朋友',
+                title: '新的朋友'.tr,
                 count: _groupRequestCount,
                 onTap: () async {
                   final result = await Get.to(() => const FriendRequestsPage(type: RequestType.friend));
@@ -398,10 +398,10 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
                   indicatorSize: TabBarIndicatorSize.label,
                   indicatorPadding: const EdgeInsets.only(left: 4, bottom: 0),
                   dividerHeight: 0,
-                  tabs: const [
-                    Tab(text: '好友'),
-                    Tab(text: '分组'),
-                    Tab(text: '群聊'),
+                  tabs: [
+                    Tab(text: '好友'.tr),
+                    Tab(text: '分组'.tr),
+                    Tab(text: '群聊'.tr),
                   ],
                 ),
               ),
@@ -451,7 +451,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
               Icon(Icons.search, color: Colors.grey[600]),
               const SizedBox(width: 8),
               Text(
-                '搜索',
+                '搜索'.tr,
                 style: TextStyle(color: Colors.grey[600], fontSize: 16),
               ),
             ],

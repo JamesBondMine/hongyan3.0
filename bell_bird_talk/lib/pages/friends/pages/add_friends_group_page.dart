@@ -7,6 +7,7 @@ import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 
 class AddFriendGroupPage extends StatefulWidget {
   AddFriendGroupPage({
@@ -120,7 +121,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
     } catch (e) {
       print('❌ 获取好友列表失败: $e');
       if (mounted) {
-        EasyLoading.showError('获取好友列表失败');
+        EasyLoading.showError('获取好友列表失败'.tr);
       }
     } finally {
       if (mounted) {
@@ -164,8 +165,8 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
     
     EasyLoading.show(
       status: friendCount > 0 
-        ? '正在创建分组并添加${friendCount}位好友...' 
-        : '正在创建分组...',
+        ? '正在创建分组并添加{count}位好友...'.tr.replaceAll('{count}', friendCount.toString())
+        : '正在创建分组...'.tr,
     );
 
     try {
@@ -177,18 +178,18 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
       
       if (result['errorCode'] == 0) {
         final successMessage = friendCount > 0 
-          ? '分组创建成功，已添加${friendCount}位好友' 
-          : '分组创建成功';
+          ? '分组创建成功，已添加{count}位好友'.tr.replaceAll('{count}', friendCount.toString())
+          : '分组创建成功'.tr;
         EasyLoading.showSuccess(successMessage);
         
         widget.onAddGroup();
         success();
       } else {
-        EasyLoading.showError(result['message'] ?? '创建失败');
+        EasyLoading.showError(result['message'] ?? '创建失败'.tr);
       }
     } catch (e) {
       print('❌ 创建分组错误: $e');
-      EasyLoading.showError('创建失败，请稍后重试');
+      EasyLoading.showError('创建失败，请稍后重试'.tr);
     }
   }
 
@@ -201,9 +202,9 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
         child: Column(
           children: [
             _buildHeader(),
-            _buildTitle('分组名称'),
+            _buildTitle('分组名称'.tr),
             _buildEditGroupName(),
-            _buildTitle('添加好友到分组'),
+            _buildTitle('添加好友到分组'.tr),
             _buildSearch(),
             Expanded(
               child: RefreshIndicator(
@@ -243,7 +244,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '新建分组',
+            '新建分组'.tr,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
@@ -276,7 +277,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
           child: TextField(
             controller: _groupNameController,
             decoration: InputDecoration(
-              hintText: '请输入分组名称',
+              hintText: '请输入分组名称'.tr,
               hintStyle: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -332,7 +333,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '搜索',
+                hintText: '搜索'.tr,
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                 border: InputBorder.none,
                 isDense: true,
@@ -429,7 +430,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
               Navigator.pop(context);
             });
         },
-        text: count > 0 ? '创建($count)' : '创建',
+        text: count > 0 ? '创建({count})'.tr.replaceAll('{count}', count.toString()) : '创建'.tr,
       ),
     );
   }
@@ -446,7 +447,7 @@ class AddFriendGroupPageState extends State<AddFriendGroupPage> {
         height: 48,
         alignment: Alignment.center,
         child: Text(
-          '不选好友直接创建',
+          '不选好友直接创建'.tr,
           style: TextStyle(
             fontSize: 14,
             color: Colors.blue,
