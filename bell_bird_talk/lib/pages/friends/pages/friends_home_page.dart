@@ -186,7 +186,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
       title: '删除分组',
       message: '确定要删除「${group.name}」分组吗？',
       confirmText: '删除',
-      cancelText: '取消',
+      cancelText: '取消'.tr,
       showCancel: true,
     );
     

@@ -1483,7 +1483,7 @@ class _ChatListPageState extends State<ChatListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),

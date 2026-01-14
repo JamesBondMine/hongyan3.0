@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,23 +17,6 @@ import 'config/translations.dart';
 
 void main() {
   Global.init(() async {
-    // 确保 Flutter 绑定初始化
-    WidgetsFlutterBinding.ensureInitialized();
-
-    // 设置状态栏样式
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
-
-    // 初始化本地存储
-    await StorageUtil.init();
-
-    // 初始化全局控制器
-    Get.put(GlobalController());
-
     // 配置 EasyLoading
     _configEasyLoading();
 
@@ -60,8 +44,65 @@ void _configEasyLoading() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  /// 将系统语言映射到应用支持的语言
+  String _mapSystemLocaleToAppLocale(Locale systemLocale) {
+    final languageCode = systemLocale.languageCode.toLowerCase();
+    final countryCode = systemLocale.countryCode?.toUpperCase() ?? '';
+    
+    // 构建完整的 locale 字符串
+    final localeStr = countryCode.isNotEmpty 
+        ? '${languageCode}_$countryCode' 
+        : languageCode;
+    
+    // 检查应用是否支持该语言
+    for (var lang in AppLanguages.languages) {
+      if (lang.locale == localeStr) {
+        return localeStr;
+      }
+      // 如果完整匹配失败，尝试只匹配语言代码
+      if (lang.locale.startsWith('${languageCode}_')) {
+        return lang.locale;
+      }
+    }
+    
+    // 如果不支持，返回默认中文
+    return 'zh_CN';
+  }
+
+  /// 获取系统语言
+  Locale _getSystemLocale() {
+    final systemLocales = PlatformDispatcher.instance.locales;
+    if (systemLocales.isNotEmpty) {
+      return systemLocales.first;
+    }
+    // 如果没有系统语言，返回默认中文
+    return const Locale('zh', 'CN');
+  }
+
+  /// 获取初始语言设置
+  Locale _getInitialLocale() {
+    // 优先使用存储的语言设置
+    final storedLocaleStr = StorageUtil().getString('app_language');
+    
+    if (storedLocaleStr != null && storedLocaleStr.isNotEmpty) {
+      // 有存储的语言设置，使用它
+      final parts = storedLocaleStr.split('_');
+      return Locale(parts[0], parts.length > 1 ? parts[1] : '');
+    } else {
+      // 没有存储的语言设置，跟随系统语言
+      final systemLocale = _getSystemLocale();
+      final appLocaleStr = _mapSystemLocaleToAppLocale(systemLocale);
+      final parts = appLocaleStr.split('_');
+      print('🌐 未设置应用语言，跟随系统语言: $systemLocale -> $appLocaleStr');
+      return Locale(parts[0], parts.length > 1 ? parts[1] : '');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 获取初始语言设置
+    final initialLocale = _getInitialLocale();
+    
     return ScreenUtilInit(
       designSize: const Size(375, 812), // 设计稿尺寸，根据你的设计稿调整
       minTextAdapt: true,
@@ -84,7 +125,7 @@ class MyApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           // 多语言配置
           translations: AppTranslations(),
-          locale: const Locale('zh', 'CN'),
+          locale: initialLocale,
           fallbackLocale: const Locale('zh', 'CN'),
           // 使用启动页面
           home: const SplashPage(),

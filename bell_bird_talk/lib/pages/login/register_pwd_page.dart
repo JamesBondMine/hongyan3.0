@@ -363,7 +363,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
 
   /// 注册按钮
   Widget _buildRegisterButton() {
-    return CommonButton(text:    '确认',
+    return CommonButton(text:    '确认'.tr,
     enabled: true,
      onPressed: (){
       if (widget.isForget) {

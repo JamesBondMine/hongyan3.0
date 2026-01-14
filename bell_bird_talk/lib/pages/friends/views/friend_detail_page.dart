@@ -557,7 +557,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
+          TextButton(onPressed: () => Get.back(), child: Text('取消'.tr)),
           TextButton(
             onPressed: () async {
               Get.back();
@@ -587,7 +587,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
               }
             },
             child: Text(
-              isBlocked ? '确定' : '确定',
+              isBlocked ? '确定'.tr : '确定'.tr,
               style: const TextStyle(color: Colors.orange),
             ),
           ),
@@ -603,7 +603,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       message:
           '确定要删除好友「${_cleanUtf16String(_friend.displayName)}」吗？\n\n删除后，聊天记录将被清空，且需要重新添加才能继续聊天。',
       confirmText: '删除',
-      cancelText: '取消',
+      cancelText: '取消'.tr,
       showCancel: true,
     );
 

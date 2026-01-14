@@ -1410,7 +1410,7 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () async {
@@ -1458,7 +1458,7 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () {

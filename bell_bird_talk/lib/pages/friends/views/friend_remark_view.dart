@@ -1,6 +1,7 @@
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:get/route_manager.dart';
 import 'package:get/state_manager.dart';
 
@@ -128,8 +129,8 @@ class FriendRemarkView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            '取消',
+                          child: Text(
+                            '取消'.tr,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.black87,

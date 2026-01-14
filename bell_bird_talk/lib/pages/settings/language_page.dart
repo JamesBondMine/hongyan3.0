@@ -172,23 +172,6 @@ class _LanguagePageState extends State<LanguagePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
             children: [
-              // 国旗
-              // Container(
-              //   width: 40,
-              //   height: 40,
-              //   decoration: BoxDecoration(
-              //     color: Colors.grey[100],
-              //     borderRadius: BorderRadius.circular(20),
-              //   ),
-              //   alignment: Alignment.center,
-              //   child: Text(
-              //     language.flag,
-              //     style: const TextStyle(fontSize: 24),
-              //   ),
-              // ),
-              
-              // const SizedBox(width: 16),
-              
               // 语言名称
               Expanded(
                 child: Column(

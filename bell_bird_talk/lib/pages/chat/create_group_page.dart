@@ -449,7 +449,7 @@ Spacer(),
           // _confirmSelection();
         },
         enabled: true,
-        text: '确定',
+        text: '确定'.tr,
       ),
     );
   }

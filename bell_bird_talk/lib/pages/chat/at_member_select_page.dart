@@ -4,6 +4,7 @@ import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 /// @群成员选择页面
 class AtMemberSelectPage extends StatefulWidget {
@@ -599,7 +600,7 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
         actions: [
           
           TextButton(
-            child: Text(_isMultiSelectMode ? '取消' : '多选', style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),
+            child: Text(_isMultiSelectMode ? '取消'.tr : '多选', style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),
             onPressed: () {
               if (_isMultiSelectMode) {
                 _confirmSelection();
@@ -659,7 +660,7 @@ class _AtMemberSelectPageState extends State<AtMemberSelectPage> {
           _confirmSelection();
         },
         enabled: true,
-        text: '确定')
+        text: '确定'.tr)
     ); 
   }
 }

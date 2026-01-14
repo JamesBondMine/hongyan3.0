@@ -47,11 +47,11 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
               _buildInviteCodeInput(controller),
               SizedBox(height: 26),
               CommonButton(
-                text: '下一步',
+                text: '下一步'.tr,
                 enabled: controller.inviteCodeController.text.isNotEmpty,
                 onPressed: () {
                   if (controller.inviteCodeController.text.isEmpty) {
-                    EasyLoading.showError('请输入邀请码');
+                    EasyLoading.showError('请输入邀请码'.tr);
                     return;
                   }
                   Get.to(() => RegisterPage(invateCode: controller.inviteCodeController.text));
@@ -81,7 +81,7 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '已有账号?',
+              '已有账号?'.tr,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 14,
@@ -89,7 +89,7 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
             ),
             const SizedBox(width: 4),
             Text(
-              '去登录',
+              '去登录'.tr,
               style: TextStyle(
                 color: GbsColors.textPrimary,
                 fontSize: 14,
@@ -119,8 +119,8 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
   Widget _buildInviteCodeInput(LoginController controller) {
     return LoginTextField(
       controller: controller.inviteCodeController,
-      title: '邀请码/邀请链接',
-      hintText: '请输入邀请码',
+      title: '邀请码/邀请链接'.tr,
+      hintText: '请输入邀请码'.tr,
       onChanged: (value) {
         // 可选填写，无需特殊处理
         if (mounted) {
@@ -161,8 +161,8 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
         const SizedBox(height: 16),
 
         // 标题
-        const Text(
-          '注册',
+        Text(
+          '注册'.tr,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -174,7 +174,7 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
 
         // 副标题
         Text(
-          '请输入邀请码/邀请链接加入企业',
+          '请输入邀请码/邀请链接加入企业'.tr,
           style: TextStyle(
             fontSize: 12,
             color: Colors.black.withOpacity(0.9),

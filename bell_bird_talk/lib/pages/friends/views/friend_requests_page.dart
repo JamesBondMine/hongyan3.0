@@ -135,8 +135,8 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
     final result = await _nativeService.showNativeAlert(
       title: '确定添加${request.requesterName}为好友?',
       message: '',
-      confirmText: '确认',
-      cancelText: '取消',
+      confirmText: '确认'.tr,
+      cancelText: '取消'.tr,
       showCancel: true,
     );
 
@@ -197,7 +197,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () => Get.back(result: true),

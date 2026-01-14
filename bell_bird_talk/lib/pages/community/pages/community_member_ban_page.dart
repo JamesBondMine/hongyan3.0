@@ -75,7 +75,6 @@ class CommunityMemberBanPageState extends State<CommunityMemberBanPage> {
 
     try {
       int page = isRefresh ? 1 : _currentPage;
-
       final members = await _controller.getCommunityBannedMembers(
         cmtyId: _cmtyId!,
         page: page,

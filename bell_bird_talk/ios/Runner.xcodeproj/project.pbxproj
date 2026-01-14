@@ -11,6 +11,7 @@
 		2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A417C052F173F1C0037B0B9 /* captcha_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C042F173F1C0037B0B9 /* captcha_pb.proto */; };
 		2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */; };
 		2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */; };
 		2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */; };
@@ -219,6 +220,7 @@
 		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
 		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A417C042F173F1C0037B0B9 /* captcha_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = captcha_pb.proto; sourceTree = "<group>"; };
 		2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyMemberPb.pbobjc.h; sourceTree = "<group>"; };
 		2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyMemberPb.pbobjc.m; sourceTree = "<group>"; };
 		2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyCategoryPb.pbobjc.h; sourceTree = "<group>"; };
@@ -758,6 +760,7 @@
 		2AF663B82EFBC3A000A18180 /* proto */ = {
 			isa = PBXGroup;
 			children = (
+				2A417C042F173F1C0037B0B9 /* captcha_pb.proto */,
 				2ADEF71D2F0E0A5100AB984D /* cmty */,
 				2AF6639E2EFBC3A000A18180 /* app_pb.proto */,
 				2AF6639F2EFBC3A000A18180 /* ban_pb.proto */,
@@ -1149,6 +1152,7 @@
 				2ADEF7242F0E0A5100AB984D /* cmty_config_pb.proto in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				CS0001000000000000000001 /* CloudStorageManager.swift in Sources */,
+				2A417C052F173F1C0037B0B9 /* captcha_pb.proto in Sources */,
 				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
 				CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
 				CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,

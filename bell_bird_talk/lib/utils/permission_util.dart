@@ -189,7 +189,7 @@ class PermissionUtil {
       title: '需要$name',
       middleText: '$description\n\n请在设置中开启$name',
       textConfirm: '去设置',
-      textCancel: '取消',
+      textCancel: '取消'.tr,
       onConfirm: () {
         openAppSettings();
         Get.back();

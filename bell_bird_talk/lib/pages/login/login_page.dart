@@ -58,9 +58,6 @@ class LoginPage extends StatelessWidget {
                         _buildLoginForm(controller),
 
                         SizedBox(height: 24.h),
-
-                        // 其他操作
-                        _buildFooter(),
                       ],
                     ),
                   ),
@@ -97,7 +94,7 @@ class LoginPage extends StatelessWidget {
               Icon(Icons.language, color: Colors.white, size: 22.sp),
               SizedBox(width: 4.w),
               Text(
-                '语言',
+                '语言'.tr,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13.sp,
@@ -134,7 +131,7 @@ class LoginPage extends StatelessWidget {
 
           // 标题
           Text(
-            '登录',
+            '登录'.tr,
             style: TextStyle(
               fontSize: 32.sp,
               fontWeight: FontWeight.bold,
@@ -146,7 +143,7 @@ class LoginPage extends StatelessWidget {
 
           // 副标题
           Text(
-            '请输入手机号/邮箱',
+            '请输入手机号/邮箱'.tr,
             style: TextStyle(
               fontSize: 12.sp,
               color: Colors.black.withOpacity(0.9),
@@ -202,12 +199,12 @@ class LoginPage extends StatelessWidget {
         child: Row(
           children: [
             _buildTabItem(
-              title: '手机登录',
+              title: '手机登录'.tr,
               isSelected: controller.loginType.value == LoginType.smsCode,
               onTap: () => controller.switchLoginType(LoginType.smsCode),
             ),
             _buildTabItem(
-              title: '邮箱登录',
+              title: '邮箱登录'.tr,
               isSelected: controller.loginType.value == LoginType.emailCode,
               onTap: () => controller.switchLoginType(LoginType.emailCode),
             ),
@@ -269,8 +266,8 @@ class LoginPage extends StatelessWidget {
           // 手机号输入框
           LoginTextField(
             controller: controller.phoneController,
-            title: '手机号',
-            hintText: '请输入手机号',
+            title: '手机号'.tr,
+            hintText: '请输入手机号'.tr,
             keyboardType: TextInputType.phone,
             onChanged: _onInputChanged(),
             prefixIcon: InkWell(
@@ -314,8 +311,8 @@ class LoginPage extends StatelessWidget {
             // 密码输入框
             LoginTextField(
               controller: controller.passwordController,
-              title: '密码',
-              hintText: '请输入密码',
+              title: '密码'.tr,
+              hintText: '请输入密码'.tr,
               obscureText: controller.obscurePassword.value,
               onChanged: _onInputChanged(),
               // prefixIcon: const Icon(Icons.lock_outline),
@@ -360,7 +357,7 @@ class LoginPage extends StatelessWidget {
         TextButton(
           onPressed: controller.toggleSmsLoginMode,
           child: Text(
-            controller.smsUsePassword.value ? '验证码登录' : '密码登录',
+            controller.smsUsePassword.value ? '验证码登录'.tr : '密码登录'.tr,
             style: TextStyle(color: GbsColors.lightDesPrimary, fontSize: 13.sp),
           ),
         ),
@@ -370,7 +367,7 @@ class LoginPage extends StatelessWidget {
             onPressed: () {
               // Get.to(() => const ResetPasswordPage());
               if (controller.phoneController.text.isEmpty) {
-                EasyLoading.showError('请输入邮箱地址');
+                EasyLoading.showError('请输入邮箱地址'.tr);
                 return;
               }
               // 发验证码
@@ -391,7 +388,7 @@ class LoginPage extends StatelessWidget {
               });
             },
             child: Text(
-              '忘记密码',
+              '忘记密码'.tr,
               style: TextStyle(color: GbsColors.textPrimary, fontSize: 13.sp),
             ),
           ),
@@ -407,8 +404,8 @@ class LoginPage extends StatelessWidget {
           // 邮箱输入框
           LoginTextField(
             controller: controller.emailController,
-            title: '邮箱',
-            hintText: '请输入邮箱地址',
+            title: '邮箱'.tr,
+            hintText: '请输入邮箱地址'.tr,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: const Icon(Icons.email_outlined),
             onChanged: _onInputChanged(),
@@ -421,16 +418,23 @@ class LoginPage extends StatelessWidget {
             // 密码输入框
             LoginTextField(
               controller: controller.passwordController,
-              title: '密码',
-              hintText: '请输入密码',
+              title: '密码'.tr,
+              hintText: '请输入密码'.tr,
               obscureText: controller.obscurePassword.value,
               onChanged: _onInputChanged(),
               prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
+              suffixIcon:
+              
+               IconButton(
+                icon: Image.asset(
                   controller.obscurePassword.value
-                      ? Icons.visibility_off
-                      : Icons.visibility,
+                      ? 'assets/img/login/eyeoff.png'
+                      : 'assets/img/login/eye.png',
+                  width: 20.w,
+                  height: 20.h,
+                  color: controller.obscurePassword.value
+                      ? Colors.grey
+                      : Colors.blue,
                 ),
                 onPressed: controller.togglePasswordVisibility,
               ),
@@ -451,7 +455,7 @@ class LoginPage extends StatelessWidget {
               TextButton(
                 onPressed: controller.toggleEmailLoginMode,
                 child: Text(
-                  controller.emailUsePassword.value ? '验证码登录' : '密码登录',
+                  controller.emailUsePassword.value ? '验证码登录'.tr : '密码登录'.tr,
                   style: TextStyle(color: GbsColors.textPrimary, fontSize: 13),
                 ),
               ),
@@ -461,7 +465,7 @@ class LoginPage extends StatelessWidget {
                   onPressed: () {
                     // Get.to(() => const ResetPasswordPage());
                     if (controller.emailController.text.isEmpty) {
-                      EasyLoading.showError('请输入邮箱地址');
+                      EasyLoading.showError('请输入邮箱地址'.tr);
                       return;
                     }
                     controller.sendForgetVerificationCode((cid) {
@@ -482,7 +486,7 @@ class LoginPage extends StatelessWidget {
                     });
                   },
                   child: Text(
-                    '忘记密码',
+                    '忘记密码'.tr,
                     style: TextStyle(
                       color: GbsColors.textPrimary,
                       fontSize: 13,
@@ -500,8 +504,8 @@ class LoginPage extends StatelessWidget {
   Widget _buildInviteCodeInput(LoginController controller) {
     return LoginTextField(
       controller: controller.inviteCodeController,
-      title: '邀请码',
-      hintText: '请输入邀请码（选填）',
+      title: '邀请码'.tr,
+      hintText: '请输入邀请码（选填）'.tr,
       // prefixIcon: const Icon(Icons.card_giftcard_outlined),
     );
   }
@@ -510,10 +514,10 @@ class LoginPage extends StatelessWidget {
   Widget _buildCodeInputRow(LoginController controller) {
     return LoginTextField(
       controller: controller.codeController,
-      title: '验证码',
+      title: '验证码'.tr,
       keyboardType: TextInputType.number,
       maxLength: 6,
-      hintText: '请输入验证码',
+      hintText: '请输入验证码'.tr,
       onChanged: _onInputChanged(),
       trailingWidget: Obx(
         () => Container(
@@ -543,7 +547,7 @@ class LoginPage extends StatelessWidget {
                 : Text(
                     controller.countdown.value > 0
                         ? '${controller.countdown.value}s'
-                        : '获取验证码',
+                        : '获取验证码'.tr,
                     style: TextStyle(
                       fontSize: 13.sp,
                       color:
@@ -569,7 +573,7 @@ class LoginPage extends StatelessWidget {
       final isEnabled = _isFormValid(controller);
 
       return CommonButton(
-        text: '登录',
+        text: '登录'.tr,
         enabled: isEnabled,
         isLoading: controller.isLoading.value,
         onPressed: controller.login,
@@ -638,12 +642,12 @@ class LoginPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '还没有账号?',
+              '还没有账号?'.tr,
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
             const SizedBox(width: 4),
             Text(
-              '去注册',
+              '去注册'.tr,
               style: TextStyle(
                 color: GbsColors.textPrimary,
                 fontSize: 14,
@@ -656,39 +660,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  /// 构建底部
-  Widget _buildFooter() {
-    return Column(
-      children: [
-        // 提示信息
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Text(
-                '登录说明',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '支持账号密码、短信验证码、邮箱验证码三种登录方式',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }

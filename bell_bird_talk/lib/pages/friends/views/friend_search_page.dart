@@ -195,7 +195,7 @@ class _FriendSearchPageState extends State<FriendSearchPage> {
             Get.back();
           },child: 
           Container(padding: const EdgeInsets.symmetric(horizontal: 16 ),
-          child: Text('取消',style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),))
+          child: Text('取消'.tr,style: TextStyle(color: GbsColors.des1Color, fontSize: 16),),))
           
         ],),
         ),

@@ -304,7 +304,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
+                child: Text('取消'.tr),
               ),
             ]
           )
@@ -515,11 +515,11 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           TextButton(onPressed: () {
             Navigator.pop(context, false);
 
-          }, child: const Text('取消')),
+          }, child: Text('取消'.tr)),
           TextButton(onPressed: () {
             Navigator.pop(context, true);
 
-          }, child: const Text('确定')),
+          }, child: Text('确定'.tr)),
         ],
       ),
     );
@@ -619,12 +619,12 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('确定'),
+            child: Text('确定'.tr),
           ),
         ],
       ),
@@ -675,7 +675,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
             decoration: const InputDecoration(hintText: '输入新的群名称'),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('取消'.tr)),
             TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
           ],
         );
@@ -711,7 +711,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
             decoration: const InputDecoration(hintText: '请输入群昵称'),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('取消'.tr)),
             TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('保存')),
           ],
         );
@@ -1370,7 +1370,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
         ],
       ),

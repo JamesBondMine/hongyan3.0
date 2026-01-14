@@ -65,7 +65,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('安全设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: GbsColors.des1Color),),
+        title: Text('安全设置'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: GbsColors.des1Color),),
         elevation: 0,
       ),
       body: ListView(
@@ -73,8 +73,8 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           // 修改密码
           _buildMenuItem(
             icon: 'safe_pwd',
-            title: '修改密码',
-            subtitle: '更改当前登录密码',
+            title: '修改密码'.tr,
+            subtitle: '更改当前登录密码'.tr,
             onTap: () {
               // Get.to(() => const ChangePasswordPage());
               Get.to(() => const PwdOldPage());
@@ -108,7 +108,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   /// 获取注销状态标题
   String _getDeactivateStatusTitle() {
     if (_deactivateStatus == null) {
-      return '注销账号';
+      return '注销账号'.tr;
     }
     
     final status = _deactivateStatus!['status'] as int?;
@@ -116,22 +116,22 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     // 状态枚举值：Normal=0, Cooling=1, PendingReview=2, Deactivated=3
     switch (status) {
       case 0: // Normal
-        return '注销账号';
+        return '注销账号'.tr;
       case 1: // Cooling
-        return '注销账号（冷却期）';
+        return '注销账号（冷却期）'.tr;
       case 2: // PendingReview
-        return '注销账号（审核中）';
+        return '注销账号（审核中）'.tr;
       case 3: // Deactivated
-        return '账号已注销';
+        return '账号已注销'.tr;
       default:
-        return '注销账号';
+        return '注销账号'.tr;
     }
   }
   
   /// 获取注销状态副标题
   String _getDeactivateStatusSubtitle() {
     if (_deactivateStatus == null) {
-      return '注销后账号将无法恢复';
+      return '注销后账号将无法恢复'.tr;
     }
     
     final status = _deactivateStatus!['status'] as int?;
@@ -141,27 +141,27 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     // 状态枚举值：Normal=0, Cooling=1, PendingReview=2, Deactivated=3
     switch (status) {
       case 0: // Normal
-        return '注销后账号将无法恢复';
+        return '注销后账号将无法恢复'.tr;
       case 1: // Cooling
         if (requestTime != null && requestTime > 0) {
           final dateTime = DateTime.fromMillisecondsSinceEpoch(requestTime);
-          return '冷却期，申请时间：${_formatDateTime(dateTime)}';
+          return '${'冷却期，申请时间：'.tr}${_formatDateTime(dateTime)}';
         }
-        return '账号处于冷却期';
+        return '账号处于冷却期'.tr;
       case 2: // PendingReview
         if (requestTime != null && requestTime > 0) {
           final dateTime = DateTime.fromMillisecondsSinceEpoch(requestTime);
-          return '审核中，申请时间：${_formatDateTime(dateTime)}';
+          return '${'审核中，申请时间：'.tr}${_formatDateTime(dateTime)}';
         }
-        return '注销申请审核中';
+        return '注销申请审核中'.tr;
       case 3: // Deactivated
         if (reviewTime != null && reviewTime > 0) {
           final dateTime = DateTime.fromMillisecondsSinceEpoch(reviewTime);
-          return '已注销，注销时间：${_formatDateTime(dateTime)}';
+          return '${'已注销，注销时间：'.tr}${_formatDateTime(dateTime)}';
         }
-        return '账号已注销';
+        return '账号已注销'.tr;
       default:
-        return '注销后账号将无法恢复';
+        return '注销后账号将无法恢复'.tr;
     }
   }
 
@@ -175,11 +175,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     if (difference.inDays > 0) {
       return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}小时前';
+      return '${difference.inHours}${'小时前'.tr}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}分钟前';
+      return '${difference.inMinutes}${'分钟前'.tr}';
     } else {
-      return '刚刚';
+      return '刚刚'.tr;
     }
   }
   
@@ -193,12 +193,12 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('账号已注销'),
+          title: Text('账号已注销'.tr),
           content: Text(_getDeactivateStatusSubtitle()),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+              child: Text('确定'.tr),
             ),
           ],
         ),
@@ -210,12 +210,12 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('注销申请审核中'),
+          title: Text('注销申请审核中'.tr),
           content: Text(_getDeactivateStatusSubtitle()),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+              child: Text('确定'.tr),
             ),
           ],
         ),
@@ -227,20 +227,20 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('账号处于冷却期'),
+          title: Text('账号处于冷却期'.tr),
           content: Text(_getDeactivateStatusSubtitle()),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: Text('取消'.tr),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context); // 关闭对话框
                 await _cancelDeactivateAccount(context, controller);
               },
-              child: const Text(
-                '撤回注销',
+              child: Text(
+                '撤回注销'.tr,
                 style: TextStyle(color: Colors.blue),
               ),
             ),
@@ -254,22 +254,22 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('注销账号'),
-        content: const Text('注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？'),
+        title: Text('注销账号'.tr),
+        content: Text('注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？'.tr),
         actions: [
           TextButton(
             onPressed: (){
               Navigator.pop(context);
             },
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // 关闭对话框
               await _deactivateAccount(context, controller);
             },
-            child: const Text(
-              '确定注销',
+            child: Text(
+              '确定注销'.tr,
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -280,31 +280,31 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
 
   /// 执行注销账号
   Future<void> _deactivateAccount(BuildContext context, GlobalController controller) async {
-    EasyLoading.show(status: '正在注销账号...');
+    EasyLoading.show(status: '正在注销账号...'.tr);
     
     try {
       final userId = controller.currentUser.value?.id;
       if (userId == null || userId.isEmpty) {
         EasyLoading.dismiss();
-        EasyLoading.showError('无法获取用户ID');
+        EasyLoading.showError('无法获取用户ID'.tr);
         return;
       }
       
       final nativeService = IOSNativeService();
       final result = await nativeService.imDeactivateAccount(
         userId: userId,
-        reason: '用户主动注销',
+        reason: '用户主动注销'.tr,
       );
       
       EasyLoading.dismiss();
       
       final errorCode = result['errorCode'] as int? ?? -1;
-      final message = result['message'] as String? ?? '未知错误';
+      final message = result['message'] as String? ?? '未知错误'.tr;
       
       if (errorCode == 0) {
         // 注销成功，刷新注销状态
         await _loadDeactivateStatus();
-        EasyLoading.showSuccess('账号注销申请成功');
+        EasyLoading.showSuccess('账号注销申请成功'.tr);
         
       } else {
         // 注销失败
@@ -312,19 +312,19 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       }
     } catch (e) {
       EasyLoading.dismiss();
-      EasyLoading.showError('注销失败: $e');
+      EasyLoading.showError('${'注销失败'.tr}: $e');
     }
   }
 
   /// 执行撤回注销账号
   Future<void> _cancelDeactivateAccount(BuildContext context, GlobalController controller) async {
-    EasyLoading.show(status: '正在撤回注销...');
+    EasyLoading.show(status: '正在撤回注销...'.tr);
     
     try {
       final userId = controller.currentUser.value?.id;
       if (userId == null || userId.isEmpty) {
         EasyLoading.dismiss();
-        EasyLoading.showError('无法获取用户ID');
+        EasyLoading.showError('无法获取用户ID'.tr);
         return;
       }
       
@@ -334,12 +334,12 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       EasyLoading.dismiss();
       
       final errorCode = result['errorCode'] as int? ?? -1;
-      final message = result['message'] as String? ?? '未知错误';
+      final message = result['message'] as String? ?? '未知错误'.tr;
       
       if (errorCode == 0) {
         // 撤回成功，刷新注销状态
         await _loadDeactivateStatus();
-        EasyLoading.showSuccess('撤回注销成功');
+        EasyLoading.showSuccess('撤回注销成功'.tr);
         
       } else {
         // 撤回失败
@@ -347,7 +347,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       }
     } catch (e) {
       EasyLoading.dismiss();
-      EasyLoading.showError('撤回注销失败: $e');
+      EasyLoading.showError('${'撤回注销失败'.tr}: $e');
     }
   }
 // 构建菜单项

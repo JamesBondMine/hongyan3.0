@@ -72,7 +72,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
               _buildCountDown(controller),
               SizedBox(height: 10),
               CommonButton(
-                text: '确定',
+                text: '确定'.tr,
                 enabled: controller.codeController.text.isNotEmpty,
                 onPressed: () {
                   Get.to(() =>  RegisterPwdPage(cid: _cid, registerType: widget.registerType, account: widget.account,code: controller.codeController.text, invateCode: widget.invateCode,isForget: widget.isForget,));

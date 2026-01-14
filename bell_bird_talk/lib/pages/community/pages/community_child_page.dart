@@ -378,7 +378,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       title: '删除频道',
       message: '确定要删除此频道吗？',
       confirmText: '删除',
-      cancelText: '取消',
+      cancelText: '取消'.tr,
       showCancel: true,
     );
 
@@ -412,7 +412,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
       title: '离开社群',
       message: '确定要退出当前账号吗？离开后只能通过邀请链接进入',
       confirmText: '离开',
-      cancelText: '取消',
+      cancelText: '取消'.tr,
       showCancel: true,
     );
 
@@ -730,7 +730,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 title: '删除分类',
                 message: '确定要删除此分类吗？',
                 confirmText: '删除',
-                cancelText: '取消',
+                cancelText: '取消'.tr,
                 showCancel: true,
               );
 

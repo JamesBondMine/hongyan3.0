@@ -169,7 +169,7 @@ class Shower {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  '取消',
+                  '取消'.tr,
                   style: TextStyle(
                       fontSize: 18,
                       color: GbsColors.textPrimary,

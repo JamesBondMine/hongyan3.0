@@ -576,7 +576,7 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child:  Text('取消'.tr),
           ),
         ],
       ),
@@ -592,11 +592,11 @@ class _GroupMembersPageState extends State<GroupMembersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('取消'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('确定'),
+            child: Text('确定'.tr),
           ),
         ],
       ),

@@ -384,7 +384,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
+            child: Text('确定'.tr),
           ),
         ],
       ),
@@ -397,7 +397,7 @@ class _SideMenuContentState extends State<SideMenuContent> {
       title: '退出登录'.tr,
       message: '确定要退出当前账号吗？',
       confirmText: '退出',
-      cancelText: '取消',
+      cancelText: '取消'.tr,
       showCancel: true,
     );
     

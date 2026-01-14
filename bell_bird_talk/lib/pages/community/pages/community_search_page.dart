@@ -7,6 +7,7 @@ import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import '../models/community_model.dart';
 import 'community_detail_page.dart';
 
@@ -129,8 +130,8 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
     final result = await _nativeService.showNativeAlert(
       title: '申请加入社群',
       message: '社群将会给你发消息',
-      confirmText: '确认',
-      cancelText: '取消',
+      confirmText: '确认'.tr,
+      cancelText: '取消'.tr,
       showCancel: true,
     );
     bool confirmed = result != null && result['action'] == 'confirm';
@@ -249,7 +250,7 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
                     child: Padding(
                       padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
                       child: Text(
-                        '取消',
+                        '取消'.tr,
                         style: TextStyle(
                           color: GbsColors.des1Color,
                           fontSize: 16,

@@ -482,7 +482,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         title: '请先新增分组后再设置好友分组',
         message: '',
         confirmText: '新增分组',
-        cancelText: '取消',
+        cancelText: '取消'.tr,
         showCancel: true,
       );
 

@@ -33,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundA,
       appBar: AppBar(
-        title: const Text('基本信息', style: TextStyle(fontSize: 16, color: GbsColors.titleColor, fontWeight: FontWeight.w500)),
+        title: Text('基本信息'.tr, style: TextStyle(fontSize: 16, color: GbsColors.titleColor, fontWeight: FontWeight.w500)),
         centerTitle: true,
         backgroundColor: GbsColors.lightAppBarColorB,
         foregroundColor: GbsColors.titleColor,
@@ -71,7 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
            _buildInfoItem(
             icon: Icons.phone_android,
-            label: '头像',
+            label: '头像'.tr,
             value: '',
             trailing: SizedBox(width: 32,height: 32,child: CircleAvatar(
                     radius: 16,
@@ -89,28 +89,28 @@ class _ProfilePageState extends State<ProfilePage> {
           CommonLineView(),
                      _buildInfoItem(
             icon: Icons.phone_android,
-            label: '用户名',
+            label: '用户名'.tr,
             value: _maskPhone(user?.username),
             onTap: () => _showEditUsernameDialog(user?.username),
           ),
           CommonLineView(),
            _buildInfoItem(
             icon: Icons.phone_android,
-            label: '昵称',
+            label: '昵称'.tr,
             value: _maskPhone(user?.nickname),
             onTap: () => _showEditNicknameDialog(user?.nickname),
           ),
           CommonLineView(),
           _buildInfoItem(
             icon: Icons.phone_android,
-            label: '手机号',
+            label: '手机号'.tr,
             value: _maskPhone(user?.phone),
             onTap: () => _showPhoneBindDialog(user?.phone),
           ),
           CommonLineView(),
           _buildInfoItem(
             icon: Icons.email,
-            label: '邮箱',
+            label: '邮箱'.tr,
             value: _maskEmail(user?.email),
             onTap: () => _showEmailBindDialog(user?.email),
           ),
@@ -179,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
   
 
   String _maskPhone(String? phone) {
-    if (phone == null || phone.isEmpty) return '未绑定';
+    if (phone == null || phone.isEmpty) return '未绑定'.tr;
     if (phone.length >= 11) {
       return '${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}';
     }
@@ -187,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
   
   String _maskEmail(String? email) {
-    if (email == null || email.isEmpty) return '未绑定';
+    if (email == null || email.isEmpty) return '未绑定'.tr;
     final index = email.indexOf('@');
     if (index > 2) {
       return '${email.substring(0, 2)}***${email.substring(index)}';
@@ -198,21 +198,21 @@ class _ProfilePageState extends State<ProfilePage> {
   void _copyToClipboard(String text) {
     if (text.isEmpty || text.contains('未')) return;
     Clipboard.setData(ClipboardData(text: text));
-    EasyLoading.showSuccess('已复制');
+    EasyLoading.showSuccess('已复制'.tr);
   }
   
   /// 更新性别
   Future<void> _updateGender(int sex) async {
-    EasyLoading.show(status: '修改中...');
+    EasyLoading.show(status: '修改中...'.tr);
     
     final result = await _nativeBridge.imUpdateSex(sex);
     
     if (result['errorCode'] == 0) {
       // 更新本地用户信息 (UI显示: 1=男, 2=女，SDK: 0=男, 1=女)
       _globalCtrl.updateUserGender(sex == 0 ? 1 : 2);
-      EasyLoading.showSuccess('性别已修改');
+      EasyLoading.showSuccess('性别已修改'.tr);
     } else {
-      EasyLoading.showError(result['message'] ?? '修改失败');
+      EasyLoading.showError(result['message'] ?? '修改失败'.tr);
     }
   }
   
@@ -268,7 +268,7 @@ class _ProfilePageState extends State<ProfilePage> {
   /// 选择并上传头像
   Future<void> _pickAndUploadAvatar(ImageSource source) async {
     if (_isUploadingAvatar) {
-      EasyLoading.showInfo('正在上传中，请稍候');
+      EasyLoading.showInfo('正在上传中，请稍候'.tr);
       return;
     }
     
@@ -288,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _isUploadingAvatar = true;
       });
-      EasyLoading.show(status: '上传中...');
+      EasyLoading.show(status: '上传中...'.tr);
       
       // 2. 获取文件信息
       final File imageFile = File(pickedFile.path);
@@ -310,14 +310,14 @@ class _ProfilePageState extends State<ProfilePage> {
       
       final int errorCode = prepareResult['errorCode'] as int? ?? -1;
       if (errorCode != 0) {
-        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败');
+        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败'.tr);
         return;
       }
       
       // 4. 解析凭证数据
       final String? dataStr = prepareResult['data'] as String?;
       if (dataStr == null || dataStr.isEmpty) {
-        EasyLoading.showError('上传凭证数据为空');
+        EasyLoading.showError('上传凭证数据为空'.tr);
         return;
       }
       
@@ -364,19 +364,19 @@ class _ProfilePageState extends State<ProfilePage> {
           uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, objectKey, headers, formData);
         }
       } else {
-        EasyLoading.showError('不支持的上传模式: $uploadMode');
+        EasyLoading.showError('${'不支持的上传模式'.tr}: $uploadMode');
         return;
       }
       
       if (!uploadSuccess) {
-        EasyLoading.showError('图片上传失败');
+        EasyLoading.showError('图片上传失败'.tr);
         return;
       }
       
       print('✅ 图片上传成功: fileUrl=$fileUrl');
       
       // 6. 更新用户头像
-      EasyLoading.show(status: '更新头像...');
+      EasyLoading.show(status: '更新头像...'.tr);
       
       final updateResult = await _nativeBridge.imUpdateUserInfo(avatar: fileUrl);
       final int updateErrorCode = updateResult['errorCode'] as int? ?? -1;
@@ -384,14 +384,14 @@ class _ProfilePageState extends State<ProfilePage> {
       if (updateErrorCode == 0) {
         // 更新本地用户信息
         await _globalCtrl.updateUserAvatar(fileUrl);
-        EasyLoading.showSuccess('头像更新成功');
+        EasyLoading.showSuccess('头像更新成功'.tr);
       } else {
-        EasyLoading.showError(updateResult['message'] ?? '头像更新失败');
+        EasyLoading.showError(updateResult['message'] ?? '头像更新失败'.tr);
       }
       
     } catch (e) {
       print('❌ 上传头像异常: $e');
-      EasyLoading.showError('上传失败: $e');
+      EasyLoading.showError('${'上传失败'.tr}: $e');
     } finally {
       setState(() {
         _isUploadingAvatar = false;
@@ -517,26 +517,26 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: FriendRemarkView(
                 controller: controller,
-                tip: '请输入用户名',
-                title: '修改用户名',
+                tip: '请输入用户名'.tr,
+                title: '修改用户名'.tr,
                 onTap: () async {
                   final newUsername = controller.text.trim();
               if (newUsername.isEmpty) {
-                EasyLoading.showError('用户名不能为空');
+                EasyLoading.showError('用户名不能为空'.tr);
                 return;
               }
               
               Get.back();
-              EasyLoading.show(status: '修改中...');
+              EasyLoading.show(status: '修改中...'.tr);
               
               final result = await _nativeBridge.imUpdateUsername(newUsername);
               
               if (result['errorCode'] == 0) {
                 // 更新本地用户信息
                 _globalCtrl.updateUserUsername( newUsername);
-                EasyLoading.showSuccess('用户名修改成功');
+                EasyLoading.showSuccess('用户名修改成功'.tr);
               } else {
-                EasyLoading.showError(result['message'] ?? '修改失败');
+                EasyLoading.showError(result['message'] ?? '修改失败'.tr);
               }
                 }
               ));
@@ -558,26 +558,26 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: FriendRemarkView(
                 controller: controller,
-                tip: '请输入昵称',
-                title: '修改昵称',
+                tip: '请输入昵称'.tr,
+                title: '修改昵称'.tr,
                 onTap: () async {
                   final newNickname = controller.text.trim();
               if (newNickname.isEmpty) {
-                EasyLoading.showError('昵称不能为空');
+                EasyLoading.showError('昵称不能为空'.tr);
                 return;
               }
               
               Get.back();
-              EasyLoading.show(status: '修改中...');
+              EasyLoading.show(status: '修改中...'.tr);
               
               final result = await _nativeBridge.imUpdateNickname(newNickname);
               
               if (result['errorCode'] == 0) {
                 // 更新本地用户信息
                 _globalCtrl.updateUserNickname(newNickname);
-                EasyLoading.showSuccess('昵称修改成功');
+                EasyLoading.showSuccess('昵称修改成功'.tr);
               } else {
-                EasyLoading.showError(result['message'] ?? '修改失败');
+                EasyLoading.showError(result['message'] ?? '修改失败'.tr);
               }
                 }
               ));
@@ -607,23 +607,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               ListTile(
                 leading: const Icon(Icons.swap_horiz, color: Colors.blue),
-                title: const Text('更换手机号'),
+                title: Text('更换手机号'.tr),
                 onTap: () {
                   Get.back();
-                  EasyLoading.showInfo('换绑手机号功能开发中');
+                  EasyLoading.showInfo('换绑手机号功能开发中'.tr);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.link_off, color: Colors.red),
-                title: const Text('解绑手机号'),
+                title: Text('解绑手机号'.tr),
                 onTap: () {
                   Get.back();
-                  EasyLoading.showInfo('解绑手机号功能开发中');
+                  EasyLoading.showInfo('解绑手机号功能开发中'.tr);
                 },
               ),
               const SizedBox(height: 8),
               ListTile(
-                title: const Text('取消', textAlign: TextAlign.center),
+                title: Text('取消'.tr, textAlign: TextAlign.center),
                 onTap: () => Get.back(),
               ),
             ],
@@ -631,7 +631,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
     } else {
-      EasyLoading.showInfo('绑定手机号功能开发中');
+      EasyLoading.showInfo('绑定手机号功能开发中'.tr);
     }
   }
   
@@ -658,23 +658,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               ListTile(
                 leading: const Icon(Icons.swap_horiz, color: Colors.blue),
-                title: const Text('更换邮箱'),
+                title: Text('更换邮箱'.tr),
                 onTap: () {
                   Get.back();
-                  EasyLoading.showInfo('换绑邮箱功能开发中');
+                  EasyLoading.showInfo('换绑邮箱功能开发中'.tr);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.link_off, color: Colors.red),
-                title: const Text('解绑邮箱'),
+                title: Text('解绑邮箱'.tr),
                 onTap: () {
                   Get.back();
-                  EasyLoading.showInfo('解绑邮箱功能开发中');
+                  EasyLoading.showInfo('解绑邮箱功能开发中'.tr);
                 },
               ),
               const SizedBox(height: 8),
               ListTile(
-                title: const Text('取消', textAlign: TextAlign.center),
+                title: Text('取消'.tr, textAlign: TextAlign.center),
                 onTap: () => Get.back(),
               ),
             ],
@@ -682,7 +682,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       );
     } else {
-      EasyLoading.showInfo('绑定邮箱功能开发中');
+      EasyLoading.showInfo('绑定邮箱功能开发中'.tr);
     }
   }
 }

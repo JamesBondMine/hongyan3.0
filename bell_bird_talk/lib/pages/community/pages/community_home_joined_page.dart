@@ -301,8 +301,8 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
     final result = await _nativeService.showNativeAlert(
       title: '申请加入社群',
       message: '社群将会给你发消息',
-      confirmText: '确认',
-      cancelText: '取消',
+      confirmText: '确认'.tr,
+      cancelText: '取消'.tr,
       showCancel: true,
     );
     bool confirmed = result != null && result['action'] == 'confirm';

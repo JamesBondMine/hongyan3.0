@@ -132,7 +132,7 @@ class CommunityMemberOperateView extends StatelessWidget {
               title: '禁言',
               message: '确定要禁言当前账号吗？',
               confirmText: '禁言',
-              cancelText: '取消',
+              cancelText: '取消'.tr,
               showCancel: true,
             );
 
@@ -146,7 +146,7 @@ class CommunityMemberOperateView extends StatelessWidget {
               title: '踢除',
               message: '确定要踢除当前账号吗？',
               confirmText: '踢除',
-              cancelText: '取消',
+              cancelText: '取消'.tr,
               showCancel: true,
             );
 
@@ -160,7 +160,7 @@ class CommunityMemberOperateView extends StatelessWidget {
               title: '封禁',
               message: '确定要封禁当前账号吗？',
               confirmText: '封禁',
-              cancelText: '取消',
+              cancelText: '取消'.tr,
               showCancel: true,
             );
 
