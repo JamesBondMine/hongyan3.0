@@ -1,3 +1,4 @@
+import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,10 +8,7 @@ import 'package:flutter/material.dart';
 class VoiceChannelPage extends StatefulWidget {
   final ChannelModel channel;
 
-  const VoiceChannelPage({
-    super.key,
-    required this.channel,
-  });
+  const VoiceChannelPage({super.key, required this.channel});
 
   @override
   State<VoiceChannelPage> createState() => _VoiceChannelPageState();
@@ -19,16 +17,16 @@ class VoiceChannelPage extends StatefulWidget {
 class _VoiceChannelPageState extends State<VoiceChannelPage> {
   // 成员列表（模拟数据，实际应该从 channel 获取）
   List<Map<String, dynamic>> _members = [];
-  
+
   // 麦克风状态
   bool _isMicMuted = false;
-  
+
   // 耳机状态（扬声器/耳机）
   bool _isHeadphoneMode = false;
-  
+
   // 是否显示首次进入弹窗
   bool _showWelcomeDialog = true;
-  
+
   // 成员数量阈值，超过此数量使用宫格显示
   static const int _gridThreshold = 9;
 
@@ -44,21 +42,9 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
     // 这里应该是从 channel 获取成员列表
     // 暂时使用模拟数据
     _members = [
-      {
-        'user_id': '1',
-        'nickname': '用户1',
-        'avatar': null,
-      },
-      {
-        'user_id': '2',
-        'nickname': '用户2',
-        'avatar': null,
-      },
-      {
-        'user_id': '3',
-        'nickname': '用户3',
-        'avatar': null,
-      },
+      {'user_id': '1', 'nickname': '用户1', 'avatar': null},
+      {'user_id': '2', 'nickname': '用户2', 'avatar': null},
+      {'user_id': '3', 'nickname': '用户3', 'avatar': null},
     ];
     setState(() {});
   }
@@ -80,9 +66,9 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
   /// 邀请好友
   void _inviteFriend() {
     // TODO: 实现邀请好友逻辑
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('邀请好友')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('邀请好友')));
   }
 
   /// 挂断/离开频道
@@ -91,10 +77,15 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
   }
 
   /// 加入语音频道
-  void _joinChannel() {
-    setState(() {
-      _showWelcomeDialog = false;
-    });
+  void _joinChannel() async {
+    bool res = await CommunityController.to.enterChannel(
+      channelId: widget.channel.channelId,
+    );
+    if (res) {
+      setState(() {
+        _showWelcomeDialog = false;
+      });
+    } else {}
   }
 
   @override
@@ -108,9 +99,7 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
           Column(
             children: [
               // 成员列表/宫格区域
-              Expanded(
-                child: _buildMembersArea(),
-              ),
+              Expanded(child: _buildMembersArea()),
               // 底部操作栏占位（防止内容被遮挡）
               const SizedBox(height: 100),
             ],
@@ -272,9 +261,9 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
           InkWell(
             onTap: () {
               // TODO: 实现加好友逻辑
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('添加 $nickname 为好友')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('添加 $nickname 为好友')));
             },
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -350,9 +339,9 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
           InkWell(
             onTap: () {
               // TODO: 实现加好友逻辑
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('添加 $nickname 为好友')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('添加 $nickname 为好友')));
             },
             child: Container(
               padding: const EdgeInsets.all(6),
@@ -469,16 +458,12 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: isDanger
-              ? GbsColors.darkError
-              : GbsColors.darkCardPrimary,
+          color: isDanger ? GbsColors.darkError : GbsColors.darkCardPrimary,
           borderRadius: BorderRadius.circular(28),
         ),
         child: Icon(
           icon,
-          color: isDanger
-              ? Colors.white
-              : GbsColors.darkButtonTextSecondary,
+          color: isDanger ? Colors.white : GbsColors.darkButtonTextSecondary,
           size: 24,
         ),
       ),
@@ -537,10 +522,7 @@ class _VoiceChannelPageState extends State<VoiceChannelPage> {
                   ),
                   child: const Text(
                     '加入语音频道',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),

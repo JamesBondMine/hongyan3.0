@@ -516,11 +516,11 @@ class _ChatListPageState extends State<ChatListPage> {
   Future<void> _loadUnreadConversations() async {
     final userId = _currentUserId;
     if (userId.isEmpty) {
-      EasyLoading.showError('用户未登录');
+      EasyLoading.showError('用户未登录'.tr);
       return;
     }
 
-    EasyLoading.show(status: '加载未读会话...');
+    EasyLoading.show(status: '加载未读会话...'.tr);
 
     try {
       print('📋 加载未读会话列表...');
@@ -572,18 +572,18 @@ class _ChatListPageState extends State<ChatListPage> {
               );
               _globalCtrl.unreadCount.value = totalUnread;
 
-              EasyLoading.showSuccess('加载成功');
+              EasyLoading.showSuccess('加载成功'.tr);
             } else {
               // 没有未读会话
               setState(() {
                 _conversations = [];
                 _filterConversations();
               });
-              EasyLoading.showSuccess('暂无未读会话');
+              EasyLoading.showSuccess('暂无未读会话'.tr);
             }
           } catch (e) {
             print('❌ 解析未读会话列表失败: $e');
-            EasyLoading.showError('解析数据失败');
+            EasyLoading.showError('解析数据失败'.tr);
           }
         } else {
           // 没有未读会话
@@ -591,15 +591,15 @@ class _ChatListPageState extends State<ChatListPage> {
             _conversations = [];
             _filterConversations();
           });
-          EasyLoading.showSuccess('暂无未读会话');
+          EasyLoading.showSuccess('暂无未读会话'.tr);
         }
       } else {
         print('⚠️ 获取未读会话列表失败: ${result['message']}');
-        EasyLoading.showError(result['message'] ?? '获取失败');
+        EasyLoading.showError(result['message'] ?? '获取失败'.tr);
       }
     } catch (e) {
       print('❌ 加载未读会话列表错误: $e');
-      EasyLoading.showError('加载失败，请稍后重试');
+      EasyLoading.showError('加载失败，请稍后重试'.tr);
     }
   }
 
@@ -652,7 +652,7 @@ class _ChatListPageState extends State<ChatListPage> {
       }
     } catch (e) {
       print('刷新会话列表错误: $e');
-      EasyLoading.showError('刷新失败');
+      EasyLoading.showError('刷新失败'.tr);
       setState(() {}); // 恢复页面状态
     }
   }
@@ -714,7 +714,7 @@ class _ChatListPageState extends State<ChatListPage> {
               Icon(Icons.search, color: Colors.grey[600]),
               const SizedBox(width: 8),
               Text(
-                '搜索',
+                '搜索'.tr,
                 style: TextStyle(color: Colors.grey[600], fontSize: 16),
               ),
             ],
@@ -731,10 +731,10 @@ class _ChatListPageState extends State<ChatListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          _buildFilterButton(0, '全部', _getAllUnreadCount()),
-          _buildFilterButton(1, '未读', _getAllUnreadCount()), // 和全部一样显示总未读数
-          _buildFilterButton(2, '群聊', _getGroupUnreadCount(false)),
-          _buildFilterButton(3, '@我的', _getGroupUnreadCount(true)),
+          _buildFilterButton(0, '全部'.tr, _getAllUnreadCount()),
+          _buildFilterButton(1, '未读'.tr, _getAllUnreadCount()), // 和全部一样显示总未读数
+          _buildFilterButton(2, '群聊'.tr, _getGroupUnreadCount(false)),
+          _buildFilterButton(3, '@我的'.tr, _getGroupUnreadCount(true)),
         ],
       ),
     );
@@ -852,7 +852,7 @@ class _ChatListPageState extends State<ChatListPage> {
                 height: 20,
               ),
               const SizedBox(width: 8),
-              const Text('添加好友'),
+              Text('添加好友'.tr),
             ],
           ),
         ),
@@ -878,7 +878,7 @@ class _ChatListPageState extends State<ChatListPage> {
                 height: 20,
               ),
               const SizedBox(width: 8),
-              const Text('创建群聊'),
+              Text('创建群聊'.tr),
             ],
           ),
         ),
@@ -1165,7 +1165,7 @@ class _ChatListPageState extends State<ChatListPage> {
                   Text(
                     conversation.lastMessageDisplay.isNotEmpty
                         ? conversation.lastMessageDisplay
-                        : '暂无消息',
+                        : '暂无消息'.tr,
                     style: TextStyle(
                       fontSize: 14,
                       color: conversation.unreadCount > 0
@@ -1292,10 +1292,10 @@ class _ChatListPageState extends State<ChatListPage> {
       return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     } else if (difference.inDays == 1) {
       // 昨天
-      return '昨天';
+      return '昨天'.tr;
     } else if (difference.inDays < 7) {
       // 一周内
-      const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      final weekdays = ['周一'.tr, '周二'.tr, '周三'.tr, '周四'.tr, '周五'.tr, '周六'.tr, '周日'.tr];
       return weekdays[time.weekday - 1];
     } else {
       // 更早
@@ -1391,23 +1391,23 @@ class _ChatListPageState extends State<ChatListPage> {
             ),
             ListTile(
               leading: const Icon(Icons.push_pin_outlined),
-              title: const Text('置顶会话'),
+              title: Text('置顶会话'.tr),
               onTap: () {
                 Navigator.pop(context);
-                EasyLoading.showInfo('置顶会话');
+                EasyLoading.showInfo('置顶会话'.tr);
               },
             ),
             ListTile(
               leading: const Icon(Icons.notifications_off_outlined),
-              title: const Text('消息免打扰'),
+              title: Text('消息免打扰'.tr),
               onTap: () {
                 Navigator.pop(context);
-                EasyLoading.showInfo('消息免打扰');
+                EasyLoading.showInfo('消息免打扰'.tr);
               },
             ),
             ListTile(
               leading: const Icon(Icons.mark_chat_read_outlined),
-              title: const Text('标记已读'),
+              title: Text('标记已读'.tr),
               onTap: () {
                 Navigator.pop(context);
                 _markAsRead(conversation, '');
@@ -1415,7 +1415,7 @@ class _ChatListPageState extends State<ChatListPage> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('删除会话', style: TextStyle(color: Colors.red)),
+              title: Text('删除会话'.tr, style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 _deleteConversation(conversation);
@@ -1463,13 +1463,13 @@ class _ChatListPageState extends State<ChatListPage> {
         msgIds: msgIds,
       );
       if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('已标记为已读');
+        EasyLoading.showSuccess('已标记为已读'.tr);
         _refreshConversations(0);
       } else {
-        EasyLoading.showError('操作失败');
+        EasyLoading.showError('操作失败'.tr);
       }
     } catch (e) {
-      EasyLoading.showError('操作失败: $e');
+      EasyLoading.showError('操作失败: $e'.tr);
     }
   }
 
@@ -1478,8 +1478,8 @@ class _ChatListPageState extends State<ChatListPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除会话'),
-        content: Text('确定要删除与"${conversation.displayName}"的会话吗？'),
+        title: Text('删除会话'.tr),
+        content: Text('确定要删除与"{name}"的会话吗？'.tr.replaceAll('{name}', conversation.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1487,7 +1487,7 @@ class _ChatListPageState extends State<ChatListPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
+            child: Text('删除'.tr, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -1499,7 +1499,7 @@ class _ChatListPageState extends State<ChatListPage> {
           convId: conversation.convId,
         );
         if (result['errorCode'] == 0) {
-          EasyLoading.showSuccess('已删除');
+          EasyLoading.showSuccess('已删除'.tr);
           // 删除本地数据库的会话
           final userId = _currentUserId;
           if (userId.isNotEmpty) {
@@ -1510,10 +1510,10 @@ class _ChatListPageState extends State<ChatListPage> {
           }
           _refreshConversations(0);
         } else {
-          EasyLoading.showError('删除失败');
+          EasyLoading.showError('删除失败'.tr);
         }
       } catch (e) {
-        EasyLoading.showError('删除失败: $e');
+        EasyLoading.showError('删除失败: $e'.tr);
       }
     }
   }
@@ -1521,6 +1521,6 @@ class _ChatListPageState extends State<ChatListPage> {
   /// 打开搜索页面
   void _openSearchPage() {
     // TODO: 实现聊天搜索功能
-    Get.snackbar('提示', '搜索功能开发中');
+    Get.snackbar('提示'.tr, '搜索功能开发中'.tr);
   }
 }

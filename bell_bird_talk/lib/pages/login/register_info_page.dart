@@ -48,7 +48,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
   /// 从相册选择图片并上传
   Future<void> _pickImageFromGallery() async {
     if (_isUploadingAvatar) {
-      EasyLoading.showInfo('正在上传中，请稍候');
+      EasyLoading.showInfo('正在上传中，请稍候'.tr);
       return;
     }
     
@@ -79,7 +79,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
       
     } catch (e) {
       print('❌ 选择图片失败: $e');
-      Get.snackbar('提示', '选择图片失败');
+      Get.snackbar('提示'.tr, '选择图片失败'.tr);
       setState(() {
         _isUploadingAvatar = false;
       });
@@ -89,7 +89,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
   /// 上传头像到云服务
   Future<void> _uploadAvatar(String imagePath) async {
     try {
-      EasyLoading.show(status: '上传中...');
+      EasyLoading.show(status: '上传中...'.tr);
       
       // 1. 获取文件信息
       final File imageFile = File(imagePath);
@@ -111,7 +111,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
       
       final int errorCode = prepareResult['errorCode'] as int? ?? -1;
       if (errorCode != 0) {
-        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败');
+        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败'.tr);
         setState(() {
           _isUploadingAvatar = false;
         });
@@ -121,7 +121,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
       // 3. 解析凭证数据
       final String? dataStr = prepareResult['data'] as String?;
       if (dataStr == null || dataStr.isEmpty) {
-        EasyLoading.showError('上传凭证数据为空');
+        EasyLoading.showError('上传凭证数据为空'.tr);
         setState(() {
           _isUploadingAvatar = false;
         });
@@ -171,7 +171,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
           uploadSuccess = await _uploadWithPost(uploadUrl, imageFile, objectKey, headers, formData);
         }
       } else {
-        EasyLoading.showError('不支持的上传模式: $uploadMode');
+        EasyLoading.showError('不支持的上传模式: {uploadMode}'.tr.replaceAll('{uploadMode}', uploadMode));
         setState(() {
           _isUploadingAvatar = false;
         });
@@ -179,7 +179,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
       }
       
       if (!uploadSuccess) {
-        EasyLoading.showError('图片上传失败');
+        EasyLoading.showError('图片上传失败'.tr);
         setState(() {
           _isUploadingAvatar = false;
         });
@@ -189,7 +189,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
       print('✅ 图片上传成功: fileUrl=$fileUrl');
       
       // 5. 更新用户头像
-      EasyLoading.show(status: '更新头像...');
+      EasyLoading.show(status: '更新头像...'.tr);
       
       final updateResult = await _nativeBridge.imUpdateUserInfo(avatar: fileUrl);
       final int updateErrorCode = updateResult['errorCode'] as int? ?? -1;
@@ -200,14 +200,14 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
         setState(() {
           _uploadedAvatarUrl = fileUrl;
         });
-        EasyLoading.showSuccess('头像上传成功');
+        EasyLoading.showSuccess('头像上传成功'.tr);
       } else {
-        EasyLoading.showError(updateResult['message'] ?? '头像更新失败');
+        EasyLoading.showError(updateResult['message'] ?? '头像更新失败'.tr);
       }
       
     } catch (e) {
       print('❌ 上传头像异常: $e');
-      EasyLoading.showError('上传失败: $e');
+      EasyLoading.showError('上传失败: {error}'.tr.replaceAll('{error}', e.toString()));
     } finally {
       setState(() {
         _isUploadingAvatar = false;
@@ -414,7 +414,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
                     GestureDetector(
                       onTap: _pickImageFromGallery,
                       child: Text(
-                        '上传',
+                        '上传'.tr,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -437,7 +437,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                 Text(
-          '用户名不可与其他用户重复',
+          '用户名不可与其他用户重复'.tr,
           style: TextStyle(
             fontSize: 12,
             color: Colors.black.withOpacity(0.9),
@@ -446,7 +446,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
               ],),),
               SizedBox(height: 16),
               CommonButton(
-                text: '完成',
+                text: '完成'.tr,
                 enabled: controller.inviteCodeController.text.isNotEmpty,
                 onPressed: () {
                   // 更新用户信息
@@ -468,26 +468,26 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
      final newNickname = _nicknameController.text.trim();
      final username = _userNameController.text.trim();
               if (newNickname.isEmpty) {
-                EasyLoading.showError('昵称不能为空');
+                EasyLoading.showError('昵称不能为空'.tr);
                 return;
               }
               if (username.isEmpty) {
-                EasyLoading.showError('用户名不能为空');
+                EasyLoading.showError('用户名不能为空'.tr);
                 return;
               }
               
               Get.back();
-              EasyLoading.show(status: '修改中...');
+              EasyLoading.show(status: '修改中...'.tr);
               
               final result = await _nativeBridge.imUpdateNickAndUsername(newNickname,username);
               
               if (result['errorCode'] == 0) {
                 // 更新本地用户信息
                 _globalCtrl.updateUserNickname(newNickname);
-                EasyLoading.showSuccess('昵称修改成功');
+                EasyLoading.showSuccess('昵称修改成功'.tr);
                 success();
               } else {
-                EasyLoading.showError(result['message'] ?? '修改失败');
+                EasyLoading.showError(result['message'] ?? '修改失败'.tr);
                 Get.offAll(LoginPage());
               }
 
@@ -519,7 +519,7 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '跳过,后续设置',
+              '跳过,后续设置'.tr,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 14,
@@ -548,8 +548,8 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
   Widget _buildnickNameInput(LoginController controller) {
     return LoginTextField(
       controller: _nicknameController,
-      title: '昵称',
-      hintText: '请输入昵称（选填）',
+      title: '昵称'.tr,
+      hintText: '请输入昵称（选填）'.tr,
       onChanged: (value) {
         // 可选填写，无需特殊处理
         if (mounted) {
@@ -566,8 +566,8 @@ class RegisterInfoPageState extends State<RegisterInfoPage> {
   Widget _buildUserNameInput(LoginController controller) {
     return LoginTextField(
       controller: _userNameController,
-      title: '用户名',
-      hintText: '请输入用户名',
+      title: '用户名'.tr,
+      hintText: '请输入用户名'.tr,
       onChanged: (value) {
         // 可选填写，无需特殊处理
         if (mounted) {

@@ -12,6 +12,22 @@
 		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2A417C052F173F1C0037B0B9 /* captcha_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C042F173F1C0037B0B9 /* captcha_pb.proto */; };
+		2A417C152F17A4B10037B0B9 /* IMSDKAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0C2F17A4B10037B0B9 /* IMSDKAPIHandler.swift */; };
+		2A417C162F17A4B10037B0B9 /* DeviceAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0A2F17A4B10037B0B9 /* DeviceAPIHandler.swift */; };
+		2A417C172F17A4B10037B0B9 /* FlutterAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C102F17A4B10037B0B9 /* FlutterAPIHandler.swift */; };
+		2A417C182F17A4B10037B0B9 /* MessageAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0D2F17A4B10037B0B9 /* MessageAPIHandler.swift */; };
+		2A417C192F17A4B10037B0B9 /* ContactAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C082F17A4B10037B0B9 /* ContactAPIHandler.swift */; };
+		2A417C1A2F17A4B10037B0B9 /* AuthAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C062F17A4B10037B0B9 /* AuthAPIHandler.swift */; };
+		2A417C1B2F17A4B10037B0B9 /* GroupAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0B2F17A4B10037B0B9 /* GroupAPIHandler.swift */; };
+		2A417C1C2F17A4B10037B0B9 /* ConversationAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C092F17A4B10037B0B9 /* ConversationAPIHandler.swift */; };
+		2A417C1D2F17A4B10037B0B9 /* CommunityAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C072F17A4B10037B0B9 /* CommunityAPIHandler.swift */; };
+		2A417C1E2F17A4B10037B0B9 /* StorageAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0E2F17A4B10037B0B9 /* StorageAPIHandler.swift */; };
+		2A417C1F2F17A4B10037B0B9 /* SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 2A417C132F17A4B10037B0B9 /* SUMMARY.md */; };
+		2A417C202F17A4B10037B0B9 /* MIGRATION_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 2A417C112F17A4B10037B0B9 /* MIGRATION_GUIDE.md */; };
+		2A417C212F17A4B10037B0B9 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2A417C122F17A4B10037B0B9 /* README.md */; };
+		2A417C232F17A4BF0037B0B9 /* AppDelegate_New.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C222F17A4BF0037B0B9 /* AppDelegate_New.swift */; };
+		2A417C252F17A8910037B0B9 /* AppDelegate_old.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C242F17A8910037B0B9 /* AppDelegate_old.swift */; };
+		2A417C272F17AAC10037B0B9 /* LegacyMethodsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C262F17AAC10037B0B9 /* LegacyMethodsHandler.swift */; };
 		2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */; };
 		2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */; };
 		2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */; };
@@ -221,6 +237,22 @@
 		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
 		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
 		2A417C042F173F1C0037B0B9 /* captcha_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = captcha_pb.proto; sourceTree = "<group>"; };
+		2A417C062F17A4B10037B0B9 /* AuthAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C072F17A4B10037B0B9 /* CommunityAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C082F17A4B10037B0B9 /* ContactAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C092F17A4B10037B0B9 /* ConversationAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C0A2F17A4B10037B0B9 /* DeviceAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C0B2F17A4B10037B0B9 /* GroupAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C0C2F17A4B10037B0B9 /* IMSDKAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMSDKAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C0D2F17A4B10037B0B9 /* MessageAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C0E2F17A4B10037B0B9 /* StorageAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C102F17A4B10037B0B9 /* FlutterAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterAPIHandler.swift; sourceTree = "<group>"; };
+		2A417C112F17A4B10037B0B9 /* MIGRATION_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = MIGRATION_GUIDE.md; sourceTree = "<group>"; };
+		2A417C122F17A4B10037B0B9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		2A417C132F17A4B10037B0B9 /* SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SUMMARY.md; sourceTree = "<group>"; };
+		2A417C222F17A4BF0037B0B9 /* AppDelegate_New.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate_New.swift; sourceTree = "<group>"; };
+		2A417C242F17A8910037B0B9 /* AppDelegate_old.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate_old.swift; sourceTree = "<group>"; };
+		2A417C262F17AAC10037B0B9 /* LegacyMethodsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyMethodsHandler.swift; sourceTree = "<group>"; };
 		2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyMemberPb.pbobjc.h; sourceTree = "<group>"; };
 		2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyMemberPb.pbobjc.m; sourceTree = "<group>"; };
 		2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyCategoryPb.pbobjc.h; sourceTree = "<group>"; };
@@ -559,6 +591,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2A417C0F2F17A4B10037B0B9 /* Handlers */ = {
+			isa = PBXGroup;
+			children = (
+				2A417C262F17AAC10037B0B9 /* LegacyMethodsHandler.swift */,
+				2A417C062F17A4B10037B0B9 /* AuthAPIHandler.swift */,
+				2A417C072F17A4B10037B0B9 /* CommunityAPIHandler.swift */,
+				2A417C082F17A4B10037B0B9 /* ContactAPIHandler.swift */,
+				2A417C092F17A4B10037B0B9 /* ConversationAPIHandler.swift */,
+				2A417C0A2F17A4B10037B0B9 /* DeviceAPIHandler.swift */,
+				2A417C0B2F17A4B10037B0B9 /* GroupAPIHandler.swift */,
+				2A417C0C2F17A4B10037B0B9 /* IMSDKAPIHandler.swift */,
+				2A417C0D2F17A4B10037B0B9 /* MessageAPIHandler.swift */,
+				2A417C0E2F17A4B10037B0B9 /* StorageAPIHandler.swift */,
+			);
+			path = Handlers;
+			sourceTree = "<group>";
+		};
+		2A417C142F17A4B10037B0B9 /* FlutterAPI */ = {
+			isa = PBXGroup;
+			children = (
+				2A417C0F2F17A4B10037B0B9 /* Handlers */,
+				2A417C102F17A4B10037B0B9 /* FlutterAPIHandler.swift */,
+				2A417C112F17A4B10037B0B9 /* MIGRATION_GUIDE.md */,
+				2A417C122F17A4B10037B0B9 /* README.md */,
+				2A417C132F17A4B10037B0B9 /* SUMMARY.md */,
+			);
+			path = FlutterAPI;
+			sourceTree = "<group>";
+		};
 		2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */ = {
 			isa = PBXGroup;
 			children = (
@@ -891,6 +952,9 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				2A417C242F17A8910037B0B9 /* AppDelegate_old.swift */,
+				2A417C222F17A4BF0037B0B9 /* AppDelegate_New.swift */,
+				2A417C142F17A4B10037B0B9 /* FlutterAPI */,
 				2ADEF6EB2F0CF0FB00AB984D /* Runner.entitlements */,
 				2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */,
 				2AD9E3342ED4096400C4E6A3 /* DataTrans */,
@@ -1011,6 +1075,9 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				2AF663D52EFBC3CA00A18180 /* pb_to_ios.sh in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
+				2A417C1F2F17A4B10037B0B9 /* SUMMARY.md in Resources */,
+				2A417C202F17A4B10037B0B9 /* MIGRATION_GUIDE.md in Resources */,
+				2A417C212F17A4B10037B0B9 /* README.md in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */,
 			);
@@ -1155,7 +1222,9 @@
 				2A417C052F173F1C0037B0B9 /* captcha_pb.proto in Sources */,
 				CS0001000000000000000002 /* AliyunOSSUploader.swift in Sources */,
 				CS0001000000000000000003 /* TencentCOSUploader.swift in Sources */,
+				2A417C272F17AAC10037B0B9 /* LegacyMethodsHandler.swift in Sources */,
 				CS0001000000000000000004 /* AWSS3Uploader.swift in Sources */,
+				2A417C252F17A8910037B0B9 /* AppDelegate_old.swift in Sources */,
 				2AF663ED2EFBDB3700A18180 /* IMSDKAuthManager.mm in Sources */,
 				2AF663EE2EFBDB3700A18180 /* IMSDKMessageManager.mm in Sources */,
 				2AF663EF2EFBDB3700A18180 /* IMSDKManager.mm in Sources */,
@@ -1166,6 +1235,7 @@
 				2AF663F42EFBDB3700A18180 /* IMSDKUserManager.mm in Sources */,
 				2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */,
 				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
+				2A417C232F17A4BF0037B0B9 /* AppDelegate_New.swift in Sources */,
 				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
 				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
 				2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */,
@@ -1193,6 +1263,16 @@
 				2AF663C42EFBC3A000A18180 /* app_pb.proto in Sources */,
 				2ADEF6EA2F0CC30600AB984D /* AppPb.pbobjc.m in Sources */,
 				2AF663C52EFBC3A000A18180 /* conv_pb.proto in Sources */,
+				2A417C152F17A4B10037B0B9 /* IMSDKAPIHandler.swift in Sources */,
+				2A417C162F17A4B10037B0B9 /* DeviceAPIHandler.swift in Sources */,
+				2A417C172F17A4B10037B0B9 /* FlutterAPIHandler.swift in Sources */,
+				2A417C182F17A4B10037B0B9 /* MessageAPIHandler.swift in Sources */,
+				2A417C192F17A4B10037B0B9 /* ContactAPIHandler.swift in Sources */,
+				2A417C1A2F17A4B10037B0B9 /* AuthAPIHandler.swift in Sources */,
+				2A417C1B2F17A4B10037B0B9 /* GroupAPIHandler.swift in Sources */,
+				2A417C1C2F17A4B10037B0B9 /* ConversationAPIHandler.swift in Sources */,
+				2A417C1D2F17A4B10037B0B9 /* CommunityAPIHandler.swift in Sources */,
+				2A417C1E2F17A4B10037B0B9 /* StorageAPIHandler.swift in Sources */,
 				2AF663C62EFBC3A000A18180 /* inner_pb.proto in Sources */,
 				2AF663C72EFBC3A000A18180 /* setting_pb.proto in Sources */,
 				2AF663C82EFBC3A000A18180 /* sensitive_pb.proto in Sources */,

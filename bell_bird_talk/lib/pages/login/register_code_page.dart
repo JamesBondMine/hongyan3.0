@@ -88,7 +88,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
       _getCode(controller);
     },
     child: Row(children: [Padding(padding: EdgeInsetsGeometry.all(10), child: Text(
-          '59秒后重新获取',
+          '{seconds}秒后重新获取'.tr.replaceAll('{seconds}', '59'),
           style: TextStyle(
             fontSize: 14,
             color: GbsColors.textPrimary,
@@ -111,7 +111,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
   void _getVerifyCode(VoidCallback onVerifyCodeSuccess) async {
 
     try {
-      EasyLoading.show(status: '发送中...');
+      EasyLoading.show(status: '发送中...'.tr);
       
       // 调用 Native 获取短信验证码接口
       final result = await _nativeService.imGetCaptcha(
@@ -123,7 +123,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
       EasyLoading.dismiss();
       
       final errorCode = result['errorCode'] ?? -1;
-      final message = result['message'] ?? '未知错误';
+      final message = result['message'] ?? '未知错误'.tr;
       
       if (errorCode == 0) {
         // 保存 captcha_id（从返回的 data 中解析）
@@ -139,15 +139,15 @@ class RegisterCodePageState extends State<RegisterCodePage> {
           }
         }
         
-        EasyLoading.showSuccess('验证码已发送');
+        EasyLoading.showSuccess('验证码已发送'.tr);
         onVerifyCodeSuccess();
       } else {
-        EasyLoading.showError('发送失败: $message (code: $errorCode)');
+        EasyLoading.showError('发送失败: {message} (code: {code})'.tr.replaceAll('{message}', message).replaceAll('{code}', errorCode.toString()));
       }
       
     } catch (e) {
       EasyLoading.dismiss();
-      EasyLoading.showError('发送失败: $e');
+      EasyLoading.showError('发送失败: {error}'.tr.replaceAll('{error}', e.toString()));
     }
   }
 
@@ -202,7 +202,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
 
         // 标题
         Text(
-          widget.isForget ? '忘记密码' : '注册',
+          widget.isForget ? '忘记密码'.tr : '注册'.tr,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -214,7 +214,7 @@ class RegisterCodePageState extends State<RegisterCodePage> {
 
         // 副标题
         Text(
-          '验证码已发送至',
+          '验证码已发送至'.tr,
           style: TextStyle(
             fontSize: 14,
             color: Colors.black.withOpacity(0.9),

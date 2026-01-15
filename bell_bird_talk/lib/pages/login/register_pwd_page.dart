@@ -96,7 +96,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
                         _buildRegisterForm(),
                         const SizedBox(height: 6),
                         Text(
-          '密码长度6-16位，需包含数字、字母、特殊符号中的两种',
+          '密码长度6-16位，需包含数字、字母、特殊符号中的两种'.tr,
           style: TextStyle(
             fontSize: 12,
             color: GbsColors.des9Color,
@@ -145,7 +145,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
         const SizedBox(height: 16),
         // 标题
         Text(
-          widget.isForget ? '忘记密码' : '注册',
+          widget.isForget ? '忘记密码'.tr : '注册'.tr,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -157,7 +157,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
 
         // 副标题
         Text(
-          '设置登录密码',
+          '设置登录密码'.tr,
           style: TextStyle(
             fontSize: 14,
             color: Colors.black.withOpacity(0.9),
@@ -192,8 +192,8 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
 
             LoginTextField(
       controller: _passwordController,
-      title: '登录密码',
-      hintText: '请输入密码（6-20位',
+      title: '登录密码'.tr,
+      hintText: '请输入密码（6-20位'.tr,
        obscureText: _obscurePassword,
       onChanged: (value) {
         // 可选填写，无需特殊处理
@@ -250,8 +250,8 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
 
             LoginTextField(
       controller: _confirmPasswordController,
-      title: '二次确认',
-      hintText: '请输入密码（6-20位',
+      title: '二次确认'.tr,
+      hintText: '请输入密码（6-20位'.tr,
        obscureText: _obscureConfirmPassword,
       onChanged: (value) {
         // 可选填写，无需特殊处理
@@ -387,7 +387,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
     }
     
     try {
-      EasyLoading.show(status: '注册中...');
+      EasyLoading.show(status: '注册中...'.tr);
       
       // 构建注册数据
       Map<String, dynamic> registerData = {};
@@ -443,7 +443,7 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
       EasyLoading.dismiss();
       
       final errorCode = result['errorCode'] ?? -1;
-      final message = result['message'] ?? '未知错误';
+      final message = result['message'] ?? '未知错误'.tr;
       final data = result['data'] ?? '';
       
       print('📊 注册结果: errorCode=$errorCode, message=$message, data=$data');
@@ -467,14 +467,14 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
               final globalController = Get.find<GlobalController>();
               await globalController.saveLoginInfo(token, refresh_token ?? '', user);
               // 使用 Token 自动登录，确保 SDK 状态正确
-              EasyLoading.show(status: '正在登录...');
+              EasyLoading.show(status: '正在登录...'.tr);
               // final loginSuccess = await globalController.autoLoginWithToken();
               // EasyLoading.dismiss();
               // if (loginSuccess) {
                 print('✅ Token 自动登录成功');
                 // 延迟后跳转到设置用户信息页
                 Get.to(() =>  RegisterInfoPage(loginWithToken: true, data:dataMap));
-                EasyLoading.showSuccess('注册成功');
+                EasyLoading.showSuccess('注册成功'.tr);
               // } else {
               //   print('⚠️ Token 自动登录失败，仍跳转到登录'); 
               //   EasyLoading.showSuccess('注册成功');
@@ -489,13 +489,13 @@ class _RegisterPwdPageState extends State<RegisterPwdPage> {
             print('⚠️ 解析注册返回数据失败: $e');
           }
         }
-        EasyLoading.showError('注册失败: $message (code: $errorCode)');
+        EasyLoading.showError('注册失败: {message} (code: {code})'.tr.replaceAll('{message}', message).replaceAll('{code}', errorCode.toString()));
       } else {
-        EasyLoading.showError('注册失败: $message (code: $errorCode)');
+        EasyLoading.showError('注册失败: {message} (code: {code})'.tr.replaceAll('{message}', message).replaceAll('{code}', errorCode.toString()));
       }
     } catch (e) {
       EasyLoading.dismiss();
-      EasyLoading.showError('注册失败: $e');
+      EasyLoading.showError('注册失败: {error}'.tr.replaceAll('{error}', e.toString()));
       print('❌ 注册异常: $e');
     }
   }

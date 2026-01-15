@@ -377,6 +377,7 @@ class CommunityController extends GetxController {
         // 创建成功后，刷新分组和频道列表
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('创建频道失败: ${result['message']}');
         return false;
       }
@@ -417,6 +418,7 @@ class CommunityController extends GetxController {
         // 更新成功后，可以刷新分组和频道列表
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('更新频道失败: ${result['message']}');
         return false;
       }
@@ -441,6 +443,7 @@ class CommunityController extends GetxController {
         // 删除成功后，可以刷新分组和频道列表
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('删除频道失败: ${result['message']}');
         return false;
       }
@@ -458,13 +461,11 @@ class CommunityController extends GetxController {
   Future<bool> enterChannel({required String channelId}) async {
     try {
       isLoading.value = true;
-
       final result = await _nativeService.imEnterChannel(channelId: channelId);
-
       if (result['errorCode'] == 0) {
-        // 进入成功后，可以执行后续操作（如跳转到频道聊天页面）
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('进入频道失败: ${result['message']}');
         return false;
       }
@@ -495,6 +496,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('创建频道分组失败: ${result['message']}');
         return false;
       }
@@ -528,6 +530,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('更新频道分组失败: ${result['message']}');
         return false;
       }
@@ -558,6 +561,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('删除频道分组失败: ${result['message']}');
         return false;
       }
@@ -606,6 +610,7 @@ class CommunityController extends GetxController {
           return members;
         }
       } else {
+        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
         print('获取社群成员列表失败: ${result['message']}');
       }
       return [];
