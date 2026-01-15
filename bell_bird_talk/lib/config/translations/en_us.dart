@@ -212,6 +212,7 @@ class EnUsTranslations {
     '退出登录': 'Sign Out',
     '基本信息': 'Basic Information',
     '头像': 'Avatar',
+    '裁剪头像': 'Crop Avatar',
     '用户名': 'Username',
     '昵称': 'Nickname',
     '未绑定': 'Not Bound',
@@ -256,6 +257,7 @@ class EnUsTranslations {
     '换绑邮箱功能开发中': 'Change email feature under development',
     '解绑邮箱功能开发中': 'Unbind email feature under development',
     '绑定邮箱功能开发中': 'Bind email feature under development',
+    '手机号/邮箱' : 'Phone/Email',
     
     // 安全设置
     '修改密码': 'Change Password',

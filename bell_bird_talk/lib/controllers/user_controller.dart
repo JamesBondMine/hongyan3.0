@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:bell_bird_talk/models/user_model.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import '../services/native_bridge.dart';
 import '../services/message_database.dart';
 import '../controllers/global_controller.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class UserController extends GetxController { 
-
+class UserController extends GetxController {
   static UserController get to => Get.put(UserController());
 
   final IOSNativeService _nativeService = IOSNativeService();
@@ -14,7 +17,7 @@ class UserController extends GetxController {
   final GlobalController _globalCtrl = Get.find<GlobalController>();
 
   /// 获取联系人列表
-  /// 
+  ///
   /// [page] 页码，从1开始
   /// [pageSize] 每页数量
   /// [groupId] 分组ID（可选，null表示不按分组过滤）
@@ -118,14 +121,19 @@ class UserController extends GetxController {
     // 检查数据库中的联系人数据是否超过24小时
     final now = DateTime.now().millisecondsSinceEpoch;
     final twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
-    
+
     // 获取最早更新的联系人的更新时间
     final oldestUpdatedContact = dbContacts
         .map((c) => c['updated_at'] as int? ?? 0)
         .where((t) => t > 0)
-        .fold<int?>(null, (prev, curr) => prev == null || curr < prev ? curr : prev);
+        .fold<int?>(
+          null,
+          (prev, curr) => prev == null || curr < prev ? curr : prev,
+        );
 
-    final needRefresh = oldestUpdatedContact == null || oldestUpdatedContact < twentyFourHoursAgo;
+    final needRefresh =
+        oldestUpdatedContact == null ||
+        oldestUpdatedContact < twentyFourHoursAgo;
 
     if (needRefresh) {
       // 超过24小时，从网络获取并更新
@@ -333,7 +341,7 @@ class UserController extends GetxController {
               .map((json) => json as Map<String, dynamic>)
               .toList();
           await _messageDatabase.saveContacts(currentUserId, contacts);
-          
+
           // 同时更新users表
           final usersInfo = contactsJson.map((contact) {
             return {
@@ -373,7 +381,8 @@ class UserController extends GetxController {
   }) async {
     try {
       // 查询所有联系人
-      List<Map<String, dynamic>> allContacts = await _messageDatabase.getAllContacts(currentUserId);
+      List<Map<String, dynamic>> allContacts = await _messageDatabase
+          .getAllContacts(currentUserId);
 
       // 按分组过滤
       if (groupId != null && groupId > 0) {
@@ -442,11 +451,11 @@ class UserController extends GetxController {
   }
 
   /// 获取好友申请列表（包含申请者的公开信息）
-  /// 
+  ///
   /// [status] 申请状态：0=待处理, 1=已同意, 2=已拒绝
   /// [page] 页码，从1开始
   /// [pageSize] 每页数量
-  /// 
+  ///
   /// 返回格式：
   /// {
   ///   'errorCode': 0,
@@ -502,7 +511,9 @@ class UserController extends GetxController {
       final requesterIds = <String>[];
       for (final request in requestsJson) {
         final requesterId = request['requester_id'] as String?;
-        if (requesterId != null && requesterId.isNotEmpty && !requesterIds.contains(requesterId)) {
+        if (requesterId != null &&
+            requesterId.isNotEmpty &&
+            !requesterIds.contains(requesterId)) {
           requesterIds.add(requesterId);
         }
       }
@@ -536,15 +547,18 @@ class UserController extends GetxController {
             // 4. 合并公开信息到好友申请数据中
             final enrichedRequests = requestsJson.map((request) {
               final requesterId = request['requester_id'] as String?;
-              if (requesterId != null && publicInfoMap.containsKey(requesterId)) {
+              if (requesterId != null &&
+                  publicInfoMap.containsKey(requesterId)) {
                 final publicInfo = publicInfoMap[requesterId]!;
                 // 合并公开信息，优先使用公开信息中的字段
                 return {
                   ...request,
-                  'requester_avatar': publicInfo['avatar'] ?? request['requester_avatar'],
+                  'requester_avatar':
+                      publicInfo['avatar'] ?? request['requester_avatar'],
                   'avatar': publicInfo['avatar'],
-                  
-                  'nickname': publicInfo['nickname'] ?? request['requester_name'],
+
+                  'nickname':
+                      publicInfo['nickname'] ?? request['requester_name'],
                   'sex': publicInfo['sex'],
                   'signature': publicInfo['signature'],
                   'region': publicInfo['region'],
@@ -558,10 +572,7 @@ class UserController extends GetxController {
             }).toList();
 
             // 5. 更新返回数据
-            final enrichedData = {
-              ...data,
-              'requests': enrichedRequests,
-            };
+            final enrichedData = {...data, 'requests': enrichedRequests};
 
             // 6. 存储用户信息到数据库
             final usersToStore = publicInfoList
@@ -576,10 +587,7 @@ class UserController extends GetxController {
 
             print('✅ 已为 ${publicInfoMap.length} 个好友申请添加公开信息');
 
-            return {
-              ...result,
-              'data': json.encode(enrichedData),
-            };
+            return {...result, 'data': json.encode(enrichedData)};
           } catch (e) {
             print('❌ 解析公开信息失败: $e');
             // 如果解析失败，返回原始结果
@@ -596,23 +604,17 @@ class UserController extends GetxController {
       }
     } catch (e) {
       print('❌ 获取好友申请异常: $e');
-      return {
-        'errorCode': -1,
-        'message': '获取好友申请失败: $e',
-      };
+      return {'errorCode': -1, 'message': '获取好友申请失败: $e'};
     }
   }
-
-
 
   // 获取用户信息--数据库
   Future<List<UserModel>> getUsersInfo(List<String> targetIds) async {
     final users = await _messageDatabase.getUsers(targetIds.toList());
-      return users.map((user) {
-        return UserModel.fromJson(user);
-      }).toList();
+    return users.map((user) {
+      return UserModel.fromJson(user);
+    }).toList();
   }
-
 
   Future<String> fetchUserAvatarUrl(String userId) async {
     await Future.delayed(const Duration(seconds: 2));
@@ -621,4 +623,234 @@ class UserController extends GetxController {
     return bg;
   }
 
+  /// 腾讯云 STS SDK 上传
+  Future<bool> uploadWithTencentSTS({
+    required String localFilePath,
+    required String objectKey,
+    required String bucketName,
+    required String region,
+    required String secretId,
+    required String secretKey,
+    required String token,
+  }) async {
+    try {
+      print('📤 腾讯云 STS 上传开始...');
+      print('  - localFilePath: $localFilePath');
+      print('  - objectKey: $objectKey');
+      print('  - bucket: $bucketName');
+      print('  - region: $region');
+
+      final result = await _nativeService.imUploadWithTencentSTS(
+        localFilePath: localFilePath,
+        objectKey: objectKey,
+        bucketName: bucketName,
+        region: region,
+        secretId: secretId,
+        secretKey: secretKey,
+        token: token,
+      );
+
+      final bool success = result['success'] == true;
+      if (success) {
+        print('✅ 腾讯云上传成功: ${result['url']}');
+      } else {
+        print('❌ 腾讯云上传失败: ${result['error']}');
+      }
+
+      return success;
+    } catch (e) {
+      print('❌ 腾讯云 STS 上传异常: $e');
+      return false;
+    }
+  }
+
+  /// PUT 方式上传
+  Future<bool> uploadWithPut(
+    String url,
+    File file,
+    Map<String, dynamic> headers,
+  ) async {
+    try {
+      final bytes = await file.readAsBytes();
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: headers.map((k, v) => MapEntry(k, v.toString())),
+        body: bytes,
+      );
+
+      print('📤 PUT 上传响应: ${response.statusCode}');
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ PUT 上传失败: $e');
+      return false;
+    }
+  }
+
+  /// POST 表单方式上传
+  Future<bool> uploadWithPost(
+    String url,
+    File file,
+    String filePath,
+    Map<String, dynamic> headers,
+    Map<String, dynamic> formData,
+  ) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+
+      // 添加表单字段
+      formData.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
+
+      // 添加文件
+      final fileName = filePath.isNotEmpty ? filePath.split('/').last : 'file';
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          filename: fileName,
+        ),
+      );
+
+      // 添加 headers
+      headers.forEach((key, value) {
+        request.headers[key] = value.toString();
+      });
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('📤 POST 上传响应: ${response.statusCode}');
+      print('📤 响应内容: ${response.body}');
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('❌ POST 上传失败: $e');
+      return false;
+    }
+  }
+
+  // 整理头像信息
+  Future prepareAvatarInfo(File imageFile) async {
+    try {
+      // 2. 获取文件信息
+      final int fileSize = await imageFile.length();
+      final String fileName =
+          'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String contentType = 'image/jpeg';
+
+      print('📦 文件信息: fileName=$fileName, size=$fileSize');
+
+      // 3. 获取上传凭证
+      final prepareResult = await _nativeService.imPrepareUpload(
+        businessModule: 'avatar',
+        fileName: fileName,
+        fileSize: fileSize,
+        contentType: contentType,
+      );
+
+      print('📋 上传凭证结果: $prepareResult');
+
+      final int errorCode = prepareResult['errorCode'] as int? ?? -1;
+      if (errorCode != 0) {
+        EasyLoading.showError(prepareResult['message'] ?? '获取上传凭证失败'.tr);
+        return;
+      }
+
+      // 4. 解析凭证数据
+      final String? dataStr = prepareResult['data'] as String?;
+      if (dataStr == null || dataStr.isEmpty) {
+        EasyLoading.showError('上传凭证数据为空'.tr);
+        return;
+      }
+
+      final Map<String, dynamic> tokenData = json.decode(dataStr);
+      print('📦 凭证详情: $tokenData');
+
+      final String uploadUrl = tokenData['upload_url'] ?? '';
+      final String fileUrl = tokenData['file_url'] ?? '';
+      final String method = tokenData['method'] ?? 'POST';
+      final String objectKey = tokenData['file_path'] ?? '';
+      final String uploadMode = tokenData['upload_mode'] ?? '';
+      final String providerCode = tokenData['provider_code'] ?? '';
+      final Map<String, dynamic> headers = Map<String, dynamic>.from(
+        tokenData['headers'] ?? {},
+      );
+      final Map<String, dynamic> formData = Map<String, dynamic>.from(
+        tokenData['form_data'] ?? {},
+      );
+
+      // STS 凭证（腾讯云等）
+      final String bucketName = tokenData['bucket_name'] ?? '';
+      final String region = tokenData['region'] ?? '';
+      final String stsAccessKeyId = tokenData['sts_access_key_id'] ?? '';
+      final String stsAccessKeySecret =
+          tokenData['sts_access_key_secret'] ?? '';
+      final String stsSecurityToken = tokenData['sts_security_token'] ?? '';
+
+      print('📤 开始上传: uploadMode=$uploadMode, provider=$providerCode');
+
+      // 5. 上传图片
+      bool uploadSuccess = false;
+
+      if (uploadMode == 'STS_SDK' && providerCode == 'tencent') {
+        // 腾讯云 STS SDK 上传
+        uploadSuccess = await UserController.to.uploadWithTencentSTS(
+          localFilePath: imageFile.path,
+          objectKey: objectKey,
+          bucketName: bucketName,
+          region: region,
+          secretId: stsAccessKeyId,
+          secretKey: stsAccessKeySecret,
+          token: stsSecurityToken,
+        );
+      } else if (uploadUrl.isNotEmpty) {
+        // HTTP 上传（PUT 或 POST）
+        if (method.toUpperCase() == 'PUT') {
+          uploadSuccess = await UserController.to.uploadWithPut(
+            uploadUrl,
+            imageFile,
+            headers,
+          );
+        } else {
+          uploadSuccess = await UserController.to.uploadWithPost(
+            uploadUrl,
+            imageFile,
+            objectKey,
+            headers,
+            formData,
+          );
+        }
+      } else {
+        EasyLoading.showError('${'不支持的上传模式'.tr}: $uploadMode');
+        return;
+      }
+
+      if (!uploadSuccess) {
+        EasyLoading.showError('图片上传失败'.tr);
+        return;
+      }
+
+      print('✅ 图片上传成功: fileUrl=$fileUrl');
+
+      // 6. 更新用户头像
+      EasyLoading.show(status: '更新头像...'.tr);
+
+      final updateResult = await _nativeService.imUpdateUserInfo(
+        avatar: fileUrl,
+      );
+      final int updateErrorCode = updateResult['errorCode'] as int? ?? -1;
+
+      if (updateErrorCode == 0) {
+        // 更新本地用户信息
+        await _globalCtrl.updateUserAvatar(fileUrl);
+        EasyLoading.showSuccess('头像更新成功'.tr);
+      } else {
+        EasyLoading.showError(updateResult['message'] ?? '头像更新失败'.tr);
+      }
+    } catch (e) {
+      EasyLoading.showError('操作失败'.tr);
+    }
+  }
 }

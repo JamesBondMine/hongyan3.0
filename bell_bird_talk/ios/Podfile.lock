@@ -15,6 +15,9 @@ PODS:
     - Mantle
     - SDWebImage
     - SDWebImageWebPCoder
+  - image_cropper (0.0.4):
+    - Flutter
+    - TOCropViewController (~> 2.7.4)
   - image_gallery_saver (2.0.2):
     - Flutter
   - image_picker_ios (0.0.1):
@@ -65,6 +68,7 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - TOCropViewController (2.7.4)
   - url_launcher_ios (0.0.1):
     - Flutter
   - video_compress (0.3.0):
@@ -86,6 +90,7 @@ DEPENDENCIES:
   - AWSS3
   - Flutter (from `Flutter`)
   - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
+  - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
   - image_gallery_saver (from `.symlinks/plugins/image_gallery_saver/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - objective_c (from `.symlinks/plugins/objective_c/ios`)
@@ -116,6 +121,7 @@ SPEC REPOS:
     - QCloudTrack
     - SDWebImage
     - SDWebImageWebPCoder
+    - TOCropViewController
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -126,6 +132,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_image_compress_common:
     :path: ".symlinks/plugins/flutter_image_compress_common/ios"
+  image_cropper:
+    :path: ".symlinks/plugins/image_cropper/ios"
   image_gallery_saver:
     :path: ".symlinks/plugins/image_gallery_saver/ios"
   image_picker_ios:
@@ -161,6 +169,7 @@ SPEC CHECKSUMS:
   AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
+  image_cropper: 5f162dcf988100dc1513f9c6b7eb42cd6fbf9156
   image_gallery_saver: 14711d79da40581063e8842a11acf1969d781ed7
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   IosAwnCore: 653786a911089012092ce831f2945cd339855a89
@@ -178,6 +187,7 @@ SPEC CHECKSUMS:
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
