@@ -201,12 +201,7 @@ class ContactAPIHandler {
             result(FlutterError(code: "INVALID_ARGS", message: "用户ID不能为空", details: nil))
             return
         }
-        
-        print("🔍 获取黑名单状态: \(userId)")
-        
         let code = IMSDKContactManager.shared().getBlackStatus(withUserId: userId) { errorCode, reqId, data in
-            print("🔍 获取黑名单状态回调: errorCode=\(errorCode), reqId=\(reqId)")
-            
             result([
                 "errorCode": errorCode,
                 "reqId": reqId,

@@ -253,7 +253,7 @@ class MessageQueueManager {
       }
       return true;
     } else {
-      message.errorMessage = result['message'] ?? '发送失败';
+      message.errorMessage = result['data'] ?? result['message'] ?? '发送失败';
       return false;
     }
   }

@@ -14,11 +14,19 @@ import 'pages/friends/add_friend_page.dart';
 import 'utils/storage_util.dart';
 import 'controllers/global_controller.dart';
 import 'config/translations.dart';
+import 'utils/shader_warmup.dart';
 
 void main() {
   Global.init(() async {
     // 配置 EasyLoading
     _configEasyLoading();
+
+    // 初始化 Flutter binding
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // 配置 Shader 预热
+    // 这会在第一帧渲染之前预热常用的 shader，减少首次渲染卡顿
+    PaintingBinding.shaderWarmUp = const AppShaderWarmUp();
 
     runApp(const MyApp());
   });

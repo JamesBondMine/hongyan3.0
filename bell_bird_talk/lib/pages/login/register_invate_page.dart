@@ -65,7 +65,6 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
                       );
                     },
                   ),
-                  Spacer(),
                   _buildLoginButton(),
                 ],
               ),

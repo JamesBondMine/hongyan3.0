@@ -32,6 +32,7 @@ import 'user_info_page.dart';
 import '../friends/views/friend_detail_page.dart';
 import '../models/friend_model.dart';
 import 'at_member_select_page.dart';
+import '../../controllers/friend_controller.dart';
 
 /// 单人聊天页面
 class ChatPage extends StatefulWidget {
@@ -93,7 +94,13 @@ class _ChatPageState extends State<ChatPage> {
   // @功能相关
   List<Map<String, dynamic>> _atMembers = []; // 已@的成员列表
 
- 
+  // 黑名单相关
+  bool _showBlacklistWarning = false; // 是否显示黑名单提示卡片
+  bool _isBlockedByMe = false; // 我是否拉黑了对方
+  bool _isBlockedByOther = false; // 我是否被对方拉黑
+  String? _sendErrorMessage; // 发送失败的错误信息
+  final FriendController _friendController = FriendController.to;
+
   @override
   void initState() {
     super.initState();
@@ -117,6 +124,11 @@ class _ChatPageState extends State<ChatPage> {
 
     // 标记会话已读
     _markConversationRead();
+
+    // 检查黑名单状态（仅单聊时）
+    // if (widget.convType == 0) {
+    //   _checkBlacklistStatus();
+    // }
   }
 
   // 标记会话已读
@@ -193,13 +205,15 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: widget.customAppBar ?? ChatTitleView(
-        convId: widget.convId,
-        displayName: widget.displayName,
-        avatar: widget.avatar,
-        targetUserId: widget.targetUserId,
-        convType: widget.convType,
-      ),
+      appBar:
+          widget.customAppBar ??
+          ChatTitleView(
+            convId: widget.convId,
+            displayName: widget.displayName,
+            avatar: widget.avatar,
+            targetUserId: widget.targetUserId,
+            convType: widget.convType,
+          ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -233,6 +247,9 @@ class _ChatPageState extends State<ChatPage> {
                 autoStart: true,
               )
             else ...[
+              // 黑名单提示卡片（单聊时显示：被拉黑或发送失败）
+              if (_showBlacklistWarning && widget.convType == 0)
+                _buildBlacklistWarningCard(),
               _buildInputBar(),
               // 表情选择器
               if (_showEmojiPicker) _buildEmojiPicker(),
@@ -310,6 +327,26 @@ class _ChatPageState extends State<ChatPage> {
         _messages[index]['errorMessage'] = message.errorMessage;
         if (message.imageUrl != null) {
           _messages[index]['imageUrl'] = message.imageUrl;
+        }
+      }
+
+      // 如果是单聊，处理消息发送状态
+      if (widget.convType == 0) {
+        if (message.status == MessageStatus.failed &&
+            message.errorMessage != null &&
+            message.errorMessage!.isNotEmpty) {
+          // 消息发送失败，显示错误信息在提示卡片上
+          _sendErrorMessage = message.errorMessage;
+          _showBlacklistWarning = true;
+        } else if (message.status == MessageStatus.sent) {
+          // 消息发送成功，清除发送失败的错误信息（但保留黑名单提示）
+          if (_sendErrorMessage != null) {
+            _sendErrorMessage = null;
+            // 如果只有发送错误信息（没有黑名单状态），则隐藏提示卡片
+            if (!_isBlockedByMe && !_isBlockedByOther) {
+              _showBlacklistWarning = false;
+            }
+          }
         }
       }
     });
@@ -800,26 +837,32 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 处理头像点击事件
-  Future<void> _onAvatarTap(
-    String userId, {
+  Future<int> _onCheckUserTap(
+    String userId,
+    bool hasAction, {
     String? displayName,
     String? avatarUrl,
   }) async {
     try {
       // 检查是否是好友
       final result = await _nativeService.imGetContactList(
+        keyword: userId,
         page: 1,
-        pageSize: 1000,
+        pageSize: 10,
         relationship: 0, // 只获取好友关系
       );
 
       bool isFriend = false;
       FriendModel? friendInfo;
-
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
+        if (dataStr == null || dataStr.isEmpty) {
+          return 2;
+        } else {
           try {
+            if (!hasAction) {
+              return 0;
+            }
             final data = json.decode(dataStr);
             final contacts = data['contacts'] as List? ?? [];
 
@@ -838,48 +881,33 @@ class _ChatPageState extends State<ChatPage> {
           }
         }
       }
+      if (!hasAction) {
+        return 0;
+      }
 
       // 根据是否是好友跳转到不同页面
       if (isFriend && friendInfo != null) {
-        // 是好友，跳转到好友详情页面
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FriendDetailPage(
-              friend: friendInfo!,
-              onDelete: () {
-                // 删除好友后返回
-                Navigator.pop(context);
-              },
-            ),
+        Get.to(
+          FriendDetailPage(
+            friend: friendInfo,
+            onDelete: () {
+              Get.back();
+            },
           ),
         );
       } else {
         // 不是好友，跳转到用户信息页面
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UserInfoPage(
-              userId: userId,
-              displayName: displayName ?? userId,
-              avatar: avatarUrl,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print('❌ 处理头像点击失败: $e');
-      // 如果检查失败，默认跳转到用户信息页面
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => UserInfoPage(
+        Get.to(
+          UserInfoPage(
             userId: userId,
             displayName: displayName ?? userId,
             avatar: avatarUrl,
           ),
-        ),
-      );
+        );
+      }
+      return 0;
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -894,7 +922,6 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
-
 
   Widget _buildMessageList() {
     if (_isLoading && _messages.isEmpty) {
@@ -967,7 +994,7 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: GbsColors.lightAppBarColorA,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -1061,8 +1088,9 @@ class _ChatPageState extends State<ChatPage> {
                         : widget.displayName;
 
                     return GestureDetector(
-                      onTap: () => _onAvatarTap(
+                      onTap: () => _onCheckUserTap(
                         messageSenderId,
+                        true,
                         displayName: displayNameForInitial,
                         avatarUrl: avatarUrlToUse,
                       ),
@@ -1512,6 +1540,111 @@ class _ChatPageState extends State<ChatPage> {
       default:
         return Icon(Icons.done, size: 14, color: Colors.grey[400]);
     }
+  }
+
+  /// 检查黑名单状态
+  // Future<void> _checkBlacklistStatus() async {
+  //   if (widget.convType != 0) return; // 仅单聊时检查
+
+  //   try {
+  //     final status = await _friendController.checkBlacklistStatus(widget.targetUserId);
+  //     setState(() {
+  //       _isBlockedByMe = status['isBlockedByMe'] ?? false;
+  //       _isBlockedByOther = status['isBlockedByOther'] ?? false;
+  //       // 如果对方在我黑名单，或我在对方黑名单，则显示提示
+  //       // 如果已经有发送错误信息，保持显示状态
+  //       if (_isBlockedByMe || _isBlockedByOther) {
+  //         _showBlacklistWarning = true;
+  //       }
+  //     });
+  //   } catch (e) {
+  //     print('❌ 检查黑名单状态失败: $e');
+  //   }
+  // }
+
+  /// 构建黑名单提示卡片（也用于显示发送失败的错误信息）
+  Widget _buildBlacklistWarningCard() {
+    // 优先显示发送失败的错误信息，否则显示黑名单提示
+    final String displayText;
+    if (_sendErrorMessage != null && _sendErrorMessage!.isNotEmpty) {
+      displayText = _sendErrorMessage!;
+    } else if (_isBlockedByMe || _isBlockedByOther) {
+      displayText = '消息已发出，但被对方拒收';
+    } else {
+      displayText = '消息发送失败';
+    }
+
+    return FutureBuilder(
+      future: _onCheckUserTap(widget.targetUserId, false),
+      builder: (c, s) {
+        return Container(
+          margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: s.hasData && s.data == 2
+              ? null
+              : BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange[200]!, width: 1),
+                ),
+          child: s.hasData && s.data == 2
+              ? InkWell(
+                  onTap: () {},
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        displayText,
+                        style: TextStyle(
+                          color: GbsColors.des6Color,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        ', 去添加',
+                        style: TextStyle(
+                          color: GbsColors.primaryColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.orange[700],
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          color: Colors.orange[900],
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showBlacklistWarning = false;
+                          _sendErrorMessage = null; // 清除错误信息
+                        });
+                      },
+                      child: Icon(
+                        Icons.close,
+                        color: Colors.orange[700],
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
+    );
   }
 
   Widget _buildInputBar() {
@@ -2473,10 +2606,18 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     // 默认文本消息
-    return Text(
-      content,
-      style: TextStyle(fontSize: 15, color: GbsColors.titleColor),
-    );
+    return content.length < 3
+        ? Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
+            child: Text(
+              content,
+              style: TextStyle(fontSize: 15, color: GbsColors.titleColor),
+            ),
+          )
+        : Text(
+            content,
+            style: TextStyle(fontSize: 15, color: GbsColors.titleColor),
+          );
   }
 
   /// 构建@消息

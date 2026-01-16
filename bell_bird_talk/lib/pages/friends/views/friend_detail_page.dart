@@ -284,16 +284,14 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   Future<void> _loadBlackStatus() async {
     try {
       bool? result = await FriendController.to.loadBlackStatus(
-         widget.friend.id,
+        widget.friend.id,
       );
       if (result != null) {
         _isBlocked = result;
-        
       }
       if (!mounted) return;
 
-      setState(() {
-            });
+      setState(() {});
     } catch (e) {
       print('获取黑名单状态失败: $e');
     }
@@ -544,7 +542,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
   }
 
   /// 确认拉黑/取消拉黑好友
-  void _confirmBlockFriend() {
+  void _confirmBlockFriend() async {
     // 优先使用查询到的黑名单状态，如果没有查询到则使用 relationship
     final bool isBlocked = _isBlocked ?? (_friend.relationship == 3);
     final String title = isBlocked ? '取消黑名单' : '加入黑名单';
@@ -552,48 +550,41 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
         ? '确定要将「${_cleanUtf16String(_friend.displayName)}」移出黑名单吗？\n\n移出后，对方可以再次向你发送消息。'
         : '确定要将「${_cleanUtf16String(_friend.displayName)}」加入黑名单吗？\n\n加入黑名单后，对方将无法给你发送消息。';
 
-    Get.dialog(
-      AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: Text('取消'.tr)),
-          TextButton(
-            onPressed: () async {
-              Get.back();
-              EasyLoading.show(status: '处理中...');
-
-              try {
-                final result = isBlocked
-                    ? await _nativeService.imUnblockContact(userId: _friend.id)
-                    : await _nativeService.imBlockContact(userId: _friend.id);
-
-                if (result['errorCode'] == 0) {
-                  EasyLoading.showSuccess(isBlocked ? '已取消黑名单' : '已加入黑名单');
-                  setState(() {
-                    _isBlocked = !isBlocked; // 更新黑名单状态
-                    _friend = _friend.copyWith(relationship: isBlocked ? 1 : 3);
-                    _hasChanges = true;
-                  });
-                  // 触发全局列表刷新（好友列表、会话列表等）
-                  Get.find<GlobalController>().triggerAllListRefresh();
-                  // 返回并刷新
-                  Get.back(result: true);
-                } else {
-                  EasyLoading.showError(result['message'] ?? '操作失败');
-                }
-              } catch (e) {
-                EasyLoading.showError('操作失败');
-              }
-            },
-            child: Text(
-              isBlocked ? '确定'.tr : '确定'.tr,
-              style: const TextStyle(color: Colors.orange),
-            ),
-          ),
-        ],
-      ),
+    final result = await _nativeService.showNativeAlert(
+      title: title,
+      message: content,
+      confirmText: '确定',
+      cancelText: '取消'.tr,
+      showCancel: true,
     );
+
+    if (result != null && result['action'] == 'confirm') {
+      Get.back();
+      EasyLoading.show(status: '处理中...');
+      try {
+        final result = isBlocked
+            ? await _nativeService.imUnblockContact(userId: _friend.id)
+            : await _nativeService.imBlockContact(userId: _friend.id);
+
+        if (result['errorCode'] == 0) {
+          EasyLoading.showSuccess(isBlocked ? '已取消黑名单' : '已加入黑名单');
+          setState(() {
+            _isBlocked = !isBlocked; // 更新黑名单状态
+            _friend = _friend.copyWith(relationship: isBlocked ? 1 : 3);
+            _hasChanges = true;
+          });
+          // 触发全局列表刷新（好友列表、会话列表等）
+          Get.find<GlobalController>().triggerAllListRefresh();
+          // 返回并刷新
+          Get.back(result: true);
+        } else {
+          EasyLoading.showError(result['message'] ?? '操作失败');
+        }
+      } catch (e) {
+        EasyLoading.showError('操作失败');
+      }
+    }
+
   }
 
   /// 确认删除好友

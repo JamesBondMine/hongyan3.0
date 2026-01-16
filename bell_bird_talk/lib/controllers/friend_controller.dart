@@ -153,6 +153,7 @@ class FriendController extends GetxController {
 
 
   /// 加载黑名单状态
+  /// 返回 true 表示对方在我的黑名单，false 表示不在，null 表示查询失败
   Future<bool?> loadBlackStatus(String friendId) async {
     try {
       final result = await _nativeService.imGetBlackStatus(
@@ -174,6 +175,65 @@ class FriendController extends GetxController {
     } catch (e) {
       print('获取黑名单状态失败: $e');
       return null;
+    }
+  }
+
+  /// 检查黑名单状态（双向）
+  /// 返回 Map 包含：
+  /// - 'isBlockedByMe': 我是否拉黑了对方
+  /// - 'isBlockedByOther': 我是否被对方拉黑
+  /// - 'isBlocked': 是否被拉黑（任一方向）
+  Future<Map<String, bool>> checkBlacklistStatus(String friendId) async {
+    try {
+      final result = await _nativeService.imGetBlackStatus(
+        userId: friendId,
+      );
+      
+      bool isBlockedByMe = false;
+      bool isBlockedByOther = false;
+      
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr) as Map<String, dynamic>;
+            
+            // is_blocked: 我是否拉黑了对方
+            isBlockedByMe = data['is_blocked'] as bool? ?? false;
+            
+            // block_direction: 拉黑方向
+            // 0=无拉黑, 1=我拉黑对方, 2=对方拉黑我, 3=双向拉黑
+            final blockDirection = data['block_direction'] as int? ?? 0;
+            
+            if (blockDirection == 2 || blockDirection == 3) {
+              isBlockedByOther = true;
+            }
+            
+            // 如果 is_blocked 为 true，说明我拉黑了对方
+            if (isBlockedByMe) {
+              // 如果 block_direction 是 3，说明是双向拉黑
+              if (blockDirection == 3) {
+                isBlockedByOther = true;
+              }
+            }
+          } catch (e) {
+            print('解析黑名单状态失败: $e');
+          }
+        }
+      }
+      
+      return {
+        'isBlockedByMe': isBlockedByMe,
+        'isBlockedByOther': isBlockedByOther,
+        'isBlocked': isBlockedByMe || isBlockedByOther,
+      };
+    } catch (e) {
+      print('获取黑名单状态失败: $e');
+      return {
+        'isBlockedByMe': false,
+        'isBlockedByOther': false,
+        'isBlocked': false,
+      };
     }
   }
 

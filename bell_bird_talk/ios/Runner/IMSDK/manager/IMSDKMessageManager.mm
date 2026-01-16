@@ -258,8 +258,10 @@ static void SendMessageCallback(int errorCode, const char* data, int dataLen, ui
                 // 成功但无数据
                 dataStr = @"{\"success\":true}";
                 NSLog(@"✅ 发送消息成功（无返回数据）");
+            } else {
+                // 尝试直接作为 JSON
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             }
-            
             completion(errorCode, reqId, dataStr);
             [manager removeCallbackForReqId:reqId];
         }
@@ -630,9 +632,7 @@ static void PullMessagesCallback(int errorCode, const char* data, int dataLen, u
         conversationId:(NSString *)conversationId
             receiverId:(NSString *)receiverId
             completion:(IMSDKMessageCompletion)completion {
-    
-    NSLog(@"📤 发送文本消息: content=%@, conversationId=%@, receiverId=%@", content, conversationId, receiverId);
-    
+
     // SDK 期望的是 TextMessage 的 Protobuf 数据，而不是整个 ImMessage
     TextMessage *textMsg = [[TextMessage alloc] init];
     textMsg.content = content;
@@ -886,6 +886,9 @@ static void SendGroupMessageCallback(int errorCode, const char* data, int dataLe
                 // 成功但无数据
                 dataStr = @"{\"success\":true}";
                 NSLog(@"✅ 发送消息成功（无返回数据）");
+            } else {
+                // 尝试直接作为 JSON
+                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
             }
             
             completion(errorCode, reqId, dataStr);

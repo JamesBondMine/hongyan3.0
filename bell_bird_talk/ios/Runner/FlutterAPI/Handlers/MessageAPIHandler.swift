@@ -72,9 +72,6 @@ class MessageAPIHandler {
         }
         
         let ext = args["ext"] as? String
-        
-        print("📤 发送文本消息: content=\(content), conversationId=\(conversationId), receiverId=\(receiverId)")
-        
         let code = IMSDKMessageManager.shared().sendTextMessage(
             content,
             ext: ext,

@@ -484,8 +484,6 @@ static void ContactListCallback(int errorCode, const char* data, int dataLen, ui
 
 // 获取黑名单状态回调
 static void BlackStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
-    NSLog(@"🔍 获取黑名单状态回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
-    
     NSString *jsonString = nil;
     if (data && dataLen > 0) {
         NSData *responseData = [NSData dataWithBytes:data length:dataLen];
@@ -540,6 +538,7 @@ static void BlackStatusCallback(int errorCode, const char* data, int dataLen, ui
     blockCheck.targetUserId = userId;
     
     NSData *protoBody = [blockCheck data];
+    
     if (!protoBody || protoBody.length == 0) {
         NSLog(@"❌ Protobuf 序列化失败");
         return -1;
@@ -553,9 +552,7 @@ static void BlackStatusCallback(int errorCode, const char* data, int dataLen, ui
         static uint64_t tempId = 10000;
         NSNumber *tempKey = @(tempId++);
         self.contactCallbacks[tempKey] = completion;
-        
         int result = get_block_status(BlackStatusCallback, data, dataLen, reqId);
-        
         if (result == 0 && reqId != 0) {
             self.contactCallbacks[@(reqId)] = completion;
             [self.contactCallbacks removeObjectForKey:tempKey];
