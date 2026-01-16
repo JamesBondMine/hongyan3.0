@@ -101,6 +101,22 @@ class FriendController extends GetxController {
     }
   }
 
+  // 查询好友关系
+  Future<FriendModel?> queryContact(String contactUserId) async {
+    try {
+      // 获取当前用户ID
+      final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+      Map<String, dynamic>? res = await _messageDatabase.getContact(currentUserId, contactUserId);
+      if (res!= null) {
+        return FriendModel.fromJson(res);
+      }
+      return null;
+    } catch (e) {
+      print('❌ 查询好友失败: $e');
+      return null;
+    }
+  }
+
   /// 删除好友
   /// [contactUserId] 要删除的好友用户ID
   /// 返回删除结果：{'errorCode': 0表示成功, 'message': '错误信息'}

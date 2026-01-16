@@ -260,7 +260,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         targetEmail: user.email,
         groupId: groupId,
       );
-
+      EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('申请已发送'.tr);
         Get.back();

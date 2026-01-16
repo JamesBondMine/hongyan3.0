@@ -121,6 +121,7 @@ class SearchUserModel {
   final String id;
   final String? accountId;
   final String nickname;
+  final String userName;
   final String? avatar;
   final String? phone;
   final String? email;
@@ -134,6 +135,7 @@ class SearchUserModel {
     this.avatar,
     this.phone,
     this.email,
+    this.userName = '',
     this.gender,
     this.signature,
   });
@@ -143,6 +145,7 @@ class SearchUserModel {
       id: json['user_id'] ?? json['id'] ?? '',
       accountId: json['account_id'],
       nickname: json['nickname'] ?? '未知用户',
+      userName: json['userName'] ?? json['user_id'] ?? '',
       avatar: json['avatar'],
       phone: json['phone'],
       email: json['email'],

@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_add_member.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_members_page.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/pages/friends/pages/select_friend_with_group_page.dart';
+import 'package:bell_bird_talk/pages/friends/views/friend_detail_page.dart';
 import 'package:bell_bird_talk/pages/friends/views/friend_remark_view.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/pages/profile/profile_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
+import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -72,7 +76,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     final result = await _groupController.getGroupMembersFullInfo(
       widget.groupId,
       page: 1,
-      pageSize: 200,
+      pageSize: 12,
     );
 
     if (!mounted) return;
@@ -298,19 +302,49 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 
   // 添加好友
   void _addGroupMember(SearchUserModel user) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('提示'),
-        content: _buildUserCard(user),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('取消'.tr),
+    gbs.shower.showScreenViewCustom(
+      context,
+      300,
+      Container(
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: GbsColors.lightAppBarColorA,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
           ),
-        ],
+        ),
+        child: Column(
+          children: [
+            CommonAppBarView(title: '添加好友', appBarType: AppBarType.close),
+            _buildUserCard(user),
+            Padding(
+              padding: EdgeInsetsGeometry.only(left: 16, right: 16, top: 10),
+              child: CommonButton(
+                enabled: true,
+                text: '添加好友',
+                onPressed: () {
+                  _sendFriendRequest(user, '', groupId: 0);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
+    // showDialog(
+    //   context: context,
+    //   builder: (context) => AlertDialog(
+    //     title: const Text('提示'),
+    //     content: _buildUserCard(user),
+    //     actions: [
+    //       TextButton(
+    //         onPressed: () => Navigator.of(context).pop(),
+    //         child: Text('取消'.tr),
+    //       ),
+    //     ],
+    //   ),
+    // );
   }
 
   Widget _buildMemberItem(Map<String, dynamic> m) {
@@ -342,6 +376,13 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
           Get.to(ProfilePage());
           return;
         } else {
+          // 检查对方是不是我的好友、如果是 则跳转好友详情
+          FriendModel? friend = await FriendController.to.queryContact(userId);
+          if (friend != null) {
+            // 跳转好友详情
+            Get.to(FriendDetailPage(friend: friend, onDelete: (){}));
+            return;
+          }
           final result = await _nativeService.imSearchUser(
             userId: userId,
             accountId: userId,
@@ -1041,19 +1082,8 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 
   /// 用户卡片
   Widget _buildUserCard(SearchUserModel user) {
-    return Container(
+    return SizedBox(
       height: 88,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -1104,22 +1134,12 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (user.gender != null) ...[
-                            const SizedBox(width: 6),
-                            Icon(
-                              user.gender == 1 ? Icons.male : Icons.female,
-                              size: 16,
-                              color: user.gender == 1
-                                  ? Colors.blue
-                                  : Colors.pink,
-                            ),
-                          ],
                         ],
                       ),
                       const SizedBox(height: 4),
                       if (user.accountId != null && user.accountId!.isNotEmpty)
                         Text(
-                          'ID: ${user.accountId}',
+                          '用户名: ${user.nickname}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 13,
@@ -1142,23 +1162,23 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
                   ),
                 ),
 
-                // 添加按钮
-                ElevatedButton(
-                  onPressed: () => _showAddFriendDialog(user),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: const Text('添加'),
-                ),
+                // // 添加按钮
+                // ElevatedButton(
+                //   onPressed: () => _showAddFriendDialog(user),
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.blue,
+                //     foregroundColor: Colors.white,
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(20),
+                //     ),
+                //     elevation: 0,
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 16,
+                //       vertical: 8,
+                //     ),
+                //   ),
+                //   child: const Text('添加'),
+                // ),
               ],
             ),
           ),

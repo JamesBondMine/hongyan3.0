@@ -132,6 +132,9 @@ class GroupController extends GetxController {
           if (userInfo['nickname'] != null && (userInfo['nickname'] as String).isNotEmpty) {
             member['nickname'] = userInfo['nickname'];
           }
+          if (userInfo['username'] != null && (userInfo['username'] as String).isNotEmpty) {
+            member['username'] = userInfo['username'];
+          }
           // 同时添加 avatar_bg 字段
           if (userInfo['avatar_bg'] != null) {
             member['avatar_bg'] = userInfo['avatar_bg'];

@@ -1092,12 +1092,6 @@ class _ChatPageState extends State<ChatPage> {
                 const SizedBox(width: 8),
               ],
 
-              // 发送状态（我的消息显示在左侧，非图片消息）
-              // if (isMine && !isImageMessage) ...[
-              //   _buildMessageStatus(status, localId: localId),
-              //   const SizedBox(width: 4),
-              // ],
-
               // 消息气泡
               Flexible(
                 child: GestureDetector(
@@ -1224,6 +1218,12 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               ),
+
+              // 发送状态（我的消息显示在右侧，非图片消息）
+              if (isMine && !isImageMessage) ...[
+                const SizedBox(width: 4),
+                _buildMessageStatus(status, localId: localId),
+              ],
 
               if (isMine) ...[const SizedBox(width: 8)],
             ],
