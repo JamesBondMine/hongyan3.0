@@ -351,6 +351,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
 
   /// 构建社群卡片
   Widget _buildCommunityCard(CommunityModel community) {
+    String communityId = community.name;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -413,7 +414,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                                 ),
                         ),
                         Text(
-                          community.name,
+                          communityId.length > 18 ? '${communityId.substring(0, 18)}...' : communityId,
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w500,

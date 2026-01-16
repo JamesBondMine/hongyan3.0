@@ -335,7 +335,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
           ],
         ),
         title: Text(
-          friend.nickname,
+          friend.remark.isNotEmpty ? friend.remark : friend.nickname,
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
         onTap: () => _showFriendDetail(friend),

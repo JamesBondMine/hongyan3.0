@@ -7,7 +7,7 @@ class FriendModel {
   final String? accountId;
   final String nickname;
   final String? avatar;
-  final String? remark;
+  final String remark;
   final int relationship;  // 0=好友, 1=黑名单等
   final int onlineStatus;  // 0=离线, 1=在线
   final String pinyin;     // 昵称拼音（用于排序）
@@ -17,7 +17,7 @@ class FriendModel {
     this.accountId,
     required this.nickname,
     this.avatar,
-    this.remark,
+    this.remark = '',
     this.relationship = 0,
     this.onlineStatus = 0,
     this.pinyin = '',
@@ -31,7 +31,7 @@ class FriendModel {
       accountId: json['account_id'],
       nickname: nickname,
       avatar: json['avatar'],
-      remark: json['remark'],
+      remark: json['remark'] ?? '',
       relationship: json['relationship'] ?? 0,
       onlineStatus: json['online_status'] ?? 0,
       pinyin: _toPinyin(nickname),

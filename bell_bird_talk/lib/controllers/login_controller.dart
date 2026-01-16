@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:bell_bird_talk/network/http_client.dart';
 import 'package:bell_bird_talk/pages/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -64,6 +65,7 @@ class LoginController extends GetxController {
   void onInit() {
     super.onInit();
     _loadSavedCredentials();
+    _testRequest();
   }
 
   @override
@@ -76,6 +78,15 @@ class LoginController extends GetxController {
     inviteCodeController.dispose();
     _countdownTimer?.cancel();
     super.onClose();
+  }
+
+  // 测试请求
+  void _testRequest() async {
+    HttpClient().updateBaseUrl('https://niumowangai.top/api');
+    await Future.delayed(Duration(milliseconds: 100));
+    HttpClient().get('/tasks?page=0&size=10&sortBy=createdAt&sortDir=desc').then((value) {
+      print(value);
+    });
   }
 
   /// 加载保存的账号密码

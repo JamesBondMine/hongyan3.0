@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
+import 'package:bell_bird_talk/pages/chat/chat_search_page.dart';
 import 'package:bell_bird_talk/pages/chat/group_chat/group_chat_page.dart';
 import 'package:bell_bird_talk/pages/chat/models/chat_model.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
@@ -1520,7 +1521,8 @@ class _ChatListPageState extends State<ChatListPage> {
 
   /// 打开搜索页面
   void _openSearchPage() {
-    // TODO: 实现聊天搜索功能
-    Get.snackbar('提示'.tr, '搜索功能开发中'.tr);
+    Get.to(
+      () => const ChatSearchPage(),
+    );
   }
 }

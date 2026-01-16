@@ -122,7 +122,6 @@ class _GroupListPageState extends State<GroupListPage> {
                   }
                   return Container(
                     height: 52,
-                    // margin: EdgeInsets.only(left: 16, right: 16,bottom: 16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       color: GbsColors.lightBackgroundB,

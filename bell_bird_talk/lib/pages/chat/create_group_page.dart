@@ -438,15 +438,11 @@ Spacer(),
   }
 
   Widget _buildFooterView() {
-    // if (!_isMultiSelectMode){
-    //   return Container( );
-    // }
-
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: CommonButton(
         onPressed: () {
-          // _confirmSelection();
+          _createGroup();
         },
         enabled: true,
         text: '确定'.tr,

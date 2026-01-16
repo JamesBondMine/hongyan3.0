@@ -26,7 +26,9 @@ class NativeLogger {
         : resultStr;
     
     // 使用 print 输出单行日志，更简洁
-    print('\n===================================\n$icon ${duration.inMilliseconds}ms \n[$method]  \n$paramsStr \n----\n$displayResult \n===================================');
+    if (kDebugMode) {
+      print('\n===================================\n$icon ${duration.inMilliseconds}ms \n[$method]  \n$paramsStr \n----\n$displayResult \n===================================');
+    }
   }
   
   /// 转换为 JSON 字符串

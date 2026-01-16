@@ -108,6 +108,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   Widget _bodyView() {
+    String? communityId = _cmty==null ? '' : _cmty!.name;
     return Column(
       children: [
         // 头部
@@ -134,7 +135,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                         child: Row(
                           children: [
                             Text(
-                              _cmty==null ? '' : _cmty!.name,
+                              communityId.length > 10 ? '${communityId.substring(0, 10)}...' : communityId,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 16,

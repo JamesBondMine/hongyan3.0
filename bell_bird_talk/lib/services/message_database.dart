@@ -1034,6 +1034,133 @@ class MessageDatabase {
       whereArgs: [userId],
     );
   }
+  
+  /// 搜索好友（根据 nickname 和 remark）
+  /// [userId] 当前用户ID
+  /// [keyword] 搜索关键词
+  /// [limit] 返回结果数量限制，默认2条
+  /// 返回好友列表
+  Future<List<Map<String, dynamic>>> searchContacts(
+    String userId,
+    String keyword, {
+    int limit = 2,
+  }) async {
+    if (keyword.isEmpty) return [];
+    
+    final db = await database;
+    final searchKeyword = '%$keyword%';
+    
+    final results = await db.query(
+      'contacts',
+      where: 'user_id = ? AND (nickname LIKE ? OR remark LIKE ?)',
+      whereArgs: [userId, searchKeyword, searchKeyword],
+      orderBy: 'remark ASC, nickname ASC',
+      limit: limit,
+    );
+    
+    return results;
+  }
+  
+  /// 搜索群聊（根据 display_name，conv_type=2）
+  /// [userId] 当前用户ID
+  /// [keyword] 搜索关键词
+  /// [limit] 返回结果数量限制，默认2条
+  /// 返回群聊会话列表
+  Future<List<ConversationModel>> searchGroupConversations(
+    String userId,
+    String keyword, {
+    int limit = 2,
+  }) async {
+    if (keyword.isEmpty) return [];
+    
+    final db = await database;
+    final searchKeyword = '%$keyword%';
+    
+    final List<Map<String, dynamic>> maps = await db.query(
+      'conversations',
+      where: 'user_id = ? AND conv_type = 2 AND display_name LIKE ?',
+      whereArgs: [userId, searchKeyword],
+      orderBy: 'updated_at DESC',
+      limit: limit,
+    );
+    
+    return maps.map((map) => _conversationFromDbMap(map)).toList();
+  }
+  
+  /// 搜索聊天记录（根据 text_content，关联到 conversations）
+  /// [userId] 当前用户ID
+  /// [keyword] 搜索关键词
+  /// [limit] 返回结果数量限制，默认2条
+  /// 返回包含该关键词的会话列表（去重），每个会话包含匹配的最后一条消息内容
+  Future<List<Map<String, dynamic>>> searchMessageConversations(
+    String userId,
+    String keyword, {
+    int limit = 2,
+  }) async {
+    if (keyword.isEmpty) return [];
+    
+    final db = await database;
+    final searchKeyword = '%$keyword%';
+    
+    // 先查找包含关键词的消息，获取对应的 conv_id（去重）
+    // 按消息创建时间倒序，获取最新的包含关键词的会话
+    final messageResults = await db.rawQuery('''
+      SELECT DISTINCT m.conv_id, MAX(m.created_at) as max_time
+      FROM messages m
+      WHERE m.text_content LIKE ?
+      GROUP BY m.conv_id
+      ORDER BY max_time DESC
+      LIMIT ?
+    ''', [searchKeyword, limit * 3]); // 多查一些以确保有足够的去重结果
+    
+    if (messageResults.isEmpty) return [];
+    
+    // 提取 conv_id
+    final convIds = messageResults
+        .map((row) => row['conv_id'] as String?)
+        .where((id) => id != null && id.isNotEmpty)
+        .take(limit)
+        .toList();
+    
+    if (convIds.isEmpty) return [];
+    
+    // 为每个会话获取最后一条匹配的消息内容
+    final convMessageMap = <String, String?>{};
+    for (final convId in convIds) {
+      if (convId == null || convId.isEmpty) continue;
+      final matchedMessageResult = await db.query(
+        'messages',
+        columns: ['text_content'],
+        where: 'conv_id = ? AND text_content LIKE ?',
+        whereArgs: [convId, searchKeyword],
+        orderBy: 'created_at DESC',
+        limit: 1,
+      );
+      if (matchedMessageResult.isNotEmpty) {
+        convMessageMap[convId] = matchedMessageResult.first['text_content'] as String?;
+      }
+    }
+    
+    if (convIds.isEmpty) return [];
+    
+    // 根据 conv_id 查询会话信息
+    final placeholders = List.filled(convIds.length, '?').join(',');
+    final conversationResults = await db.rawQuery('''
+      SELECT * FROM conversations
+      WHERE user_id = ? AND conv_id IN ($placeholders)
+      ORDER BY updated_at DESC
+    ''', [userId, ...convIds]);
+    
+    // 组合会话和匹配的消息内容
+    return conversationResults.map((map) {
+      final convId = map['conv_id'] as String? ?? '';
+      final conversation = _conversationFromDbMap(map);
+      return {
+        'conversation': conversation,
+        'matchedMessage': convMessageMap[convId],
+      };
+    }).toList();
+  }
 
   // ==================== 用户相关方法 ====================
   
