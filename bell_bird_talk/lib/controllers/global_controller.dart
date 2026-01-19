@@ -36,6 +36,11 @@ class GlobalController extends GetxController {
   // SDK 连接状态（由 SDK 管理）
   final RxBool isWsConnected = false.obs;
   
+  // 网络事件状态
+  final RxString networkStatus = '未连接'.obs;
+  final RxInt lastNetworkEventCode = 0.obs;
+  final RxString lastNetworkEventDesc = ''.obs;
+  
   // 未读消息数
   final RxInt unreadCount = 0.obs;
   
@@ -358,6 +363,58 @@ class GlobalController extends GetxController {
   /// 获取 IM SDK 状态
   String getIMSDKStatus() {
     return imsdkStatus.value;
+  }
+  
+  // ==================== 网络事件处理 ====================
+  
+  /// 处理网络事件
+  void handleNetworkEvent(int eventCode, String eventDescription, double timestamp) {
+    print('🌐 GlobalController 处理网络事件: code=$eventCode, desc=$eventDescription');
+    
+    // 更新网络状态
+    lastNetworkEventCode.value = eventCode;
+    lastNetworkEventDesc.value = eventDescription;
+    
+    // 根据事件代码更新网络状态显示
+    switch (eventCode) {
+      case 0:
+        networkStatus.value = '网络错误';
+        isWsConnected.value = false;
+        break;
+      case 1:
+        networkStatus.value = '连接中';
+        isWsConnected.value = false;
+        break;
+      case 2:
+        networkStatus.value = '已连接';
+        isWsConnected.value = true;
+        break;
+      case 3:
+        networkStatus.value = '断开连接';
+        isWsConnected.value = false;
+        break;
+      case 4:
+        networkStatus.value = '重连中';
+        isWsConnected.value = false;
+        break;
+      case 5:
+        networkStatus.value = '认证中';
+        isWsConnected.value = false;
+        break;
+      case 6:
+        networkStatus.value = '已认证';
+        isWsConnected.value = true;
+        break;
+      case 7:
+        networkStatus.value = '认证失败';
+        isWsConnected.value = false;
+        break;
+      default:
+        networkStatus.value = '未知状态($eventCode)';
+        break;
+    }
+    
+    print('📊 网络状态更新: ${networkStatus.value}');
   }
   
   // ==================== Token 自动登录 ====================

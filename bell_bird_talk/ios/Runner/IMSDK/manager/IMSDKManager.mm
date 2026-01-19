@@ -8,6 +8,7 @@
 #import "IMSDKManager.h"
 #import "IMSDKAuthManager.h"
 #import <UIKit/UIKit.h>
+#import <Flutter/Flutter.h>
 #include "network_lib.h"
 #include "callback_types.h"
 #include "common_definitions.h"
@@ -94,27 +95,7 @@
         // 初始化信号量用于等待回调
         g_initSemaphore = dispatch_semaphore_create(0);
         g_initResult = -1;
-        
-         // 添加目标服务器
-//        NSString *serverIP = @"175.178.227.41";
-//        int serverPort = 8885;
-//        
-//        NSString *serverIP = @"10.226.7.239";
-//        int serverPort = 5280;
 
-        // 先测试服务器连通性
-//        NSLog(@"🔍 正在测试服务器连通性: %@:%d", serverIP, serverPort);
-//        BOOL isReachable = [self pingHost:serverIP port:serverPort timeout:3.0];
-//        if (isReachable) {
-//            NSLog(@"✅ 服务器可达: %@:%d", serverIP, serverPort);
-//        } else {
-//            NSLog(@"⚠️ 服务器可能不可达: %@:%d（继续尝试连接）", serverIP, serverPort);
-//        }
-        
-//        NSLog(@"🌐 添加目标服务器: %@:%d", serverIP, serverPort);
-//        network_add_target_to_group([serverIP UTF8String], serverPort);
-//        NSLog(@"✅ 目标服务器已添加");
-        
         network_set_httpdns_params(
                 "222222",
                 "222222.loadingworks.com",           // domain_name - 要解析的域名
@@ -177,11 +158,12 @@ static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint
         g_initSemaphore = NULL; // 重置信号量
     }
     
+    NSString *descStr = @"";
     if (event_desc && length > 0) {
         // 使用 length 创建字符串，确保完整读取
-        NSString *descStr = [[NSString alloc] initWithBytes:event_desc 
-                                                     length:length 
-                                                   encoding:NSUTF8StringEncoding];
+        descStr = [[NSString alloc] initWithBytes:event_desc 
+                                           length:length 
+                                         encoding:NSUTF8StringEncoding];
         NSLog(@"   事件描述: %@", descStr);
         
         // 尝试解析为 JSON（如果是 JSON 格式）
@@ -199,6 +181,11 @@ static void GlobalEventCallback(uint8_t event_code, const char* event_desc, uint
         NSLog(@"   事件描述: (空)");
     }
     NSLog(@"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    // 🔥 新增：将网络事件推送到 Flutter
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[IMSDKManager sharedManager] sendNetworkEventToFlutter:event_code description:descStr];
+    });
 }
 
 static void GlobalDataCallback(const char* data, uint32_t length) {
@@ -465,6 +452,44 @@ static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
 
 - (void)runEventLoop {
     network_event_loop();
+}
+
+// ==================== Flutter 通信 ====================
+
+/// 发送网络事件到 Flutter
+- (void)sendNetworkEventToFlutter:(uint8_t)eventCode description:(NSString *)description {
+    NSLog(@"📱 发送网络事件到 Flutter: code=%d, desc=%@", eventCode, description);
+    
+    // 获取主应用的 FlutterViewController
+    UIViewController *rootViewController = [UIApplication sharedApplication].delegate.window.rootViewController;
+    FlutterViewController *flutterViewController = nil;
+    
+    if ([rootViewController isKindOfClass:[FlutterViewController class]]) {
+        flutterViewController = (FlutterViewController *)rootViewController;
+    }
+    
+    if (!flutterViewController) {
+        NSLog(@"⚠️ 无法获取 FlutterViewController");
+        return;
+    }
+    
+    // 通过 native_bridge 通道发送网络事件
+    FlutterMethodChannel *channel = [FlutterMethodChannel
+        methodChannelWithName:@"com.bell_bird_talk/native_bridge"
+        binaryMessenger:flutterViewController.binaryMessenger];
+    
+    // 构建事件数据
+    NSDictionary *eventData = @{
+        @"event_code": @(eventCode),
+        @"event_description": description ?: @"",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970]),
+        @"event_type": @"network_event"
+    };
+    
+    // 发送到 Flutter
+    [channel invokeMethod:@"onNetworkEvent" arguments:eventData];
+    
+    NSLog(@"✅ 网络事件已发送到 Flutter");
 }
 
 @end

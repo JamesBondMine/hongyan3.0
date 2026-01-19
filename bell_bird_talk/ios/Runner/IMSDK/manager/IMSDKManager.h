@@ -61,6 +61,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param callback 回调 block
 - (void)setDataReceivedCallback:(void (^)(NSString *data))callback;
 
+/// 发送网络事件到 Flutter
+/// @param eventCode 事件代码
+/// @param description 事件描述
+- (void)sendNetworkEventToFlutter:(uint8_t)eventCode description:(NSString *)description;
+
 // ==================== 连接管理 ====================
 
 /// 添加目标服务器到组

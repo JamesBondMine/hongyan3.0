@@ -84,14 +84,21 @@ class NativeBridgeHandler: NSObject {
         )
         methodChannel?.setMethodCallHandler(handleMethodCall)
         
-        // 2. EventChannel - 事件流
+        // 2. 消息回调通道 - 用于推送消息到 Flutter
+        let nativeBridgeChannel = FlutterMethodChannel(
+            name: "com.bell_bird_talk/native_bridge",
+            binaryMessenger: controller.binaryMessenger
+        )
+        // 这个通道主要用于从 iOS 推送消息到 Flutter，不需要设置 handler
+        
+        // 3. EventChannel - 事件流
         eventChannel = FlutterEventChannel(
             name: "com.bellbird.talk/event",
             binaryMessenger: controller.binaryMessenger
         )
         eventChannel?.setStreamHandler(self)
         
-        // 3. BasicMessageChannel - 消息传递
+        // 4. BasicMessageChannel - 消息传递
         messageChannel = FlutterBasicMessageChannel(
             name: "com.bellbird.talk/message",
             binaryMessenger: controller.binaryMessenger,

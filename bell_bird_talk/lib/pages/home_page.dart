@@ -118,6 +118,10 @@ class _HomePageState extends State<HomePage> {
     
     // 设置命令消息回调
     _nativeService.onCommandMessage = _handleCommandMessage;
+
+    // 设置命令消息回调
+    _nativeService.onNetworkEvent = GlobalController.to.handleNetworkEvent;
+
     
     // 注册底层回调
     final result = await _nativeService.imRegisterMessageCallbacks();

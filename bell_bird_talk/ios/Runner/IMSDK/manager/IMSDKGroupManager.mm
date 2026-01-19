@@ -512,8 +512,6 @@ static void DisturbGroupCallback(int errorCode, const char* data, int dataLen, u
 /// 查询群组免打扰状态回调
 static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📬 查询群组免打扰状态回调: errorCode=%d, reqId=%llu", errorCode, reqId);
-    
-    
     NSData *responseData = nil;
     if (data && dataLen > 0) {
         responseData = [NSData dataWithBytes:data length:dataLen];
@@ -526,12 +524,19 @@ static void GetGroupDisturbStatusCallback(int errorCode, const char* data, int d
         
         if (completion) {
             NSString *dataStr = nil;
-            if (responseData && responseData.length > 0) {
-                dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-            }
-            
-//            DisturbStatus st = [DisturbStatus p];
-            completion(errorCode, reqId, dataStr);
+            NSError *parseError = nil;
+            DisturbStatus *group = [DisturbStatus parseFromData:responseData error:&parseError];
+            if (group && !parseError) {
+                NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:nil];
+                if (jsonData) {
+                    dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                }
+            } else {
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            }            completion(errorCode, reqId, dataStr);
             [manager.groupCallbacks removeObjectForKey:key];
         }
     });
@@ -1451,7 +1456,7 @@ userId:(NSString *)userId
 
     disturbStatusQuery * bp = [[disturbStatusQuery alloc] init];
     bp.groupId = groupId;
-//    bp.userId = userId;
+    bp.userId = userId;
     
     NSLog(@"🍎 查询群组免打扰状态: groupId=%@。 userId=%@", bp.groupId,bp.userId);
     

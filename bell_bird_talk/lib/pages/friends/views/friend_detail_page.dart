@@ -138,10 +138,6 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             _buildPopItem('调整分组', 'move', () {
               _showMoveGroupDialog();
             }),
-            _buildPopItem('屏蔽消息', 'notifi', () {
-              // 拉黑
-              _confirmBlockFriend();
-            }),
             _buildPopItem('删除好友', 'del', () {
               _confirmDeleteFriend();
             }),
@@ -153,13 +149,13 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             _buildPopItem('调整分组', 'move', () {
               _showMoveGroupDialog();
             }),
-            _buildPopItem('屏蔽消息', 'notifi', () {
+            _buildPopItem(_isBlocked! ? '取消屏蔽' : '屏蔽消息', 'notifi', () {
               // 拉黑
               _confirmBlockFriend();
             }),
-            _buildPopItem(_isBlocked! ? '取消黑名单' : '加黑名单', 'notifi', () {
-              _confirmBlockFriend();
-            }),
+            // _buildPopItem(_isBlocked! ? '取消黑名单' : '加黑名单', 'notifi', () {
+            //   _confirmBlockFriend();
+            // }),
             _buildPopItem('删除好友', 'del', () {
               _confirmDeleteFriend();
             }),

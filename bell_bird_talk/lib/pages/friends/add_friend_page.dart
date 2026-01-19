@@ -155,18 +155,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
         userId = query;
         _lastSearchType = 'id';
       }
-
-      print(
-        '🔍 搜索用户: userId=$userId, accountId=$accountId, type=$_lastSearchType',
-      );
-
       final result = await _nativeService.imSearchUser(
         userId: userId,
         accountId: accountId,
       );
-
-      print('📊 搜索结果: $result');
-
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String?;
         if (dataStr != null && dataStr.isNotEmpty) {
@@ -199,7 +191,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
                       .toList();
                 });
               }
-              _loadBlackStatus(_searchResults.first.id);
             } else if (data is List) {
               setState(() {
                 _searchResults = data
@@ -209,7 +200,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     )
                     .toList();
               });
-              _loadBlackStatus(_searchResults.first.id);
             }
           } catch (e) {
             print('解析搜索结果失败: $e');
@@ -265,11 +255,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         EasyLoading.showSuccess('申请已发送'.tr);
         Get.back();
       } else {
-        // 检查一下黑名单状态
-        bool? isBlocked = await _loadBlackStatus(user.id);
-        if (isBlocked != null && isBlocked == false) {
-          EasyLoading.showError(result['message'] ?? '发送失败'.tr);
-        }
+        EasyLoading.showError(result['data'] ?? '发送失败'.tr);
       }
     } catch (e) {
       print('❌ 发送好友申请失败: $e');
@@ -439,39 +425,62 @@ class _AddFriendPageState extends State<AddFriendPage> {
     );
   }
 
+  // 移出黑名单
+  void _buildRemoveBlacklistButton(String userId) async {
+    try {
+      EasyLoading.show();
+      final result = await _nativeService.imUnblockContact(userId: userId);
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('已取消黑名单');
+        _searchUser();
+      } else {
+        EasyLoading.showError(result['message'] ?? '操作失败');
+      }
+    } catch (e) {
+      EasyLoading.showError('操作失败');
+    }
+  }
+
   /// 移出黑名单按钮
   Widget _buildBlacklistButton(SearchUserModel user) {
-    if (_isBlocked == null || _isBlocked == false) {
+    if (_searchResults.isEmpty) {
       return Container();
     }
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: GestureDetector(
-        onTap: () {
-          // TODO: 实现黑名单操作
-          EasyLoading.showInfo('黑名单功能开发中'.tr);
-        },
-
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '已添加至黑名单,'.tr,
-              style: TextStyle(fontSize: 16, color: GbsColors.des6Color),
-            ),
-            SizedBox(width: 8),
-            Text(
-              '移出黑名单'.tr,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: GbsColors.primaryColor,
+    return FutureBuilder(
+      future: _loadBlackStatus(_searchResults.first.id),
+      builder: (c, AsyncSnapshot<bool?> s) {
+        if (s != null && s.hasData && s.data == true) {
+          return SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: GestureDetector(
+              onTap: () {
+                _buildRemoveBlacklistButton(user.id);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '已添加至黑名单,'.tr,
+                    style: TextStyle(fontSize: 16, color: GbsColors.des6Color),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '移出黑名单'.tr,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: GbsColors.primaryColor,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          );
+        }
+        return Container();
+      },
     );
   }
 

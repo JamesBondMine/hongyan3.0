@@ -1979,6 +1979,9 @@ class IOSNativeService {
   /// 命令消息回调
   Function(int eventType, Map<String, dynamic> message)? onCommandMessage;
   
+  /// 网络事件回调
+  Function(int eventCode, String eventDescription, double timestamp)? onNetworkEvent;
+  
   /// 注册消息回调（单聊、群聊、社区）
   /// 在进入首页时调用，注册后可接收被动推送的消息
   Future<Map<String, dynamic>> imRegisterMessageCallbacks() async {
@@ -2032,6 +2035,15 @@ class IOSNativeService {
           final eventType = message['event_type'] as int? ?? 0;
           print('📨 Flutter 收到命令消息3: eventType=$eventType, data=$message');
           onCommandMessage?.call(eventType, message);
+        }
+      } else if (call.method == 'onNetworkEvent') {
+        final data = call.arguments as Map<dynamic, dynamic>?;
+        if (data != null) {
+          final eventData = data.cast<String, dynamic>();
+          final eventCode = eventData['event_code'] as int? ?? 0;
+          final eventDescription = eventData['event_description'] as String? ?? '';
+          final timestamp = eventData['timestamp'] as double? ?? 0;
+          onNetworkEvent?.call(eventCode, eventDescription, timestamp);
         }
       }
       return null;

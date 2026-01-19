@@ -701,7 +701,6 @@ class _ChatPageState extends State<ChatPage> {
         } else {
           toInsertBatch.add(chatMessage);
         }
-
         // 格式化时间戳用于日志
         final dateTime = DateTime.fromMillisecondsSinceEpoch(timestampInt);
         final formattedTime = DateFormat(
@@ -1074,6 +1073,7 @@ class _ChatPageState extends State<ChatPage> {
                 ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.max, // 保持 max 以支持换行
             children: [
               if (!isMine) ...[
                 // 对方头像（可点击）
@@ -1120,7 +1120,7 @@ class _ChatPageState extends State<ChatPage> {
                 const SizedBox(width: 8),
               ],
 
-              // 消息气泡
+              // 消息气泡（使用 Flexible 以支持长消息换行）
               Flexible(
                 child: GestureDetector(
                   onTap: () {
@@ -1134,12 +1134,17 @@ class _ChatPageState extends State<ChatPage> {
                     }
                   },
                   onLongPress: () => _showMessageMenu(message, isMine),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: isMine
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    children: [
+                  child: Align(
+                    alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min, // 让 Row 只占据必要空间
+                      children: [
+                      // 发送状态（我的消息显示在气泡左侧，非图片消息）
+                      if (isMine && !isImageMessage) ...[
+                        _buildMessageStatus(status, localId: localId),
+                        const SizedBox(width: 4),
+                      ],
                       // 绘制一个直角三角形
                       isMine || isImageMessage
                           ? Container()
@@ -1242,16 +1247,13 @@ class _ChatPageState extends State<ChatPage> {
                                 ],
                               ),
                             ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
 
-              // 发送状态（我的消息显示在右侧，非图片消息）
-              if (isMine && !isImageMessage) ...[
-                const SizedBox(width: 4),
-                _buildMessageStatus(status, localId: localId),
-              ],
+              
 
               if (isMine) ...[const SizedBox(width: 8)],
             ],

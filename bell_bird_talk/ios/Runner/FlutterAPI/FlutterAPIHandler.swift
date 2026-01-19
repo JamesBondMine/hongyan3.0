@@ -56,6 +56,13 @@ class FlutterAPIHandler {
            method.hasPrefix("imGetIP") || method.hasPrefix("imAddTarget") {
             imsdkHandler.handle(call, result: result)
         }
+        // 消息管理
+        else if method.hasPrefix("imSend") || method.hasPrefix("imPull") ||
+                method.hasPrefix("imDeleteMessage") ||
+                method.hasPrefix("imRegisterMessageCallbacks") ||
+                method.hasPrefix("imUnregisterMessageCallbacks") {
+            messageHandler.handle(call, result: result)
+        }
         // 认证相关
         else if method.hasPrefix("imRegister") || method.hasPrefix("imLogin") || 
                 method.hasPrefix("imLogout") || method.hasPrefix("imGetCaptcha") ||
@@ -85,12 +92,7 @@ class FlutterAPIHandler {
                 method.hasPrefix("imPullNotifications") || method.hasPrefix("imMarkNotification") {
             conversationHandler.handle(call, result: result)
         }
-        // 消息管理
-        else if method.hasPrefix("imSend") || method.hasPrefix("imPull") ||
-                method.hasPrefix("imDeleteMessage") || method.hasPrefix("imRegisterMessage") ||
-                method.hasPrefix("imUnregisterMessage") {
-            messageHandler.handle(call, result: result)
-        }
+        
         // 群组管理
         else if method.hasPrefix("imCreateGroup") || method.hasPrefix("imGetGroup") ||
                 method.hasPrefix("imUpdateGroup") || method.hasPrefix("imDissolveGroup") ||

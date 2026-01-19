@@ -916,7 +916,33 @@ class _ChatListPageState extends State<ChatListPage> {
           child: _userHeadImgView(avatar ?? '', nickname, userId),
         ),
       ),
-      title: Text('聊天'.tr),
+      title: Obx(() {
+        final globalController = Get.find<GlobalController>();
+        final networkStatus = globalController.networkStatus.value;
+        final isConnected = globalController.isWsConnected.value;
+        
+        return Row(
+          children: [
+            Text('聊天'.tr),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: isConnected ? Colors.green : Colors.orange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                networkStatus,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
       centerTitle: false,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
