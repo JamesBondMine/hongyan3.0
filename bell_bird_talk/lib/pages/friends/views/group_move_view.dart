@@ -4,6 +4,7 @@ import 'package:bell_bird_talk/controllers/friend_controller.dart';
 import 'package:bell_bird_talk/pages/models/friend_model.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/state_manager.dart';
@@ -25,31 +26,8 @@ class GroupMoveView extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
-      appBar: AppBar(
-        // title: Text("移动群组"),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsetsGeometry.only(right: 5),
-                child: Icon(Icons.arrow_back_ios),
-              ),
-              Text(
-                '调整分组',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: GbsColors.titleColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      backgroundColor: GbsColors.lightBackgroundB,
+      appBar: CommonAppBarView(title: '调整分组', appBarType: AppBarType.sheetbackAndClose,backgroundColor: GbsColors.lightBackgroundB,),
       body: FutureBuilder(
         future: _loadContactGroups(),
         builder: (context, AsyncSnapshot<List<FriendGroup>> snapshot) {

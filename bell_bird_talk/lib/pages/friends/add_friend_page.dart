@@ -432,8 +432,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
       final result = await _nativeService.imUnblockContact(userId: userId);
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
+        if (mounted) {
+          setState(() {
+            
+          });
+        }
         EasyLoading.showSuccess('已取消黑名单');
-        _searchUser();
       } else {
         EasyLoading.showError(result['message'] ?? '操作失败');
       }

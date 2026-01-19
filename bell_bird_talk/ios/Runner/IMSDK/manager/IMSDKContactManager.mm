@@ -527,12 +527,6 @@ static void BlackStatusCallback(int errorCode, const char* data, int dataLen, ui
 - (int)getBlackStatusWithUserId:(NSString *)userId
                       completion:(IMSDKContactCompletion)completion {
     NSLog(@"🔍 获取黑名单状态: userId=%@", userId);
-    
-    if (!userId || userId.length == 0) {
-        NSLog(@"❌ 用户ID不能为空");
-        return -1;
-    }
-    
     // 创建 BlockCheck 对象
     BlockCheck *blockCheck = [[BlockCheck alloc] init];
     blockCheck.targetUserId = userId;

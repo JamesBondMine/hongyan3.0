@@ -86,7 +86,7 @@ class CommunityController extends GetxController {
         communityList.value = cachedCommunities;
       }
 
-      final result = await _nativeService.imGetCommunityList(
+      final result = await _nativeService.community.getCommunityList(
         page: page,
         pageSize: pageSize,
       );
@@ -132,7 +132,7 @@ class CommunityController extends GetxController {
     bool success = false;
     try {
       EasyLoading.show();
-      final result = await _nativeService.imJoinCommunity(cmtyId: cmtyId);
+      final result = await _nativeService.community.joinCommunity(cmtyId: cmtyId);
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         success = true;
@@ -155,7 +155,7 @@ class CommunityController extends GetxController {
     bool success = false;
     try {
       EasyLoading.show();
-      final result = await _nativeService.imLeaveCommunity(cmtyId: cmtyId);
+      final result = await _nativeService.community.leaveCommunity(cmtyId: cmtyId);
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         success = true;
@@ -176,7 +176,7 @@ class CommunityController extends GetxController {
   /// @param cmtyId 社群ID
   Future<CommunityModel?> getCommunityInfo({required String cmtyId}) async {
     try {
-      final result = await _nativeService.imGetCommunityInfo(cmtyId: cmtyId);
+      final result = await _nativeService.community.getCommunityInfo(cmtyId: cmtyId);
 
       if (result['errorCode'] == 0) {
         // 解析社群信息
@@ -199,7 +199,7 @@ class CommunityController extends GetxController {
   Future<List<CmtGroupModel>> getChannelGroups(String cmtyId) async {
     try {
       final nativeService = IOSNativeService(); // Create new instance
-      final groupsResult = await nativeService.imGetCommunityGroups(
+      final groupsResult = await nativeService.community.getCommunityGroups(
         cmtyId: cmtyId,
       );
       if (groupsResult['errorCode'] != 0) {
@@ -225,7 +225,7 @@ class CommunityController extends GetxController {
   static Future<List<ChannelModel>> getChannel(String cmtyId) async {
     try {
       final nativeService = IOSNativeService(); // Create new instance
-      final channelsResult = await nativeService.imGetChannels(cmtyId: cmtyId);
+      final channelsResult = await nativeService.community.getChannels(cmtyId: cmtyId);
       if (channelsResult['errorCode'] != 0) {
         return [];
       }
@@ -251,10 +251,8 @@ class CommunityController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-
       // 1. 获取分组列表
       List<CmtGroupModel> groupsList = await getChannelGroups(cmtyId);
-
       if (groupsList.isEmpty) {
         return CommunityGChannels(
           categories: [],
@@ -269,7 +267,7 @@ class CommunityController extends GetxController {
         // 即使获取频道失败，也返回分组（频道为空）
         final result = _buildGroupsWithChannels(groupsList, []);
         return CommunityGChannels(
-          categories: [],
+          categories: groupsList,
           categoryIdMap: {},
           channels: result['channels'] as List<ChannelModel>,
         );
@@ -364,7 +362,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imCreateChannel(
+      final result = await _nativeService.community.createChannel(
         cmtyId: cmtyId,
         categoryId: categoryId,
         channelName: channelName,
@@ -406,7 +404,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imUpdateChannel(
+      final result = await _nativeService.community.updateChannel(
         channelId: channelId,
         channelName: channelName,
         pauseInvite: pauseInvite,
@@ -437,7 +435,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imDeleteChannel(channelId: channelId);
+      final result = await _nativeService.community.deleteChannel(channelId: channelId);
 
       if (result['errorCode'] == 0) {
         // 删除成功后，可以刷新分组和频道列表
@@ -461,7 +459,7 @@ class CommunityController extends GetxController {
   Future<bool> enterChannel({required String channelId}) async {
     try {
       isLoading.value = true;
-      final result = await _nativeService.imEnterChannel(channelId: channelId);
+      final result = await _nativeService.community.enterChannel(channelId: channelId);
       if (result['errorCode'] == 0) {
         return true;
       } else {
@@ -488,7 +486,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imCreateChannelGroup(
+      final result = await _nativeService.community.createChannelGroup(
         cmtyId: cmtyId,
         categoryName: categoryName,
       );
@@ -521,7 +519,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imUpdateChannelGroup(
+      final result = await _nativeService.community.updateChannelGroup(
         cmtyId: cmtyId,
         categoryId: categoryId,
         categoryName: categoryName,
@@ -553,7 +551,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imDeleteChannelGroup(
+      final result = await _nativeService.community.deleteChannelGroup(
         cmtyId: cmtyId,
         categoryId: categoryId,
       );
@@ -586,7 +584,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imGetCommunityMembers(
+      final result = await _nativeService.community.getCommunityMembers(
         cmtyId: cmtyId,
         page: page,
         pageSize: pageSize,
@@ -635,7 +633,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.imGetCommunityBannedMembers(
+      final result = await _nativeService.community.getCommunityBannedMembers(
         cmtyId: cmtyId,
         page: page,
         pageSize: pageSize,
@@ -685,7 +683,7 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
       EasyLoading.show();
-      final result = await _nativeService.imMuteCommunityMember(
+      final result = await _nativeService.community.muteCommunityMember(
         cmtyId: cmtyId,
         userId: userId,
         mute: mute,
@@ -718,7 +716,7 @@ class CommunityController extends GetxController {
       EasyLoading.show();
       isLoading.value = true;
 
-      final result = await _nativeService.imKickCommunityMember(
+      final result = await _nativeService.community.kickCommunityMember(
         cmtyId: cmtyId,
         userId: userId,
       );

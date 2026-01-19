@@ -91,7 +91,7 @@ class CommonAppBarView extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
                 Spacer(),
-                btn!,
+                btn ?? Container(),
               ],
             ),
           ),

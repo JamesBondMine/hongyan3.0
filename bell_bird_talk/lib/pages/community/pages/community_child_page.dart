@@ -81,6 +81,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           .getCommunityGroupsWithChannels(cmtyId: cmty.id);
       EasyLoading.dismiss();
       setState(() {
+        _expandedCategory = '';
         groupsWithChannels = result;
       });
     } catch (e) {

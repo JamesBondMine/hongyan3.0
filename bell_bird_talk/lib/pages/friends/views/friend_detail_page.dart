@@ -169,7 +169,8 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
       400,
       Container(
         width: Get.width,
-        padding: EdgeInsets.all(16),
+        // padding: EdgeInsets.all(16),
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: GbsColors.lightBackgroundB,
           borderRadius: BorderRadius.only(
@@ -350,7 +351,7 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
 
               // 如果有备注，显示原昵称
               if (_friend.remark != null &&
-                  _friend.remark!.isNotEmpty &&
+                  _friend.remark.isNotEmpty &&
                   _friend.remark != _friend.nickname)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),

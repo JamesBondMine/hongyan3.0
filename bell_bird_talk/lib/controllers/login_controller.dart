@@ -240,8 +240,6 @@ class LoginController extends GetxController {
           try {
             final dataMap = json.decode(dataStr) as Map<String, dynamic>;
             _captchaId = dataMap['captcha_id'] as String?;
-
-            print('📝 验证码ID: $_captchaId');
             success(_captchaId);
             return _captchaId ?? '';
           } catch (e) {
@@ -398,7 +396,7 @@ class LoginController extends GetxController {
 
     try {
       isLoading.value = true;
-      EasyLoading.show(status: '登录中...');
+      EasyLoading.show(status: '');
 
       // 调用原生密码登录
       final inviteCode = inviteCodeController.text.trim();
@@ -442,7 +440,7 @@ class LoginController extends GetxController {
 
     try {
       isLoading.value = true;
-      EasyLoading.show(status: '登录中...');
+      EasyLoading.show(status: '');
 
       final inviteCode = inviteCodeController.text.trim();
       print('📱 手机密码登录: phone=$phone, password=$password, inviteCode=$inviteCode');
@@ -480,24 +478,17 @@ class LoginController extends GetxController {
     }
     try {
       isLoading.value = true;
-      EasyLoading.show(status: '登录中...');
+      EasyLoading.show(status: '');
 
       // 调用原生短信登录
       final inviteCode = inviteCodeController.text.trim();
-      print('📱 短信登录: phone=$phone, code=$code, captchaId=$_captchaId, inviteCode=$inviteCode');
-      
       final result = await _nativeBridge.imLoginWithSMS(
         phone: phone,
         code: code,
         captchaId: _captchaId!,
         bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
-      
-      print('📱 短信登录结果: $result');
-      
       await _handleLoginResult(result, phone);
-
-      
     } catch (e) {
       print('登录错误: $e');
       EasyLoading.showError('登录失败，请稍后重试');
@@ -522,23 +513,15 @@ class LoginController extends GetxController {
 
     try {
       isLoading.value = true;
-      EasyLoading.show(status: '登录中...');
+      EasyLoading.show(status: '');
 
       final inviteCode = inviteCodeController.text.trim();
-      print('📧 邮箱密码登录: email=$email, password=$password, inviteCode=$inviteCode');
-      
       final result = await _nativeBridge.imLoginWithEmailPassword(
         email: email,
         password: password,
         bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
-      
-      print('📧 邮箱密码登录结果: $result');
-      
       await _handleLoginResult(result, email);
-
-      
-      
     } catch (e) {
       print('登录错误: $e');
       EasyLoading.showError('登录失败，请稍后重试');
@@ -560,28 +543,18 @@ class LoginController extends GetxController {
       EasyLoading.showError('请输入验证码');
       return;
     }
-    // if (_captchaId == null) {
-    //   EasyLoading.showError('请先获取验证码');
-    //   return;
-    // }
-
     try {
       isLoading.value = true;
-      EasyLoading.show(status: '登录中...');
+      EasyLoading.show(status: '');
 
       // 调用原生邮箱登录
       final inviteCode = inviteCodeController.text.trim();
-      print('📧 邮箱登录: email=$email, code=$code, captchaId=$_captchaId, inviteCode=$inviteCode');
-      
       final result = await _nativeBridge.imLoginWithEmail(
         email: email,
         code: code,
         captchaId: _captchaId!,
         bizCode: inviteCode.isNotEmpty ? inviteCode : null,
       );
-      
-      print('📧 邮箱登录结果: $result');
-      
       await _handleLoginResult(result, email);
       
     } catch (e) {
@@ -597,8 +570,6 @@ class LoginController extends GetxController {
     if (result['errorCode'] == 0) {
       // 解析用户数据
       final data = result['data'];
-      print('📦 登录返回数据: $data');
-      
       // 尝试解析用户信息
       UserModel? user;
       String token = "";
@@ -608,21 +579,13 @@ class LoginController extends GetxController {
         try {
           // 解析 JSON 数据
           final dataMap = json.decode(data) as Map<String, dynamic>;
-          print('📝 登录返回数据解析: $dataMap');
-
-
-          print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 登录原始信息: Token=${dataMap['token']  ?? ''}");
-          
           // 获取 token
           token = dataMap['token']  ?? '';
           refresh_token = dataMap['refresh_token']  ?? '';
-    
-          
           // 获取用户信息
           final userMap = dataMap['user'] as Map<String, dynamic>?;
           if (userMap != null) {
             user = UserModel.fromJson(userMap);
-            print('👤 用户信息: ${user.nickname}');
             String userId = user.id ;
       if (userId.isNotEmpty) {
         GlobalController.to.logMyPublicInfo(userId);
@@ -646,10 +609,6 @@ class LoginController extends GetxController {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
-
-      print(" ⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 解析登录信息: Token=$token");
-      
       // 保存登录信息
       await _globalCtrl.saveLoginInfo(token, refresh_token, user);
       
@@ -724,7 +683,7 @@ class LoginController extends GetxController {
   /// 重置密码
   Future<void> resetPassword(String phone, String email, String code, String password, String captchaId) async {
 
-    EasyLoading.show(status: '正在重置密码...');
+    EasyLoading.show(status: '');
 
     try {
       final result = await _nativeBridge.imResetPassword(
@@ -734,8 +693,6 @@ class LoginController extends GetxController {
         captchaId: captchaId,
         newPassword: password,
       );
-      
-      print('🔐 重置密码结果: $result');
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         EasyLoading.showSuccess('密码重置成功');
