@@ -458,8 +458,6 @@ static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
 
 /// 发送网络事件到 Flutter
 - (void)sendNetworkEventToFlutter:(uint8_t)eventCode description:(NSString *)description {
-    NSLog(@"📱 发送网络事件到 Flutter: code=%d, desc=%@", eventCode, description);
-    
     // 获取主应用的 FlutterViewController
     UIViewController *rootViewController = [UIApplication sharedApplication].delegate.window.rootViewController;
     FlutterViewController *flutterViewController = nil;

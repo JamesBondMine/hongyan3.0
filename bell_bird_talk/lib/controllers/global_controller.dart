@@ -401,12 +401,12 @@ class GlobalController extends GetxController {
         networkStatus.value = '认证中';
         isWsConnected.value = false;
         break;
-      case 6:
-        networkStatus.value = '已认证';
+      case 6:// 正常状态
+        networkStatus.value = '';
         isWsConnected.value = true;
         break;
-      case 7:
-        networkStatus.value = '认证失败';
+      case 7:// 正常状态
+        networkStatus.value = '';
         isWsConnected.value = false;
         break;
       default:

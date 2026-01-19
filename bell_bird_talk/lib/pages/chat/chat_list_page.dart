@@ -925,7 +925,7 @@ class _ChatListPageState extends State<ChatListPage> {
           children: [
             Text('聊天'.tr),
             const SizedBox(width: 8),
-            Container(
+            if (networkStatus.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: isConnected ? Colors.green : Colors.orange,
