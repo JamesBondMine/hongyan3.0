@@ -41,6 +41,7 @@ message App {
   string app_id = 1;            // 应用ID（必填，最大长度50字符）
   string app_name = 2;          // 应用名称（必填，最大长度100字符）
   string app_description = 3;   // 应用描述（可选，最大长度500字符）
+  string invite_host = 23;      // 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式，如：admin.im.com）
   AppStatus status = 4;         // 应用状态（必填）
   
   // ========== 认证信息（必填） ==========
@@ -118,6 +119,7 @@ message UpdateApp {
   string app_id = 1;            // 应用ID（必填，最大长度50字符）
   string app_name = 2;          // 应用名称（可选，最大长度100字符）
   string app_description = 3;   // 应用描述（可选，最大长度500字符）
+  string invite_host = 14;      // 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式）
   string client_config = 4;     // 客户端配置（可选，JSON格式）
   string server_config = 5;     // 服务端配置（可选，JSON格式）
   string storage_config = 6;    // 存储配置（可选，JSON格式）

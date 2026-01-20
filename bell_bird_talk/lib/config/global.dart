@@ -11,6 +11,10 @@ import 'package:get/get.dart';
 
 class Global {
   final shower = Shower();
+
+  // 主域名
+  static String mainDomain = 'loadingworks.com';
+
   static Future init(VoidCallback callback) async {
 
     // 确保 Flutter 绑定初始化

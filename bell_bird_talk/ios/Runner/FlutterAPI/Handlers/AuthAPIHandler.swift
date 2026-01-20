@@ -37,6 +37,8 @@ class AuthAPIHandler {
         case "imResetPassword":
             imResetPassword(call: call, result: result)
         // 用户信息
+        case "networkSetHttpdnsParams":
+            networkSetHttpdnsParams(call: call, result: result)
         case "imUpdateUserInfo":
             imUpdateUserInfo(call: call, result: result)
         case "imGetUsersInfo":
@@ -172,6 +174,34 @@ class AuthAPIHandler {
         
         // 登录类型
         loginDict["login_type"] = loginType
+        if let inviteCode = args["invite_code"] as? String {
+            loginDict["invite_code"] = inviteCode
+        }
+        if let domain = args["domain"] as? String {
+            loginDict["domain"] = domain
+        }
+        if let businessCode = args["business_code"] as? String {
+            loginDict["business_code"] = businessCode
+            loginDict["biz_code"] = businessCode
+        }
+        
+//        0 =
+//        "login_type" -> "password"
+//        1 =
+//        "account_id" -> "15701594500"
+//        2 =
+//        "password" -> "aa123451"
+//        3 =
+//        "phone" -> "15701594500"
+//        4 =
+//        "invite_code" -> "222222"
+//        5 =
+//        "domain" -> "222222.loadingworks.com"
+//        6 =
+//        "business_code" -> ""
+//        7 =
+//        "biz_code" -> ""
+        
         
         // 根据登录类型设置必要字段
         switch loginType {
@@ -227,29 +257,27 @@ class AuthAPIHandler {
             print("📋 邮箱登录: email=\(loginDict["email"] ?? "nil")")
             
         default:
-            // 兼容旧的 userId + token 方式
-            if let userId = args["userId"] as? String, let token = args["token"] as? String {
-                let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
-                    result([
-                        "errorCode": errorCode,
-                        "reqId": reqId,
-                        "message": errorCode == 0 ? "登录成功" : "登录失败",
-                        "data": data ?? ""
-                    ])
-                }
-                if code != 0 {
-                    result(FlutterError(code: "LOGIN_ERROR", message: "登录请求发送失败: \(code)", details: nil))
-                }
-                return
-            }
+            break
+//            // 兼容旧的 userId + token 方式
+//            if let userId = args["userId"] as? String, let token = args["token"] as? String {
+//                let code = IMSDKAuthManager.shared().login(withUserId: userId, token: token) { errorCode, reqId, data in
+//                    result([
+//                        "errorCode": errorCode,
+//                        "reqId": reqId,
+//                        "message": errorCode == 0 ? "登录成功" : "登录失败",
+//                        "data": data ?? ""
+//                    ])
+//                }
+//                if code != 0 {
+//                    result(FlutterError(code: "LOGIN_ERROR", message: "登录请求发送失败: \(code)", details: nil))
+//                }
+//                return
+//            }
         }
         
         // 可选字段
         if let deviceId = args["device_id"] as? String {
             loginDict["device_id"] = deviceId
-        }
-        if let bizCode = args["biz_code"] as? String {
-            loginDict["biz_code"] = bizCode
         }
         if let clientIp = args["client_ip"] as? String {
             loginDict["client_ip"] = clientIp
@@ -740,6 +768,33 @@ class AuthAPIHandler {
             result(FlutterError(code: "BATCH_GET_USER_PUBLIC_INFO_ERROR",
                               message: "批量获取用户公开信息请求发送失败",
                               details: nil))
+        }
+    }
+    
+    // MARK: - 网络相关
+    
+    /// 设置 HTTP DNS 参数
+    /// 参数说明：
+    /// - invite_code: 邀请码
+    /// - domain: 域名
+    /// - business_code: 业务代码
+    private func networkSetHttpdnsParams(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "参数错误", details: nil))
+            return
+        }
+        
+        let inviteCode = args["invite_code"] as? String ?? ""
+        let domain = args["domain"] as? String ?? ""
+        let businessCode = args["business_code"] as? String ?? ""
+        // 调用 IMSDKAuthManager 设置 HTTP DNS 参数
+        IMSDKAuthManager.shared().setHttpDnsParamsWithInviteCode(inviteCode, domain: domain, businessCode: businessCode){ errorCode, message in
+            print("🌐 设置 HTTP DNS 参数回调: errorCode=\(errorCode), message=\(message ?? "")")
+            
+            result([
+                "errorCode": errorCode,
+                "message": message ?? (errorCode == 0 ? "设置成功" : "设置失败")
+            ])
         }
     }
 }

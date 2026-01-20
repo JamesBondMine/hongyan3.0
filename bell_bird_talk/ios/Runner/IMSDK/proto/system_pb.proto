@@ -89,13 +89,13 @@ message AreaCodeList {
 // 会话类型枚举（共享枚举，避免循环依赖）
 // ====================================
 
-// 会话类型（单聊/群聊/系统/社区）
+// 会话类型（单聊/群聊/系统/社区/频道）
 enum ConversationType {
   ALL = 0;         // 查询所有类型（protobuf 要求第一个值必须是 0）
   SINGLE = 1;      // 单聊
   GROUP = 2;       // 群聊
   SYSTEM = 3;     // 系统
-  CMTY = 4;  // 社群
+  CMCH = 4;       // 社群
 }
 
 // ====================================
@@ -118,4 +118,33 @@ message IpLocationResponse {
   string region = 7;           // 地区信息（可选）
   string city = 8;             // 城市信息（可选）
   bool found = 9;              // 是否找到定位信息
+}
+
+// ====================================
+// 角色信息 - 核心领域对象
+// ====================================
+
+// 权限配置 - 用于方法粒度控制
+// 存储角色的权限详细配置，支持全局配置和方法级配置
+message PermissionConfig {
+  string method_name = 1;        // 方法名（可选，为空表示全局配置，如 "sendMessage", "viewChannel"）
+  map<string, string> attributes = 2;  // 权限属性（必填，JSON格式的键值对，如消息类型限制、频道限制等）
+  string status = 3;            // 状态（可选，如 "active", "inactive"）
+  int64 expire_time = 4;        // 到期时间（可选，Unix时间戳，单位：秒，-1表示永久）
+  string config_desc = 5;       // 配置描述（可选）
+}
+
+// 角色信息 - 核心领域对象
+// 用于表示用户在某个资源（如社群、群组等）中的角色
+message Role {
+  string code = 1;              // 角色代码（必填，如 "cmty_owner", "cmty_member"）
+  string name = 2;              // 角色名称（可选，如 "社群管理员", "普通成员"）
+  int64 expire_time = 3;        // 到期时间（可选，Unix时间戳，单位：秒，-1表示永久）
+  string assigned_by = 4;       // 分配者用户ID（可选）
+  int64 assigned_time = 5;      // 分配时间（可选，Unix时间戳，单位：秒）
+  int64 created_at = 6;         // 创建时间（可选，Unix时间戳，单位：秒）
+  int64 updated_at = 7;         // 更新时间（可选，Unix时间戳，单位：秒）
+  string status = 8;            // 状态（可选，如 "active", "inactive"）
+  string description = 9;       // 角色描述（可选）
+  repeated PermissionConfig permission_configs = 10;  // 权限配置列表（可选，支持方法粒度控制，包含全局配置和方法级配置）
 }

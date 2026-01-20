@@ -66,14 +66,10 @@ enum InviteCodeStatus {
   DISABLED = 1;   // 禁用状态 - 暂时不可用
   EXPIRED = 2;    // 过期状态 - 超过有效期
   EXHAUSTED = 3;  // 已用尽 - 达到使用次数限制
+  INVALID = 4;     // 失效
+  BANNED = 5;      // 封禁
 }
 
-//绑定类型枚举
-enum BindType {
-  NO_BIND = 0;        // 不绑定（默认值）
-  BIND_GROUP = 1;     // 绑定群组
-  BIND_CMTY = 2;      // 绑定社群
-}
 
 //邀请码来源类型枚举
 enum InviteSourceTypeEnum {
@@ -88,22 +84,30 @@ enum InviteSourceTypeEnum {
 //邀请码 - 核心领域对象
 message InviteCode {
   int64 id = 1;                          // ID（返回字段，系统自动生成）
-  string biz_code = 2;                    // 邀请码（必填）
-  int64 creator_id = 3;                   // 创建者ID（必填）
-  InviteCodeStatus status = 4;            // 状态（必填，使用枚举类型）
-  int32 is_default = 5;                   // 是否默认标识（可选，1默认）
-  int64 bind_member_id = 6;               // 绑定的会员ID（可选）
-  int64 bind_group_id = 7;                // 绑定的群组ID（可选）
-  BindType bind_type = 8;                 // 绑定类型（必填，使用枚举类型）
-  int64 bind_community_id = 9;           // 绑定的社区ID（可选）
-  int64 bind_channel_id = 10;             // 绑定的渠道ID（可选）
-  string created_at = 11;                 // 创建时间（返回字段，系统自动生成）
-  string updated_at = 12;                 // 更新时间（返回字段，系统自动更新）
-  string app_id = 13;                     // 应用标识（必填）
-  string bind_member = 14;                // 绑定的成员（返回字段）
-  string bind_group = 15;                 // 绑定的群组（返回字段）
-  string bind_community = 16;             // 绑定的社群（返回字段）
-  int32 link_count = 17;                 // 链接数（返回字段）
+  string app_id = 2;                     // 应用标识（必填）
+  string biz_code = 3;                   // 业务邀请码（必填，6-8位Base62）
+  string system_code = 4;                // 系统邀请码（可选，4位Base62，用于URL）
+  string source_id = 5;                  // 来源ID（必填，用户ID、群组ID等）
+  string source_name = 6;                // 来源名称（可选）
+  optional InviteCodeStatus status = 7;           // 状态（必填，使用枚举类型）
+  int32 max_use_count = 8;               // 最大使用次数（可选，0表示无限制）
+  int32 current_use_count = 9;           // 当前使用次数（返回字段）
+  int64 expire_time = 10;                // 过期时间（可选，0表示永不过期，毫秒时间戳）
+  string description = 11;               // 描述（可选）
+  bool paused = 12;                      // 是否暂停（返回字段）
+  optional bool is_default = 13;         // 是否默认邀请码（返回字段）
+  InviteSourceTypeEnum source_type = 14; // 来源类型（必填，使用枚举类型）
+  optional string auto_actions = 15;     // 自动操作策略（JSON格式），如：[{"type":"JOIN_GROUP","id":"xxx"}]
+  string creator_user_id = 16;           // 创建者用户ID（可选）
+  int64 create_time = 17;               // 创建时间（返回字段，系统自动生成）
+  int64 update_time = 18;               // 更新时间（返回字段，系统自动更新）
+}
+
+//业务邀请码类型枚举
+enum InviteCodeTypeEnum {
+  ONE_TIME = 0;     // 一次性
+  TIME_LIMITED = 1; // 限时
+  PERMANENT = 2;    // 永久
 }
 
 //邀请码条件查询 - 查询操作
@@ -113,11 +117,14 @@ message InvInviteCodeQuery {
   optional string start_time = 3;             // 开始时间（可选，格式：yyyy-MM-dd HH:mm:ss）
   optional string end_time = 4;              // 结束时间（可选，格式：yyyy-MM-dd HH:mm:ss）
   optional InviteCodeStatus status = 5;        // 状态（可选，使用枚举类型）
-  optional BindType bind_type = 6;             // 绑定类型（可选，使用枚举类型）
-  optional string bind_member = 7;            // 绑定成员（可选）
-  optional string bind_group = 8;             // 绑定群组（可选）
-  optional string bind_community = 9;         // 绑定社群（可选）
-  com.cloud.im.common.core.system.Page page = 10;  // 分页参数（使用系统类型）
+  optional InviteSourceTypeEnum source_type = 6; // 来源类型（可选，使用枚举类型）
+  optional string source_id = 7;              // 来源ID（可选）
+  com.cloud.im.common.core.system.Page page = 8;  // 分页参数（使用系统类型）
+  optional string system_code = 9;  // 系统邀请码（可选）
+  optional InviteCodeTypeEnum code_type = 11;  // 业务邀请码类型枚举
+  optional string bind_user = 12;  // 绑定的成员（可选）
+  optional string bind_group = 13;  // 绑定的群（可选）
+  optional string bind_community = 14;  // 绑定的社群（可选）
 }
 
 //邀请码操作结果 - 结果对象
@@ -134,63 +141,6 @@ message InvList {
   int32 total_count = 2;                 // 总数量（返回字段）
 }
 
-//邀请链接类型枚举
-enum InvitationLinkType {
-  LIMITED_TIME = 0;    // 限时（默认值）
-  PERMANENT = 1;       // 永久
-  ONE_TIME = 2;        // 一次性
-}
-
-//邀请链接状态枚举
-enum InvitationLinkStatus {
-  NORMAL = 0;          // 正常（默认值）
-  INVALID = 1;         // 失效
-  BANNED = 2;          // 封禁
-  EXPIRED = 3;         // 过期
-}
-
-//邀请链接 - 核心领域对象
-message InvitationLink {
-  int64 id = 1;                        // 主键ID（返回字段，系统自动生成）
-  string link_id = 2;                  // 链接id（必填）
-  string link_url = 3;                 // 链接url（必填）
-  string biz_code = 4;                 // 关联邀请码（必填）
-  InvitationLinkType link_type = 5;     // 链接类型（必填，使用枚举类型）
-  InvitationLinkStatus status = 6;      // 状态（必填，使用枚举类型）
-  string expire_at = 7;                // 过期时间（可选）
-  string remark = 8;                   // 备注（可选，最大长度500字符）
-  int64 created_by = 9;                // 创建者（必填）
-  string created_at = 10;              // 创建时间（返回字段，系统自动生成）
-  string updated_at = 11;              // 更新时间（返回字段，系统自动更新）
-  int32 time_num = 12;                 // 时间值（可选）
-  string time_type = 13;               // 时间维度（可选，hour/minute/day）
-}
-//邀请链接条件查询 - 查询操作
-message InvInvitationLinkQuery {
-  optional string link_id = 1;                // 链接id（可选，用于更新操作）
-  optional string biz_code = 2;               // 关联邀请码（可选）
-  optional InvitationLinkType link_type = 3;    // 链接类型（可选，使用枚举类型）
-  optional InvitationLinkStatus status = 4;     // 状态（可选，使用枚举类型）
-  optional string start_time = 5;              // 开始时间（可选，格式：yyyy-MM-dd HH:mm:ss）
-  optional string end_time = 6;                // 结束时间（可选，格式：yyyy-MM-dd HH:mm:ss）
-  com.cloud.im.common.core.system.Page page = 7;  // 分页参数（使用系统类型）
-}
-
-
-//邀请链接操作结果 - 结果对象
-message InvInvitationLinkResult {
-  bool successful = 1;                  // 是否成功（返回字段）
-  InvitationLink invite_code_link = 2; // 邀请链接信息（返回字段，成功时返回）
-  string reason = 3;                   // 失败原因（返回字段，失败时返回）
-}
-
-
-
-// 邀请码链接列表 - 结果对象
-message InvListLink {
-  repeated InvitationLink invitation_links = 1; // 邀请码链接列表（返回字段）
-  int32 total_count = 2;                         // 总数量（返回字段）
-}
 
 
 // 邀请使用记录 - 核心领域对象
@@ -282,7 +232,7 @@ message InvGetSupportedTypes {
   // 空请求
 }
 
-// 注意：InvInviteCodeQuery 和 InvInvitationLinkQuery 已在上面定义，此处不再重复定义
+// 注意：InvInviteCodeQuery 已在上面定义
 
 // 我的邀请统计查询 - 查询操作
 // 用于获取个人视角的邀请统计
@@ -423,14 +373,13 @@ message InvSupportedTypes {
 message InvMyInviteStats {
   InviteSourceTypeEnum source_type = 1;  // 来源类型（返回字段，使用枚举类型）
   string source_id = 2;                        // 来源ID（返回字段）
-  bool has_invite_link = 3;                    // 是否有邀请链接（返回字段）
-  InviteCodeStatus status = 4;                 // 邀请码状态（返回字段，使用枚举类型）
-  int64 expire_at = 5;                         // 过期时间（返回字段，毫秒时间戳）
-  int32 invited_member_count = 6;              // 我邀请加入的成员数量（返回字段）
-  int32 total_invited_count = 7;               // 总邀请次数（返回字段，历史累计）
-  int32 today_invited_count = 8;               // 今日邀请次数（返回字段）
-  int32 week_invited_count = 9;                // 本周邀请次数（返回字段）
-  int32 month_invited_count = 10;              // 本月邀请次数（返回字段）
+  InviteCodeStatus status = 3;                 // 邀请码状态（返回字段，使用枚举类型）
+  int64 expire_at = 4;                         // 过期时间（返回字段，毫秒时间戳）
+  int32 invited_member_count = 5;              // 我邀请加入的成员数量（返回字段）
+  int32 total_invited_count = 6;               // 总邀请次数（返回字段，历史累计）
+  int32 today_invited_count = 7;               // 今日邀请次数（返回字段）
+  int32 week_invited_count = 8;                // 本周邀请次数（返回字段）
+  int32 month_invited_count = 9;               // 本月邀请次数（返回字段）
 }
 
 // 用户邀请统计 - 核心领域对象
@@ -451,18 +400,15 @@ message InvAdminInviteStats {
   string source_id = 2;                        // 来源ID（返回字段）
 
   // 整体统计
-  int32 total_invite_links = 3;                // 总邀请链接数（返回字段）
-  int32 valid_invite_links = 4;                // 有效邀请链接数（返回字段）
-  int32 expired_invite_links = 5;              // 已过期邀请链接数（返回字段）
-  int32 total_invited_members = 6;             // 通过邀请加入的总成员数（返回字段）
+  int32 total_invited_members = 3;             // 通过邀请加入的总成员数（返回字段）
 
   // 时间维度统计
-  int32 today_invited_count = 7;               // 今日邀请加入的成员数（返回字段）
-  int32 week_invited_count = 8;                // 本周邀请加入的成员数（返回字段）
-  int32 month_invited_count = 9;               // 本月邀请加入的成员数（返回字段）
+  int32 today_invited_count = 4;               // 今日邀请加入的成员数（返回字段）
+  int32 week_invited_count = 5;                // 本周邀请加入的成员数（返回字段）
+  int32 month_invited_count = 6;               // 本月邀请加入的成员数（返回字段）
 
   // 按用户维度统计（可选）
-  repeated UserInviteStats user_stats = 10;    // 每个用户的邀请统计（返回字段，可选，按邀请数量排序）
+  repeated UserInviteStats user_stats = 7;    // 每个用户的邀请统计（返回字段，可选，按邀请数量排序）
 }
 
 // 批量删除结果 - 结果对象
@@ -479,4 +425,46 @@ message InvBatchExpireResult {
   int32 success_count = 2;          // 成功数量（返回字段）
   int32 failed_count = 3;           // 失败数量（返回字段）
   repeated string failed_codes = 4; // 失败的邀请码列表（返回字段）
+}
+
+// ============ 业务暂停相关消息 ============
+
+// 暂停业务邀请请求 - 操作对象
+message InvPauseBusinessRequest {
+  string source_type = 1;            // 来源类型：CMTY/GROUP/USER等（必填）
+  string source_id = 2;              // 业务ID：cmtyId/groupId/userId等（必填）
+  string paused_by = 3;              // 操作者（必填）
+  string reason = 4;                 // 暂停原因（可选）
+  bool pause_all_codes = 5;          // 是否同时暂停该业务下的所有邀请码（可选，默认true）
+}
+
+// 暂停业务邀请响应 - 结果对象
+message InvPauseBusinessResponse {
+  bool success = 1;                  // 是否成功（返回字段）
+  int32 paused_codes_count = 2;      // 暂停的邀请码数量（返回字段）
+  string reason = 3;                 // 失败原因（返回字段，失败时返回）
+}
+
+// 恢复业务邀请请求 - 操作对象
+message InvResumeBusinessRequest {
+  string source_type = 1;             // 来源类型：CMTY/GROUP/USER等（必填）
+  string source_id = 2;               // 业务ID：cmtyId/groupId/userId等（必填）
+  string resumed_by = 3;             // 操作者（必填）
+  bool resume_all_codes = 4;         // 是否同时恢复该业务下的所有邀请码（可选，默认true）
+}
+
+// 恢复业务邀请响应 - 结果对象
+message InvResumeBusinessResponse {
+  bool success = 1;                   // 是否成功（返回字段）
+  int32 resumed_codes_count = 2;      // 恢复的邀请码数量（返回字段）
+  string reason = 3;                 // 失败原因（返回字段，失败时返回）
+}
+
+// 业务暂停状态 - 核心领域对象
+message InvBusinessPauseStatus {
+  bool paused = 1;                    // 是否暂停（返回字段）
+  string paused_by = 2;               // 暂停操作者（返回字段）
+  int64 paused_at = 3;                // 暂停时间（返回字段，毫秒时间戳）
+  int64 resumed_at = 4;               // 恢复时间（返回字段，如果已恢复，毫秒时间戳）
+  string reason = 5;                  // 暂停原因（返回字段）
 }

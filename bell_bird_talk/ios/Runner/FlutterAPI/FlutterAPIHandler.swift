@@ -37,7 +37,7 @@ class FlutterAPIHandler {
         let method = call.method
         
         // 根据方法前缀分发到对应的处理器
-        if method.hasPrefix("im") {
+        if method.hasPrefix("im") || method.hasPrefix("network") {
             routeIMSDKMethod(call, result: result)
         } else {
             routeGeneralMethod(call, result: result)
@@ -64,7 +64,8 @@ class FlutterAPIHandler {
             messageHandler.handle(call, result: result)
         }
         // 认证相关
-        else if method.hasPrefix("imRegister") || method.hasPrefix("imLogin") || 
+        else if method.hasPrefix("imRegister") || method.hasPrefix("imLogin") ||
+                    method.hasPrefix("networkSetHttpdnsParams") ||
                 method.hasPrefix("imLogout") || method.hasPrefix("imGetCaptcha") ||
                 method.hasPrefix("imChangePassword") || method.hasPrefix("imResetPassword") ||
                 method.hasPrefix("imSearchUser") || method.hasPrefix("imUpdateUser") ||

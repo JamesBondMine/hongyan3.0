@@ -128,9 +128,13 @@ message getGroup {
 // 用于分页查询群组列表
 message listQuery {
   GroupType group_type = 1;               // 群组类型过滤（可选）
-  GroupStatus status = 2;                 // 群组状态过滤（可选）
+  optional GroupStatus status = 2;                 // 群组状态过滤（可选）
   string keyword = 3;                     // 搜索关键词（可选）
   com.cloud.im.common.core.system.Page page = 4; // 分页参数（使用系统类型）
+  optional string group_name = 5;                  // 群组名称（可选）
+  optional int64 start_time = 6;                   // 查询时间起（可选）
+  optional int64 end_time = 7;                     // 查询时间止（可选）
+  optional string group_owner = 8;                 // 群主名称（可选）
 }
 
 // 群组成员查询 - 查询操作

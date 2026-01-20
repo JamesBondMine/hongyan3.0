@@ -58,6 +58,8 @@ class RegisterInvatePageState extends State<RegisterInvatePage> {
                         EasyLoading.showError('请输入邀请码'.tr);
                         return;
                       }
+                      // 根据邀请码去寻址
+                      LoginController.to.refreshHttpDns();
                       Get.to(
                         () => RegisterPage(
                           invateCode: controller.inviteCodeController.text,

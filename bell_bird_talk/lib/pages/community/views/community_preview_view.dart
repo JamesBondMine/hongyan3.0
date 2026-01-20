@@ -1,24 +1,21 @@
-
-
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/state_manager.dart';
 
 // ignore: must_be_immutable
 class CommunityPreviewView extends StatelessWidget {
-
   final VoidCallback onConfirm;
   CommunityModel community;
-  
+
   CommunityPreviewView({
     super.key,
     required this.onConfirm,
     required this.community,
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +46,7 @@ class CommunityPreviewView extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(children: [
-        _buildCommunityCard(community)
-      ],)
+      body: Column(children: [_buildCommunityCard(community)]),
     );
   }
 
@@ -80,16 +75,13 @@ class CommunityPreviewView extends StatelessWidget {
       //   borderRadius: BorderRadius.circular(12),
       // ),
       child: InkWell(
-        onTap: () {
-         
-        },
+        onTap: () {},
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
- 
               // 内容
               Expanded(
                 child: Column(
@@ -100,107 +92,113 @@ class CommunityPreviewView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // 头像
-              Container(
-                width: 32,
-                height: 32,
-                margin: EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: community.avatar != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          community.avatar!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.group,
-                              color: Colors.blue[700],
-                              size: 30,
-                            );
-                          },
+                        Container(
+                          width: 32,
+                          height: 32,
+                          margin: EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child:
+                              community.avatar != null &&
+                                  community.avatar!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: community.avatar!,
+                                  width: 32,
+                                  fit: BoxFit.fill,
+                                  errorWidget: (context, url, error) {
+                                    return Image.asset(
+                                      width: 32,
+                                      height: 32,
+                                      'assets/img/community/cunty_member.png',
+                                    );
+                                  },
+                                )
+                              : Icon(
+                                  Icons.group,
+                                  color: Colors.blue[700],
+                                  size: 30,
+                                ),
                         ),
-                      )
-                    : Icon(
-                        Icons.group,
-                        color: Colors.blue[700],
-                        size: 30,
-                      ),
-              ),
                         Text(
-                            community.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: GbsColors.des1Color
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
+                          community.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: GbsColors.des1Color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
-                    
-           
+
                     // 描述
-                    Padding(padding: EdgeInsetsGeometry.only(top: 16, bottom: 16), child: Text(
-                      community.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: GbsColors.des6Color,
+                    Padding(
+                      padding: EdgeInsetsGeometry.only(top: 16, bottom: 16),
+                      child: Text(
+                        community.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: GbsColors.des6Color,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),),
-                    
-          
+                    ),
+
                     // 成员数和操作按钮
                     Container(
                       margin: EdgeInsets.only(bottom: 16),
-                      padding: EdgeInsetsGeometry.symmetric(horizontal: 32),child: Row(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(right: 4),
-                          width: 8,
-                          height: 8,
-                         decoration: BoxDecoration(
-                            color: GbsColors.lightPrimaryButton,
-                            borderRadius: BorderRadius.circular(4),
+                      padding: EdgeInsetsGeometry.symmetric(horizontal: 32),
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(right: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: GbsColors.lightPrimaryButton,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${community.memberCount}在线',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GbsColors.lightPrimaryButton,
+                          Text(
+                            '${community.memberCount}在线',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: GbsColors.lightPrimaryButton,
+                            ),
                           ),
-                        ),
-                        Spacer(),
-                        Container(
-                          margin: EdgeInsets.only(right: 4),
-                          width: 8,
-                          height: 8,
-                         decoration: BoxDecoration(
-                            color: GbsColors.des9Color,
-                            borderRadius: BorderRadius.circular(4),
+                          Spacer(),
+                          Container(
+                            margin: EdgeInsets.only(right: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: GbsColors.des9Color,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${community.maxMembers}成员',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: GbsColors.des9Color,
+                          Text(
+                            '${community.maxMembers}成员',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: GbsColors.des9Color,
+                            ),
                           ),
-                        )
-                      ],
-                    ),),
+                        ],
+                      ),
+                    ),
                     CommonButton(
                       enabled: true,
-                      text: '加入社群', onPressed: () {
+                      text: '加入社群',
+                      onPressed: () {
                         Get.back();
-                      onConfirm();
-                    }, fontSize: 16,),
+                        onConfirm();
+                      },
+                      fontSize: 16,
+                    ),
                   ],
                 ),
               ),
@@ -210,6 +208,4 @@ class CommunityPreviewView extends StatelessWidget {
       ),
     );
   }
-
-
 }

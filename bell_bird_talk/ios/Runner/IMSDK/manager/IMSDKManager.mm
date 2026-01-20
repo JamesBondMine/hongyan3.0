@@ -70,21 +70,7 @@
         network_set_event_callback(GlobalEventCallback);
         network_set_data_callback(GlobalDataCallback);
         
-        // 步骤4: 设置用户认证信息（从持久化存储中读取）
-        NSDictionary<NSString *, NSString *> *authInfo = [IMSDKAuthManager loadAuthInfo];
-        NSString *userId = authInfo[@"userId"];
-        NSString *token = authInfo[@"token"];
-        NSString *refreshToken = authInfo[@"refreshToken"];
-        
-        if (userId && token && refreshToken) {
-            set_user_auth_info([userId UTF8String], [token UTF8String], [refreshToken UTF8String]);
-            NSLog(@"✅ 已设置用户认证信息: userId=%@", userId);
-        } else {
-            NSLog(@"⚠️ 未找到持久化的认证信息，跳过设置");
-            // 如果没有持久化的认证信息，传递空字符串
-//            set_user_auth_info("", "", "");
-        }
-        
+       
         // 步骤4: 启动网络服务
         int startResult = network_start();
         if (startResult != 0) {
@@ -96,27 +82,52 @@
         g_initSemaphore = dispatch_semaphore_create(0);
         g_initResult = -1;
 
-        network_set_httpdns_params(
-                "222222",
-                "222222.loadingworks.com",           // domain_name - 要解析的域名
-                28,                                // type - 记录类型 (28 = AAAA记录)
-                nullptr,
-                nullptr,
-                nullptr
-            );
-
-            // 配置 HttpDns 服务器（可配置多个备份服务器）
-            network_add_httpdns_server("https://223.5.5.5/resolve");
+        // 配置 HttpDns 服务器（可配置多个备份服务器）
+        network_add_httpdns_server("https://223.5.5.5/resolve");
         
-        // 步骤5: 启动网络检测
-        int checkResult = network_start_net_check();
-        if (checkResult != 0) {
-            NSLog(@"⚠️ network_start_net_check 失败: %d（不影响初始化）", checkResult);
+        
+        // 步骤4: 设置用户认证信息（从持久化存储中读取）
+        NSDictionary<NSString *, NSString *> *authInfo = [IMSDKAuthManager loadAuthInfo];
+        NSString *userId = authInfo[@"userId"];
+        NSString *token = authInfo[@"token"];
+        NSString *refreshToken = authInfo[@"refreshToken"];
+        
+        if (userId && token && refreshToken) {
+            // 将参数保存到 NSUserDefaults
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            NSDictionary * dic = [defaults objectForKey:@"IMSDK_HttpDnsParams"] ?: @{};
+            NSString *inviteCode = [dic objectForKey:@"invite_code"] ?: @"";
+            NSString *domain = [dic objectForKey:@"domain"] ?: @"";
+            NSString *businessCode = [dic objectForKey:@"business_code"] ?: @"";
+            
+            int loadToken = set_user_auth_info(
+                [userId UTF8String],
+                [token UTF8String],
+                [refreshToken UTF8String],
+                [inviteCode UTF8String],
+                [domain UTF8String],
+                [businessCode UTF8String]
+            );
+            if (loadToken != 0) {
+                NSLog(@"❌ 设置用户认证信息异常: userId=%@", userId);
+                NSLog(@"❌ 设置用户认证信息异常: token=%@", token);
+                NSLog(@"❌ 设置用户认证信息异常: refreshToken=%@", refreshToken);
+                NSLog(@"❌ 设置用户认证信息异常: inviteCode=%@", inviteCode);
+                NSLog(@"❌ 设置用户认证信息异常: domain=%@", domain);
+                NSLog(@"❌ 设置用户认证信息异常: businessCode=%@", businessCode);
+                return loadToken;
+            }
+            NSLog(@"✅ 已设置用户认证信息: userId=%@", userId);
+        } else {
+            NSLog(@"⚠️ 未找到持久化的认证信息，跳过设置");
+            // 如果没有持久化的认证信息，传递空字符串
+//            set_user_auth_info("", "", "");
         }
+        
         
         // 等待初始化成功回调（event_code = 6），超时时间 10 秒
         NSLog(@"⏳ 等待 SDK 初始化成功回调 (event_code=6)...");
-        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 20 * NSEC_PER_SEC);
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
         long waitResult = dispatch_semaphore_wait(g_initSemaphore, timeout);
         
         if (waitResult == 0) {

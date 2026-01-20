@@ -66,12 +66,14 @@ NET_API int network_add_httpdns_servers(const char** urls, int count);
  * 
  * @param domain_name 要解析的域名 (name 参数)
  * @param type 记录类型，如 28 (AAAA记录)
+ * @param user_domain 用户域名（可选，可为 null）
  * @param uid 账户ID (uid 参数)默认为空
  * @param api_key AccessKey ID (ak 参数)默认为空
  * @param key_secret 签名密钥 (sign_key)，用于生成签名
  * @return 0 表示成功
  */
-NET_API int network_set_httpdns_params(const char *invite_code, const char* domain_name, int type, const char* uid, const char* api_key, const char* key_secret);
+NET_API int network_set_httpdns_params(const char *invite_code, const char* domain_name, const char* user_domain,
+                                        int type, const char* uid, const char* api_key, const char* key_secret);
 
 /**
  * 手动添加加速节点（用于测试或手动配置）
@@ -191,26 +193,63 @@ NET_API void registe_system_message_listener(CB_S_I cCallback);
 NET_API void registe_command_message_listener(CB_I_S_I cCallback);
 
 /**
- * 用户登录
+ * 用户登录（自动处理网络连接和登录流程）
+ * 
+ * 此接口整合了网络初始化和登录流程：
+ * 1. 从 AuthUser 数据中解析 invite_code
+ * 2. 使用 invite_code 和 domain_name 设置 HttpDns 参数
+ * 3. 启动 HttpDns 解析和节点竞速
+ * 4. 等待 MQTT 连接成功
+ * 5. 自动发送登录请求
+ * 6. 通过回调返回登录结果
+ * 
+ * 超时机制：
+ * - 默认超时时间为 30 秒
+ * - 如果在超时时间内未完成 MQTT 连接或登录，将返回 E_TIMEOUT 错误
+ * - 超时时间包括：HttpDns 解析、节点竞速、MQTT 连接、登录请求发送
+ * 
  * @param cCallback 回调函数（用于接收登录结果，参数：errorCode, data, dataLen, reqId）
- * @param data 序列化后的 user_pb::AuthUser 数据
+ * @param data 序列化后的 user_pb::AuthUser 数据（包含 invite_code）
  * @param dataLen 数据长度
+ * @param domain_name 域名（用于 HttpDns 解析，如 "im.example.com"）
+ * @param user_domain 用户域名（预留参数，可传 nullptr）
  * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
- * @return 0表示成功，其它表示错误码
- * @note 可以在 EXE 中创建 user_pb::AuthUser 对象，调用 SerializeAsString() 或 SerializeToString() 后传递序列化数据
+ * @return 0表示请求已发起（异步），其它表示错误码
+ *         -1: 网络库未初始化
+ *         -2: 参数无效
+ *         -3: 已有登录请求在进行中
+ *         -4: 未配置 HttpDns 服务器
+ *         -5: 解析 AuthUser 失败或 invite_code 为空
+ * @note 此接口是异步的，登录结果通过回调返回
+ * @note 调用此接口前需要先调用 network_init() 和 network_add_httpdns_server()
+ * @note 内部超时时间为 30 秒，超时后返回 E_TIMEOUT 错误
  */
-NET_API int login_by_user_id(CB_I_S_I_U cCallback, const char* data, int dataLen, uint64_t &reqId);
+NET_API int login_by_user_id(CB_I_S_I_U cCallback, const char* data, int dataLen, 
+                             const char* domain_name, const char* user_domain, uint64_t &reqId);
 
 /**
- * 设置用户认证信息
- * 用于在 SDK 内部设置用户的认证状态，通常在应用层从本地存储恢复登录状态时调用
+ * Token 登录（设置用户认证信息并自动连接）
+ * 用于通过 Token 登录的场景，设置用户认证信息后自动启动网络连接
+ * 
+ * 此接口会：
+ * 1. 设置用户认证信息（userId, token, refreshToken）
+ * 2. 设置 HttpDns 参数（invite_code, domain_name, user_domain）
+ * 3. 启动 HttpDns 解析和节点竞速
+ * 4. 建立 MQTT 连接并完成认证
  * 
  * @param userId 用户ID
  * @param token 访问令牌
- * @param refreshToken 刷新令牌
- * @return 0表示成功，其他表示错误码
+ * @param refreshToken 刷新令牌（可为 nullptr）
+ * @param invite_code 邀请码（用于 HttpDns 解析）
+ * @param domain_name 域名（用于 HttpDns 解析，如 "im.example.com"）
+ * @param user_domain 用户域名（可为 nullptr，用于 HttpDns 解析）
+ * @return 0表示启动成功，其他表示错误码
+ * 
+ * @note 调用此接口前需先调用 network_add_httpdns_server 添加 HttpDns 服务器
  */
-NET_API int set_user_auth_info(const char* userId, const char* token, const char* refreshToken);
+NET_API int set_user_auth_info(const char* userId, const char* token, const char* refreshToken,
+                               const char* invite_code, const char* domain_name,
+                               const char* user_domain);
 
 /**
  * 退出登录
@@ -1025,6 +1064,18 @@ NET_API int mute_community_member(CB_I_S_I_U cCallback, const char* data, int le
 NET_API int kick_community_member(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
 /**
+ * 封禁社群成员
+ * Topic: /im/CMTY/{cmtyId}/ban
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 封禁参数（序列化后的数据，包含成员ID、封禁时长等）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int ban_community_member(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
  * 获取社群封禁成员列表
  * Topic: /im/CMTY/{cmtyId}/bannedMembers
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
@@ -1098,7 +1149,7 @@ NET_API int list_community_groups(CB_I_S_I_U cCallback, const char* data, int le
 
 /**
  * 创建频道分组
- * Topic: /im/CMTY/{cmtyId}/createChannelGroup
+ * Topic: /im/CMTY/{cmtyId}/createGroup
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
  * @param data 创建频道分组参数（序列化后的数据）
  * @param len 数据长度
@@ -1110,7 +1161,7 @@ NET_API int create_channel_group(CB_I_S_I_U cCallback, const char* data, int len
 
 /**
  * 更新频道分组
- * Topic: /im/CMTY/{cmtyId}/updateChannelGroup
+ * Topic: /im/CMTY/{cmtyId}/updateGroup
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
  * @param data 更新频道分组参数（序列化后的数据）
  * @param len 数据长度
@@ -1122,7 +1173,7 @@ NET_API int update_channel_group(CB_I_S_I_U cCallback, const char* data, int len
 
 /**
  * 删除频道分组
- * Topic: /im/CMTY/{cmtyId}/deleteChannelGroup
+ * Topic: /im/CMTY/{cmtyId}/deleteGroup
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
  * @param data 删除频道分组参数（序列化后的数据）
  * @param len 数据长度

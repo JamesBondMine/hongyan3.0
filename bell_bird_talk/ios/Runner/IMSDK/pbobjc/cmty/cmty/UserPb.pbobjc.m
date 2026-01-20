@@ -15,7 +15,7 @@
 
 #import <stdatomic.h>
 
-#import "UserPb.pbobjc.h"
+#import "cmty/UserPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
 #import "DevicePb.pbobjc.h"
 #import "CaptchaPb.pbobjc.h"

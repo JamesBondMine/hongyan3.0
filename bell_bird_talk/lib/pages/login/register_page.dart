@@ -27,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _phoneController = TextEditingController(); // 修改为 TextEditingController
   final _emailController = TextEditingController();
   final _nativeService = IOSNativeService();
-  
+
   // 添加国家代码相关的变量
   String _selectedCountryCode = '+86';
   String _selectedFlag = '🇨🇳';
@@ -35,8 +35,6 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _captchaId; // 存储手机验证码 ID
   String? _emailCaptchaId; // 存储邮箱验证码 ID
   RegisterType _registerType = RegisterType.phoneCode; // 默认手机验证码注册
-
-  
 
   @override
   void dispose() {
@@ -71,20 +69,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         // Logo 和标题
                         _buildHeader(),
-                        
+
                         const SizedBox(height: 30),
-                        
+
                         // 注册方式切换
                         _buildRegisterTypeSwitch(),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // 注册表单
                         _buildRegisterForm(),
                         Spacer(),
 
                         _buildLoginButton(),
-           
                       ],
                     ),
                   ),
@@ -107,7 +104,6 @@ class _RegisterPageState extends State<RegisterPage> {
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
             onPressed: () => Get.back(),
           ),
-          
         ],
       ),
     );
@@ -117,33 +113,34 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildHeader() {
     return Container(
       width: Get.width,
-      child:  Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
-      children: [
-        const SizedBox(height: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+        children: [
+          const SizedBox(height: 16),
 
-        // 标题
-        Text(
-          '注册'.tr,
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+          // 标题
+          Text(
+            '注册'.tr,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-        ),
 
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
 
-        // 副标题
-        Text(
-          '请输入手机号/邮箱'.tr,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.black.withOpacity(0.9),
+          // 副标题
+          Text(
+            '请输入手机号/邮箱'.tr,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black.withOpacity(0.9),
+            ),
           ),
-        ),
-      ],
-    ));
+        ],
+      ),
+    );
   }
 
   /// 注册方式切换
@@ -180,8 +177,6 @@ class _RegisterPageState extends State<RegisterPage> {
               },
             ),
           ),
-
-          
         ],
       ),
     );
@@ -222,13 +217,12 @@ class _RegisterPageState extends State<RegisterPage> {
       key: _formKey,
       child: Container(
         // padding: const EdgeInsets.all(16),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 根据注册类型显示不同字段
             if (_registerType == RegisterType.phoneCode) ...[
-        LoginTextField(
+              LoginTextField(
                 controller: _phoneController,
                 title: '手机号'.tr,
                 hintText: '请输入手机号'.tr,
@@ -236,9 +230,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onChanged: (value) {
                   // 处理手机号变化
                   if (mounted) {
-                    setState(() {
-                      
-                    });
+                    setState(() {});
                   }
                 },
                 prefixIcon: InkWell(
@@ -251,9 +243,18 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_selectedFlag, style: const TextStyle(fontSize: 18)), // 修改
+                        Text(
+                          _selectedFlag,
+                          style: const TextStyle(fontSize: 18),
+                        ), // 修改
                         const SizedBox(width: 4),
-                        Text(_selectedCountryCode, style: const TextStyle(fontSize: 14, color: Colors.grey)), // 修改
+                        Text(
+                          _selectedCountryCode,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ), // 修改
                         const SizedBox(width: 8),
                         const Text('|', style: TextStyle(color: Colors.grey)),
                       ],
@@ -261,7 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
-              
+
               // const SizedBox(height: 10),/
             ] else if (_registerType == RegisterType.emailCode) ...[
               // 邮箱注册：邮箱
@@ -270,77 +271,94 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: '邮箱'.tr,
                 hintText: '请输入邮箱地址'.tr,
                 keyboardType: TextInputType.emailAddress,
-                
+
                 onChanged: (value) {
                   // 处理手机号变化
                   if (mounted) {
-                    setState(() {
-                      
-                    });
-                  }
-                },
-              )
-            ],
-            const SizedBox(height: 20),
-            CommonButton(
-                text: '下一步'.tr,
-                enabled: true,
-                onPressed: () {
-                  // 调用发验证码的接口
-                  if (_registerType == RegisterType.phoneCode) {
-                    if (_phoneController.text.isEmpty) {
-                      EasyLoading.showError('请先输入手机号'.tr);
-                      return;
-                    }
-                    _getVerifyCode((cid) {
-                      Get.to(() =>  RegisterCodePage(cid:cid, registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode, isForget: false));
-                    });
-                  } else if (_registerType == RegisterType.emailCode) {
-                    if (_emailController.text.isEmpty) {
-                      EasyLoading.showError('请先输入邮箱'.tr);
-                      return;
-                    }
-                    _getEmailVerifyCode((cid) {
-                      Get.to(() =>  RegisterCodePage(cid:cid, registerType: _registerType, account: _registerType==RegisterType.phoneCode ? _phoneController.text : _emailController.text, invateCode: widget.invateCode, isForget: false,));
-                    });
+                    setState(() {});
                   }
                 },
               ),
+            ],
+            const SizedBox(height: 20),
+            CommonButton(
+              text: '下一步'.tr,
+              enabled: true,
+              onPressed: () {
+                // 调用发验证码的接口
+                if (_registerType == RegisterType.phoneCode) {
+                  if (_phoneController.text.isEmpty) {
+                    EasyLoading.showError('请先输入手机号'.tr);
+                    return;
+                  }
+                  _getVerifyCode((cid) {
+                    Get.to(
+                      () => RegisterCodePage(
+                        cid: cid,
+                        registerType: _registerType,
+                        account: _registerType == RegisterType.phoneCode
+                            ? _phoneController.text
+                            : _emailController.text,
+                        invateCode: widget.invateCode,
+                        isForget: false,
+                      ),
+                    );
+                  });
+                } else if (_registerType == RegisterType.emailCode) {
+                  if (_emailController.text.isEmpty) {
+                    EasyLoading.showError('请先输入邮箱'.tr);
+                    return;
+                  }
+                  _getEmailVerifyCode((cid) {
+                    Get.to(
+                      () => RegisterCodePage(
+                        cid: cid,
+                        registerType: _registerType,
+                        account: _registerType == RegisterType.phoneCode
+                            ? _phoneController.text
+                            : _emailController.text,
+                        invateCode: widget.invateCode,
+                        isForget: false,
+                      ),
+                    );
+                  });
+                }
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-
-   /// 获取验证码
+  /// 获取验证码
   void _getVerifyCode(ValueChanged onVerifyCodeSuccess) async {
     // 验证手机号
     if (_phoneController.text.isEmpty) {
       EasyLoading.showError('请先输入手机号'.tr);
       return;
     }
-    
+
     if (!RegExp(r'^1[3-9]\d{9}$').hasMatch(_phoneController.text)) {
       EasyLoading.showError('请输入正确的手机号'.tr);
       return;
     }
-    
+
     try {
       EasyLoading.show(status: '发送中...'.tr);
-      
+
       // 调用 Native 获取短信验证码接口
       final result = await _nativeService.imGetCaptcha(
         _phoneController.text,
-        type: 'SMS',           // CaptchaType: SMS=短信
-        scene: 'register',     // 使用场景: 注册
+        type: 'SMS', // CaptchaType: SMS=短信
+        scene: 'register', // 使用场景: 注册
       );
-      
+
       EasyLoading.dismiss();
-      
+
       final errorCode = result['errorCode'] ?? -1;
       final message = result['message'] ?? '未知错误'.tr;
-      
+
       if (errorCode == 0) {
         // 保存 captcha_id（从返回的 data 中解析）
         final data = result['data'];
@@ -355,47 +373,47 @@ class _RegisterPageState extends State<RegisterPage> {
             print('⚠️ 解析 captcha_id 失败: $e');
           }
         }
-        
+
         EasyLoading.showSuccess('验证码已发送'.tr);
-        
       } else {
         EasyLoading.showError('${'发送失败'.tr}: $message (code: $errorCode)');
       }
-      
     } catch (e) {
       EasyLoading.dismiss();
       EasyLoading.showError('${'发送失败'.tr}: $e');
     }
   }
 
-   /// 获取邮箱验证码
+  /// 获取邮箱验证码
   void _getEmailVerifyCode(ValueChanged onVerifyCodeSuccess) async {
     // 验证邮箱
     if (_emailController.text.isEmpty) {
       EasyLoading.showError('请先输入邮箱'.tr);
       return;
     }
-    
-    if (!RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$').hasMatch(_emailController.text)) {
+
+    if (!RegExp(
+      r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$',
+    ).hasMatch(_emailController.text)) {
       EasyLoading.showError('请输入正确的邮箱地址'.tr);
       return;
     }
-    
+
     try {
       EasyLoading.show(status: '发送中...'.tr);
-      
+
       // 调用 Native 获取邮箱验证码接口
       final result = await _nativeService.imGetCaptcha(
         _emailController.text,
-        type: 'EMAIL',         // CaptchaType: EMAIL=邮箱
-        scene: 'register',     // 使用场景: 注册
+        type: 'EMAIL', // CaptchaType: EMAIL=邮箱
+        scene: 'register', // 使用场景: 注册
       );
-      
+
       EasyLoading.dismiss();
-      
+
       final errorCode = result['errorCode'] ?? -1;
       final message = result['message'] ?? '未知错误'.tr;
-      
+
       if (errorCode == 0) {
         // 保存 captcha_id
         final data = result['data'];
@@ -409,13 +427,11 @@ class _RegisterPageState extends State<RegisterPage> {
             print('⚠️ 解析邮箱 captcha_id 失败: $e');
           }
         }
-        
+
         EasyLoading.showSuccess('验证码已发送到邮箱'.tr);
-        
       } else {
         EasyLoading.showError('${'发送失败'.tr}: $message (code: $errorCode)');
       }
-      
     } catch (e) {
       EasyLoading.dismiss();
       EasyLoading.showError('${'发送失败'.tr}: $e');
@@ -429,7 +445,7 @@ class _RegisterPageState extends State<RegisterPage> {
       height: 50,
       child: TextButton(
         onPressed: () {
-          Get.offAll( () => const LoginPage());
+          Get.offAll(() => const LoginPage());
         },
         style: TextButton.styleFrom(
           shape: RoundedRectangleBorder(
@@ -441,10 +457,7 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             Text(
               '已有账号?'.tr,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
             const SizedBox(width: 4),
             Text(
@@ -460,9 +473,6 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
-
-
-
 
   // /// 通用文本输入框
   // Widget _buildTextField({
@@ -598,7 +608,6 @@ class _RegisterPageState extends State<RegisterPage> {
   //   );
   // }
 
- 
   // /// 手机验证码倒计时
   // void _startCountdown() {
   //   Future.delayed(const Duration(seconds: 1), () {
@@ -610,8 +619,6 @@ class _RegisterPageState extends State<RegisterPage> {
   //     }
   //   });
   // }
-
-  
 
   // /// 邮箱验证码倒计时
   // void _startEmailCountdown() {
@@ -632,7 +639,7 @@ class _RegisterPageState extends State<RegisterPage> {
   //     EasyLoading.showError('请先阅读并同意用户协议');
   //     return;
   //   }
-    
+
   //   // 表单验证
   //   if (!_formKey.currentState!.validate()) {
   //     return;
@@ -640,4 +647,3 @@ class _RegisterPageState extends State<RegisterPage> {
 
   // }
 }
-

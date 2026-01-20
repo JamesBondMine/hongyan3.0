@@ -3,12 +3,10 @@ import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/views/community_member_operate_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
-import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class CmtMemberListPage extends StatefulWidget {

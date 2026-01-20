@@ -1,0 +1,268 @@
+-- LLDB integration loaded --
+2026-01-20 14:32:51.455504+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Looking up debug dylib relative path
+2026-01-20 14:32:51.455917+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Found debug dylib relative path string `Runner.debug.dylib`
+2026-01-20 14:32:51.455924+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Looking up debug dylib entry point name
+2026-01-20 14:32:51.455926+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] No debug dylib entry point name defined.
+2026-01-20 14:32:51.455928+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Looking up debug dylib install name
+2026-01-20 14:32:51.455931+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Found debug dylib install name string `@rpath/Runner.debug.dylib`
+2026-01-20 14:32:51.455934+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Looking for Previews JIT link entry point.
+2026-01-20 14:32:51.456155+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] No Previews JIT entry point found.
+2026-01-20 14:32:51.456159+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Gave PreviewsInjection a chance to run and it returned, continuing with debug dylib.
+2026-01-20 14:32:51.456161+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Looking for main entry point.
+2026-01-20 14:32:51.456163+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Opening debug dylib with '@rpath/Runner.debug.dylib'
+2026-01-20 14:32:51.456174+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Debug dylib handle: 0xf49f9f20
+2026-01-20 14:32:51.456177+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] No entry point found. Checking for alias.
+2026-01-20 14:32:51.456180+0800 Runner[14144:710258] [PreviewsAgentExecutorLibrary] Calling provided entry point.
+2026-01-20 14:32:51.643854+0800 Runner[14144:710258] [UIFocus] FlutterView implements focusItemsInRect: - caching for linear focus movement is limited as long as this view is on screen.
+Dart execution mode: JIT
+2026-01-20 14:32:51.688641+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m LiceCycleManager listener successfully attached to iOS (LifeCycleManager:81)
+2026-01-20 14:32:51.689167+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m App is now Terminated (LifeCycleManager:134)
+2026-01-20 14:32:51.689343+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m LiceCycleManager listener successfully attached to iOS (LifeCycleManager:81)
+2026-01-20 14:32:51.693628+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m Awesome Notifications plugin attached to iOS 1946.0 (AwesomeNotificationsPlugin:60)
+2026-01-20 14:32:51.693641+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m Awesome Notifications - App Group : group.awn.f23ff089 (AwesomeNotificationsPlugin:61)
+✅ NativeBridgeHandler 初始化完成
+✅ AppDelegate Native Bridge 已初始化
+✅ AppDelegate Platform Views 已注册
+2026-01-20 14:32:51.714280+0800 Runner[14144:710469] flutter: The Dart VM service is listening on http://127.0.0.1:54730/8ysCFMWXPDE=/
+2026-01-20 14:32:51.992110+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m Awesome Notifications attached for iOS (AwesomeNotifications:531)
+2026-01-20 14:32:52.027607+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m App is now Foreground (LifeCycleManager:134)
+2026-01-20 14:32:52.073300+0800 Runner[14144:710258] flutter: ✅ Storage 初始化成功
+2026-01-20 14:32:52.083157+0800 Runner[14144:710258] D/Swift: [32m[AWESOME NOTIFICATIONS][0m Awesome Notifications service initialized (AwesomeNotificationsPlugin:1030)
+2026-01-20 14:32:52.083885+0800 Runner[14144:710258] flutter: ✅ 通知插件初始化成功
+2026-01-20 14:32:52.090420+0800 Runner[14144:710258] flutter: 🚀 开始初始化 IM SDK...
+2026-01-20 14:32:52.093055+0800 Runner[14144:710258] 📱 IMSDKManager 初始化
+2026-01-20 14:32:52.093088+0800 Runner[14144:710258] 🚀 初始化 IM SDK（按照官方文档顺序）
+2026-01-20 14:32:52 [TID:710258] =======================================LOG START=======================================
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/mqtt_session.cpp:127] INFO 🔵 MqttSession instance created, this=0x1076388d0
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:48] INFO The MQTT reconnection manager has been started
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:7] INFO MessageDispatcher created
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:25] INFO MessageDispatcher started
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1320] INFO ⏰ Starting timeout checker thread, this=0x1076388d0
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/mqtt_session.cpp:121] INFO Client info set in MqttSession - platform: ios, platformVersion: 16.0, deviceId: 467B2057-62A3-43A4-806C-3D35EFE6C64D, tz: Asia/Shanghai
+2026-01-20 14:32:52.095651+0800 Runner[14144:710258] 📱 设备ID: 467B2057-62A3-43A4-806C-3D35EFE6C64D
+2026-01-20 14:32:52 [TID:710479] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:72] INFO MessageDispatcher worker thread started
+2026-01-20 14:32:52 [TID:710480] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1322] INFO ⏰ Timeout checker thread started, this=0x1076388d0
+2026-01-20 14:32:52.095864+0800 Runner[14144:710258] ⚠️ 未找到持久化的认证信息，跳过设置
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:407] INFO call network_start=====
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/mqtt_session.cpp:850] INFO MqttSession started, waiting for CONNACK to determine security requirements
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/thread/thread_manager.cpp:242] INFO Started event loops for business thread
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:415] INFO end network_start=====
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:56] DEBUG [HttpDnsManager] Constructor
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:99] INFO [HttpDnsManager] Added HttpDns server: https://223.5.5.5/resolve (total: 1)
+2026-01-20 14:32:52 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:494] INFO [network_add_httpdns_server] Added HttpDns server: https://223.5.5.5/resolve
+2026-01-20 14:32:52.095962+0800 Runner[14144:710258] ⏳ 等待 SDK 初始化成功回调 (event_code=6)...
+2026-01-20 14:33:12.096859+0800 Runner[14144:710258] ⏱️ SDK 初始化超时: 未收到 event_code=6 回调
+2026-01-20 14:33:12.111381+0800 Runner[14144:710258] flutter: 🌐 未设置应用语言，跟随系统语言: zh_Hans_CN -> zh_CN
+2026-01-20 14:33:12.119741+0800 Runner[14144:710258] flutter: 🌐 语言已设置为: zh_CN (zh_CN)
+2026-01-20 14:33:12.131970+0800 Runner[14144:710258] flutter: ⚠️ IM SDK 初始化超时
+2026-01-20 14:33:12.132139+0800 Runner[14144:710258] flutter: ❌ IM SDK 初始化失败
+2026-01-20 14:33:12.134087+0800 Runner[14144:710258] flutter: 
+===================================
+✅ 20041ms 
+[imInitialize]  
+null 
+----
+false 
+===================================
+2026-01-20 14:33:12.178957+0800 Runner[14144:710258] flutter: 🌐 未设置应用语言，跟随系统语言: zh_Hans_CN -> zh_CN
+Thread Performance Checker: Thread running at QOS_CLASS_USER_INTERACTIVE waiting on a thread without a QoS class specified. Investigate ways to avoid priority inversions
+PID: 14144, TID: 710258
+Backtrace
+=================================================================
+3   Flutter                             0x000000010a77da38 _ZNSt3_fl10__function6__funcIZN7flutter8Animator10AwaitVSyncEvE3$_0NS_9allocatorIS4_EEFvNS_10unique_ptrINS2_20FrameTimingsRecorderENS_14default_deleteIS8_EEEEEEclEOSB_ + 588
+4   Flutter                             0x000000010a7aee24 _ZNSt3_fl10__function6__funcIZN7flutter11VsyncWaiter12FireCallbackEN3fml9TimePointES5_bE3$_0NS_9allocatorIS6_EEFvvEEclEv + 940
+5   Flutter                             0x000000010a3efa54 _ZN3fml15MessageLoopImpl10FlushTasksENS_9FlushTypeE + 336
+6   Flutter                             0x000000010a3f4554 _ZN3fml17MessageLoopDarwin11OnTimerFireEP16__CFRunLoopTimerPS0_ + 32
+7   CoreFoundation                      0x00000001d24f666c 42C5C917-0447-3995-B50F-DE4D132C2435 + 845420
+8   CoreFoundation                      0x00000001d24b2ce8 42C5C917-0447-3995-B50F-DE4D132C2435 + 568552
+9   CoreFoundation                      0x00000001d2456958 42C5C917-0447-3995-B50F-DE4D132C2435 + 190808
+10  CoreFoundation                      0x00000001d24a42dc 42C5C917-0447-3995-B50F-DE4D132C2435 + 508636
+11  CoreFoundation                      0x00000001d24a91e4 CFRunLoopRunSpecific + 612
+12  GraphicsServices                    0x000000020b2c9368 GSEventRunModal + 164
+13  UIKitCore                           0x00000001d4958d88 7B942FA4-CB76-3375-9972-F58C14492FB4 + 3812744
+14  UIKitCore                           0x00000001d49589ec UIApplicationMain + 340
+15  libswiftUIKit.dylib                 0x00000001dae082a0 $s5UIKit17UIApplicationMainys5Int32VAD_SpySpys4Int8VGGSgSSSgAJtF + 104
+16  Runner.debug.dylib                  0x00000001068e01e0 $sSo21UIApplicationDelegateP5UIKitE4mainyyFZ + 120
+17  Runner.debug.dylib                  0x00000001068e0158 $s6Runner11AppDelegateC5$mainyyFZ + 44
+18  Runner.debug.dylib                  0x00000001068e31d0 __debug_main_executable_dylib_entry_point + 28
+19  dyld                                0x00000001f07cd948 341BBF64-6034-357E-8AA6-E1E4B988E03C + 88392
+2026-01-20 14:33:12.831056+0800 Runner[14144:710258] flutter: 📱 没有本地 Token，跳转登录页
+2026-01-20 14:33:13.112550+0800 Runner[14144:710258] flutter: ╔════════════════════════════════════════════════════════════════
+2026-01-20 14:33:13.113706+0800 Runner[14144:710258] flutter: ║ 📤 REQUEST [GET] https://niumowangai.top/api/tasks?page=0&size=10&sortBy=createdAt&sortDir=desc
+2026-01-20 14:33:13.113975+0800 Runner[14144:710258] flutter: ║ Headers: {Content-Type: application/json, Accept: application/json, Platform: iOS, App-Version: 1.0.0}
+2026-01-20 14:33:13.114024+0800 Runner[14144:710258] flutter: ╚════════════════════════════════════════════════════════════════
+2026-01-20 14:33:13.367053+0800 Runner[14144:710258] flutter: ╔════════════════════════════════════════════════════════════════
+2026-01-20 14:33:13.367306+0800 Runner[14144:710258] flutter: ║ ❌ ERROR [400] https://niumowangai.top/api/tasks?page=0&size=10&sortBy=createdAt&sortDir=desc
+2026-01-20 14:33:13.367383+0800 Runner[14144:710258] flutter: ║ Message: This exception was thrown because the response has a status code of 400 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 400 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+2026-01-20 14:33:13.367784+0800 Runner[14144:710258] flutter: ║ Error Data: {
+  "code": 1,
+  "msg": "用户未登录",
+  "timestamp": 1768890793396
+}
+2026-01-20 14:33:13.367824+0800 Runner[14144:710258] flutter: ╚════════════════════════════════════════════════════════════════
+2026-01-20 14:33:13.368086+0800 Runner[14144:710258] flutter: ❌ Error: 请求参数错误
+2026-01-20 14:33:13.368572+0800 Runner[14144:710258] flutter: ResponseModel(code: 400, message: , data: null)
+2026-01-20 14:34:31.772029+0800 Runner[14144:710258] flutter: 🌐 设置 HTTP DNS 参数1: {invite_code: 222222, domain: 222222.loadingworks.com, business_code: }
+2026-01-20 14:34:31.818950+0800 Runner[14144:710258] 🔐 IMSDKAuthManager 初始化
+2026-01-20 14:34:31.820284+0800 Runner[14144:710258] 🌐 设置 HTTP DNS 参数: inviteCode=222222, domain=222222.loadingworks.com, businessCode=
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:528] INFO [network_set_httpdns_params] Starting with network initialization, user_domain=
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:167] DEBUG [HttpDnsManager] AES key derived from invite_code: 4cc8f4d609b717356701c57a03e737e5
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:178] INFO [HttpDnsManager] HttpDns params set - domain: 222222.loadingworks.com, uid: , type: 28
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:570] INFO [network_set_httpdns_params] Set params - domain: 222222.loadingworks.com, type: 28, uid: , invite_code: 222222, user_domain: 
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:595] INFO [network_set_httpdns_params] Starting HttpDns resolve and network connection
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:112] INFO [HttpDnsManager] Initializing with 1 pre-configured servers
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:114] INFO [HttpDnsManager] Server [1]: https://223.5.5.5/resolve
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:596] INFO [NetSpeedManager] Race mode set to: TCP_CONNECT
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:607] DEBUG [NetSpeedManager] Auto connect set to: false
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:422] INFO [HttpDnsManager] Starting HttpDns resolve...
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/thread/thread_manager.cpp:95] DEBUG Added business task: HttpDnsResolve (ID: 1)
+2026-01-20 14:34:31 [TID:710476] [/Users/phl/developer/project/src/thread/thread_manager.cpp:204] DEBUG Executing task: HttpDnsResolve (ID: 1)
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1858] INFO [HttpDnsManager] Periodic check started - quality check: 360000ms, HttpDns refresh: 3600000ms
+2026-01-20 14:34:31 [TID:710258] [/Users/phl/developer/project/src/network_lib.cpp:617] INFO [network_set_httpdns_params] Network initialization started, waiting for connection...
+2026-01-20 14:34:31.834049+0800 Runner[14144:710258] 🌐 network_set_httpdns_params 结果: 0
+2026-01-20 14:34:31 [TID:711141] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1894] INFO [HttpDnsManager] Periodic check worker started
+🌐 设置 HTTP DNS 参数回调: errorCode=0, message=设置成功
+2026-01-20 14:34:37 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:303] DEBUG [HttpDnsManager] Built request URL: https://223.5.5.5/resolve?name=222222.loadingworks.com&type=28&short=true
+🌐 设置 HTTP DNS 参数回调: errorCode=0, message=设置成功
+2026-01-20 14:34:38.396103+0800 Runner[14144:710258] flutter: 
+===================================
+✅ 6623ms 
+[networkSetHttpdnsParams]  
+{"invite_code":"222222","domain":"222222.loadingworks.com","business_code":""} 
+----
+{"message":"设置成功","errorCode":0} 
+===================================
+2026-01-20 14:34:38.396351+0800 Runner[14144:710258] flutter: 🌐 HTTP DNS 参数设置结果: {message: 设置成功, errorCode: 0}
+HTTP/1.1 200 OK
+
+Access-Control-Allow-Origin: *
+
+Alt-Svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+
+Cache-Control: max-age=600.000000
+
+Content-Length: 394
+
+Content-Type: application/json
+
+S: 123.14.89.45
+
+Date: Tue, 20 Jan 2026 06:34:38 GMT
+
+
+
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:600] DEBUG [HttpDnsManager] Response: ["9:be3d:a9ac:4e44:87bb:d454:fa47:3c07","8:134d:77a1:e958:295:9791:fa36:4087","7:ee96:196d:1999:a594:ff7b:a5c5:915","6:ee4d:945a:2caa:149e:3b1e:4439:5bfa","5:f2ff:a29d:23d1:438c:4248:a7c9:208","4:ae0d:78e3:12f:7563:e37f:7a6d:54e3","3:5390:4025:2cdf:9a7:7644:56c9:4f58","2:1d73:4b5:169c:9fef:5eb6:23fa:9ee0","1:116:1cf:f03c:cc57:19ed:7830:9961","b:6900::","a:111e:7222:1b9a:9a20:eed0:b630:ceb9"]
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1124] DEBUG [HttpDnsManager] Using provided hex key directly (assuming already derived)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:789] DEBUG [HttpDnsManager] key_hex Hex: 4cc8f4d609b717356701c57a03e737e5
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:791] DEBUG [HttpDnsManager] IV Hex: 01cff03ccc5719ed783099611d7304b5
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:794] DEBUG [HttpDnsManager] Tag Hex: 07111e72221b9a9a20eed0b630ceb969
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:797] DEBUG [HttpDnsManager] Ciphertext Only Hex: 169c9fef5eb623fa9ee0539040252cdf09a7764456c94f58ae0d78e3012f7563e37f7a6d54e3f2ffa29d23d1438c4248a7c90208ee4d945a2caa149e3b1e44395bfaee96196d1999a594ff7ba5c50915134d77a1e95802959791fa364087be3da9ac4e4487bbd454fa473c
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:896] DEBUG [HttpDnsManager] Initialized AES-128-GCM decryption with 16-byte IV
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:923] DEBUG [HttpDnsManager] EVP_DecryptUpdate: decrypted 107 bytes (ciphertext: 107 bytes)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:939] DEBUG [HttpDnsManager] Authentication tag set successfully
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:961] DEBUG [HttpDnsManager] EVP_DecryptFinal_ex: final_len=0, total plaintext=107
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:966] DEBUG [HttpDnsManager] AES-128-GCM decryption successful, plaintext length: 107
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1377] INFO [HttpDnsManager] Decoded response: ["tcp://10.226.7.74:5280","tcp://10.226.7.203:5280","tcp://192.168.50.234:5280","tcp://119.91.130.69:8885"]
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1266] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 10.226.7.74:5280 (from tcp://10.226.7.74:5280)
+
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1266] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 10.226.7.203:5280 (from tcp://10.226.7.203:5280)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1266] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 192.168.50.234:5280 (from tcp://192.168.50.234:5280)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1266] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 119.91.130.69:8885 (from tcp://119.91.130.69:8885)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1277] INFO [HttpDnsManager] Parsed 4 nodes from JSON array format
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1380] INFO [HttpDnsManager] Parsed 4 nodes from hex-encoded response
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:447] INFO [HttpDnsManager] Parsed 4 accelerate nodes
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:364] DEBUG [HttpDnsManager] Resolving hostnames for 4 nodes
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:409] INFO [HttpDnsManager] Hostname resolution completed, 4 nodes remaining
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:458] INFO [HttpDnsManager] 4 nodes available after hostname resolution
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:183] INFO [NetSpeedManager] All hosts cleared
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 10.226.7.74:5280, triggering immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 10.226.7.203:5280, triggering immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 192.168.50.234:5280, triggering immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 119.91.130.69:8885, triggering immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1533] INFO [HttpDnsManager] Starting TCP race with 4 nodes, timeout: 3000ms
+2026-01-20 14:34:38 [TID:711171] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1789] DEBUG [HttpDnsManager] TCP connect successful, keeping socket 18 for 119.91.130.69:8885
+2026-01-20 14:34:38 [TID:711171] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1573] DEBUG [HttpDnsManager] Node 119.91.130.69:8885 connected in 42ms, socket=18
+2026-01-20 14:34:38 [TID:711171] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1583] INFO [HttpDnsManager] Winner: 119.91.130.69:8885 (RTT: 42ms, socket=18)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1632] INFO [HttpDnsManager] Race completed with winner, proceeding immediately
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2068] INFO [HttpDnsManager] First race: closing race socket 18 (will create fresh connection)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2076] INFO [HttpDnsManager] Initializing MqttSession with broker URL: tcp://119.91.130.69:8885
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/mqtt_session.cpp:198] DEBUG [DEBUG] setConfig() ENTRY - broker_url=tcp://119.91.130.69:8885
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/socket_client.cpp:857] DEBUG reset_status: starting, is_reset=0
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/socket_client.cpp:933] DEBUG reset_status: completed
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2081] INFO [HttpDnsManager] Starting fresh connection to 119.91.130.69:8885
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/socket_client.cpp:994] INFO [MQTT_CONNECT] Connecting to 119.91.130.69:8885
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2113] INFO [HttpDnsManager] Best node updated: 119.91.130.69:8885 (RTT: 42ms, socket: 18)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:487] INFO [HttpDnsManager] Best node selected: 119.91.130.69:8885 (RTT: 42ms)
+2026-01-20 14:34:38 [TID:710476] [/Users/phl/developer/project/src/network_lib.cpp:607] INFO [network_set_httpdns_params] HttpDns resolve completed successfully
+2026-01-20 14:34:38 [TID:711172] [/Users/phl/developer/project/src/network/socket_client.cpp:715] DEBUG connect host:119.91.130.69 port:8885
+2026-01-20 14:34:38.630736+0800 Runner[14144:710477] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-01-20 14:34:38.630933+0800 Runner[14144:710477] 🔔 网络事件回调
+2026-01-20 14:34:38.630984+0800 Runner[14144:710477]    事件代码: 1
+2026-01-20 14:34:38.631026+0800 Runner[14144:710477]    描述长度: 2
+2026-01-20 14:34:38.631076+0800 Runner[14144:710477]    事件描述: 18
+2026-01-20 14:34:38.631337+0800 Runner[14144:710477] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:801] DEBUG Cancelled pending reconnect timer - TCP connected, starting MQTT handshake
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:333] INFO socket connect success, then mqtt start to connect
+2026-01-20 14:34:38.632734+0800 Runner[14144:710258] ✅ 网络事件已发送到 Flutter
+2026-01-20 14:34:38 [TID:711173] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:698] WARN MQTTVersion is 5
+2026-01-20 14:34:38 [TID:711173] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:703] WARN Before Thread_post_sem, connack_sem=0x2833ed400
+2026-01-20 14:34:38 [TID:711173] [/Users/phl/developer/project/src/mqtt/thread.cpp:320] DEBUG Thread_post_sem: sem=0x2833ed400 (0=no waiter, non-zero=woke thread)
+2026-01-20 14:34:38 [TID:711173] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:705] WARN After Thread_post_sem
+Connection Status: SUCCESS
+Property[0]: ID=38, Name=USER_PROPERTY, Type=6Property[1]: ID=38, Name=USER_PROPERTY, Type=6Property[2]: ID=38, Name=USER_PROPERTY, Type=6Property[3]: ID=38, Name=USER_PROPERTY, Type=6Property[4]: ID=38, Name=USER_PROPERTY, Type=62026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:1128] DEBUG === End of CONNACK Properties ===
+
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1035] INFO SCRAM authentication required by server, starting SCRAM flow
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1149] INFO Connection ready state changed: 0 -> 2
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1045] INFO Starting SCRAM authentication process
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/utils/snowflake.cpp:29] INFO SnowflakeIdGenerator initialized - Datacenter: 26, Worker: 0, Epoch: 1577836800000
+
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1063] INFO SCRAM first message sent
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1149] INFO Connection ready state changed: 2 -> 1
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:1161] DEBUG === End of CONNACK Message ===
+
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:367] DEBUG mqtt connect end ============888888=============== [0]
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1421] INFO 🔄 Starting MQTT yield thread for retransmission support, this=0x1076388d0
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:809] INFO MQTT CONNACK callback triggered, success=1, reasonCode=0
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:811] DEBUG MQTT CONNACK received - Reason Code: 0x00 (0), waiting for security flow
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:111] INFO MQTT connection established
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:380] WARN updateState=======================
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:384] INFO MQTT reconnection status changed:0 -> 2, reason: Connection successful
+2026-01-20 14:34:38 [TID:711175] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1423] INFO 🔄 Yield thread started, this=0x1076388d0
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:134] INFO 🟡 Reconnect callback triggered, this=0x1076388d0, state=2, reason=Connection successful
+2026-01-20 14:34:38 [TID:711175] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1450] INFO MQTT yield loop started - enabling retransmission support
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1267] INFO MQTT reconnect success
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:175] DEBUG Reconnection count has been reset
+2026-01-20 14:34:38 [TID:710477] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:122] INFO [RECONNECT_TIMELINE] Reconnection process completed successfully
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:610] DEBUG message info - Topic: $sys/auth/scram/first, QoS: 0, Retained: 0, Dup: 0 scramState: 1
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:906] DEBUG SCRAM salted password computed successfully
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:707] WARN PUBACK received but no reqId mapping found - deliveryToken: 1
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:610] DEBUG message info - Topic: $sys/auth/scram/final, QoS: 0, Retained: 0, Dup: 0 scramState: 2
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:953] INFO SCRAM authentication successful
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1072] INFO Encryption not required by server, security flow completed
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1149] INFO Connection ready state changed: 1 -> 3
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1162] DEBUG No pending retransmit task to execute
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1107] INFO Security flow completed, ready to send business data
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1149] INFO Connection ready state changed: 3 -> 3
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1162] DEBUG No pending retransmit task to execute
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:859] ERROR User token is empty, cannot send login request
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1122] INFO Calling user connection callback after security flow completed
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network_lib.cpp:581] INFO [network_set_httpdns_params] MQTT connection successful
+2026-01-20 14:34:39 [TID:710478] [/Users/phl/developer/project/src/service/service_manager.cpp:234] DEBUG -------NET_EVENT_AUTH----------
+2026-01-20 14:34:39.291676+0800 Runner[14144:710478] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-01-20 14:34:39.291879+0800 Runner[14144:710478] 🔔 网络事件回调
+2026-01-20 14:34:39.291995+0800 Runner[14144:710478]    事件代码: 6
+2026-01-20 14:34:39.292077+0800 Runner[14144:710478]    描述长度: 15
+2026-01-20 14:34:39.292223+0800 Runner[14144:710478]    事件描述: network authed2026-01-20 14:34:39.292532+0800 Runner[14144:710478] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-01-20 14:34:39.293292+0800 Runner[14144:710258] ✅ 网络事件已发送到 Flutter
+2026-01-20 14:34:39 [TID:711173] [/Users/phl/developer/project/src/network/mqtt_session.cpp:707] WARN PUBACK received but no reqId mapping found - deliveryToken: 2
+2026-01-20 14:34:41 [TID:711169] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1599] DEBUG [HttpDnsManager] Node 10.226.7.203:5280 failed to connect
+2026-01-20 14:34:41 [TID:711168] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1599] DEBUG [HttpDnsManager] Node 10.226.7.74:5280 failed to connect
+2026-01-20 14:34:41 [TID:711170] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1599] DEBUG [HttpDnsManager] Node 192.168.50.234:5280 failed to connect

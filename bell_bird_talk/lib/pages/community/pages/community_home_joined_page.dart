@@ -5,6 +5,7 @@ import 'package:bell_bird_talk/pages/community/pages/community_child_page.dart';
 import 'package:bell_bird_talk/pages/community/views/community_preview_view.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
@@ -87,7 +88,9 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
         //   cmtyId: newCommunities.first.id,
         // );
         // 刷新社群详情
-        _communityChildPageKey.currentState?.refreshCommunityInfo(currentCommunityInfo!);
+        _communityChildPageKey.currentState?.refreshCommunityInfo(
+          currentCommunityInfo!,
+        );
       }
     } catch (e) {
       print('加载社群列表失败: $e');
@@ -126,12 +129,15 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
           // 左侧社群列表
           _buildCommunityList(),
           // 右侧内容
-          Expanded(child: CommunityChildPage(
-            key: _communityChildPageKey,
-            cmty: currentCommunityInfo,
-             onCommunityChange: () { 
-              _refreshController.requestRefresh();
-              },)),
+          Expanded(
+            child: CommunityChildPage(
+              key: _communityChildPageKey,
+              cmty: currentCommunityInfo,
+              onCommunityChange: () {
+                _refreshController.requestRefresh();
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -183,7 +189,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                     _showCommunitySettingView(cm);
                     return;
                   }
-                  
+
                   setState(() {
                     currentCommunityInfo = cm;
                     _selectedCommunityIndex = index;
@@ -223,11 +229,24 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
-                              child: Image.asset(
-                                width: 32,
-                                height: 32,
-                                'assets/img/community/cunty_logo.png',
-                              ),
+                              child: cm.avatar != null && cm.avatar!.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: cm.avatar!,
+                                      width: 32,
+                                      fit: BoxFit.fill,
+                                      errorWidget: (context, url, error) {
+                                        return Image.asset(
+                                          width: 32,
+                                          height: 32,
+                                          'assets/img/community/cunty_member.png',
+                                        );
+                                      },
+                                    )
+                                  : Image.asset(
+                                      width: 32,
+                                      height: 32,
+                                      'assets/img/community/cunty_logo.png',
+                                    ),
                             ),
                           ),
                         ),

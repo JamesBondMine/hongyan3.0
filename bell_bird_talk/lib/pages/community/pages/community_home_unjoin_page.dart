@@ -7,6 +7,7 @@ import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_button.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -200,7 +201,10 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                     SizedBox(width: 8.w),
                     Text(
                       '搜索'.tr,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16.sp),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16.sp,
+                      ),
                     ),
                   ],
                 ),
@@ -218,16 +222,18 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
               return SmartRefresher(
                 controller: _refreshController,
                 onRefresh: _onRefresh,
-                child: _filteredCommunities.isEmpty ? Center(
-                  child: EmptyView(message: '暂无社群'.tr, community: true),
-                ) : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _filteredCommunities.length,
-                  itemBuilder: (context, index) {
-                    final community = _filteredCommunities[index];
-                    return _buildCommunityCard(community);
-                  },
-                ),
+                child: _filteredCommunities.isEmpty
+                    ? Center(
+                        child: EmptyView(message: '暂无社群'.tr, community: true),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _filteredCommunities.length,
+                        itemBuilder: (context, index) {
+                          final community = _filteredCommunities[index];
+                          return _buildCommunityCard(community);
+                        },
+                      ),
               );
             }),
           ),
@@ -392,20 +398,20 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                             color: Colors.blue[100],
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: community.avatar != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    community.avatar!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
-                                        Icons.group,
-                                        color: Colors.blue[700],
-                                        size: 30,
-                                      );
-                                    },
-                                  ),
+                          child:
+                              community.avatar != null &&
+                                  community.avatar!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: community.avatar!,
+                                  width: 32,
+                                  fit: BoxFit.fill,
+                                  errorWidget: (context, url, error) {
+                                    return Image.asset(
+                                      width: 32,
+                                      height: 32,
+                                      'assets/img/community/cunty_member.png',
+                                    );
+                                  },
                                 )
                               : Icon(
                                   Icons.group,
@@ -414,7 +420,9 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                                 ),
                         ),
                         Text(
-                          communityId.length > 18 ? '${communityId.substring(0, 18)}...' : communityId,
+                          communityId.length > 18
+                              ? '${communityId.substring(0, 18)}...'
+                              : communityId,
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w500,

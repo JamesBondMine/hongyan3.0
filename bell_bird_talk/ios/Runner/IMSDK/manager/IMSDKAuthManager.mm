@@ -110,10 +110,12 @@ static void LoginCallback(int errorCode, const char* data, int dataLen, uint64_t
                 // Token 信息
                 if (result.token.length > 0) {
                     jsonDict[@"token"] = result.token;
+                    NSLog(@"⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 保存登录信息: Token=%@",result.token);
                 }
                 jsonDict[@"expires_at"] = @(result.expiresAt);
                 if (result.refreshToken.length > 0) {
                     jsonDict[@"refresh_token"] = result.refreshToken;
+                    NSLog(@"⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 保存登录信息: refreshToken=%@",result.refreshToken);
                 }
                 jsonDict[@"refresh_expires_at"] = @(result.refreshExpiresAt);
                 
@@ -290,7 +292,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
             // 尝试解析为 CaptchaChallenge Protobuf 对象
             NSData *responseData = [NSData dataWithBytes:data length:dataLen];
             NSError *parseError = nil;
-            CaptchaChallenge *challenge = [CaptchaChallenge parseFromData:responseData error:&parseError];
+            GetResult *challenge = [GetResult parseFromData:responseData error:&parseError];
             
             if (challenge && !parseError) {
                 // 成功解析 Protobuf，转换为 JSON 字典
@@ -307,10 +309,10 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
                     jsonDict[@"email_masked"] = challenge.emailMasked;
                 }
                 jsonDict[@"expire_seconds"] = @(challenge.expireSeconds);
-                if (challenge.scene.length > 0) {
-                    jsonDict[@"scene"] = challenge.scene;
-                }
-                jsonDict[@"retry_after"] = @(challenge.retryAfter);
+//                if (challenge.scene.length > 0) {
+//                    jsonDict[@"scene"] = challenge.scene;
+//                }
+//                jsonDict[@"retry_after"] = @(challenge.retryAfter);
                 
                 // 转换为 JSON 字符串
                 NSError *jsonError = nil;
@@ -340,12 +342,23 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
 
 - (int)loginWithDictionary:(NSDictionary *)loginDict
                 completion:(IMSDKAuthCompletion)completion {
+    // 先获取邀请码、域名、业务邀请码
+    NSString *inviteCode = loginDict[@"invite_code"];
+    NSString *domain = loginDict[@"domain"];
+    NSString *businessCode = loginDict[@"business_code"];
     
+    // 构建参数字典
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"invite_code"] = inviteCode;
+    params[@"domain"] = domain;
+    params[@"business_code"] = businessCode;
     
-    if (!loginDict) {
-        NSLog(@"❌ 登录信息不能为空");
-        return -1;
-    }
+    // 将参数保存到 NSUserDefaults
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:params forKey:@"IMSDK_HttpDnsParams"];
+    [defaults synchronize];
+
+
     // 使用 protobuf 创建 AuthUser 对象
     AuthUser *authUser = [[AuthUser alloc] init];
     NSString *loginTypeStr = loginDict[@"login_type"];
@@ -386,6 +399,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     NSString *deviceId = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     NSLog(@"📱 设备ID: %@", deviceId);
     authUser.deviceId = deviceId;
+    
 
 //    if (loginDict[@"device_id"]) {
 //        NSString *deviceId = [[NSUUID UUID] UUIDString];
@@ -399,115 +413,20 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
     if (loginDict[@"biz_code"]) {
         authUser.bizCode = loginDict[@"biz_code"];
     }
+    authUser.systemCode = inviteCode;
     // 客户端IP（可选）
     if (loginDict[@"client_ip"]) {
         authUser.clientIp = loginDict[@"client_ip"];
     }
-    NSLog(@"\n登录参数:\n===========================\n loginType=%@(%d),\n account=%@,\n phone=%@,\n email=%@,\n pwd=%@,\n captchaId=%@,\n deviceId=%@,\n bizCode=%@ \n===========================",
-          loginTypeStr, (int)authUser.loginType, authUser.accountId, authUser.phone,
-          authUser.email, authUser.password, authUser.captchaId, authUser.deviceId, authUser.bizCode);
-    
     // 序列化并调用登录
     NSData *serializedData = [authUser data];
-    return [self loginWithSerializedData:serializedData completion:completion];
+    return [self loginWithSerializedData:serializedData inviteCode:inviteCode domain:domain businessCode:businessCode completion:completion];
 }
-
-- (int)loginWithUserId:(NSString *)userId
-                 token:(NSString *)token
-            completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"👤 用户登录: userId=%@", userId);
-    
-    if (!userId || userId.length == 0) {
-        NSLog(@"❌ userId 不能为空");
-        return -1;
-    }
-    
-    // 构造简单的 JSON 格式数据（实际应该使用 protobuf 序列化）
-    // 注意：这是临时方案，实际应该使用 user_pb::AuthUser 序列化
-    NSDictionary *authData = @{
-        @"user_id": userId,
-        @"token": token ?: @""
-    };
-    
-    NSError *error = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:authData options:0 error:&error];
-    if (error) {
-        NSLog(@"❌ JSON 序列化失败: %@", error);
-        return -2;
-    }
-    
-    return [self loginWithSerializedData:jsonData completion:completion];
-}
-
-//- (int)loginWithToken:(NSString *)token
-//           completion:(IMSDKAuthCompletion)completion {
-//    NSLog(@"🎫 Token快速登录");
-//    
-//    if (!token || token.length == 0) {
-//        NSLog(@"❌ token 不能为空");
-//        return -1;
-//    }
-//    
-//    // 使用 protobuf 创建 AuthUser 对象（与 loginWithDictionary 保持一致）
-//    Param * p = [[Param alloc] init];
-//    p.param = token;
-//    
-//    // 序列化为 Protobuf 二进制数据
-//    NSData *serializedData = [p data];
-//    if (!serializedData || serializedData.length == 0) {
-//        NSLog(@"❌ Protobuf 序列化失败");
-//        return -2;
-//    }
-//    
-//    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
-//    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
-//    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
-//    
-//    const char *data = (const char *)serializedData.bytes;
-//    int dataLen = (int)serializedData.length;
-//    uint64_t reqId = 0;
-//    
-//    if (completion) {
-//        // 使用临时 ID 先保存回调
-//        static uint64_t tempId = 2000;
-//        NSNumber *tempKey = @(tempId++);
-//        self.authCallbacks[tempKey] = completion;
-//        
-//        int result = login_by_token(LoginCallback, data, dataLen, reqId);
-//        
-//        if (result == 0) {
-//            NSLog(@"✅ Token登录请求发送成功: reqId=%llu", reqId);
-//            // 用真实 reqId 更新
-//            if (reqId != 0) {
-//                self.authCallbacks[@(reqId)] = completion;
-//                [self.authCallbacks removeObjectForKey:tempKey];
-//            }
-//        } else {
-//            NSLog(@"❌ Token登录请求失败: %d", result);
-//            [self.authCallbacks removeObjectForKey:tempKey];
-//        }
-//        
-//        return result;
-//    }
-//    
-//    return login_by_token(LoginCallback, data, dataLen, reqId);
-//}
-
 - (int)loginWithSerializedData:(NSData *)serializedData
+                    inviteCode:(NSString *)inviteCode
+                        domain:(NSString *)domain
+                  businessCode:(NSString *)businessCode
                     completion:(IMSDKAuthCompletion)completion {
-    NSLog(@"🔐 用户登录（序列化数据）: dataLen=%lu", (unsigned long)serializedData.length);
-    
-    if (!serializedData || serializedData.length == 0) {
-        NSLog(@"❌ 序列化数据不能为空");
-        return -1;
-    }
-    
-    // ✅ 使用格式3: 纯 Protobuf 二进制（不带 varint32 头部）
-    // 与 getCaptcha 验证通过的格式保持一致
-//    NSLog(@"📦 使用纯 Protobuf 二进制格式（不带 varint32 头部）");
-//    NSLog(@"📦 Protobuf 数据长度: %lu 字节", (unsigned long)serializedData.length);
-    
-    // 直接使用纯 Protobuf 二进制数据，不添加 varint32 头部
     const char *data = (const char *)serializedData.bytes;
     int dataLen = (int)serializedData.length;
     uint64_t reqId = 0;
@@ -518,7 +437,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         NSNumber *tempKey = @(tempId++);
         self.authCallbacks[tempKey] = completion;
         
-        int result = login_by_user_id(LoginCallback, data, dataLen, reqId);
+        int result = login_by_user_id(LoginCallback, data, dataLen, domain.UTF8String, businessCode.UTF8String, reqId);
         
         if (result == 0) {
             NSLog(@"✅ 登录请求发送成功: reqId=%llu", reqId);
@@ -535,7 +454,7 @@ static void CaptchaCallback(int errorCode, const char* data, int dataLen, uint64
         return result;
     }
     
-    return login_by_user_id(LoginCallback, data, dataLen, reqId);
+    return login_by_user_id(LoginCallback, data, dataLen, domain.UTF8String, businessCode.UTF8String, reqId);
 }
 
 // ==================== 用户注册 ====================
@@ -1349,6 +1268,58 @@ static void RefreshTokenCallback(int errorCode, const char* data, int dataLen, u
         }
     }
     return data;
+}
+
+// ==================== 网络参数设置 注册之前设置 ====================
+
+/// 设置 HTTP DNS 参数
+- (void)setHttpDnsParamsWithInviteCode:(NSString *)inviteCode
+                                domain:(NSString *)domain
+                          businessCode:(NSString *)businessCode
+                            completion:(void (^)(int errorCode, NSString * _Nullable message))completion {
+    NSLog(@"🌐 设置 HTTP DNS 参数: inviteCode=%@, domain=%@, businessCode=%@", 
+          inviteCode ?: @"", domain ?: @"", businessCode ?: @"");
+    
+    if (!inviteCode || !domain || !businessCode) {
+        NSLog(@"⚠️ 参数不完整");
+        if (completion) {
+            completion(-1, @"参数不完整");
+        }
+        return;
+    }
+    
+    // 构建参数字典
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"invite_code"] = inviteCode;
+    params[@"domain"] = domain;
+    params[@"business_code"] = businessCode;
+    
+    // 将参数保存到 NSUserDefaults
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:params forKey:@"IMSDK_HttpDnsParams"];
+    [defaults synchronize];
+
+    // 调用网络库设置 HTTP DNS 参数
+    int result = network_set_httpdns_params(
+        inviteCode.UTF8String,              // invite_code
+        domain.UTF8String,                  // domain_name
+        businessCode.UTF8String,            // user_domain
+        28,                                 // type - 记录类型 (28 = AAAA记录)
+        nullptr,                            // uid
+        nullptr,                            // api_key
+        nullptr                             // key_secret
+    );
+    if (result == 0) {
+        completion(0, @"设置成功");
+    }
+    
+    if (completion) {
+        if (result == 0) {
+            completion(0, @"设置成功");
+        } else {
+            completion(result, [NSString stringWithFormat:@"设置失败: %d", result]);
+        }
+    }
 }
 
 @end

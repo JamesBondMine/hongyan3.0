@@ -357,6 +357,9 @@ class IOSNativeService {
     String? deviceId,
     String? bizCode,
     String? token,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     try {
       final Map<String, dynamic> params = {
@@ -370,8 +373,14 @@ class IOSNativeService {
       if (email != null) params['email'] = email;
       if (captchaId != null) params['captcha_id'] = captchaId;
       if (deviceId != null) params['device_id'] = deviceId;
-      if (bizCode != null) params['biz_code'] = bizCode;
+      
       if (token != null) params['token'] = token;
+
+      // 域名+业务邀请码
+      if (invite_code != null) params['invite_code'] = invite_code;
+      if (domain != null) params['domain'] = domain;
+      if (business_code != null) params['business_code'] = business_code;
+      if (business_code != null) params['biz_code'] = business_code;
       
       final result = await _bridge.invokeMethod<Map>('imLogin', params);
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
@@ -385,14 +394,21 @@ class IOSNativeService {
     required String accountId,
     required String password,
     String? bizCode,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     return imLogin(
       loginType: 'password',
       accountId: accountId,
       password: password,
       bizCode: bizCode,
+      invite_code: invite_code,
+      domain: domain,
+      business_code: business_code,
     );
   }
+  
   
   /// 短信验证码登录（便捷方法）
   Future<Map<String, dynamic>> imLoginWithSMS({
@@ -400,6 +416,9 @@ class IOSNativeService {
     required String code,
     required String captchaId,
     String? bizCode,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     return imLogin(
       loginType: 'sms_code',
@@ -408,6 +427,9 @@ class IOSNativeService {
       password: code,
       captchaId: captchaId,
       bizCode: bizCode,
+      invite_code: invite_code,
+      domain: domain,
+      business_code: business_code,
     );
   }
   
@@ -416,6 +438,9 @@ class IOSNativeService {
     required String phone,
     required String password,
     String? bizCode,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     return imLogin(
       loginType: 'password',
@@ -423,6 +448,9 @@ class IOSNativeService {
       phone: phone,
       password: password,
       bizCode: bizCode,
+      invite_code: invite_code,
+      domain: domain,
+      business_code: business_code,
     );
   }
   
@@ -432,6 +460,9 @@ class IOSNativeService {
     required String code,
     required String captchaId,
     String? bizCode,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     return imLogin(
       loginType: 'email_code',
@@ -440,6 +471,9 @@ class IOSNativeService {
       password: code,
       captchaId: captchaId,
       bizCode: bizCode,
+      invite_code: invite_code,
+      domain: domain,
+      business_code: business_code,
     );
   }
   
@@ -448,6 +482,9 @@ class IOSNativeService {
     required String email,
     required String password,
     String? bizCode,
+    String? invite_code,
+    String? domain,
+    String? business_code,
   }) async {
     return imLogin(
       loginType: 'password',
@@ -455,6 +492,9 @@ class IOSNativeService {
       email: email,
       password: password,
       bizCode: bizCode,
+      invite_code: invite_code,
+      domain: domain,
+      business_code: business_code,
     );
   }
   /// 修改密码
@@ -2170,6 +2210,38 @@ class IOSNativeService {
       return result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
     } catch (e) {
       print('撤回注销用户错误: $e');
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  // ======================== 网络配置 ========================
+
+  /// 设置 HTTP DNS 参数
+  /// @param inviteCode 邀请码
+  /// @param domain 域名
+  /// @param businessCode 业务码
+  /// @return 设置结果
+  Future<Map<String, dynamic>> setHttpDnsParams({
+    required String inviteCode,
+    required String domain,
+    required String businessCode,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'invite_code': inviteCode,
+        'domain': domain,
+        'business_code': businessCode,
+      };
+
+      print('🌐 设置 HTTP DNS 参数1: $params');
+
+      final result = await _bridge.invokeMethod<Map>('networkSetHttpdnsParams', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      print('🌐 HTTP DNS 参数设置结果: $resultMap');
+      return resultMap;
+    } catch (e) {
+      print('设置 HTTP DNS 参数错误: $e');
       return {'errorCode': -999, 'message': e.toString()};
     }
   }

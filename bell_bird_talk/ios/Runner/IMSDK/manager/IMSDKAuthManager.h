@@ -38,14 +38,14 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 - (int)loginWithDictionary:(NSDictionary *)loginDict
                 completion:(IMSDKAuthCompletion)completion;
 
-/// 使用用户ID登录（已弃用，请使用 loginWithDictionary:completion:）
-/// @param userId 用户ID
-/// @param token 用户token
-/// @param completion 登录结果回调
-/// @return 0表示请求发送成功，其他为错误码
-- (int)loginWithUserId:(NSString *)userId
-                 token:(NSString *)token
-            completion:(IMSDKAuthCompletion)completion __attribute__((deprecated("Use loginWithDictionary:completion: instead")));
+///// 使用用户ID登录（已弃用，请使用 loginWithDictionary:completion:）
+///// @param userId 用户ID
+///// @param token 用户token
+///// @param completion 登录结果回调
+///// @return 0表示请求发送成功，其他为错误码
+//- (int)loginWithUserId:(NSString *)userId
+//                 token:(NSString *)token
+//            completion:(IMSDKAuthCompletion)completion __attribute__((deprecated("Use loginWithDictionary:completion: instead")));
 
 ///// 使用Token快速登录
 ///// @param token 用户token
@@ -59,6 +59,9 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 /// @param completion 登录结果回调
 /// @return 0表示请求发送成功，其他为错误码
 - (int)loginWithSerializedData:(NSData *)serializedData
+                    inviteCode:(NSString *)inviteCode
+                        domain:(NSString *)domain
+                  businessCode:(NSString *)businessCode
                     completion:(IMSDKAuthCompletion)completion;
 
 // ==================== 用户注册 ====================
@@ -162,6 +165,18 @@ typedef void (^IMSDKAuthCompletion)(int errorCode, uint64_t reqId, NSString * _N
 
 /// 清除认证信息
 + (void)clearAuthInfo;
+
+// ==================== 网络参数设置 ====================
+
+/// 设置 HTTP DNS 参数
+/// @param inviteCode 邀请码
+/// @param domain 域名
+/// @param businessCode 业务代码
+/// @param completion 设置结果回调（errorCode, message）
+- (void)setHttpDnsParamsWithInviteCode:(NSString *)inviteCode
+                                domain:(NSString *)domain
+                          businessCode:(NSString *)businessCode
+                            completion:(void (^)(int errorCode, NSString * _Nullable message))completion;
 
 @end
 

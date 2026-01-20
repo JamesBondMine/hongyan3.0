@@ -505,7 +505,7 @@ class LoginPage extends StatelessWidget {
     return LoginTextField(
       controller: controller.inviteCodeController,
       title: '邀请码'.tr,
-      hintText: '请输入邀请码（选填）'.tr,
+      hintText: '请输入邀请码'.tr,
       // prefixIcon: const Icon(Icons.card_giftcard_outlined),
     );
   }
@@ -588,6 +588,7 @@ class LoginPage extends StatelessWidget {
 
   /// 检查表单是否有效
   bool _isFormValid(LoginController controller) {
+
     switch (controller.loginType.value) {
       case LoginType.smsCode:
         // 手机登录
