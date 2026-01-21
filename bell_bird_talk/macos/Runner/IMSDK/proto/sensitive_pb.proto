@@ -1,0 +1,122 @@
+syntax = "proto3";
+option java_package = "com.cloud.im.common.core.protocol.sensitive";
+option java_multiple_files = true;
+option go_package = "./;pb";
+
+import "system_pb.proto";
+
+// ==================== 敏感词领域对象 ====================
+
+// 敏感词信息（完整对象）
+message SensitiveWord {
+  string id = 1;                      // 敏感词ID
+  string word = 2;                    // 敏感词内容
+  string category = 3;                // 分类：政治、色情、暴力、广告、辱骂、违禁、其他
+  int32 level = 4;                    // 严重等级：1-5，5最严重
+  int32 status = 5;                   // 状态：0禁用 1启用
+  string description = 6;             // 描述
+  int64 created_at = 7;               // 创建时间
+  int64 updated_at = 8;               // 更新时间
+}
+
+// 敏感词过滤条件
+message SensitiveWordFilter {
+  string category = 1;                // 分类筛选（可选）
+  int32 level = 2;                    // 等级筛选（可选）
+  int32 status = 3;                   // 状态筛选（可选）：0禁用 1启用
+  com.cloud.im.common.core.system.Page page = 4;  // 分页参数
+}
+
+// 敏感词列表
+message SensitiveWordList {
+  repeated SensitiveWord words = 1;
+  com.cloud.im.common.core.system.Page page = 2;  // 分页元数据
+}
+
+// ==================== 敏感词操作对象 ====================
+
+// 添加敏感词
+message AddSensitiveWord {
+  string word = 1;                    // 敏感词内容（必填）
+  string category = 2;                // 分类（必填）
+  int32 level = 3;                    // 严重等级（必填）
+  string description = 4;             // 描述（可选）
+}
+
+// 批量添加敏感词
+message BatchAddSensitiveWord {
+  repeated AddSensitiveWord words = 1;
+}
+
+// 批量添加结果
+message BatchAddResult {
+  int32 success_count = 1;            // 成功数量
+  int32 failed_count = 2;             // 失败数量
+  repeated string failed_words = 3;   // 失败的词
+}
+
+// 更新敏感词
+message UpdateSensitiveWord {
+  string id = 1;                      // 敏感词ID（必填）
+  string word = 2;                    // 敏感词内容（可选）
+  string category = 3;                // 分类（可选）
+  int32 level = 4;                    // 严重等级（可选）
+  int32 status = 5;                   // 状态（可选）
+  string description = 6;             // 描述（可选）
+}
+
+// 删除敏感词
+message DeleteSensitiveWord {
+  string id = 1;                      // 敏感词ID（必填）
+}
+
+// ==================== 敏感词配置 ====================
+
+// 敏感词检测配置
+message SensitiveConfig {
+  bool enable_detection = 1;                      // 是否启用检测
+  string detection_mode = 2;                      // 检测算法：ac/dfa
+  string default_strategy = 3;                    // 默认策略：replace/reject/audit
+  bool private_chat_enabled = 4;                  // 单聊是否启用
+  string private_chat_strategy = 5;               // 单聊策略
+  bool group_chat_enabled = 6;                    // 群聊是否启用
+  string group_chat_strategy = 7;                 // 群聊策略
+  map<string, string> category_strategies = 8;    // 分类策略
+  string replace_char = 9;                        // 替换字符（默认 **）
+}
+
+// ==================== 敏感词日志 ====================
+
+// 敏感词日志信息
+message SensitiveLog {
+  string id = 1;                      // 日志ID
+  string user_id = 2;                 // 用户ID
+  string conversation_id = 3;         // 会话ID
+  string conversation_type = 4;       // 会话类型：private/group
+  repeated string matched_words = 5;  // 匹配到的敏感词
+  repeated string categories = 6;     // 敏感词分类
+  int32 max_level = 7;                // 最高等级
+  string action = 8;                  // 处理动作：replace/reject/audit
+  int64 created_at = 9;               // 创建时间
+}
+
+// 敏感词日志过滤条件
+message SensitiveLogFilter {
+  string user_id = 1;                 // 用户ID（可选）
+  string conversation_id = 2;         // 会话ID（可选）
+  string action = 3;                  // 处理动作（可选）
+  int64 start_time = 4;               // 开始时间（可选）
+  int64 end_time = 5;                 // 结束时间（可选）
+  com.cloud.im.common.core.system.Page page = 6;  // 分页参数
+}
+
+// 敏感词日志列表
+message SensitiveLogList {
+  repeated SensitiveLog logs = 1;
+  com.cloud.im.common.core.system.Page page = 2;  // 分页元数据
+}
+
+// ==================== 响应说明 ====================
+// 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
+// 查询成功响应：返回具体对象（SensitiveWord、SensitiveWordList、SensitiveConfig 等）
+// 错误响应：使用 com.cloud.im.common.core.system.Error

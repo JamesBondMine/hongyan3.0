@@ -1,20 +1,25 @@
 
 
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 
 class CommunitySettingView extends StatelessWidget {
 
   final ValueChanged<int> onConfirm;
+  CommunityModel cmty;
   
-  const CommunitySettingView({
+  CommunitySettingView({
     super.key,
+    required this.cmty,
     required this.onConfirm,
   });
 
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId =  GlobalController.to.currentUser.value?.id ?? '';
     return Scaffold(
       backgroundColor: GbsColors.lightBackgroundB,
       appBar: AppBar(
@@ -44,24 +49,25 @@ class CommunitySettingView extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          _buildCard([
+          if (cmty.allowAddFriend) _buildCard([
             _buildElement('邀请好友', 'setting_invate', () {
               Navigator.of(context).pop();
               onConfirm(1);
             }),
           ]),
-          _buildCard([
+          // 只有社群拥有者才能设置社群
+          if (cmty.ownerId == currentUserId || cmty.ownerId.isEmpty)  _buildCard([
             _buildElement('社群设置', 'setting_set', () {
               Navigator.of(context).pop();
               onConfirm(2);
             }),
           ]),
-          _buildCard([
+          if (cmty.ownerId == currentUserId || cmty.ownerId.isEmpty) _buildCard([
             _buildElement('创建频道', 'setting_create', () {
               Navigator.of(context).pop();
               onConfirm(3);
             }),
-            _buildElement('创建分类', 'setting_cg', () {
+          if (cmty.ownerId == currentUserId || cmty.ownerId.isEmpty)  _buildElement('创建分类', 'setting_cg', () {
               Navigator.of(context).pop();
               onConfirm(4);
             }),
@@ -71,7 +77,7 @@ class CommunitySettingView extends StatelessWidget {
               Navigator.of(context).pop();
               onConfirm(5);
             }),
-            _buildElement('隐私设置', 'setting_pricy', () {
+          if (cmty.ownerId == currentUserId)  _buildElement('隐私设置', 'setting_pricy', () {
               Navigator.of(context).pop();
               onConfirm(6);
             }),

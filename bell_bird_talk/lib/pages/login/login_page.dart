@@ -156,33 +156,19 @@ class LoginPage extends StatelessWidget {
 
   /// 构建登录表单
   Widget _buildLoginForm(LoginController controller) {
-    return Container(
-      // padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        // color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          // 登录方式切换 Tab
-          _buildLoginTypeTabs(controller),
-
-          SizedBox(height: 24.h),
-
-          // 登录表单内容（根据登录方式显示不同内容）
-          Obx(() => _buildLoginFormContent(controller)),
-
-          // const SizedBox(height: 10),
-
-          // 登录按钮
-          _buildLoginButton(controller),
-
-          SizedBox(height: 60.h),
-
-          // 注册按钮
-          _buildRegisterButton(),
-        ],
-      ),
+    return Column(
+      children: [
+        // 登录方式切换 Tab
+        _buildLoginTypeTabs(controller),
+        SizedBox(height: 24.h),
+        // 登录表单内容（根据登录方式显示不同内容）
+        Obx(() => _buildLoginFormContent(controller)),
+        // 登录按钮
+        _buildLoginButton(controller),
+        SizedBox(height: 60.h),
+        // 注册按钮
+        _buildRegisterButton(),
+      ],
     );
   }
 
@@ -190,7 +176,7 @@ class LoginPage extends StatelessWidget {
   Widget _buildLoginTypeTabs(LoginController controller) {
     return Obx(
       () => Container(
-        height: 36.h,
+        height: 36,
         decoration: BoxDecoration(
           color: Color(0xFF1D61E7).withOpacity(0.08),
           borderRadius: BorderRadius.circular(8),
@@ -224,7 +210,7 @@ class LoginPage extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 32.h,
+          height: 32,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 0),
           decoration: BoxDecoration(
@@ -321,8 +307,8 @@ class LoginPage extends StatelessWidget {
                   controller.obscurePassword.value
                       ? 'assets/img/login/eyeoff.png'
                       : 'assets/img/login/eye.png',
-                  width: 20.w,
-                  height: 20.h,
+                  width: 20,
+                  height: 20,
                   color: controller.obscurePassword.value
                       ? Colors.grey
                       : Colors.blue,

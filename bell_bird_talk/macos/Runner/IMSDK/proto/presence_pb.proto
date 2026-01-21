@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package im.presence;
+
+option java_package = "com.cloud.im.common.core.protocol.presence";
+option java_outer_classname = "PresenceProtos";
+
+import "user_pb.proto";
+import "device_pb.proto";
+
+// ============ 枚举类型定义 ============
+
+// 在线状态枚举（复用 user_pb.proto 中的 OnlineStatus）
+// ONLINE_UNKNOWN = 0;  // 未知状态
+// OFFLINE = 1;         // 离线
+// ONLINE = 2;          // 在线
+// BUSY = 3;            // 忙碌
+// AWAY = 4;            // 离开
+
+// 状态变更类型枚举
+enum ChangeType {
+  STATUS_CHANGED = 0;          // 状态变更（在线/离线/忙碌等，默认值）
+  LAST_SEEN_UPDATED = 1;      // 最后在线时间更新
+  CUSTOM_STATUS_CHANGED = 2;  // 自定义状态变更
+}
+
+// 订阅类型枚举
+enum SubscribeType {
+  SUBSCRIBE_STATUS = 0;            // 订阅状态变化（默认值）
+  SUBSCRIBE_LAST_SEEN = 1;         // 订阅最后在线时间变化
+  SUBSCRIBE_ALL = 2;               // 订阅所有变化
+}
+
+// ============ 查询操作 ============
+
+// 查询用户在线状态
+message Query {
+  string user_id = 1;               // 用户ID（必填）
+  bool include_device_info = 2;      // 是否包含设备信息（默认false）
+}
+
+// 批量查询用户在线状态
+message BatchQuery {
+  repeated string user_ids = 1;     // 用户ID列表（最多100个）
+  bool include_device_info = 2;      // 是否包含设备信息（默认false）
+}
+
+// 查询最后在线时间
+message QueryLastSeen {
+  string user_id = 1;               // 用户ID（必填）
+}
+
+// 批量查询最后在线时间
+message BatchQueryLastSeen {
+  repeated string user_ids = 1;     // 用户ID列表（最多100个）
+}
+
+// ============ 设置操作 ============
+
+// 设置在线状态
+message Set {
+  im.user.OnlineStatus status = 1;  // 在线状态（必填）
+  string custom_status = 2;          // 自定义状态文本（可选，如"在开会"）
+  int32 expire_seconds = 3;          // 过期时间（秒，0表示永久）
+}
+
+// ============ 订阅操作 ============
+
+// 订阅用户状态变化
+message Subscribe {
+  repeated string user_ids = 1;     // 用户ID列表（最多100个）
+  SubscribeType subscribe_type = 2;  // 订阅类型（默认SUBSCRIBE_ALL）
+}
+
+// 订阅群组状态变化
+message SubscribeGroup {
+  repeated string group_ids = 1;    // 群组ID列表（最多100个）
+  SubscribeType subscribe_type = 2;  // 订阅类型（默认SUBSCRIBE_ALL）
+}
+
+// 取消订阅用户状态变化
+message Unsubscribe {
+  repeated string user_ids = 1;     // 用户ID列表（最多100个）
+}
+
+// 取消订阅群组状态变化
+message UnsubscribeGroup {
+  repeated string group_ids = 1;    // 群组ID列表（最多100个）
+}
+
+// ============ 结果对象 ============
+
+// 在线状态信息
+message Info {
+  string user_id = 1;               // 用户ID
+  im.user.OnlineStatus status = 2;   // 在线状态
+  string custom_status = 3;          // 自定义状态文本
+  int64 last_seen = 4;              // 最后在线时间（时间戳，毫秒）
+  int32 online_device_count = 5;    // 在线设备数量
+  repeated im.device.Device devices = 6; // 在线设备列表（可选）
+  string client_ip = 7;             // 客户端IP地址（最后在线的设备IP）
+  string region = 8;                // 地区信息（如"中国/北京"、"US/California"）
+  string country = 9;                // 国家代码（如"CN"、"US"）
+  string city = 10;                 // 城市名称（如"北京"、"上海"）
+  bool is_hidden = 11;              // 是否隐藏状态（隐身模式，系统开关控制）
+  bool hide_offline = 12;           // 是否隐藏离线状态（系统开关控制）
+}
+
+// 在线状态列表（批量查询结果）
+message InfoList {
+  repeated Info infos = 1; // 在线状态列表
+}
+
+// 最后在线时间信息
+message LastSeen {
+  string user_id = 1;               // 用户ID
+  int64 last_seen = 2;              // 最后在线时间（时间戳，毫秒）
+  bool is_online = 3;               // 是否当前在线
+  string client_ip = 4;             // 最后在线时的IP地址
+  string region = 5;                // 地区信息
+  string country = 6;               // 国家代码
+  string city = 7;                  // 城市名称
+  bool is_hidden = 8;               // 是否隐藏最后在线时间（系统开关控制）
+}
+
+// 最后在线时间列表（批量查询结果）
+message LastSeenList {
+  repeated LastSeen last_seens = 1; // 最后在线时间列表
+}
+
+// 状态变更通知（推送给订阅者）
+message ChangeNotification {
+  string user_id = 1;               // 用户ID
+  ChangeType change_type = 2;        // 变更类型
+  im.user.OnlineStatus old_status = 3; // 旧状态
+  im.user.OnlineStatus new_status = 4; // 新状态
+  int64 last_seen = 5;              // 最后在线时间
+  string custom_status = 6;         // 自定义状态文本
+  int64 timestamp = 7;              // 变更时间戳（毫秒）
+}
+
+// 订阅结果
+message SubscribeResult {
+  int32 success_count = 1;          // 成功订阅数量
+  int32 failed_count = 2;           // 失败订阅数量
+  repeated string failed_user_ids = 3; // 失败的用户ID列表
+}

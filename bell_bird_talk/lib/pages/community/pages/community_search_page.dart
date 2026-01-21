@@ -30,7 +30,6 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
   @override
   void initState() {
     super.initState();
-    _loadDefaultCommunities();
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -44,49 +43,6 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
   /// 搜索文本变化
   void _onSearchChanged() {
     _filterCommunities();
-  }
-
-  /// 加载默认社群
-  void _loadDefaultCommunities() {
-    _communities.clear();
-    _communities.addAll([
-      CommunityModel(
-        id: '1',
-        name: '足球俱乐部',
-        description: '专注于 Flutter 开发技术分享，包括 Dart 语言、Widget 开发、性能优化等',
-        avatar: null,
-        memberCount: 1250,
-        maxMembers: 2000,
-        category: '技术',
-        isPublic: true,
-        ownerName: 'Flutter官方',
-        createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 30,
-      ),
-      CommunityModel(
-        id: '2',
-        name: '美食分享圈',
-        description: '分享各地美食，交流烹饪心得，发现身边的美食小店',
-        avatar: null,
-        memberCount: 890,
-        maxMembers: 1000,
-        category: '生活',
-        isPublic: true,
-        ownerName: '美食达人',
-        createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 20,
-      ),
-      CommunityModel(
-        id: '3',
-        name: '电影爱好者',
-        description: '一起讨论最新电影，分享观影感受，推荐好片',
-        avatar: null,
-        memberCount: 2100,
-        maxMembers: 3000,
-        category: '娱乐',
-        isPublic: true,
-        ownerName: '影评人',
-        createTime: DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 60,
-      ),
-    ]);
   }
 
   /// 筛选社群
@@ -140,38 +96,7 @@ class _CommunitySearchPageState extends State<CommunitySearchPage> {
 
       // 模拟申请过程
       await Future.delayed(const Duration(seconds: 1));
-      // 刷新TabBar
-      GlobalController.to.joinedCommunitys = [
-        community,
-        CommunityModel(
-          id: '2',
-          name: '美食分享圈',
-          description: '分享各地美食，交流烹饪心得，发现身边的美食小店',
-          avatar: null,
-          memberCount: 890,
-          maxMembers: 1000,
-          category: '生活',
-          isPublic: true,
-          ownerName: '美食达人',
-          createTime:
-              DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 20,
-        ),
-        CommunityModel(
-          id: '3',
-          name: '电影爱好者',
-          description: '一起讨论最新电影，分享观影感受，推荐好片',
-          avatar: null,
-          memberCount: 2100,
-          maxMembers: 3000,
-          category: '娱乐',
-          isPublic: true,
-          ownerName: '影评人',
-          createTime:
-              DateTime.now().millisecondsSinceEpoch ~/ 1000 - 86400 * 60,
-        ),
-      ];
       GlobalController.to.updatecommunityTabRefresh();
-
       // 更新状态
       if (mounted) {
         setState(() {

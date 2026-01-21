@@ -112,7 +112,7 @@ class MyApp extends StatelessWidget {
     final initialLocale = _getInitialLocale();
     
     return ScreenUtilInit(
-      designSize: const Size(375, 812), // 设计稿尺寸，根据你的设计稿调整
+      designSize: GetPlatform.isMobile ? const Size(375, 812) : const Size(1080, 1920), // 设计稿尺寸，根据你的设计稿调整
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {

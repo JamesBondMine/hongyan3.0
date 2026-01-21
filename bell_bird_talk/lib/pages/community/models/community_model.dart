@@ -8,7 +8,9 @@ class CommunityModel {
   final int maxMembers;
   final String category; // 分类：如 "技术"、"生活"、"娱乐"等
   final bool isPublic; // 是否公开
-  final String? ownerId;
+  final bool allowAddFriend; // 是否公开
+  
+  final String ownerId;
   final String? ownerName;
   final int createTime;
   final bool isJoined; // 是否已加入
@@ -23,7 +25,8 @@ class CommunityModel {
     this.maxMembers = 500,
     this.category = '其他',
     this.isPublic = true,
-    this.ownerId,
+    this.allowAddFriend = true,
+    required this.ownerId,
     this.ownerName,
     this.createTime = 0,
     this.isJoined = false,
@@ -40,7 +43,9 @@ class CommunityModel {
       maxMembers: json['max_members'] ?? 500,
       category: json['category'] ?? '其他',
       isPublic: json['is_public'] ?? true,
-      ownerId: json['owner_id'],
+      allowAddFriend: json['allow_add_friend'] ?? true,
+      
+      ownerId: json['owner_id'] ?? '',
       ownerName: json['owner_name'],
       createTime: json['created_at'] ?? json['create_time'] ?? 0,
       isJoined: json['is_member'] ?? false,

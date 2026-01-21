@@ -1,0 +1,336 @@
+syntax = "proto3";
+
+package im.app;
+
+option java_package = "com.cloud.im.common.core.protocol.app";
+option java_outer_classname = "AppProtos";
+
+import "system_pb.proto";
+
+// ============ 枚举定义 ============
+
+// 应用状态枚举 - 定义应用的各种状态
+enum AppStatus {
+  ACTIVE = 0;                   // 活跃状态（正常使用，默认值）
+  DISABLED = 1;                 // 禁用状态（被禁用）
+  SUSPENDED = 2;                // 暂停状态（临时暂停）
+  ARCHIVED = 3;                 // 已归档状态（不再使用）
+}
+
+// SCRAM 认证状态枚举
+enum ScramAuthStatus {
+  SUCCESS = 0;                  // 认证成功（默认值）
+  FAILED = 1;                   // 认证失败
+  EXPIRED = 2;                  // 认证过期
+  INVALID = 3;                  // 认证无效
+}
+
+// Secret 刷新类型枚举
+enum SecretRefreshType {
+  CLIENT_SECRET = 0;           // 客户端密钥（默认值）
+  SERVER_SECRET = 1;           // 服务端密钥
+  SCRAM_SECRET = 2;            // SCRAM 认证密钥（包括 salt 和 iteration count）
+}
+
+// ============ 核心领域对象 ============
+
+// 应用信息 - 核心领域对象
+// 用于应用的基本信息存储和传输
+message App {
+  // ========== 基础信息（必填） ==========
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  string app_name = 2;          // 应用名称（必填，最大长度100字符）
+  string app_description = 3;   // 应用描述（可选，最大长度500字符）
+  string invite_host = 23;      // 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式，如：admin.im.com）
+  AppStatus status = 4;         // 应用状态（必填）
+  
+  // ========== 认证信息（必填） ==========
+  string client_secret = 5;     // 客户端密钥（必填，最大长度100字符）
+  string server_secret = 6;     // 服务端密钥（必填，最大长度100字符）
+  string scram_salt = 7;        // SCRAM认证盐值（必填，Base64编码）
+  int32 scram_iteration_count = 8; // SCRAM迭代次数（必填，范围：1000-100000）
+  
+  // ========== 配置信息（可选） ==========
+  string client_config = 9;     // 客户端配置（可选，JSON格式）
+  string server_config = 10;    // 服务端配置（可选，JSON格式）
+  string storage_config = 11;   // 存储配置（可选，JSON格式）
+  string group_config = 12;     // 群组配置（可选，JSON格式）
+  string multi_device_config = 13; // 多端登录配置（可选，JSON格式）
+  string security_config = 14;  // 安全配置（可选，JSON格式）
+  string feature_config = 15;   // 功能开关配置（可选，JSON格式）
+  string third_party_config = 16; // 第三方服务配置（可选，JSON格式）
+  string sensitive_config = 17; // 敏感词配置（可选，JSON格式）
+  string push_config = 18;      // 推送配置（可选，JSON格式）
+  
+  // ========== 时间信息（系统自动生成） ==========
+  int64 created_at = 19;        // 创建时间戳（系统自动生成）
+  int64 updated_at = 20;        // 更新时间戳（系统自动更新）
+  int64 last_active_at = 21;    // 最后活跃时间戳（可选）
+  
+  // ========== 扩展信息（可选） ==========
+  map<string, string> extra = 22; // 扩展信息（可选，用于存储平台特定的额外信息）
+}
+
+// ============ 查询操作 ============
+
+// 获取应用信息 - 查询操作
+// 用于获取指定应用的详细信息
+message GetApp {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+}
+
+// 获取支持的语言列表 - 查询操作
+// 用于获取服务端支持的所有语言列表
+message GetSupportedLocales {
+  // 空消息，使用appId从上下文获取
+}
+
+// 应用列表查询 - 查询操作
+// 用于分页查询应用列表
+message AppListQuery {
+  AppStatus status = 1;         // 应用状态过滤（可选）
+  string keyword = 2;           // 搜索关键词（可选，最大长度50字符）
+  com.cloud.im.common.core.system.Page page = 3; // 分页参数（使用系统类型）
+}
+
+// ============ 操作对象 ============
+
+// 创建应用 - 操作对象
+// 用于创建新的应用
+message CreateApp {
+  optional string app_id = 1;   // 应用ID（可选，不提供则系统自动生成6位数字字母组合）
+  string app_name = 2;          // 应用名称（必填，最大长度100字符）
+  string app_description = 3;   // 应用描述（可选，最大长度500字符）
+  string client_config = 4;     // 客户端配置（可选，JSON格式）
+  string server_config = 5;     // 服务端配置（可选，JSON格式）
+  string storage_config = 6;    // 存储配置（可选，JSON格式）
+  string group_config = 7;      // 群组配置（可选，JSON格式）
+  string multi_device_config = 8; // 多端登录配置（可选，JSON格式）
+  string security_config = 9;   // 安全配置（可选，JSON格式）
+  string feature_config = 10;   // 功能开关配置（可选，JSON格式）
+  string third_party_config = 11; // 第三方服务配置（可选，JSON格式）
+  string sensitive_config = 12; // 敏感词配置（可选，JSON格式）
+  string push_config = 13;      // 推送配置（可选，JSON格式）
+}
+
+// 更新应用 - 操作对象
+// 用于更新应用的基本信息
+message UpdateApp {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  string app_name = 2;          // 应用名称（可选，最大长度100字符）
+  string app_description = 3;   // 应用描述（可选，最大长度500字符）
+  string invite_host = 14;      // 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式）
+  string client_config = 4;     // 客户端配置（可选，JSON格式）
+  string server_config = 5;     // 服务端配置（可选，JSON格式）
+  string storage_config = 6;    // 存储配置（可选，JSON格式）
+  string group_config = 7;      // 群组配置（可选，JSON格式）
+  string multi_device_config = 8; // 多端登录配置（可选，JSON格式）
+  string security_config = 9;   // 安全配置（可选，JSON格式）
+  string feature_config = 10;   // 功能开关配置（可选，JSON格式）
+  string third_party_config = 11; // 第三方服务配置（可选，JSON格式）
+  string sensitive_config = 12; // 敏感词配置（可选，JSON格式）
+  string push_config = 13;      // 推送配置（可选，JSON格式）
+}
+
+// 设置应用状态 - 操作对象
+// 用于启用或禁用应用
+message SetAppStatus {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  AppStatus status = 2;         // 应用状态（必填）
+}
+
+// 刷新应用密钥 - 操作对象
+// 用于刷新应用的认证密钥
+message RefreshAppSecret {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  SecretRefreshType refresh_type = 2; // 刷新类型（必填）
+  optional string reason = 3;   // 刷新原因（可选，最大长度200字符）
+}
+
+// 更新应用配置 - 操作对象
+// 用于更新应用的特定配置
+message UpdateAppConfig {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  string config_type = 2;      // 配置类型（必填，如：client/server/storage等）
+  string config_json = 3;      // 配置JSON字符串（必填）
+}
+
+// SCRAM 认证验证 - 操作对象
+// 用于验证 SCRAM 认证
+message VerifyScram {
+  string app_id = 1;            // 应用ID（必填，最大长度50字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+  string client_first = 3;      // 客户端首次消息（必填）
+  string server_first = 4;      // 服务端首次消息（必填）
+  string client_final = 5;      // 客户端最终消息（必填）
+}
+
+// ============ 结果对象 ============
+
+// 应用列表 - 结果对象
+// 用于应用列表查询的响应
+message AppList {
+  repeated App apps = 1;        // 应用列表
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 应用统计信息 - 结果对象
+// 用于应用统计查询的响应
+message stats {
+  int32 total_apps = 1;        // 总应用数
+  int32 active_apps = 2;       // 活跃应用数
+  int32 disabled_apps = 3;     // 禁用应用数
+  int32 suspended_apps = 4;     // 暂停应用数
+  int32 archived_apps = 5;     // 已归档应用数
+  int32 active_24h = 6;        // 24小时内活跃应用数
+}
+
+// 多端登录状态 - 结果对象
+// 用于多端登录配置查询的响应
+message multiDeviceStatus {
+  bool allowed = 1;            // 是否允许多端登录
+  int32 max_devices = 2;       // 最大设备数量
+  int32 current_devices = 3;   // 当前设备数量
+}
+
+// 应用有效配置 - 结果对象
+// 用于应用配置查询的响应
+message effectiveConfig {
+  string client_config = 1;    // 客户端配置（JSON格式）
+  string server_config = 2;    // 服务端配置（JSON格式）
+  string storage_config = 3;   // 存储配置（JSON格式）
+  string group_config = 4;     // 群组配置（JSON格式）
+  string multi_device_config = 5; // 多端登录配置（JSON格式）
+  string security_config = 6; // 安全配置（JSON格式）
+  string feature_config = 7;   // 功能开关配置（JSON格式）
+  string third_party_config = 8; // 第三方服务配置（JSON格式）
+  string sensitive_config = 9; // 敏感词配置（JSON格式）
+}
+
+// SCRAM 认证结果 - 结果对象
+// 用于 SCRAM 认证验证的响应
+message scramAuthResult {
+  ScramAuthStatus status = 1;  // 认证状态（必填）
+  string server_final = 2;     // 服务端最终消息（可选）
+  string error_message = 3;    // 错误信息（可选，最大长度200字符）
+  int64 auth_time = 4;         // 认证时间戳（可选）
+}
+
+// 密钥刷新结果 - 结果对象
+// 用于密钥刷新操作的响应
+message SecretRefreshResult {
+  SecretRefreshType refresh_type = 1; // 刷新类型（必填）
+  string new_client_secret = 2;       // 新的客户端密钥（可选）
+  string new_server_secret = 3;       // 新的服务端密钥（可选）
+  string new_scram_salt = 4;          // 新的SCRAM盐值（可选）
+  int32 new_scram_iteration_count = 5; // 新的SCRAM迭代次数（可选）
+  int64 refresh_time = 6;             // 刷新时间戳（必填）
+  string reason = 7;                  // 刷新原因（可选）
+}
+
+// ============ SMS通道管理 ============
+
+// 获取短信通道列表 - 查询操作
+message GetSmsChannels {
+  bool include_fields = 1;  // 是否包含字段定义（默认false）
+}
+
+// 短信通道列表 - 结果对象
+message SmsChannelList {
+  repeated SmsChannel channels = 1;
+  string default_channel_type = 2;  // 默认通道类型（系统内置通道中display_order最小的）
+}
+
+// 短信通道 - 领域对象
+message SmsChannel {
+  string channel_type = 1;              // 通道类型枚举 (YDOU, LINGDIAN)
+  string channel_name = 2;              // 通道显示名称
+  string channel_description = 3;       // 通道描述
+  bool is_system = 4;                   // 是否系统内置通道
+  int32 display_order = 5;              // 显示顺序
+  string icon_url = 6;                  // 图标URL
+  string documentation_url = 7;        // 文档链接
+  repeated SmsChannelField fields = 8; // 配置字段定义（可选，根据请求参数决定是否返回）
+  string default_config_json = 9;       // 默认配置JSON（可选，仅系统内置通道有）
+}
+
+// 短信通道字段定义 - 领域对象
+message SmsChannelField {
+  string field_name = 1;                 // 字段名（通用字段名）
+  string field_label = 2;                // 字段显示标签
+  string field_type = 3;                 // 字段类型 (STRING, INTEGER, BOOLEAN, PASSWORD, TEXT)
+  string field_description = 4;          // 字段描述
+  bool is_required = 5;                  // 是否必填
+  bool is_sensitive = 6;                 // 是否敏感字段
+  string default_value = 7;              // 默认值
+  string placeholder = 8;                // 占位符
+  string help_text = 9;                  // 帮助文本
+  int32 display_order = 10;               // 显示顺序
+  FieldValidation validation = 11;       // 验证规则
+}
+
+// 字段验证规则 - 领域对象
+message FieldValidation {
+  string regex = 1;                      // 验证正则表达式
+  int32 min_length = 2;                  // 最小长度
+  int32 max_length = 3;                 // 最大长度
+  double min_value = 4;                  // 最小值
+  double max_value = 5;                  // 最大值
+}
+
+// 获取通道字段定义 - 查询操作
+message GetSmsChannelFields {
+  string channel_type = 1;  // 通道类型 (必填)
+}
+
+// 通道字段定义列表 - 结果对象
+message SmsChannelFields {
+  string channel_type = 1;
+  repeated SmsChannelField fields = 2;  // 从通道的fields JSONB字段中解析
+}
+
+// 验证短信配置 - 操作对象
+message ValidateSmsConfig {
+  string channel_type = 1;               // 通道类型 (必填)
+  string config_json = 2;                 // 配置JSON字符串 (必填)
+}
+
+// 验证结果 - 结果对象
+message ValidateSmsConfigResult {
+  bool is_valid = 1;                     // 是否有效
+  repeated ValidationError errors = 2;    // 验证错误列表
+  repeated ValidationWarning warnings = 3; // 验证警告列表
+}
+
+// 验证错误 - 领域对象
+message ValidationError {
+  string field_name = 1;                 // 字段名
+  string error_code = 2;                 // 错误代码
+  string error_message = 3;              // 错误消息
+}
+
+// 验证警告 - 领域对象
+message ValidationWarning {
+  string field_name = 1;                 // 字段名
+  string warning_code = 2;               // 警告代码
+  string warning_message = 3;           // 警告消息
+}
+
+// 转换配置格式 - 操作对象
+message ConvertSmsConfig {
+  string source_config_json = 1;          // 源配置JSON
+  int32 source_version = 2;              // 源版本（1或2）
+  int32 target_version = 3;              // 目标版本（1或2）
+}
+
+// 转换结果 - 结果对象
+message ConvertSmsConfigResult {
+  string converted_config_json = 1;      // 转换后的配置JSON
+  int32 target_version = 2;              // 目标版本
+  repeated string warnings = 3;          // 转换过程中的警告信息
+}
+
+// ============ 响应说明 ============
+// 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
+// 查询成功响应：返回具体对象（App、list、stats、effectiveConfig 等）
+// 错误响应：使用 com.cloud.im.common.core.system.Error

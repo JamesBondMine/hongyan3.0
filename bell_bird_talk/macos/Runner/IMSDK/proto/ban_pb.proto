@@ -1,0 +1,127 @@
+syntax = "proto3";
+package com.cloud.im.biz.user.ban;
+
+import "system_pb.proto";
+
+option java_package = "com.cloud.im.common.core.protocol.ban";
+option java_outer_classname = "BanProtos";
+
+// ============ 枚举类型 ============
+
+// 封禁类型
+enum BanType {
+    TEMPORARY = 0;    // 临时封禁（默认值）
+    PERMANENT = 1;    // 永久封禁
+}
+
+// 封禁原因
+enum BanReason {
+    LOGIN_FAILURE = 0;      // 登录失败（指数退避，默认值）
+    SECURITY_RISK = 1;      // 安全风险
+    VIOLATION = 2;          // 违规行为
+    MANUAL = 3;             // 手动封禁（管理后台）
+}
+
+// 操作类型
+enum OperatorType {
+    ADMIN = 0;              // 管理员操作（默认值）
+    SYSTEM = 1;             // 系统自动
+}
+
+// 封禁状态
+enum BanStatus {
+    ACTIVE = 0;             // 生效中（默认值）
+    EXPIRED = 1;            // 已过期
+    REVOKED = 2;            // 已解封
+}
+
+// ============ 消息类型 ============
+
+// 封禁记录
+message BanRecord {
+    int64 ban_id = 1;                   // 封禁ID
+    string app_id = 2;                  // 应用ID
+    string user_id = 3;                 // 用户ID（可选）
+    string ip_address = 4;               // IP地址（可选）
+    string device_id = 5;                // 设备ID（可选）
+    BanType ban_type = 6;                // 封禁类型
+    BanReason ban_reason = 7;            // 封禁原因
+    string ban_description = 8;          // 封禁描述
+    int64 ban_start_time = 9;            // 封禁开始时间（Unix时间戳，秒）
+    int64 ban_end_time = 10;             // 封禁结束时间（临时封禁时必填）
+    string operator_id = 11;             // 操作人ID
+    string operator_name = 12;           // 操作人名称
+    OperatorType operator_type = 13;    // 操作类型
+    BanStatus status = 14;               // 封禁状态
+}
+
+// 创建封禁请求（管理后台）
+message CreateBan {
+    string app_id = 1;                   // 应用ID
+    string user_id = 2;                  // 用户ID（可选，账号封禁时必填）
+    string ip_address = 3;                // IP地址（可选，IP封禁时必填）
+    string device_id = 4;                 // 设备ID（可选，设备封禁时必填）
+    BanType ban_type = 5;                 // 封禁类型
+    BanReason ban_reason = 6;             // 封禁原因
+    string ban_description = 7;          // 封禁描述
+    int64 ban_duration_seconds = 8;       // 封禁时长（秒，临时封禁时必填，永久封禁为0）
+}
+
+// 解封请求（管理后台）
+message RevokeBan {
+    int64 ban_id = 1;                    // 封禁ID
+    string reason = 2;                   // 解封原因
+}
+
+// 批量解封请求（管理后台）
+message BatchRevokeBan {
+    repeated int64 ban_ids = 1;          // 封禁ID列表
+    string reason = 2;                   // 解封原因
+}
+
+// 批量解封响应
+message BatchRevokeBanResponse {
+    int32 total_count = 1;                // 总数量
+    int32 success_count = 2;              // 成功数量
+    int32 failed_count = 3;               // 失败数量
+    repeated int64 success_ban_ids = 4;   // 成功解封的封禁ID列表
+    repeated BatchRevokeBanError failed_items = 5;  // 失败项列表
+}
+
+// 批量解封错误项
+message BatchRevokeBanError {
+    int64 ban_id = 1;                    // 封禁ID
+    string error_code = 2;              // 错误码
+    string error_message = 3;            // 错误信息
+}
+
+// 查询封禁请求
+message BanFilter {
+    string app_id = 1;                   // 应用ID
+    string user_id = 2;                  // 用户ID（可选）
+    string ip_address = 3;               // IP地址（可选）
+    string device_id = 4;                // 设备ID（可选）
+    BanStatus status = 5;                 // 状态过滤（可选）
+    com.cloud.im.common.core.system.Page page = 6;  // 分页参数（使用系统类型）
+}
+
+// 封禁列表响应
+message BanList {
+    repeated BanRecord records = 1;       // 封禁记录列表
+    com.cloud.im.common.core.system.Page page = 2;  // 分页信息（使用系统类型）
+}
+
+// 封禁状态查询请求（客户端/跨服务调用）
+message CheckBanStatus {
+    string app_id = 1;                   // 应用ID
+    string user_id = 2;                  // 用户ID（可选）
+    string ip_address = 3;               // IP地址（可选）
+    string device_id = 4;                // 设备ID（可选）
+}
+
+// 封禁状态响应（客户端/跨服务调用）
+message BanStatusResponse {
+    bool is_banned = 1;                  // 是否被封禁
+    BanRecord ban_record = 2;            // 封禁记录（被封禁时返回）
+}
+

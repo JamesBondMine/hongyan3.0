@@ -1,0 +1,231 @@
+syntax = "proto3";
+
+package im.device;
+
+option java_package = "com.cloud.im.common.core.protocol.device";
+option java_outer_classname = "DeviceProtos";
+
+import "system_pb.proto";
+
+// ============ 枚举定义 ============
+
+// 设备类型枚举 - 定义支持的设备平台
+enum DeviceType {
+  ANDROID = 0;                  // Android 设备（默认值）
+  IOS = 1;                      // iOS 设备
+  PC = 2;                       // PC 桌面端
+  WEB = 3;                      // Web 浏览器端
+}
+
+// 设备状态枚举 - 定义设备的各种状态
+enum DeviceStatus {
+  ACTIVE = 0;                   // 活跃状态（正常使用中，默认值）
+  INACTIVE = 1;                 // 不活跃状态（长时间未使用）
+  BANNED = 2;                   // 被禁用状态（违规或安全问题）
+  ARCHIVED = 3;                 // 已归档状态（用户主动移除）
+}
+
+// ============ 核心领域对象 ============
+
+// 设备信息 - 核心领域对象
+// 用于设备的基本信息存储和传输
+message Device {
+  // ========== 基础信息（必填） ==========
+  string device_id = 1;         // 设备ID（必填，最大长度100字符）
+  string device_name = 2;       // 设备名称（必填，最大长度50字符）
+  DeviceType device_type = 3;   // 设备类型（必填）
+  DeviceStatus status = 4;      // 设备状态（必填）
+  
+  // ========== 应用信息（可选） ==========
+  string app_version = 5;       // 应用版本（可选，最大长度50字符）
+  string client_ip = 6;         // 客户端IP（可选，最大长度50字符）
+  int64 last_active_time = 7;   // 最后活跃时间戳（可选）
+  int64 created_at = 8;         // 创建时间戳（系统自动生成）
+  int64 updated_at = 9;         // 更新时间戳（系统自动更新）
+  
+  // ========== 系统信息（可选） ==========
+  string system_name = 10;      // 系统名称（可选，最大长度20字符，如：iOS/Android/Windows/macOS）
+  string system_version = 11;   // 系统版本（可选，最大长度50字符）
+  string kernel_version = 12;   // 内核版本（可选，最大长度50字符）
+  string api_level = 13;        // API级别（可选，最大长度10字符，Android专用）
+  
+  // ========== 硬件信息（可选） ==========
+  string brand = 14;            // 设备品牌（可选，最大长度30字符，如：Apple/Samsung/Xiaomi）
+  string model = 15;            // 设备型号（可选，最大长度50字符，如：iPhone 14 Pro/Galaxy S23）
+  string hardware = 16;         // 硬件名称（可选，最大长度50字符）
+  string board = 17;            // 主板名称（可选，最大长度50字符）
+  string product = 18;          // 产品名称（可选，最大长度50字符）
+  string serial = 19;           // 设备序列号（可选，最大长度100字符）
+  
+  // ========== 屏幕信息（可选） ==========
+  string screen_resolution = 20; // 屏幕分辨率（可选，最大长度20字符，如：1920x1080）
+  string screen_density = 21;   // 屏幕密度（可选，最大长度10字符，单位：dpi）
+  string screen_size = 22;      // 屏幕尺寸（可选，最大长度20字符，如：6.1英寸）
+  
+  // ========== 硬件规格（可选） ==========
+  string cpu_info = 23;         // CPU信息（可选，最大长度100字符）
+  string memory_info = 24;      // 内存信息（可选，最大长度50字符，如：8GB）
+  string storage_info = 25;     // 存储信息（可选，最大长度50字符，如：256GB）
+  string gpu_info = 26;         // GPU信息（可选，最大长度100字符）
+  
+  // ========== 网络信息（可选） ==========
+  string network_type = 27;     // 网络类型（可选，最大长度20字符，如：WiFi/4G/5G）
+  string carrier = 28;          // 运营商（可选，最大长度50字符）
+  string wifi_ssid = 29;        // WiFi名称（可选，最大长度50字符）
+  string mac_address = 30;      // MAC地址（可选，最大长度20字符）
+  
+  // ========== 电池信息（可选） ==========
+  string battery_status = 31;   // 电池状态（可选，最大长度20字符，如：充电中/未充电）
+  int32 battery_level = 32;     // 电池电量百分比（可选，范围：0-100）
+  
+  // ========== 位置信息（可选） ==========
+  string timezone = 33;         // 时区（可选，最大长度50字符，如：Asia/Shanghai）
+  string language = 34;         // 语言（可选，最大长度10字符，如：zh-CN）
+  string region = 35;           // 地区（可选，最大长度10字符，如：CN）
+  
+  // ========== 扩展信息（可选） ==========
+  map<string, string> extra = 36; // 扩展信息（可选，用于存储平台特定的额外信息）
+}
+
+// ============ 查询操作 ============
+
+// 检查设备 - 查询操作
+// 用于检查设备是否存在、是否需要认证等
+message Check {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+  Device device = 3;            // 设备信息（可选，用于新设备注册）
+}
+
+// 获取设备详情 - 查询操作
+// 用于获取指定设备的详细信息
+message Get {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+}
+
+// 设备列表查询 - 查询操作
+// 用于分页查询用户的设备列表
+message ListQuery {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  DeviceType device_type = 2;   // 设备类型过滤（可选）
+  DeviceStatus status = 3;      // 设备状态过滤（可选）
+  com.cloud.im.common.core.system.Page page = 4; // 分页参数（使用系统类型）
+}
+
+// 根据设备ID查询用户 - 查询操作
+// 用于从设备ID反向查询用户信息
+message GetUserByDevice {
+  string device_id = 1;         // 设备ID（必填，最大长度100字符）
+}
+
+// ============ 操作对象 ============
+
+// 更新设备活跃状态 - 操作对象
+// 用于更新设备的最后活跃时间和IP
+message UpdateActivity {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+  string client_ip = 3;         // 客户端IP（可选，最大长度50字符）
+  int64 active_time = 4;        // 活跃时间戳（可选，不传则使用服务器当前时间）
+}
+
+// 重命名设备 - 操作对象
+// 用于修改设备的显示名称
+message RenameDevice {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+  string new_name = 3;          // 新设备名称（必填，最大长度50字符）
+}
+
+// 设备认证成功 - 操作对象
+// 用于设备认证通过后的信息记录
+message DeviceAuthSuccess {
+  string user_id = 1;           // 用户ID（必填，最大长度100字符）
+  string device_id = 2;         // 设备ID（必填，最大长度100字符）
+  Device device = 3;            // 设备信息（必填）
+  string captcha_id = 4;        // 验证码ID（可选，最大长度100字符）
+}
+
+// ============ 结果对象 ============
+
+// 设备检查结果 - 结果对象
+// 用于设备检查操作的响应
+message DCheckResult {
+  bool device_exists = 1;       // 设备是否存在
+  bool auth_required = 2;       // 是否需要认证
+  bool limit_exceeded = 3;      // 是否超过设备数量限制
+  int32 current_count = 4;      // 当前设备数量
+  int32 max_count = 5;          // 最大设备数量
+  string auth_token_jwt = 6;    // 认证令牌JWT（需要认证时返回，已签名）
+}
+
+// 设备列表 - 结果对象
+// 用于设备列表查询的响应
+message DeviceList {
+  repeated Device devices = 1;  // 设备列表
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 用户信息 - 结果对象
+// 用于根据设备查询用户的响应
+message UserInfo {
+  string user_id = 1;           // 用户ID
+  Device device = 2;            // 设备信息
+}
+
+// ============ 设备认证相关 ============
+
+// 生成二维码 - 操作对象
+// 用于生成设备认证二维码
+message GenerateQR {
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，从 DCheckResult 中获取，已签名）
+}
+
+// 二维码数据 - 结果对象
+// 用于二维码生成的响应
+message QrCode {
+  string qr_code_jwt = 1;       // 二维码JWT Token（必填）
+  int32 expire_seconds = 2;     // 过期时间（必填，单位：秒）
+  string qr_url = 3;            // 二维码图片URL（可选，用于直接显示）
+}
+
+// 扫描二维码 - 操作对象
+// 用于扫描设备认证二维码
+message ScanQR {
+  string qr_code_jwt = 1;       // 二维码JWT Token（必填）
+}
+
+// 提交验证码 - 操作对象
+// 用于提交设备认证验证码（新设备输入）
+message SubmitCode {
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，已签名）
+  string code = 2;              // 验证码（必填，6位数字）
+}
+
+// 获取验证码 - 操作对象
+// 用于主动获取设备认证验证码（新设备请求）
+message GetCode {
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，已签名）
+}
+
+// 确认验证码 - 操作对象
+// 用于确认设备认证验证码（老设备确认）
+message ConfirmCode {
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，已签名）
+  bool confirmed = 2;           // 是否确认（必填）
+}
+
+// 认证需求 - 结果对象
+// 用于返回设备认证需求信息
+message AuthRequired {
+  string auth_token_jwt = 1;    // 认证令牌JWT（必填，已签名，客户端只需传递）
+  string auth_method = 2;       // 认证方式（必填，枚举值：qr_code | input_code | confirm_code）
+  int32 expire_minutes = 3;     // 过期时间（必填，单位：分钟）
+  string description = 4;       // 认证说明（可选，用于向用户展示）
+}
+
+// ============ 响应说明 ============
+// 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
+// 查询成功响应：返回具体对象（Device、DeviceList、DCheckResult 等）
+// 错误响应：使用 com.cloud.im.common.core.system.Error

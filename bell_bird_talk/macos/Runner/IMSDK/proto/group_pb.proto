@@ -1,0 +1,498 @@
+syntax = "proto3";
+
+package im.group;
+
+option java_package = "com.cloud.im.common.core.protocol.group";
+option java_outer_classname = "GroupProtos";
+
+import "message_pb.proto";
+import "system_pb.proto";
+
+// ============ 枚举定义 ============
+
+// 群组类型枚举 - 定义群组的类型
+enum GroupType {
+  NORMAL = 0;                 // 普通群（默认值）
+  SUPER = 1;                  // 超级群
+}
+
+// 群组状态枚举 - 定义群组的状态
+enum GroupStatus {
+  ACTIVE = 0;               // 正常（默认值）
+  BAN = 1;                   // 封禁
+  DISSOLVED = 2;             // 解散
+}
+
+// 加入方式枚举 - 定义加入群组的方式
+enum JoinType {
+  INVITE = 0;                  // 邀请（默认值）
+  APPLY = 1;                   // 申请
+  SCAN = 2;                    // 扫码
+}
+
+// 成员状态枚举 - 定义群组成员的状态
+enum MemberStatus {
+  MEMBER_ACTIVE = 0;       // 正常（默认值）
+  KICKED = 1;              // 被踢
+  LEFT = 2;                // 主动退出
+}
+
+// 加入申请状态枚举 - 定义加入申请的状态
+enum JoinRequestStatus {
+  PENDING = 0;                           // 待审批（默认值）
+  APPROVED = 1;                          // 已通过
+  REJECTED = 2;                          // 已拒绝
+  EXPIRED = 3;                           // 已过期
+  CANCELLED = 4;                         // 已取消
+}
+
+// ============ 核心领域对象 ============
+
+// 群组信息 - 核心领域对象
+// 用于群组的基本信息存储和传输
+message Group {
+  string group_id = 1;                    // 群组ID（必填）
+  string group_name = 2;                  // 群组名称（必填）
+  string group_avatar = 3;                // 群组头像URL（可选）
+  string avatar_bg = 16;                  // 群组头像背景色（可选，当group_avatar为空时使用，格式：#色值1 或 #色值1&#色值2）
+  string group_announcement = 4;          // 群组公告（可选）
+  string group_description = 5;           // 群组描述（可选）
+  GroupType group_type = 6;               // 群组类型（必填）
+  int32 max_member_count = 7;             // 最大成员数（可选）
+  string creator_user_id = 8;             // 创建者ID（必填）
+  GroupStatus status = 9;                 // 群组状态（必填）
+  GroupPolicy policy = 11;                // 群组策略（可选）
+  int64 created_at = 12;                  // 创建时间（系统自动生成）
+  int64 updated_at = 13;                  // 更新时间（系统自动更新）
+  bool is_member = 15;                    // 是否在群组中（可选）
+}
+
+// 群组策略配置 - 群组策略对象
+// 用于群组的各种策略配置
+message GroupPolicy {
+  bool need_verify = 1;                   // 加群是否需要验证（可选）
+  bool allow_invite = 2;                  // 是否允许邀请（可选）
+  bool allow_add_friend = 3;              // 是否允许添加群内成员为好友（可选）
+  bool show_member_list = 4;              // 群成员是否展示（可选）
+  bool allow_private_chat = 5;            // 是否允许和群成员私聊（可选）
+  bool enable_audio_video_call = 6;       // 群内是否能够开启音视频通话功能（可选）
+  bool show_history_message = 7;          // 是否展示历史消息（可选）
+  bool show_qr_code = 8;                  // 是否展示二维码（可选）
+  bool message_notification = 9;          // 新消息通知开关（可选）
+  bool allow_search_member = 10;          // 是否允许搜索群成员（可选）
+  int32 speak_interval_sec = 11;          // 发言间隔（秒）（可选）
+  repeated string disturb_roles = 12;         // 被免打扰的角色列表（可选）
+  int32 notify_member_threshold = 13;     // 推拉模式阈值（成员数 >= 阈值时使用NOTIFY模式，否则使用PUSH模式，默认0表示始终使用PUSH模式）（可选）
+}
+
+// 群组成员信息 - 群组成员对象
+// 用于群组成员的基本信息存储和传输
+message GroupMember {
+  string group_id = 1;                    // 群组ID（必填）
+  string user_id = 2;                     // 用户ID（必填）
+  string member_alias = 3;                // 群内昵称（可选）
+  JoinType join_type = 4;                 // 加入方式（必填）
+  int64 join_time = 5;                    // 加入时间（必填）
+  string inviter_user_id = 6;             // 邀请人ID（可选）
+  MemberStatus status = 7;                // 成员状态（必填）
+  int64 disturb_until = 8;                // 免打扰到期时间（可选）
+  bool is_admin = 9;                      // 是否管理员（可选）
+  int64 last_read_time = 10;             // 最后阅读时间（可选）
+  repeated string roles = 11;             // 成员角色列表（可选）
+}
+
+// 加入申请记录 - 核心领域对象
+// 用于群组加入申请记录的存储和传输
+message JoinRequest {
+  string request_id = 1;                  // 申请ID（必填）
+  string group_id = 2;                    // 群组ID（必填）
+  string applicant_id = 3;                // 申请人ID（必填）
+  string request_message = 4;             // 申请理由（可选）
+  int64 request_time = 5;                 // 申请时间戳（必填）
+  int64 expire_time = 6;                 // 过期时间戳（可选）
+  JoinRequestStatus status = 7;           // 申请状态（必填）
+  string reviewer_id = 8;                 // 审批人ID（可选）
+  int64 review_time = 9;                  // 审批时间戳（可选）
+  string review_message = 10;             // 审批意见（可选）
+}
+
+// ============ 查询操作 ============
+
+// 获取群组信息 - 查询操作
+// 用于获取指定群组的详细信息
+message getGroup {
+  string group_id = 1;                    // 群组ID（必填）
+}
+
+// 群组列表查询 - 查询操作
+// 用于分页查询群组列表
+message listQuery {
+  GroupType group_type = 1;               // 群组类型过滤（可选）
+  optional GroupStatus status = 2;                 // 群组状态过滤（可选）
+  string keyword = 3;                     // 搜索关键词（可选）
+  com.cloud.im.common.core.system.Page page = 4; // 分页参数（使用系统类型）
+  optional string group_name = 5;                  // 群组名称（可选）
+  optional int64 start_time = 6;                   // 查询时间起（可选）
+  optional int64 end_time = 7;                     // 查询时间止（可选）
+  optional string group_owner = 8;                 // 群主名称（可选）
+}
+
+// 群组成员查询 - 查询操作
+// 用于分页查询群组成员列表
+message membersQuery {
+  string group_id = 1;                    // 群组ID（必填）
+  MemberStatus status = 2;                // 成员状态过滤（可选）
+  com.cloud.im.common.core.system.Page page = 3; // 分页参数（使用系统类型）
+}
+
+// 群组策略查询 - 查询操作
+// 用于获取群组策略配置
+message getGroupPolicy {
+  string group_id = 1;                    // 群组ID（必填）
+}
+
+// 权限检查 - 查询操作
+// 用于检查用户在群组中的权限
+message checkPermission {
+  string group_id = 1;                    // 群组ID（必填）
+  string user_id = 2;                     // 用户ID（必填）
+  string permission = 3;                  // 权限类型（必填，如: "speak", "invite", "kick"）
+}
+
+// 群消息历史查询 - 查询操作
+// 用于分页查询群消息历史
+message messageHistoryQuery {
+  string group_id = 1;                    // 群组ID（必填）
+  int64 before_time = 2;                  // 查询此时间之前的消息（可选）
+  int64 after_time = 3;                   // 查询此时间之后的消息（可选）
+  string cursor = 4;                      // 游标（可选）
+  com.cloud.im.common.core.system.Page page = 5; // 分页参数（使用系统类型）
+}
+
+// 加入申请列表查询 - 查询操作
+// 用于分页查询群组的加入申请列表
+message joinRequestQuery {
+  string group_id = 1;                    // 群组ID（必填）
+  JoinRequestStatus status = 2;           // 申请状态（可选，默认PENDING）
+  com.cloud.im.common.core.system.Page page = 3; // 分页参数（必填）
+}
+
+// 免打扰状态查询 - 查询操作
+// 用于查询群组或成员的免打扰状态
+message disturbStatusQuery {
+  string group_id = 1;                    // 群组ID（必填）
+  string user_id = 2;                     // 用户ID（可选，不填则查询群组状态）
+}
+
+// 在线人数响应 - 结果对象
+// 用于返回群组在线人数
+message OnlineCount {
+  string group_id = 1;                    // 群组ID（返回字段）
+  int32 online_count = 2;                 // 在线人数（返回字段）
+  int64 updated_at = 3;                   // 更新时间（返回字段，时间戳毫秒）
+}
+
+// ============ 操作对象 ============
+
+// 创建群组 - 操作对象
+// 用于创建新的群组
+message CreateGroup {
+  string group_name = 1;                  // 群组名称（必填）
+  string group_avatar = 2;                // 群组头像URL（可选）
+  string group_description = 3;           // 群组描述（可选）
+  GroupType group_type = 4;               // 群组类型（必填）
+  int32 max_member_count = 5;             // 最大成员数（可选，默认500）
+  GroupPolicy policy = 6;                 // 群组策略（可选）
+  repeated string initial_members = 7;    // 初始成员列表（可选）
+}
+
+// 更新群组信息 - 操作对象
+// 用于更新群组的基本信息
+message UpdateGroup {
+  string group_id = 1;                    // 群组ID（必填）
+  string group_name = 2;                  // 群组名称（可选）
+  string group_avatar = 3;                // 群组头像URL（可选）
+  string group_announcement = 4;          // 群组公告（可选）
+  string group_description = 5;           // 群组描述（可选）
+  GroupPolicy policy = 6;                 // 群组策略（可选）
+  int32 version = 7;                      // 乐观锁版本号（必填）
+}
+
+// 解散群组 - 操作对象
+// 用于解散群组
+message DissolveGroup {
+  string group_id = 1;                    // 群组ID（必填）
+  string reason = 2;                      // 解散原因（可选）
+}
+
+// 添加群成员 - 操作对象
+// 用于向群组添加成员
+message AddMember {
+  string group_id = 1;                    // 群组ID（必填）
+  repeated string user_ids = 2;           // 用户ID列表（必填）
+  string reason = 3;                      // 邀请理由（可选）
+}
+
+// 移除群成员 - 操作对象
+// 用于从群组移除成员
+message RemoveMember {
+  string group_id = 1;                    // 群组ID（必填）
+  repeated string user_ids = 2;           // 用户ID列表（必填）
+  string reason = 3;                      // 移除理由（可选）
+}
+
+// 设置群内昵称 - 操作对象
+// 用于用户修改自己在群内的昵称
+message SetAlias {
+  string group_id = 1;                    // 群组ID（必填）
+  string member_alias = 2;                // 群内昵称（必填，字符范围【2，50】）
+}
+
+// 分配角色 - 操作对象
+// 用于为群成员分配角色
+message AssignRole {
+  string group_id = 1;                    // 群组ID（必填）
+  string user_id = 2;                     // 用户ID（必填）
+  repeated string roles = 3;              // 角色列表（必填）
+}
+
+// 撤销角色 - 操作对象
+// 用于撤销群成员的角色
+message RevokeRole {
+  string group_id = 1;                    // 群组ID（必填）
+  string user_id = 2;                     // 用户ID（必填）
+  repeated string roles = 3;             // 要撤销的角色列表（必填）
+}
+
+// 设置群组策略 - 操作对象
+// 用于更新群组策略配置
+message SetGroupPolicy {
+  string group_id = 1;                    // 群组ID（必填）
+  GroupPolicy policy = 2;                 // 群组策略（必填）
+}
+
+// 申请加入群组 - 操作对象
+// 用于申请加入群组
+message Apply {
+  string group_id = 1;                    // 群组ID（必填）
+  string request_message = 2;             // 申请理由（可选）
+}
+
+// 审批加入申请 - 操作对象
+// 用于审批通过加入申请
+message Approve {
+  string group_id = 1;                    // 群组ID（必填）
+  string applicant_id = 2;                // 申请人ID（必填）
+  string review_message = 3;             // 审批意见（可选）
+}
+
+// 拒绝加入申请 - 操作对象
+// 用于拒绝加入申请
+message Reject {
+  string group_id = 1;                    // 群组ID（必填）
+  string applicant_id = 2;                // 申请人ID（必填）
+  string review_message = 3;             // 拒绝理由（可选）
+}
+
+// 禁言成员 - 操作对象
+// 用于禁言/解禁群成员
+message BanMember {
+  string user_id = 1;                    // 用户ID（必填）
+  int64 ban_until = 2;                   // 禁言到期时间戳（可选，0或未设置表示解禁，>0表示临时禁言）
+  string reason = 3;                     // 禁言理由（可选）
+}
+
+// 批量禁言成员 - 操作对象
+// 用于批量禁言/解禁群成员
+message BatchBanMember {
+  repeated string user_ids = 1;          // 用户ID列表（必填）
+  int64 ban_until = 2;                   // 禁言到期时间戳（可选，0或未设置表示解禁，>0表示临时禁言）
+  string reason = 3;                     // 禁言理由（可选）
+}
+
+// 群消息通知 - 领域对象
+// 用于NOTIFY模式的群消息通知（极简版，节省流量）
+message GroupMessageNotify {
+  string gid = 1;                         // 群组ID（压缩字段名）
+  int64 seq = 2;                          // 消息序号
+  int64 ts = 3;                           // 时间戳（毫秒）
+}
+
+// 标记群消息已读 - 操作对象
+// 用于标记群消息为已读
+message MarkGroupMessageRead {
+  string group_id = 1;                    // 群组ID（必填）
+  repeated string message_ids = 2;        // 消息ID列表（必填）
+  int64 read_time = 3;                    // 阅读时间（必填）
+}
+
+// 撤回群消息 - 操作对象
+// 用于撤回群消息
+message RecallGroupMessage {
+  string group_id = 1;                    // 群组ID（必填）
+  string message_id = 2;                  // 消息ID（必填）
+  string reason = 3;                      // 撤回原因（可选）
+}
+
+// 删除群消息 - 操作对象
+// 用于删除群消息
+message DeleteGroupMessage {
+  string group_id = 1;                    // 群组ID（必填）
+  string message_id = 2;                  // 消息ID（必填）
+  bool for_all = 3;                       // 是否为所有人删除（可选）
+}
+
+// 转让群主 - 操作对象
+// 用于转让群主身份
+message TransferOwner {
+  string group_id = 1;                    // 群组ID（必填）
+  string new_owner_id = 2;                // 新群主ID（必填）
+  bool keep_as_admin = 3;                 // 原群主是否保持管理员身份（可选，默认true）
+  string reason = 4;                      // 转让理由（可选）
+}
+
+// ============ 群组消息拉取 ============
+
+// 单群组消息拉取 - 查询操作
+// 用于拉取指定群组的热数据消息
+message GPull {
+  int64 last_seq = 1;                     // 最后序号（必填）
+  int32 limit = 2;                        // 拉取数量限制（可选，默认100，最大500）
+}
+
+// 单群组消息拉取结果 - 结果对象
+// 用于返回单群组拉取的消息列表
+message GPullList {
+  repeated im.message.ImMessage messages = 1;  // 消息列表
+  int64 max_seq = 2;                          // 最大序号
+  bool has_more = 3;                          // 是否还有更多
+  int32 total_count = 4;                      // 本次拉取的消息数量
+}
+
+// 批量群组消息拉取 - 查询操作
+// 用于批量拉取多个群组的热数据消息
+message GListPull {
+  map<string, int64> groups = 1;          // groupId -> last_seq（必填）
+  int32 limit = 2;                        // 每个群组的拉取数量限制（可选，默认100，最大500）
+}
+
+// 批量群组消息拉取结果 - 结果对象
+// 用于返回批量拉取的消息列表
+message GListPullList {
+  repeated im.message.ImMessage messages = 1;           // 扁平的消息列表（所有群组混合）
+  map<string, int64> max_seqs = 2;                       // groupId -> max_seq
+  map<string, bool> has_more = 3;                        // groupId -> has_more
+  int32 total_count = 4;                                 // 总消息数
+  int64 server_time = 5;                                 // 服务器时间戳
+}
+
+// ============ 结果对象 ============
+
+// 群组列表 - 结果对象
+// 用于群组列表查询的响应
+message GList {
+  repeated Group groups = 1;              // 群组列表
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 群组成员列表 - 结果对象
+// 用于群组成员列表查询的响应
+message members {
+  repeated GroupMember members = 1;       // 成员列表（按加群时间排序，最先加群的在前面）
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 权限检查结果 - 结果对象
+// 用于权限检查的响应
+message GCheckResult {
+  bool allowed = 1;                       // 是否允许
+  string reason = 2;                      // 不允许的原因（可选）
+}
+
+// 群消息历史 - 结果对象
+// 用于群消息历史查询的响应
+message messageHistory {
+  repeated im.message.ImMessage messages = 1;     // 消息列表（使用统一的 ImMessage）
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 加入申请列表 - 结果对象
+// 用于加入申请列表查询的响应
+message joinRequestList {
+  repeated JoinRequest requests = 1;      // 申请列表
+  com.cloud.im.common.core.system.Page page = 2; // 分页元数据（使用系统类型）
+}
+
+// 免打扰状态信息 - 领域对象
+// 用于免打扰状态查询的响应
+message DisturbStatus {
+  bool is_group_disturbed = 1;                // 群组是否全员免打扰（必填）
+  bool is_member_disturbed = 2;               // 成员是否被免打扰（必填）
+  int64 disturb_until = 3;                   // 免打扰到期时间戳（可选，0表示未免打扰或已过期）
+  string disturb_reason = 4;                 // 免打扰原因（可选）
+  bool can_speak = 5;                     // 是否可以发言（必填，综合判断结果）
+}
+
+// 群组搜索结果 - 结果对象
+// 用于群组搜索的响应
+message GroupSearchResult {
+  repeated Group groups = 1;              // 群组列表（返回字段）
+  repeated GroupMember matched_members = 2; // 匹配的成员信息（返回字段，用于显示"包含: 王大锤"）
+  com.cloud.im.common.core.system.Page page = 3; // 分页元数据（返回字段，使用系统类型）
+}
+
+// 群组预览 - 结果对象
+// 用于群组预览查询的响应
+// 如果成员不在群，只返回群组ID、群组名称、群组头像和状态
+// 如果成员在群，返回完整的预览信息
+message GroupPreview {
+  string group_id = 1;                    // 群组ID（必填）
+  string group_name = 2;                  // 群组名称（可选）
+  string group_avatar = 3;                // 群组头像URL（可选）
+  string avatar_bg = 10;                  // 群组头像背景色（可选，当group_avatar为空时使用，格式：#色值1 或 #色值1&#色值2）
+  GroupStatus status = 4;                 // 群组状态（必填）
+  bool is_creater = 5;                    // 是否是群主（可选，仅成员在群时返回）
+  string member_alias = 6;                // 查询人在群的昵称（可选，仅成员在群时返回）
+  bool is_member = 7;                     // 查询人是否在群（必填）
+  bool is_disturbed = 8;                  // 查询人是否开启免打扰（可选，仅成员在群时返回）
+  bool is_banned = 9;                     // 查询人是否被禁言（可选，仅成员在群时返回）
+}
+
+// ========== 群组消息状态管理 ==========
+
+// 获取未读数和最后一条消息请求
+message GetUnreadAndLastMessage {
+  string group_id = 1;    // 群组ID
+  string member_id = 2;   // 群成员ID（自己）
+}
+
+// 批量获取未读数和最后一条消息请求
+message BatchGetUnreadAndLastMessage {
+  repeated GetUnreadAndLastMessage items = 1;  // 查询项列表
+}
+
+// 未读数和最后一条消息响应
+message UnreadAndLastMessage {
+  int64 unread_count = 1;        // 未读数 = seq - read_seq
+  im.message.ImMessage last_message = 2;    // 最后一条消息（通过message_id查询，可选）
+  im.message.ImMessage last_at_message = 3;  // 最后一条@消息（通过last_at_message_id查询，可选）
+  int64 seq = 4;                 // 当前最大序号
+  int64 read_seq = 5;            // 已读序号
+}
+
+// 批量未读数和最后一条消息响应
+message BatchUnreadAndLastMessage {
+  map<string, UnreadAndLastMessage> results = 1;  // key: "group_id:member_id"
+}
+
+// 标记消息状态已读请求（用于群组消息状态管理）
+message MarkGroupMessageStateRead {
+  string group_id = 1;    // 群组ID
+  string member_id = 2;   // 群成员ID（自己）
+  int64 read_seq = 3;     // 已读序号
+}
+
+// ============ 响应说明 ============
+// 操作成功响应：使用 com.cloud.im.common.core.system.EmptyResponse
+// 查询成功响应：返回具体对象（Group、GList、members、GCheckResult、GroupSearchResult 等）
+// 错误响应：使用 com.cloud.im.common.core.system.Error

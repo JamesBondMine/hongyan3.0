@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package im.cmty.config;
+
+option java_package = "com.cloud.im.common.core.protocol.cmty.config";
+option java_outer_classname = "CmtyConfigProtos";
+
+import "cmty/cmty_channel_pb.proto";
+
+// ========== 领域对象 ==========
+
+// CmtyPermissionConfig - 权限配置
+message CmtyPermissionConfig {
+    string community_id = 1;  // 社群ID
+    string permission_id = 2; // 权限ID
+    string config_data = 3;   // 权限配置（JSON格式）
+    bool is_enabled = 4;       // 是否启用
+}
+
+// CmtyRolePermission - 角色权限
+message CmtyRolePermission {
+    string role_code = 1;           // 角色代码（super_admin、member等）
+    string role_name = 2;           // 角色名称
+    repeated string permissions = 3; // 权限列表
+}
+
+// CmtyRolePermissions - 角色权限列表
+message CmtyRolePermissions {
+    string community_id = 1;           // 社群ID
+    repeated CmtyRolePermission roles = 2; // 角色权限列表
+}
+
+// ========== 结果对象 ==========
+
+// CmtyCheckResult - 检查结果
+message CmtyCheckResult {
+    bool allowed = 1;  // 是否允许
+    string reason = 2; // 原因（如果不允许）
+}
+
+// ========== 操作对象 ==========
+
+// CmtyUpdatePermissionConfig - 更新权限配置
+// 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updatePermissions）
+message CmtyUpdatePermissionConfig {
+    string permission_id = 1; // 权限ID（必填）
+    string config_data = 2;   // 权限配置（JSON格式，必填）
+    bool is_enabled = 3;       // 是否启用（可选）
+}
+
+// CmtyUpdateRolePermissions - 更新角色权限
+// 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updateRoles）
+message CmtyUpdateRolePermissions {
+    string role_code = 1;           // 角色代码（必填）
+    repeated string permissions = 2; // 权限列表（必填）
+}
+
+// CmtyPermissionConfigDetail - 权限配置详情
+message CmtyPermissionConfigDetail {
+    string permission_id = 1;      // 权限ID（返回字段）
+    string permission_name = 2;    // 权限名称（返回字段）
+    string config_data = 3;       // 权限配置（JSON格式，返回字段）
+    bool is_enabled = 4;          // 是否启用（返回字段）
+    string description = 5;       // 权限说明（返回字段）
+    map<string, string> fields = 6; // 权限字段定义（返回字段）
+}
+
+// CmtyNotificationSettings - 通知设置
+message CmtyNotificationSettings {
+    string cmty_id = 1;              // 社群ID（返回字段）
+    string user_id = 2;                   // 用户ID（返回字段）
+    im.cmty.channel.CmtyNotificationType notification_type = 3;  // 通知类型（返回字段，使用枚举类型）
+    bool mute_all = 4;                    // 是否全部静音（返回字段）
+    repeated string mute_channels = 5;   // 静音的频道ID列表（返回字段）
+}
+
+// CmtyUpdateNotificationSettings - 更新通知设置
+// 注意：cmtyId 从 Topic 路径中获取，userId 从 fromId 获取
+message CmtyUpdateNotificationSettings {
+    im.cmty.channel.CmtyNotificationType notification_type = 1;  // 通知类型（可选，使用枚举类型）
+    bool mute_all = 2;                      // 是否全部静音（可选）
+    repeated string mute_channels = 3;     // 静音的频道ID列表（可选）
+}
+
+// CmtyPrivacySettings - 隐私设置
+message CmtyPrivacySettings {
+    string cmty_id = 1;      // 社群ID（返回字段）
+    string user_id = 2;           // 用户ID（返回字段）
+    bool allow_private_chat = 3;  // 是否允许单聊（返回字段）
+    bool allow_add_friend = 4;    // 是否允许添加好友（返回字段）
+    bool show_online_status = 5;  // 是否显示在线状态（返回字段）
+}
+
+// CmtyUpdatePrivacySettings - 更新隐私设置
+// 注意：cmtyId 从 Topic 路径中获取，userId 从 fromId 获取
+message CmtyUpdatePrivacySettings {
+    bool allow_private_chat = 1;  // 是否允许单聊（可选）
+    bool allow_add_friend = 2;    // 是否允许添加好友（可选）
+    bool show_online_status = 3;  // 是否显示在线状态（可选）
+}
+
+// 注意：CmtyAppealBan 和 CmtyAppealResult 已移至 cmty_security_pb.proto
+

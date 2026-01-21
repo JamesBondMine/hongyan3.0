@@ -1,0 +1,150 @@
+// system_pb.proto
+syntax = "proto3";
+package com.cloud.im.common.core.system;
+
+option java_package = "com.cloud.im.common.core.protocol.system";
+option java_outer_classname = "SystemProtos";
+
+//配置响应对象
+message ConfigResp {
+  map<string, string> data = 1;
+}
+
+// 错误响应对象
+message Error {
+  // 错误码，例如 400、500 等
+  int32 code = 1;
+  // 错误描述模板
+  string message = 2;
+  // 占位符列表，用于在客户端做动态替换
+  repeated string placeholders = 3;
+}
+
+// 通用空响应 - 用于所有业务模块的成功响应
+message EmptyResponse {
+  // 空消息，表示成功
+}
+
+// 通用分页对象
+message Page {
+  int32 page = 1;           // 页码（从1开始）
+  int32 size = 2;           // 每页大小
+  string sort_field = 3;    // 排序字段（可选）
+  string sort_order = 4;    // 排序方向：ASC/DESC（可选，默认ASC）
+  int32 total_count = 5;    // 总记录数
+  int32 total_pages = 6;    // 总页数
+  bool has_previous = 7;    // 是否有上一页
+  bool has_next = 8;        // 是否有下一页
+}
+
+// 错误码查询 - 查询操作
+message QueryErrorCode {
+  int32 code = 1;           // 完整错误码
+}
+
+// 错误码详情 - 查询结果
+message ErrorCodeDetail {
+  int32 code = 1;                   // 完整错误码
+  int32 biz_model_code = 2;         // 业务模型码（MMM，3位，第三位占位）
+  string biz_model_desc = 3;        // 业务模型描述
+  int32 module_code = 4;            // 模块码（PP，2位）
+  string module_desc = 5;           // 模块描述
+  int32 detail_code = 6;            // 详细错误码（SSS，3位）
+  string detail_desc = 7;           // 详细错误描述
+  string full_message = 8;          // 完整错误消息（格式：业务模型-模块-详细错误）
+  bool found = 9;                   // 是否找到错误码
+}
+
+// 通用参数请求 - 用于所有只需要一个字符串参数的请求（可以是各种ID）
+message Param {
+  string param = 1;  // 参数值（必填，具体含义由方法上下文决定，如community_id、channel_id等）
+}
+
+// 通用参数请求 - 用于所有只需要一个字符串参数的请求（布尔类型）
+message BParam {
+  bool param = 1;  // 参数值（必填，switch、Exist 等）
+}
+
+// ====================================
+// 区号相关消息
+// ====================================
+
+// 区号信息
+message AreaCode {
+  string code = 1;              // 区号，如 +86
+  string country_code = 2;       // 国家代码，如 CN
+  string country_name = 3;       // 国家名称，如 中国
+  string country_name_en = 4;   // 国家名称（英文）
+  string flag = 5;              // 国旗emoji，如 🇨🇳
+  int32 phone_length = 6;        // 手机号长度（可选）
+  string phone_pattern = 7;      // 手机号格式正则表达式（可选）
+}
+
+// 区号列表响应
+message AreaCodeList {
+  repeated AreaCode area_codes = 1;  // 区号列表
+}
+
+// ====================================
+// 会话类型枚举（共享枚举，避免循环依赖）
+// ====================================
+
+// 会话类型（单聊/群聊/系统/社区/频道）
+enum ConversationType {
+  ALL = 0;         // 查询所有类型（protobuf 要求第一个值必须是 0）
+  SINGLE = 1;      // 单聊
+  GROUP = 2;       // 群聊
+  SYSTEM = 3;     // 系统
+  CMCH = 4;       // 社群
+}
+
+// ====================================
+// IP定位相关消息
+// ====================================
+
+// IP定位请求
+message IpLocationRequest {
+  string ip = 1;  // IP地址（可选，如果不提供则从连接上下文获取）
+}
+
+// IP定位响应
+message IpLocationResponse {
+  string ip = 1;              // IP地址
+  string area_code = 2;        // 区号，如 +86
+  string country_code = 3;    // 国家代码，如 CN
+  string country_name = 4;     // 国家名称，如 中国
+  string country_name_en = 5; // 国家名称（英文）
+  string flag = 6;             // 国旗emoji，如 🇨🇳
+  string region = 7;           // 地区信息（可选）
+  string city = 8;             // 城市信息（可选）
+  bool found = 9;              // 是否找到定位信息
+}
+
+// ====================================
+// 角色信息 - 核心领域对象
+// ====================================
+
+// 权限配置 - 用于方法粒度控制
+// 存储角色的权限详细配置，支持全局配置和方法级配置
+message PermissionConfig {
+  string method_name = 1;        // 方法名（可选，为空表示全局配置，如 "sendMessage", "viewChannel"）
+  map<string, string> attributes = 2;  // 权限属性（必填，JSON格式的键值对，如消息类型限制、频道限制等）
+  string status = 3;            // 状态（可选，如 "active", "inactive"）
+  int64 expire_time = 4;        // 到期时间（可选，Unix时间戳，单位：秒，-1表示永久）
+  string config_desc = 5;       // 配置描述（可选）
+}
+
+// 角色信息 - 核心领域对象
+// 用于表示用户在某个资源（如社群、群组等）中的角色
+message Role {
+  string code = 1;              // 角色代码（必填，如 "cmty_owner", "cmty_member"）
+  string name = 2;              // 角色名称（可选，如 "社群管理员", "普通成员"）
+  int64 expire_time = 3;        // 到期时间（可选，Unix时间戳，单位：秒，-1表示永久）
+  string assigned_by = 4;       // 分配者用户ID（可选）
+  int64 assigned_time = 5;      // 分配时间（可选，Unix时间戳，单位：秒）
+  int64 created_at = 6;         // 创建时间（可选，Unix时间戳，单位：秒）
+  int64 updated_at = 7;         // 更新时间（可选，Unix时间戳，单位：秒）
+  string status = 8;            // 状态（可选，如 "active", "inactive"）
+  string description = 9;       // 角色描述（可选）
+  repeated PermissionConfig permission_configs = 10;  // 权限配置列表（可选，支持方法粒度控制，包含全局配置和方法级配置）
+}

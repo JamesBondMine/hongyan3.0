@@ -123,7 +123,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           child: Column(
             children: [
               SizedBox(
-                width: Get.width - 120,
+                width: Get.width - 110,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -134,13 +134,17 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                       child: Padding(
                         padding: EdgeInsets.only(top: 16, bottom: 16),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              communityId.length > 10 ? '${communityId.substring(0, 10)}...' : communityId,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: Get.width - 140),
+                              child: Text(
+                                communityId,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             Icon(Icons.arrow_drop_down),
@@ -338,6 +342,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
         ),
         child: CommunitySettingView(
+          cmty: _cmty!,
           onConfirm: (value) {
             switch (value) {
               case 1:

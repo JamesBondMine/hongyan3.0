@@ -1,0 +1,28 @@
+本项目打包MacOS
+1、
+lj@LJdeMacBook-Pro bell_bird_talk % flutter build macos --release
+...
+...
+...                                           
+✓ Built build/macos/Build/Products/Release/bell_bird_talk.app (62.5MB)
+
+2、
+lj@LJdeMacBook-Pro bell_bird_talk % cd /Users/lj/hongyan3.0/bell_bird_talk/build/macos/Build/Products/Release/
+...
+...
+...
+3、
+lj@LJdeMacBook-Pro Release % hdiutil create -volname "bell_bird_talk" -srcfolder "bell_bird_talk.app" -ov -format UDZO "bell_bird_talk.dmg"
+....................................................................................................
+created: /Users/lj/hongyan3.0/bell_bird_talk/build/macos/Build/Products/Release/bell_bird_talk.dmg
+
+
+4、
+lj@LJdeMacBook-Pro Release % cd /Users/lj/hongyan3.0/bell_bird_talk/build/macos/Build/Products/Release/
+hdiutil create -volname "bell_bird_talk" -srcfolder "bell_bird_talk.app" -ov -format UDZO "bell_bird_talk.dmg"
+....................................................................................................
+created: /Users/lj/hongyan3.0/bell_bird_talk/build/macos/Build/Products/Release/bell_bird_talk.dmg
+
+
+5、
+lj@LJdeMacBook-Pro Release % mkdir npm install -g create-dmg
