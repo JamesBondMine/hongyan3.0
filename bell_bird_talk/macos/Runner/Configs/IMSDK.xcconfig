@@ -1,0 +1,27 @@
+// IMSDK 配置文件
+// 用于配置静态库链接和头文件搜索路径
+
+// 头文件搜索路径
+HEADER_SEARCH_PATHS = $(inherited) "$(SRCROOT)/Runner/IMSDK" "$(SRCROOT)/Runner/IMSDK/manager" "$(SRCROOT)/Runner/IMSDK/pbobjc"
+
+// 库搜索路径
+LIBRARY_SEARCH_PATHS = $(inherited) "$(SRCROOT)/Runner/IMSDK"
+
+// 链接的静态库 - 只需要 libnet_core.a（包含所有依赖）
+OTHER_LDFLAGS = $(inherited) -lnet_core
+
+// 系统框架
+OTHER_LDFLAGS = $(inherited) -framework Foundation -framework CoreFoundation -framework Security -framework SystemConfiguration -framework Cocoa -framework AppKit
+
+// C++ 标准库和系统库
+OTHER_LDFLAGS = $(inherited) -lc++ -lz -lsqlite3 -lresolv
+
+// 编译器标志
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) GOOGLE_PROTOBUF_NO_RTTI=1
+
+// C++ 标准
+CLANG_CXX_LANGUAGE_STANDARD = c++17
+CLANG_CXX_LIBRARY = libc++
+
+// 禁用未使用变量警告（因为注释掉了 [worker release]）
+WARNING_CFLAGS = $(inherited) -Wno-unused-variable
