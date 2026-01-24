@@ -458,6 +458,31 @@ GPB_FINAL @interface BatchCreateUserStatesResult : GPBMessage
 
 @end
 
+#pragma mark - BatchCreateConv
+
+typedef GPB_ENUM(BatchCreateConv_FieldNumber) {
+  BatchCreateConv_FieldNumber_ConvsArray = 1,
+  BatchCreateConv_FieldNumber_UserIdsArray = 2,
+};
+
+/**
+ * 批量创建会话请求
+ * 用于群组添加成员时批量创建会话，避免逐个创建导致的性能问题
+ **/
+GPB_FINAL @interface BatchCreateConv : GPBMessage
+
+/** 会话列表（每个Conv已包含displayName） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<Conv*> *convsArray;
+/** The number of items in @c convsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger convsArray_Count;
+
+/** 用户ID列表（与convs一一对应，每个Conv对应的userId） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<NSString*> *userIdsArray;
+/** The number of items in @c userIdsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger userIdsArray_Count;
+
+@end
+
 #pragma mark - Disturb
 
 typedef GPB_ENUM(Disturb_FieldNumber) {

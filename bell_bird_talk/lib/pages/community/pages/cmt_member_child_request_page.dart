@@ -1,6 +1,4 @@
-
-import 'dart:convert';
-import 'package:bell_bird_talk/controllers/user_controller.dart';
+import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/pages/friends/models/friends_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/empty_view.dart';
@@ -12,9 +10,9 @@ import '../../../services/native_bridge.dart';
 
 /// 好友/群组申请列表页面
 class CmtMemberRequestsPage extends StatefulWidget {
-  final RequestType type;
+  final String cmtyId;
 
-  const CmtMemberRequestsPage({super.key, required this.type});
+  const CmtMemberRequestsPage({super.key, required this.cmtyId});
 
   @override
   State<CmtMemberRequestsPage> createState() => _CmtMemberRequestsPageState();
@@ -56,11 +54,7 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
     });
 
     try {
-      if (widget.type == RequestType.friend) {
-        await _loadFriendRequests(refresh);
-      } else {
-        await _loadGroupRequests(refresh);
-      }
+      await _loadCmtRequests(refresh);
     } finally {
       setState(() {
         _isLoading = false;
@@ -69,55 +63,66 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
     }
   }
 
-  /// 加载好友申请
-  Future<void> _loadFriendRequests(bool refresh) async {
+  /// 加载社群申请
+  Future<void> _loadCmtRequests(bool refresh) async {
     try {
-      final result = await UserController.to.getFriendRequests(
-        status: 0,
-        page: _currentPage,
+      // 如果是刷新，重置页码
+      final page = refresh ? 1 : _currentPage;
+
+      final result = await CommunityController.to.loadlistJoinRequests(
+        cmtyId: widget.cmtyId,
+        page: page,
         pageSize: _pageSize,
       );
-      if (result['errorCode'] == 0) {
-        final dataStr = result['data'] as String?;
-        if (dataStr != null && dataStr.isNotEmpty) {
-          final data = json.decode(dataStr);
-          final requestsJson = data['requests'] as List? ?? [];
 
-          final newRequests = requestsJson
-              .map((json) => FriendRequestModel.fromJson(json))
-              .toList();
+      final newRequests = result.records
+          .map(
+            (joinRequest) => FriendRequestModel(
+              requestId: joinRequest.requestId,
+              requesterId: joinRequest.userId,
+              userId: joinRequest.userId,
+              requesterName: joinRequest.nickname.isNotEmpty
+                  ? joinRequest.nickname
+                  : joinRequest.username.isNotEmpty
+                  ? joinRequest.username
+                  : '未知用户',
+              requesterAvatar: joinRequest.avatar.isNotEmpty
+                  ? joinRequest.avatar
+                  : null,
+              message: joinRequest.requestMessage.isNotEmpty
+                  ? joinRequest.requestMessage
+                  : null,
+              // 状态映射：0=待审核 -> 0=待处理, 1=已通过 -> 1=已同意, 2=已拒绝 -> 2=已拒绝
+              status: joinRequest.status,
+              requestTime: joinRequest.requestTime,
+              expireTime: joinRequest.expireTime,
+            ),
+          )
+          .toList();
 
-          setState(() {
-            if (refresh) {
-              _friendRequests.clear();
-            }
-            _friendRequests.addAll(newRequests);
-            _hasMore = newRequests.length >= _pageSize;
-            if (newRequests.isNotEmpty) _currentPage++;
-          });
-        } else {
-          setState(() => _hasMore = false);
+      setState(() {
+        if (refresh) {
+          _friendRequests.clear();
+          _currentPage = 1;
         }
-      }
+        _friendRequests.addAll(newRequests);
+        // 判断是否还有更多数据：当前列表数量小于总数，且本次返回的数据量等于每页数量
+        _hasMore =
+            _friendRequests.length < result.total &&
+            newRequests.length >= _pageSize;
+        if (newRequests.isNotEmpty && !refresh) {
+          _currentPage++;
+        } else if (refresh && newRequests.isNotEmpty) {
+          _currentPage = 2; // 刷新后，如果还有数据，下一页是第2页
+        }
+      });
     } catch (e) {
-      print('❌ 获取好友申请失败: $e');
+      print('❌ 获取社群申请失败: $e');
       EasyLoading.showError('获取数据失败');
+      setState(() {
+        _hasMore = false;
+      });
     }
-  }
-
-  /// 加载群组申请
-  Future<void> _loadGroupRequests(bool refresh) async {
-    // TODO: 调用群组申请接口
-    // 目前使用模拟数据
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    setState(() {
-      if (refresh) {
-        _groupRequests.clear();
-      }
-      // 模拟无数据
-      _hasMore = false;
-    });
   }
 
   /// 刷新
@@ -131,10 +136,10 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
     await _loadRequests();
   }
 
-  /// 同意好友申请
+  /// 同意社群申请
   Future<void> _acceptFriendRequest(FriendRequestModel request) async {
     final result = await _nativeService.showNativeAlert(
-      title: '确定添加${request.requesterName}为好友?',
+      title: '确定同意${request.requesterName}加入社群?',
       message: '',
       confirmText: '确认'.tr,
       cancelText: '取消'.tr,
@@ -145,96 +150,110 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
       EasyLoading.show(status: '处理中...');
 
       try {
-        final result = await _nativeService.imAcceptFriendRequest(
+        final reviewResult = await _nativeService.community.reviewJoinRequest(
+          cmtyId: widget.cmtyId,
           requestId: request.requestId,
+          approve: true,
+          reviewMessage: '',
         );
-
-        if (result['errorCode'] == 0) {
+        EasyLoading.dismiss();
+        if (reviewResult['errorCode'] == 0) {
           EasyLoading.showSuccess('已同意');
           _hasChanges = true;
 
-          // 从列表中移除
+          // 更新状态为已通过
           setState(() {
-            _friendRequests.removeWhere(
+            final index = _friendRequests.indexWhere(
               (r) => r.requestId == request.requestId,
             );
+            if (index != -1) {
+              _friendRequests[index] = FriendRequestModel(
+                requestId: request.requestId,
+                requesterId: request.requesterId,
+                userId: request.userId,
+                requesterName: request.requesterName,
+                requesterAvatar: request.requesterAvatar,
+                avatarBG: request.avatarBG,
+                message: request.message,
+                channel: request.channel,
+                status: 1, // 已通过
+                requestTime: request.requestTime,
+                expireTime: request.expireTime,
+              );
+            }
           });
 
-          // 刷新请求列表（确保数据同步）
+          // 延迟刷新请求列表（确保数据同步）
+          await Future.delayed(const Duration(milliseconds: 500));
           _loadRequests(refresh: true);
         } else {
-          EasyLoading.showError(result['message'] ?? '操作失败');
+          EasyLoading.showError(reviewResult['message'] ?? '操作失败');
         }
       } catch (e) {
+        EasyLoading.dismiss();
+        print('❌ 同意社群申请失败: $e');
         EasyLoading.showError('操作失败');
       }
     }
   }
 
-  /// 拒绝好友申请
+  /// 拒绝社群申请
   Future<void> _rejectFriendRequest(FriendRequestModel request) async {
-    // 显示拒绝原因对话框
-    final reasonController = TextEditingController();
-
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('拒绝申请'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('确定要拒绝 ${request.requesterName} 的好友申请吗？'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                hintText: '拒绝原因（可选）',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: Text('取消'.tr),
-          ),
-          TextButton(
-            onPressed: () => Get.back(result: true),
-            child: const Text('确定拒绝', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+    final result = await _nativeService.showNativeAlert(
+      title: '拒绝申请'.tr,
+      message: '确定要拒绝当前账号吗？',
+      confirmText: '确定',
+      cancelText: '取消'.tr,
+      showCancel: true,
     );
 
-    if (confirmed != true) return;
+    if (result != null && result['action'] == 'confirm') {
+      EasyLoading.show(status: '处理中...');
 
-    EasyLoading.show(status: '处理中...');
+      try {
+        final reviewResult = await _nativeService.community.reviewJoinRequest(
+          cmtyId: widget.cmtyId,
+          requestId: request.requestId,
+          approve: false,
+          reviewMessage: '',
+        );
+        EasyLoading.dismiss();
+        if (reviewResult['errorCode'] == 0) {
+          EasyLoading.showSuccess('已拒绝');
+          _hasChanges = true;
 
-    try {
-      final result = await _nativeService.imRejectFriendRequest(
-        requestId: request.requestId,
-        reason: reasonController.text.trim(),
-      );
+          // 更新状态为已拒绝
+          setState(() {
+            final index = _friendRequests.indexWhere(
+              (r) => r.requestId == request.requestId,
+            );
+            if (index != -1) {
+              _friendRequests[index] = FriendRequestModel(
+                requestId: request.requestId,
+                userId: request.userId,
+                requesterId: request.requesterId,
+                requesterName: request.requesterName,
+                requesterAvatar: request.requesterAvatar,
+                avatarBG: request.avatarBG,
+                message: request.message,
+                channel: request.channel,
+                status: 2, // 已拒绝
+                requestTime: request.requestTime,
+                expireTime: request.expireTime,
+              );
+            }
+          });
 
-      if (result['errorCode'] == 0) {
-        EasyLoading.showSuccess('已拒绝');
-        _hasChanges = true;
-
-        // 从列表中移除
-        setState(() {
-          _friendRequests.removeWhere((r) => r.requestId == request.requestId);
-        });
-
-        // 刷新请求列表（确保数据同步）
-        _loadRequests(refresh: true);
-      } else {
-        EasyLoading.showError(result['message'] ?? '操作失败');
+          // 延迟刷新请求列表（确保数据同步）
+          await Future.delayed(const Duration(milliseconds: 500));
+          _loadRequests(refresh: true);
+        } else {
+          EasyLoading.showError(reviewResult['message'] ?? '操作失败');
+        }
+      } catch (e) {
+        print('❌ 拒绝社群申请失败: $e');
+        EasyLoading.showError('操作失败');
       }
-    } catch (e) {
-      print('❌ 拒绝好友申请失败: $e');
-      EasyLoading.showError('操作失败');
     }
   }
 
@@ -278,8 +297,6 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isFriend = widget.type == RequestType.friend;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -294,8 +311,8 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
   }
 
   Widget _buildContent() {
-    final isFriend = widget.type == RequestType.friend;
-    final requests = isFriend ? _friendRequests : _groupRequests;
+    final isFriend = true;
+    final requests = _friendRequests;
 
     if (_isLoading && requests.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -348,33 +365,6 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
                     .toList(),
               );
             }
-          },
-        ),
-      );
-    } else {
-      // 群组申请保持原有逻辑
-      return NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification is ScrollEndNotification &&
-              notification.metrics.extentAfter < 100 &&
-              _hasMore &&
-              !_isLoading) {
-            _loadMore();
-          }
-          return false;
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: requests.length + (_hasMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == requests.length) {
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            return _buildGroupRequestItem(_groupRequests[index]);
           },
         ),
       );
@@ -490,17 +480,29 @@ class _CmtMemberRequestsPageState extends State<CmtMemberRequestsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    request.requesterName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        request.requesterName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '(${request.userId})',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: GbsColors.des9Color,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   // 假设账号信息在另一个字段中，如果没有则显示时间
                   Text(
-                    request.formattedTime, // 替换为实际的账号字段，例如 request.account
+                    '请求加入社群', // 替换为实际的账号字段，例如 request.account
                     style: TextStyle(color: Colors.grey[500], fontSize: 14),
                   ),
                   // 如果有验证消息，则显示

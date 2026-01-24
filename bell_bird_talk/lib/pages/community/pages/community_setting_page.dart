@@ -1,4 +1,6 @@
 
+import 'package:bell_bird_talk/controllers/community_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_find_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_set_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_member_ban_page.dart';
@@ -13,9 +15,9 @@ import 'package:get/get.dart';
 import 'package:get/route_manager.dart';
 
 class CommunitySettingPage extends StatelessWidget {
-  final String? cmtyId; // 社群ID（可选）
+  final CommunityModel cmtyModel; // 社群ID（可选）
   
-  const CommunitySettingPage({super.key, this.cmtyId});
+  const CommunitySettingPage({super.key, required this.cmtyModel});
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +27,8 @@ class CommunitySettingPage extends StatelessWidget {
       body: Column(children: [
         _buildTitle('成员管理'.tr),
         _buildCard([
-          _buildElement('成员'.tr, 'cunty_member', () {  
-            Get.to(CommunityMemberPage(cmtyId: cmtyId));
+          _buildElement('成员'.tr, 'cunty_member', () {
+            Get.to(CommunityMemberPage(cmtyId: cmtyModel.id));
           },),
           _buildDivider(),
           _buildElement('角色'.tr, 'setting_set', () {  
@@ -34,21 +36,21 @@ class CommunitySettingPage extends StatelessWidget {
           },),
           _buildDivider(),
           _buildElement('邀请'.tr, 'setting_invate', () { 
-            Get.to(CommunityInvateSettingPage(cmtyId: cmtyId)); 
+            Get.to(CommunityInvateSettingPage(cmtyId: cmtyModel.id)); 
           },),
           _buildDivider(),
           _buildElement('访问'.tr, 'cunty_go', () {  
-            Get.to(CommunityFindSettingPage(cmtyId: cmtyId));
+            Get.to(CommunityFindSettingPage(cmtyId: cmtyModel.id));
           },),
         ]),
         _buildTitle('安全管理'.tr),
         _buildCard([
           _buildElement('安全管理'.tr, 'cunty_safe', () {  
-            Get.to(CommunitySafePage(cmtyId: cmtyId));
+            Get.to(CommunitySafePage(cmtyId: cmtyModel.id));
           },),
           _buildDivider(),
           _buildElement('封禁用户'.tr, 'cunty_xvxv', () { 
-            Get.to(CommunityMemberBanPage(cmtyId: cmtyId)); 
+            Get.to(CommunityMemberBanPage(cmtyId: cmtyModel.id)); 
           },),
         ])
       ],),

@@ -16,6 +16,7 @@
 #import <stdatomic.h>
 
 #import "CmtyChannelPb.pbobjc.h"
+#import "CmtyChannelGroupPb.pbobjc.h"
 // @@protoc_insertion_point(imports)
 
 #pragma clang diagnostic push
@@ -26,14 +27,16 @@
 // Forward declarations of Objective C classes that we can use as
 // static values in struct initializers.
 // We don't use [Foo class] because it is not a static value.
+GPBObjCClassDeclaration(ChannelUnreadSummary);
 GPBObjCClassDeclaration(CmtyChannel);
+GPBObjCClassDeclaration(CmtyChannelGroup);
 
 #pragma mark - CmtyChannelPbRoot
 
 @implementation CmtyChannelPbRoot
 
-// No extensions in the file and no imports, so no need to generate
-// +extensionRegistry.
+// No extensions in the file and none of the imports (direct or indirect)
+// defined extensions, so no need to generate +extensionRegistry.
 
 @end
 
@@ -69,9 +72,9 @@ GPBEnumDescriptor *CmtyChannelType_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:CmtyChannelType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -105,9 +108,9 @@ GPBEnumDescriptor *CmtyNotificationType_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:CmtyNotificationType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -128,12 +131,14 @@ BOOL CmtyNotificationType_IsValidValue(int32_t value__) {
 @implementation CmtyChannelsQuery
 
 @dynamic communityId;
-@dynamic categoryId;
+@dynamic groupId;
+@dynamic hasChannelType, channelType;
 
 typedef struct CmtyChannelsQuery__storage_ {
   uint32_t _has_storage_[1];
+  CmtyChannelType channelType;
   NSString *communityId;
-  NSString *categoryId;
+  NSString *groupId;
 } CmtyChannelsQuery__storage_;
 
 // This method is threadsafe because it is initially called
@@ -152,13 +157,22 @@ typedef struct CmtyChannelsQuery__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "categoryId",
+        .name = "groupId",
         .dataTypeSpecific.clazz = Nil,
-        .number = CmtyChannelsQuery_FieldNumber_CategoryId,
+        .number = CmtyChannelsQuery_FieldNumber_GroupId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(CmtyChannelsQuery__storage_, categoryId),
+        .offset = (uint32_t)offsetof(CmtyChannelsQuery__storage_, groupId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "channelType",
+        .dataTypeSpecific.enumDescFunc = CmtyChannelType_EnumDescriptor,
+        .number = CmtyChannelsQuery_FieldNumber_ChannelType,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyChannelsQuery__storage_, channelType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor),
+        .dataType = GPBDataTypeEnum,
       },
     };
     GPBDescriptor *localDescriptor =
@@ -179,17 +193,28 @@ typedef struct CmtyChannelsQuery__storage_ {
 
 @end
 
+int32_t CmtyChannelsQuery_ChannelType_RawValue(CmtyChannelsQuery *message) {
+  GPBDescriptor *descriptor = [CmtyChannelsQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyChannelsQuery_FieldNumber_ChannelType];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetCmtyChannelsQuery_ChannelType_RawValue(CmtyChannelsQuery *message, int32_t value) {
+  GPBDescriptor *descriptor = [CmtyChannelsQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyChannelsQuery_FieldNumber_ChannelType];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
 #pragma mark - CmtyChannel
 
 @implementation CmtyChannel
 
-@dynamic channelId;
 @dynamic communityId;
-@dynamic categoryId;
+@dynamic channelId;
+@dynamic hasChannelGroup, channelGroup;
 @dynamic channelName;
 @dynamic channelType;
 @dynamic description_p;
-@dynamic memberCount;
 @dynamic maxMembers;
 @dynamic pauseInvite;
 @dynamic muteAll;
@@ -200,12 +225,11 @@ typedef struct CmtyChannelsQuery__storage_ {
 typedef struct CmtyChannel__storage_ {
   uint32_t _has_storage_[1];
   CmtyChannelType channelType;
-  int32_t memberCount;
   int32_t maxMembers;
   CmtyNotificationType notificationType;
-  NSString *channelId;
   NSString *communityId;
-  NSString *categoryId;
+  NSString *channelId;
+  CmtyChannelGroup *channelGroup;
   NSString *channelName;
   NSString *description_p;
   int64_t createdAt;
@@ -219,31 +243,31 @@ typedef struct CmtyChannel__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
-        .name = "channelId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyChannel_FieldNumber_ChannelId,
-        .hasIndex = 0,
-        .offset = (uint32_t)offsetof(CmtyChannel__storage_, channelId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
-      },
-      {
         .name = "communityId",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_CommunityId,
-        .hasIndex = 1,
+        .hasIndex = 0,
         .offset = (uint32_t)offsetof(CmtyChannel__storage_, communityId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "categoryId",
+        .name = "channelId",
         .dataTypeSpecific.clazz = Nil,
-        .number = CmtyChannel_FieldNumber_CategoryId,
-        .hasIndex = 2,
-        .offset = (uint32_t)offsetof(CmtyChannel__storage_, categoryId),
+        .number = CmtyChannel_FieldNumber_ChannelId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyChannel__storage_, channelId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "channelGroup",
+        .dataTypeSpecific.clazz = GPBObjCClass(CmtyChannelGroup),
+        .number = CmtyChannel_FieldNumber_ChannelGroup,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyChannel__storage_, channelGroup),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
       },
       {
         .name = "channelName",
@@ -273,19 +297,10 @@ typedef struct CmtyChannel__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "memberCount",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyChannel_FieldNumber_MemberCount,
-        .hasIndex = 6,
-        .offset = (uint32_t)offsetof(CmtyChannel__storage_, memberCount),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
         .name = "maxMembers",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_MaxMembers,
-        .hasIndex = 7,
+        .hasIndex = 6,
         .offset = (uint32_t)offsetof(CmtyChannel__storage_, maxMembers),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
@@ -294,8 +309,8 @@ typedef struct CmtyChannel__storage_ {
         .name = "pauseInvite",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_PauseInvite,
-        .hasIndex = 8,
-        .offset = 9,  // Stored in _has_storage_ to save space.
+        .hasIndex = 7,
+        .offset = 8,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
@@ -303,8 +318,8 @@ typedef struct CmtyChannel__storage_ {
         .name = "muteAll",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_MuteAll,
-        .hasIndex = 10,
-        .offset = 11,  // Stored in _has_storage_ to save space.
+        .hasIndex = 9,
+        .offset = 10,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
@@ -312,7 +327,7 @@ typedef struct CmtyChannel__storage_ {
         .name = "notificationType",
         .dataTypeSpecific.enumDescFunc = CmtyNotificationType_EnumDescriptor,
         .number = CmtyChannel_FieldNumber_NotificationType,
-        .hasIndex = 12,
+        .hasIndex = 11,
         .offset = (uint32_t)offsetof(CmtyChannel__storage_, notificationType),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
@@ -321,7 +336,7 @@ typedef struct CmtyChannel__storage_ {
         .name = "createdAt",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_CreatedAt,
-        .hasIndex = 13,
+        .hasIndex = 12,
         .offset = (uint32_t)offsetof(CmtyChannel__storage_, createdAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -330,7 +345,7 @@ typedef struct CmtyChannel__storage_ {
         .name = "updatedAt",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyChannel_FieldNumber_UpdatedAt,
-        .hasIndex = 14,
+        .hasIndex = 13,
         .offset = (uint32_t)offsetof(CmtyChannel__storage_, updatedAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -516,7 +531,7 @@ void SetCmtyChannelSettings_NotificationType_RawValue(CmtyChannelSettings *messa
 @implementation CmtyCreateChannel
 
 @dynamic communityId;
-@dynamic categoryId;
+@dynamic groupId;
 @dynamic channelName;
 @dynamic channelType;
 @dynamic description_p;
@@ -527,7 +542,7 @@ typedef struct CmtyCreateChannel__storage_ {
   CmtyChannelType channelType;
   int32_t maxMembers;
   NSString *communityId;
-  NSString *categoryId;
+  NSString *groupId;
   NSString *channelName;
   NSString *description_p;
 } CmtyCreateChannel__storage_;
@@ -548,11 +563,11 @@ typedef struct CmtyCreateChannel__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "categoryId",
+        .name = "groupId",
         .dataTypeSpecific.clazz = Nil,
-        .number = CmtyCreateChannel_FieldNumber_CategoryId,
+        .number = CmtyCreateChannel_FieldNumber_GroupId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(CmtyCreateChannel__storage_, categoryId),
+        .offset = (uint32_t)offsetof(CmtyCreateChannel__storage_, groupId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
@@ -625,19 +640,24 @@ void SetCmtyCreateChannel_ChannelType_RawValue(CmtyCreateChannel *message, int32
 
 #pragma mark - CmtyUpdateChannel
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+
 @implementation CmtyUpdateChannel
 
 @dynamic channelId;
 @dynamic channelName;
-@dynamic pauseInvite;
-@dynamic muteAll;
-@dynamic notificationType;
+@dynamic hasPauseInvite, pauseInvite;
+@dynamic hasMuteAll, muteAll;
+@dynamic hasNotificationType, notificationType;
+@dynamic hasDescription_p, description_p;
 
 typedef struct CmtyUpdateChannel__storage_ {
   uint32_t _has_storage_[1];
   CmtyNotificationType notificationType;
   NSString *channelId;
   NSString *channelName;
+  NSString *description_p;
 } CmtyUpdateChannel__storage_;
 
 // This method is threadsafe because it is initially called
@@ -670,7 +690,7 @@ typedef struct CmtyUpdateChannel__storage_ {
         .number = CmtyUpdateChannel_FieldNumber_PauseInvite,
         .hasIndex = 2,
         .offset = 3,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .flags = GPBFieldOptional,
         .dataType = GPBDataTypeBool,
       },
       {
@@ -679,7 +699,7 @@ typedef struct CmtyUpdateChannel__storage_ {
         .number = CmtyUpdateChannel_FieldNumber_MuteAll,
         .hasIndex = 4,
         .offset = 5,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .flags = GPBFieldOptional,
         .dataType = GPBDataTypeBool,
       },
       {
@@ -688,8 +708,17 @@ typedef struct CmtyUpdateChannel__storage_ {
         .number = CmtyUpdateChannel_FieldNumber_NotificationType,
         .hasIndex = 6,
         .offset = (uint32_t)offsetof(CmtyUpdateChannel__storage_, notificationType),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor),
         .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "description_p",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyUpdateChannel_FieldNumber_Description_p,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(CmtyUpdateChannel__storage_, description_p),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
@@ -709,6 +738,8 @@ typedef struct CmtyUpdateChannel__storage_ {
 }
 
 @end
+
+#pragma clang diagnostic pop
 
 int32_t CmtyUpdateChannel_NotificationType_RawValue(CmtyUpdateChannel *message) {
   GPBDescriptor *descriptor = [CmtyUpdateChannel descriptor];
@@ -756,6 +787,473 @@ typedef struct CmtyDeleteChannel__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(CmtyDeleteChannel__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyEnterChannel
+
+@implementation CmtyEnterChannel
+
+@dynamic channelId;
+
+typedef struct CmtyEnterChannel__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *channelId;
+} CmtyEnterChannel__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyEnterChannel_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyEnterChannel__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyEnterChannel class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyEnterChannel__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyLeaveChannel
+
+@implementation CmtyLeaveChannel
+
+@dynamic channelId;
+
+typedef struct CmtyLeaveChannel__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *channelId;
+} CmtyLeaveChannel__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyLeaveChannel_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyLeaveChannel__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyLeaveChannel class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyLeaveChannel__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyChannelOnlineUsers
+
+@implementation CmtyChannelOnlineUsers
+
+@dynamic channelId;
+@dynamic userIdsArray, userIdsArray_Count;
+@dynamic count;
+
+typedef struct CmtyChannelOnlineUsers__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t count;
+  NSString *channelId;
+  NSMutableArray *userIdsArray;
+} CmtyChannelOnlineUsers__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelOnlineUsers_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyChannelOnlineUsers__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "userIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelOnlineUsers_FieldNumber_UserIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(CmtyChannelOnlineUsers__storage_, userIdsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "count",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelOnlineUsers_FieldNumber_Count,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyChannelOnlineUsers__storage_, count),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyChannelOnlineUsers class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyChannelOnlineUsers__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyChannelHistoryQuery
+
+@implementation CmtyChannelHistoryQuery
+
+@dynamic channelId;
+@dynamic page;
+@dynamic size;
+
+typedef struct CmtyChannelHistoryQuery__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t page;
+  int32_t size;
+  NSString *channelId;
+} CmtyChannelHistoryQuery__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelHistoryQuery_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyChannelHistoryQuery__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "page",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelHistoryQuery_FieldNumber_Page,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyChannelHistoryQuery__storage_, page),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "size",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelHistoryQuery_FieldNumber_Size,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyChannelHistoryQuery__storage_, size),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyChannelHistoryQuery class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyChannelHistoryQuery__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - ChannelUnreadSummary
+
+@implementation ChannelUnreadSummary
+
+@dynamic channelId;
+@dynamic lastMessageId;
+@dynamic unreadCount;
+@dynamic hasMention;
+@dynamic timestamp;
+
+typedef struct ChannelUnreadSummary__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t unreadCount;
+  NSString *channelId;
+  NSString *lastMessageId;
+  int64_t timestamp;
+} ChannelUnreadSummary__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadSummary_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(ChannelUnreadSummary__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "lastMessageId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadSummary_FieldNumber_LastMessageId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(ChannelUnreadSummary__storage_, lastMessageId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "unreadCount",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadSummary_FieldNumber_UnreadCount,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(ChannelUnreadSummary__storage_, unreadCount),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "hasMention",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadSummary_FieldNumber_HasMention,
+        .hasIndex = 3,
+        .offset = 4,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeBool,
+      },
+      {
+        .name = "timestamp",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadSummary_FieldNumber_Timestamp,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(ChannelUnreadSummary__storage_, timestamp),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[ChannelUnreadSummary class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(ChannelUnreadSummary__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyChannelUnreadAggregation
+
+@implementation CmtyChannelUnreadAggregation
+
+@dynamic appId;
+@dynamic cmtyId;
+@dynamic channelSummariesArray, channelSummariesArray_Count;
+
+typedef struct CmtyChannelUnreadAggregation__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *appId;
+  NSString *cmtyId;
+  NSMutableArray *channelSummariesArray;
+} CmtyChannelUnreadAggregation__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "appId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelUnreadAggregation_FieldNumber_AppId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyChannelUnreadAggregation__storage_, appId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "cmtyId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyChannelUnreadAggregation_FieldNumber_CmtyId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyChannelUnreadAggregation__storage_, cmtyId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "channelSummariesArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(ChannelUnreadSummary),
+        .number = CmtyChannelUnreadAggregation_FieldNumber_ChannelSummariesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(CmtyChannelUnreadAggregation__storage_, channelSummariesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyChannelUnreadAggregation class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyChannelUnreadAggregation__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - ChannelUnreadEvent
+
+@implementation ChannelUnreadEvent
+
+@dynamic channelId;
+@dynamic lastMessageId;
+@dynamic unreadCount;
+@dynamic hasMention;
+@dynamic timestamp;
+
+typedef struct ChannelUnreadEvent__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t unreadCount;
+  NSString *channelId;
+  NSString *lastMessageId;
+  int64_t timestamp;
+} ChannelUnreadEvent__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "channelId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadEvent_FieldNumber_ChannelId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(ChannelUnreadEvent__storage_, channelId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "lastMessageId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadEvent_FieldNumber_LastMessageId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(ChannelUnreadEvent__storage_, lastMessageId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "unreadCount",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadEvent_FieldNumber_UnreadCount,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(ChannelUnreadEvent__storage_, unreadCount),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+      {
+        .name = "hasMention",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadEvent_FieldNumber_HasMention,
+        .hasIndex = 3,
+        .offset = 4,  // Stored in _has_storage_ to save space.
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeBool,
+      },
+      {
+        .name = "timestamp",
+        .dataTypeSpecific.clazz = Nil,
+        .number = ChannelUnreadEvent_FieldNumber_Timestamp,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(ChannelUnreadEvent__storage_, timestamp),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[ChannelUnreadEvent class]
+                                     rootClass:[CmtyChannelPbRoot class]
+                                          file:CmtyChannelPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(ChannelUnreadEvent__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

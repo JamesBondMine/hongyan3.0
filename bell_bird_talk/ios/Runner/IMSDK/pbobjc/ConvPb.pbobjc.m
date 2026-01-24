@@ -1069,6 +1069,62 @@ typedef struct BatchCreateUserStatesResult__storage_ {
 
 @end
 
+#pragma mark - BatchCreateConv
+
+@implementation BatchCreateConv
+
+@dynamic convsArray, convsArray_Count;
+@dynamic userIdsArray, userIdsArray_Count;
+
+typedef struct BatchCreateConv__storage_ {
+  uint32_t _has_storage_[1];
+  NSMutableArray *convsArray;
+  NSMutableArray *userIdsArray;
+} BatchCreateConv__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "convsArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(Conv),
+        .number = BatchCreateConv_FieldNumber_ConvsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(BatchCreateConv__storage_, convsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+      {
+        .name = "userIdsArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = BatchCreateConv_FieldNumber_UserIdsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(BatchCreateConv__storage_, userIdsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[BatchCreateConv class]
+                                     rootClass:[ConvPbRoot class]
+                                          file:ConvPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(BatchCreateConv__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
 #pragma mark - Disturb
 
 @implementation Disturb

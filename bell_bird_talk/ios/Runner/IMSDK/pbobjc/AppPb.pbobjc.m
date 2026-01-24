@@ -63,7 +63,6 @@ static GPBFileDescriptor *AppPbRoot_FileDescriptor(void) {
 GPBEnumDescriptor *AppStatus_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
-    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static const char *valueNames =
         "Active\000Disabled\000Suspended\000Archived\000";
     static const int32_t values[] = {
@@ -77,11 +76,10 @@ GPBEnumDescriptor *AppStatus_EnumDescriptor(void) {
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:AppStatus_IsValidValue
-                                            flags:GPBEnumDescriptorInitializationFlag_None];
+                                     enumVerifier:AppStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      // ARC 模式下，worker 会自动释放，无需手动调用 release
+//   //   [worker release];
     }
   }
   return descriptor;
@@ -104,7 +102,6 @@ BOOL AppStatus_IsValidValue(int32_t value__) {
 GPBEnumDescriptor *ScramAuthStatus_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
-    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static const char *valueNames =
         "Success\000Failed\000Expired\000Invalid\000";
     static const int32_t values[] = {
@@ -118,11 +115,10 @@ GPBEnumDescriptor *ScramAuthStatus_EnumDescriptor(void) {
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:ScramAuthStatus_IsValidValue
-                                            flags:GPBEnumDescriptorInitializationFlag_None];
+                                     enumVerifier:ScramAuthStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      // ARC 模式下，worker 会自动释放，无需手动调用 release
+//   //   [worker release];
     }
   }
   return descriptor;
@@ -145,7 +141,6 @@ BOOL ScramAuthStatus_IsValidValue(int32_t value__) {
 GPBEnumDescriptor *SecretRefreshType_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
-    GPB_DEBUG_CHECK_RUNTIME_VERSIONS();
     static const char *valueNames =
         "ClientSecret\000ServerSecret\000ScramSecret\000";
     static const int32_t values[] = {
@@ -158,11 +153,10 @@ GPBEnumDescriptor *SecretRefreshType_EnumDescriptor(void) {
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:SecretRefreshType_IsValidValue
-                                            flags:GPBEnumDescriptorInitializationFlag_None];
+                                     enumVerifier:SecretRefreshType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      // ARC 模式下，worker 会自动释放，无需手动调用 release
+//   //   [worker release];
     }
   }
   return descriptor;
@@ -186,6 +180,7 @@ BOOL SecretRefreshType_IsValidValue(int32_t value__) {
 @dynamic appId;
 @dynamic appName;
 @dynamic appDescription;
+@dynamic inviteHost;
 @dynamic status;
 @dynamic clientSecret;
 @dynamic serverSecret;
@@ -227,6 +222,7 @@ typedef struct App__storage_ {
   NSString *sensitiveConfig;
   NSString *pushConfig;
   NSMutableDictionary *extra;
+  NSString *inviteHost;
   int64_t createdAt;
   int64_t updatedAt;
   int64_t lastActiveAt;
@@ -269,7 +265,7 @@ typedef struct App__storage_ {
         .name = "status",
         .dataTypeSpecific.enumDescFunc = AppStatus_EnumDescriptor,
         .number = App_FieldNumber_Status,
-        .hasIndex = 3,
+        .hasIndex = 4,
         .offset = (uint32_t)offsetof(App__storage_, status),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
@@ -278,7 +274,7 @@ typedef struct App__storage_ {
         .name = "clientSecret",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ClientSecret,
-        .hasIndex = 4,
+        .hasIndex = 5,
         .offset = (uint32_t)offsetof(App__storage_, clientSecret),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -287,7 +283,7 @@ typedef struct App__storage_ {
         .name = "serverSecret",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ServerSecret,
-        .hasIndex = 5,
+        .hasIndex = 6,
         .offset = (uint32_t)offsetof(App__storage_, serverSecret),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -296,7 +292,7 @@ typedef struct App__storage_ {
         .name = "scramSalt",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ScramSalt,
-        .hasIndex = 6,
+        .hasIndex = 7,
         .offset = (uint32_t)offsetof(App__storage_, scramSalt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -305,7 +301,7 @@ typedef struct App__storage_ {
         .name = "scramIterationCount",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ScramIterationCount,
-        .hasIndex = 7,
+        .hasIndex = 8,
         .offset = (uint32_t)offsetof(App__storage_, scramIterationCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
@@ -314,7 +310,7 @@ typedef struct App__storage_ {
         .name = "clientConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ClientConfig,
-        .hasIndex = 8,
+        .hasIndex = 9,
         .offset = (uint32_t)offsetof(App__storage_, clientConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -323,7 +319,7 @@ typedef struct App__storage_ {
         .name = "serverConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ServerConfig,
-        .hasIndex = 9,
+        .hasIndex = 10,
         .offset = (uint32_t)offsetof(App__storage_, serverConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -332,7 +328,7 @@ typedef struct App__storage_ {
         .name = "storageConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_StorageConfig,
-        .hasIndex = 10,
+        .hasIndex = 11,
         .offset = (uint32_t)offsetof(App__storage_, storageConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -341,7 +337,7 @@ typedef struct App__storage_ {
         .name = "groupConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_GroupConfig,
-        .hasIndex = 11,
+        .hasIndex = 12,
         .offset = (uint32_t)offsetof(App__storage_, groupConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -350,7 +346,7 @@ typedef struct App__storage_ {
         .name = "multiDeviceConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_MultiDeviceConfig,
-        .hasIndex = 12,
+        .hasIndex = 13,
         .offset = (uint32_t)offsetof(App__storage_, multiDeviceConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -359,7 +355,7 @@ typedef struct App__storage_ {
         .name = "securityConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_SecurityConfig,
-        .hasIndex = 13,
+        .hasIndex = 14,
         .offset = (uint32_t)offsetof(App__storage_, securityConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -368,7 +364,7 @@ typedef struct App__storage_ {
         .name = "featureConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_FeatureConfig,
-        .hasIndex = 14,
+        .hasIndex = 15,
         .offset = (uint32_t)offsetof(App__storage_, featureConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -377,7 +373,7 @@ typedef struct App__storage_ {
         .name = "thirdPartyConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_ThirdPartyConfig,
-        .hasIndex = 15,
+        .hasIndex = 16,
         .offset = (uint32_t)offsetof(App__storage_, thirdPartyConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -386,7 +382,7 @@ typedef struct App__storage_ {
         .name = "sensitiveConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_SensitiveConfig,
-        .hasIndex = 16,
+        .hasIndex = 17,
         .offset = (uint32_t)offsetof(App__storage_, sensitiveConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -395,7 +391,7 @@ typedef struct App__storage_ {
         .name = "pushConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_PushConfig,
-        .hasIndex = 17,
+        .hasIndex = 18,
         .offset = (uint32_t)offsetof(App__storage_, pushConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -404,7 +400,7 @@ typedef struct App__storage_ {
         .name = "createdAt",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_CreatedAt,
-        .hasIndex = 18,
+        .hasIndex = 19,
         .offset = (uint32_t)offsetof(App__storage_, createdAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -413,7 +409,7 @@ typedef struct App__storage_ {
         .name = "updatedAt",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_UpdatedAt,
-        .hasIndex = 19,
+        .hasIndex = 20,
         .offset = (uint32_t)offsetof(App__storage_, updatedAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -422,7 +418,7 @@ typedef struct App__storage_ {
         .name = "lastActiveAt",
         .dataTypeSpecific.clazz = Nil,
         .number = App_FieldNumber_LastActiveAt,
-        .hasIndex = 20,
+        .hasIndex = 21,
         .offset = (uint32_t)offsetof(App__storage_, lastActiveAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -434,6 +430,15 @@ typedef struct App__storage_ {
         .hasIndex = GPBNoHasBit,
         .offset = (uint32_t)offsetof(App__storage_, extra),
         .flags = GPBFieldMapKeyString,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "inviteHost",
+        .dataTypeSpecific.clazz = Nil,
+        .number = App_FieldNumber_InviteHost,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(App__storage_, inviteHost),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
@@ -807,6 +812,7 @@ typedef struct CreateApp__storage_ {
 @dynamic appId;
 @dynamic appName;
 @dynamic appDescription;
+@dynamic inviteHost;
 @dynamic clientConfig;
 @dynamic serverConfig;
 @dynamic storageConfig;
@@ -833,6 +839,7 @@ typedef struct UpdateApp__storage_ {
   NSString *thirdPartyConfig;
   NSString *sensitiveConfig;
   NSString *pushConfig;
+  NSString *inviteHost;
 } UpdateApp__storage_;
 
 // This method is threadsafe because it is initially called
@@ -872,7 +879,7 @@ typedef struct UpdateApp__storage_ {
         .name = "clientConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_ClientConfig,
-        .hasIndex = 3,
+        .hasIndex = 4,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, clientConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -881,7 +888,7 @@ typedef struct UpdateApp__storage_ {
         .name = "serverConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_ServerConfig,
-        .hasIndex = 4,
+        .hasIndex = 5,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, serverConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -890,7 +897,7 @@ typedef struct UpdateApp__storage_ {
         .name = "storageConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_StorageConfig,
-        .hasIndex = 5,
+        .hasIndex = 6,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, storageConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -899,7 +906,7 @@ typedef struct UpdateApp__storage_ {
         .name = "groupConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_GroupConfig,
-        .hasIndex = 6,
+        .hasIndex = 7,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, groupConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -908,7 +915,7 @@ typedef struct UpdateApp__storage_ {
         .name = "multiDeviceConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_MultiDeviceConfig,
-        .hasIndex = 7,
+        .hasIndex = 8,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, multiDeviceConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -917,7 +924,7 @@ typedef struct UpdateApp__storage_ {
         .name = "securityConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_SecurityConfig,
-        .hasIndex = 8,
+        .hasIndex = 9,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, securityConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -926,7 +933,7 @@ typedef struct UpdateApp__storage_ {
         .name = "featureConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_FeatureConfig,
-        .hasIndex = 9,
+        .hasIndex = 10,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, featureConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -935,7 +942,7 @@ typedef struct UpdateApp__storage_ {
         .name = "thirdPartyConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_ThirdPartyConfig,
-        .hasIndex = 10,
+        .hasIndex = 11,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, thirdPartyConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -944,7 +951,7 @@ typedef struct UpdateApp__storage_ {
         .name = "sensitiveConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_SensitiveConfig,
-        .hasIndex = 11,
+        .hasIndex = 12,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, sensitiveConfig),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -953,8 +960,17 @@ typedef struct UpdateApp__storage_ {
         .name = "pushConfig",
         .dataTypeSpecific.clazz = Nil,
         .number = UpdateApp_FieldNumber_PushConfig,
-        .hasIndex = 12,
+        .hasIndex = 13,
         .offset = (uint32_t)offsetof(UpdateApp__storage_, pushConfig),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "inviteHost",
+        .dataTypeSpecific.clazz = Nil,
+        .number = UpdateApp_FieldNumber_InviteHost,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(UpdateApp__storage_, inviteHost),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },

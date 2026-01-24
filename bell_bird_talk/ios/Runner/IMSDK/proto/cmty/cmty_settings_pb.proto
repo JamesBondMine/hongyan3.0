@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package im.cmty.settings;
+
+option java_package = "com.cloud.im.common.core.protocol.cmty.settings";
+option java_outer_classname = "CmtySettingsProtos";
+
+// ========== 枚举类型 ==========
+
+// 设置类型枚举
+enum CmtySettingType {
+    BOOLEAN = 0;   // 布尔开关
+    NUMBER = 1;    // 数值类型
+    RADIO = 2;     // 单选（从options中选一个）
+    CHECKBOX = 3;  // 多选（从options中选多个）
+}
+
+// ========== 设置定义 ==========
+
+// 设置项选项（radio/checkbox使用）
+message CmtySettingOption {
+    string value = 1;   // 选项值
+    string label = 2;   // 显示标签（国际化Key）
+}
+
+// 设置项约束（number类型使用）
+message CmtySettingConstraints {
+    int32 min = 1;      // 最小值
+    int32 max = 2;      // 最大值
+}
+
+// 设置项定义
+message CmtySettingDefinition {
+    string setting_key = 1;                      // 设置项Key
+    string setting_name = 2;                     // 名称（国际化Key）
+    CmtySettingType setting_type = 3;            // 类型
+    string default_value = 4;                    // 默认值（JSON格式）
+    repeated CmtySettingOption options = 5;      // 选项列表
+    CmtySettingConstraints constraints = 6;      // 约束条件
+    string category = 7;                         // 分类
+    int32 sort_order = 8;                        // 排序
+    string description = 9;                      // 说明（国际化Key）
+}
+
+// ========== 设置值 ==========
+
+// 社群设置值
+message CmtySetting {
+    string setting_key = 1;     // 设置项Key
+    string setting_value = 2;   // 设置值（JSON格式）
+}
+
+// ========== 结果对象 ==========
+
+// 设置定义列表
+message CmtySettingDefinitionList {
+    repeated CmtySettingDefinition definitions = 1;
+}
+
+// 社群设置列表
+message CmtySettingsList {
+    string cmty_id = 1;
+    repeated CmtySetting settings = 2;
+}
+
+// ========== 操作对象 ==========
+
+// 更新社群设置（cmtyId从路由获取）
+message CmtyUpdateSettings {
+    repeated CmtySetting settings = 1;
+}
+
+// ========== 命令消息（下行推送） ==========
+
+// 设置变更命令消息（下发给社群成员）
+// 消息类型：命令消息（Cmd）
+// 推送方式：InnerBatchPushMessage 批量推送给社群在线成员
+message CmtySettingsChangedCmd {
+    string cmty_id = 1;                         // 社群ID
+    repeated CmtySetting changed_settings = 2;  // 变更的设置项
+    string operator_id = 3;                     // 操作者ID
+    int64 timestamp = 4;                        // 变更时间戳
+}

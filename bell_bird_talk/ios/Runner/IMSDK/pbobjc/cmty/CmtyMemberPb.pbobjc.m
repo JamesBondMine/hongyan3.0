@@ -27,8 +27,10 @@
 // Forward declarations of Objective C classes that we can use as
 // static values in struct initializers.
 // We don't use [Foo class] because it is not a static value.
+GPBObjCClassDeclaration(CmtyJoinRecord);
 GPBObjCClassDeclaration(CmtyMember);
 GPBObjCClassDeclaration(Page);
+GPBObjCClassDeclaration(Role);
 
 #pragma mark - CmtyMemberPbRoot
 
@@ -53,35 +55,42 @@ static GPBFileDescriptor *CmtyMemberPbRoot_FileDescriptor(void) {
   return descriptor;
 }
 
-#pragma mark - Enum CmtyMemberRole
+#pragma mark - Enum CmtyJoinStatus
 
-GPBEnumDescriptor *CmtyMemberRole_EnumDescriptor(void) {
+GPBEnumDescriptor *CmtyJoinStatus_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
     static const char *valueNames =
-        "Member\000Owner\000";
+        "Pending\000Approved\000Rejected\000Expired\000Cancel"
+        "led\000";
     static const int32_t values[] = {
-        CmtyMemberRole_Member,
-        CmtyMemberRole_Owner,
+        CmtyJoinStatus_Pending,
+        CmtyJoinStatus_Approved,
+        CmtyJoinStatus_Rejected,
+        CmtyJoinStatus_Expired,
+        CmtyJoinStatus_Cancelled,
     };
     GPBEnumDescriptor *worker =
-        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(CmtyMemberRole)
+        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(CmtyJoinStatus)
                                        valueNames:valueNames
                                            values:values
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
-                                     enumVerifier:CmtyMemberRole_IsValidValue];
+                                     enumVerifier:CmtyJoinStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
 
-BOOL CmtyMemberRole_IsValidValue(int32_t value__) {
+BOOL CmtyJoinStatus_IsValidValue(int32_t value__) {
   switch (value__) {
-    case CmtyMemberRole_Member:
-    case CmtyMemberRole_Owner:
+    case CmtyJoinStatus_Pending:
+    case CmtyJoinStatus_Approved:
+    case CmtyJoinStatus_Rejected:
+    case CmtyJoinStatus_Expired:
+    case CmtyJoinStatus_Cancelled:
       return YES;
     default:
       return NO;
@@ -92,10 +101,21 @@ BOOL CmtyMemberRole_IsValidValue(int32_t value__) {
 
 @implementation CmtyMembersQuery
 
+@dynamic hasKeyword, keyword;
+@dynamic hasStartTime, startTime;
+@dynamic hasEndTime, endTime;
+@dynamic hasJoinWay, joinWay;
+@dynamic hasIsMuted, isMuted;
+@dynamic hasCmtyId, cmtyId;
 @dynamic hasPage, page;
 
 typedef struct CmtyMembersQuery__storage_ {
   uint32_t _has_storage_[1];
+  NSString *keyword;
+  NSString *startTime;
+  NSString *endTime;
+  NSString *joinWay;
+  NSString *cmtyId;
   Page *page;
 } CmtyMembersQuery__storage_;
 
@@ -106,10 +126,64 @@ typedef struct CmtyMembersQuery__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
+        .name = "keyword",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_Keyword,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, keyword),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "startTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_StartTime,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, startTime),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "endTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_EndTime,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, endTime),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "joinWay",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_JoinWay,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, joinWay),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "isMuted",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_IsMuted,
+        .hasIndex = 4,
+        .offset = 5,  // Stored in _has_storage_ to save space.
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeBool,
+      },
+      {
+        .name = "cmtyId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMembersQuery_FieldNumber_CmtyId,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, cmtyId),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
         .name = "page",
         .dataTypeSpecific.clazz = GPBObjCClass(Page),
         .number = CmtyMembersQuery_FieldNumber_Page,
-        .hasIndex = 0,
+        .hasIndex = 7,
         .offset = (uint32_t)offsetof(CmtyMembersQuery__storage_, page),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
@@ -133,6 +207,119 @@ typedef struct CmtyMembersQuery__storage_ {
 
 @end
 
+#pragma mark - CmtyGetMemberRoles
+
+@implementation CmtyGetMemberRoles
+
+@dynamic userId;
+
+typedef struct CmtyGetMemberRoles__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *userId;
+} CmtyGetMemberRoles__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "userId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyGetMemberRoles_FieldNumber_UserId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyGetMemberRoles__storage_, userId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyGetMemberRoles class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyGetMemberRoles__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyJoinsQuery
+
+@implementation CmtyJoinsQuery
+
+@dynamic status;
+@dynamic hasPage, page;
+
+typedef struct CmtyJoinsQuery__storage_ {
+  uint32_t _has_storage_[1];
+  CmtyJoinStatus status;
+  Page *page;
+} CmtyJoinsQuery__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "status",
+        .dataTypeSpecific.enumDescFunc = CmtyJoinStatus_EnumDescriptor,
+        .number = CmtyJoinsQuery_FieldNumber_Status,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyJoinsQuery__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "page",
+        .dataTypeSpecific.clazz = GPBObjCClass(Page),
+        .number = CmtyJoinsQuery_FieldNumber_Page,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyJoinsQuery__storage_, page),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyJoinsQuery class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyJoinsQuery__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t CmtyJoinsQuery_Status_RawValue(CmtyJoinsQuery *message) {
+  GPBDescriptor *descriptor = [CmtyJoinsQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyJoinsQuery_FieldNumber_Status];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetCmtyJoinsQuery_Status_RawValue(CmtyJoinsQuery *message, int32_t value) {
+  GPBDescriptor *descriptor = [CmtyJoinsQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyJoinsQuery_FieldNumber_Status];
+  GPBSetMessageRawEnumField(message, field, value);
+}
+
 #pragma mark - CmtyMember
 
 @implementation CmtyMember
@@ -141,19 +328,19 @@ typedef struct CmtyMembersQuery__storage_ {
 @dynamic nickname;
 @dynamic username;
 @dynamic avatar;
-@dynamic role;
+@dynamic rolesArray, rolesArray_Count;
 @dynamic joinedAt;
 @dynamic joinWay;
 @dynamic inviteCount;
 
 typedef struct CmtyMember__storage_ {
   uint32_t _has_storage_[1];
-  CmtyMemberRole role;
   int32_t inviteCount;
   NSString *userId;
   NSString *nickname;
   NSString *username;
   NSString *avatar;
+  NSMutableArray *rolesArray;
   NSString *joinWay;
   int64_t joinedAt;
 } CmtyMember__storage_;
@@ -201,19 +388,19 @@ typedef struct CmtyMember__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
-        .name = "role",
-        .dataTypeSpecific.enumDescFunc = CmtyMemberRole_EnumDescriptor,
-        .number = CmtyMember_FieldNumber_Role,
-        .hasIndex = 4,
-        .offset = (uint32_t)offsetof(CmtyMember__storage_, role),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeEnum,
+        .name = "rolesArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(Role),
+        .number = CmtyMember_FieldNumber_RolesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(CmtyMember__storage_, rolesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
       },
       {
         .name = "joinedAt",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyMember_FieldNumber_JoinedAt,
-        .hasIndex = 5,
+        .hasIndex = 4,
         .offset = (uint32_t)offsetof(CmtyMember__storage_, joinedAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -222,7 +409,7 @@ typedef struct CmtyMember__storage_ {
         .name = "joinWay",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyMember_FieldNumber_JoinWay,
-        .hasIndex = 6,
+        .hasIndex = 5,
         .offset = (uint32_t)offsetof(CmtyMember__storage_, joinWay),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -231,7 +418,7 @@ typedef struct CmtyMember__storage_ {
         .name = "inviteCount",
         .dataTypeSpecific.clazz = Nil,
         .number = CmtyMember_FieldNumber_InviteCount,
-        .hasIndex = 7,
+        .hasIndex = 6,
         .offset = (uint32_t)offsetof(CmtyMember__storage_, inviteCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
@@ -255,15 +442,214 @@ typedef struct CmtyMember__storage_ {
 
 @end
 
-int32_t CmtyMember_Role_RawValue(CmtyMember *message) {
-  GPBDescriptor *descriptor = [CmtyMember descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyMember_FieldNumber_Role];
+#pragma mark - CmtyJoinRecord
+
+@implementation CmtyJoinRecord
+
+@dynamic requestId;
+@dynamic cmtyId;
+@dynamic userId;
+@dynamic nickname;
+@dynamic username;
+@dynamic avatar;
+@dynamic requestMessage;
+@dynamic requestTime;
+@dynamic expireTime;
+@dynamic status;
+@dynamic reviewUserId;
+@dynamic reviewTime;
+@dynamic reviewMessage;
+@dynamic inviteCode;
+@dynamic inviteLink;
+
+typedef struct CmtyJoinRecord__storage_ {
+  uint32_t _has_storage_[1];
+  CmtyJoinStatus status;
+  NSString *cmtyId;
+  NSString *userId;
+  NSString *nickname;
+  NSString *username;
+  NSString *avatar;
+  NSString *requestMessage;
+  NSString *reviewUserId;
+  NSString *reviewMessage;
+  NSString *inviteCode;
+  NSString *inviteLink;
+  int64_t requestId;
+  int64_t requestTime;
+  int64_t expireTime;
+  int64_t reviewTime;
+} CmtyJoinRecord__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "requestId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_RequestId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, requestId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "cmtyId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_CmtyId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, cmtyId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "userId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_UserId,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, userId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "nickname",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_Nickname,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, nickname),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "username",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_Username,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, username),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "avatar",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_Avatar,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, avatar),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "requestMessage",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_RequestMessage,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, requestMessage),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "requestTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_RequestTime,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, requestTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "expireTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_ExpireTime,
+        .hasIndex = 8,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, expireTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.enumDescFunc = CmtyJoinStatus_EnumDescriptor,
+        .number = CmtyJoinRecord_FieldNumber_Status,
+        .hasIndex = 9,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "reviewUserId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_ReviewUserId,
+        .hasIndex = 10,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, reviewUserId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "reviewTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_ReviewTime,
+        .hasIndex = 11,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, reviewTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "reviewMessage",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_ReviewMessage,
+        .hasIndex = 12,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, reviewMessage),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "inviteCode",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_InviteCode,
+        .hasIndex = 13,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, inviteCode),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "inviteLink",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecord_FieldNumber_InviteLink,
+        .hasIndex = 14,
+        .offset = (uint32_t)offsetof(CmtyJoinRecord__storage_, inviteLink),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyJoinRecord class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyJoinRecord__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t CmtyJoinRecord_Status_RawValue(CmtyJoinRecord *message) {
+  GPBDescriptor *descriptor = [CmtyJoinRecord descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyJoinRecord_FieldNumber_Status];
   return GPBGetMessageRawEnumField(message, field);
 }
 
-void SetCmtyMember_Role_RawValue(CmtyMember *message, int32_t value) {
-  GPBDescriptor *descriptor = [CmtyMember descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyMember_FieldNumber_Role];
+void SetCmtyJoinRecord_Status_RawValue(CmtyJoinRecord *message, int32_t value) {
+  GPBDescriptor *descriptor = [CmtyJoinRecord descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyJoinRecord_FieldNumber_Status];
   GPBSetMessageRawEnumField(message, field, value);
 }
 
@@ -312,6 +698,163 @@ typedef struct CmtyMemberList__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(CmtyMemberList__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyMemberRoles
+
+@implementation CmtyMemberRoles
+
+@dynamic roleCodesArray, roleCodesArray_Count;
+
+typedef struct CmtyMemberRoles__storage_ {
+  uint32_t _has_storage_[1];
+  NSMutableArray *roleCodesArray;
+} CmtyMemberRoles__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "roleCodesArray",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyMemberRoles_FieldNumber_RoleCodesArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(CmtyMemberRoles__storage_, roleCodesArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyMemberRoles class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyMemberRoles__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyJoinRecordList
+
+@implementation CmtyJoinRecordList
+
+@dynamic recordsArray, recordsArray_Count;
+@dynamic total;
+
+typedef struct CmtyJoinRecordList__storage_ {
+  uint32_t _has_storage_[1];
+  int32_t total;
+  NSMutableArray *recordsArray;
+} CmtyJoinRecordList__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "recordsArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(CmtyJoinRecord),
+        .number = CmtyJoinRecordList_FieldNumber_RecordsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(CmtyJoinRecordList__storage_, recordsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+      {
+        .name = "total",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoinRecordList_FieldNumber_Total,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyJoinRecordList__storage_, total),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt32,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyJoinRecordList class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyJoinRecordList__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyReviewJoin
+
+@implementation CmtyReviewJoin
+
+@dynamic requestId;
+@dynamic reviewMessage;
+
+typedef struct CmtyReviewJoin__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *reviewMessage;
+  int64_t requestId;
+} CmtyReviewJoin__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "requestId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyReviewJoin_FieldNumber_RequestId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyReviewJoin__storage_, requestId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "reviewMessage",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyReviewJoin_FieldNumber_ReviewMessage,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyReviewJoin__storage_, reviewMessage),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyReviewJoin class]
+                                     rootClass:[CmtyMemberPbRoot class]
+                                          file:CmtyMemberPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyReviewJoin__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

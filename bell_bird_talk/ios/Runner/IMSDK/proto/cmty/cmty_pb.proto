@@ -3,6 +3,9 @@ syntax = "proto3";
 package im.cmty;
 
 import "system_pb.proto";
+import "cmty/cmty_member_pb.proto";
+import "cmty/cmty_permission_pb.proto";
+import "cmty/cmty_settings_pb.proto";
 
 option java_package = "com.cloud.im.common.core.protocol.cmty";
 option java_outer_classname = "CmtyProtos";
@@ -43,9 +46,6 @@ message Cmty {
     string owner_id = 5;            // 超管ID（返回字段）
     int32 member_count = 6;         // 成员数量（返回字段）
     CmtyStatus status = 7;          // 社群状态（返回字段）
-    bool need_verify = 8;           // 是否需要审核（返回字段）
-    bool allow_private_chat = 9;    // 是否允许单聊（返回字段）
-    bool allow_add_friend = 10;     // 是否允许添加好友（返回字段）
     int64 created_at = 11;          // 创建时间（返回字段）
     int64 updated_at = 12;          // 更新时间（返回字段）
     string extra_info = 13;         // 扩展信息(JSON)（返回字段）
@@ -60,18 +60,11 @@ message CmtyList {
     com.cloud.im.common.core.system.Page page = 2;  // 分页元数据（使用系统类型）
 }
 
-// CmtySettings - 社群设置
-message CmtySettings {
-    string community_id = 1;        // 社群ID（返回字段）
-    bool need_verify = 2;           // 是否需要审核（返回字段）
-    bool allow_private_chat = 3;    // 是否允许单聊（返回字段）
-    bool allow_add_friend = 4;      // 是否允许添加好友（返回字段）
-    bool pause_invite = 5;          // 是否暂停邀请（返回字段）
-    bool allow_access_other_channels = 6;  // 是否允许访问其他频道（返回字段）
-    int32 new_member_speak_time = 7;  // 新加入用户发言时间要求（分钟，返回字段）
-    int32 speak_frequency_limit = 8;  // 发言频率限制（条/分钟，返回字段）
-    int32 speak_type_limit = 9;      // 发言类型限制（位掩码，返回字段）
-    int32 speak_count_limit = 10;     // 发言数量限制（条/周期，返回字段）
+// CmtyDetailResult - 社群详细信息结果（用于detail方法）
+message CmtyDetailResult {
+    Cmty community = 1;                    // 社群信息（返回字段）
+    im.cmty.member.CmtyMember member = 2;  // 成员信息（返回字段，包含角色列表）
+    im.cmty.PermissionTemplate permission_template = 3;  // 基于当前角色的权限模板（返回字段）
 }
 
 // ========== 操作对象 ==========
@@ -81,26 +74,30 @@ message CmtySettings {
 message CmtyJoin {
     string invite_code = 1;   // 邀请码（可选）
     string invite_link = 2;   // 邀请链接（可选）
+    string inviter_user_id = 3;  // 邀请人用户ID（可选）
 }
 
-// CmtyUpdateSettings - 更新社群设置
-// 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updateSettings）
-message CmtyUpdateSettings {
-    bool need_verify = 1;           // 是否需要审核（可选）
-    bool allow_private_chat = 2;    // 是否允许单聊（可选）
-    bool allow_add_friend = 3;      // 是否允许添加好友（可选）
-    bool pause_invite = 4;          // 是否暂停邀请（可选）
-    bool allow_access_other_channels = 5;  // 是否允许访问其他频道（可选）
-    int32 new_member_speak_time = 6;  // 新加入用户发言时间要求（可选）
-    int32 speak_frequency_limit = 7;  // 发言频率限制（可选）
-    int32 speak_type_limit = 8;      // 发言类型限制（可选）
-    int32 speak_count_limit = 9;     // 发言数量限制（可选）
+// CmtyUpdateMemberCount - 更新社群成员总数
+// 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updateMemberCount）
+message CmtyUpdateMemberCount {
+    int32 member_count = 1;  // 成员总数（必填）
 }
 
 // CmtySearchQuery - 搜索查询
 message CmtySearchQuery {
     string keyword = 1;  // 搜索关键词（必填）
     com.cloud.im.common.core.system.Page page = 2;  // 分页参数（可选，使用系统类型）
+}
+
+// CmtyQuery - 查询列表-管理端
+message CmtyQuery {
+    optional string community_name = 1;      // 社群名称（可选）
+    optional CmtyStatus status = 2;          // 社群状态（可选）
+    optional string owner_name = 3;          // 超管账号（可选）
+    optional string start_time = 4;          // 时间范围（可选）
+    optional string end_time = 5;          // 时间范围（可选）
+    optional string app_id = 6;  // 标识（可选）
+    com.cloud.im.common.core.system.Page page = 7;  // 分页参数（可选，使用系统类型）
 }
 
 // CmtyOnlineCount - 在线人数

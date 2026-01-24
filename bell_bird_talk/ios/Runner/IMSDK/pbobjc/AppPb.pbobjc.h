@@ -167,6 +167,7 @@ typedef GPB_ENUM(App_FieldNumber) {
   App_FieldNumber_UpdatedAt = 20,
   App_FieldNumber_LastActiveAt = 21,
   App_FieldNumber_Extra = 22,
+  App_FieldNumber_InviteHost = 23,
 };
 
 /**
@@ -183,6 +184,9 @@ GPB_FINAL @interface App : GPBMessage
 
 /** 应用描述（可选，最大长度500字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *appDescription;
+
+/** 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式，如：admin.im.com） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *inviteHost;
 
 /** 应用状态（必填） */
 @property(nonatomic, readwrite) AppStatus status;
@@ -406,6 +410,7 @@ typedef GPB_ENUM(UpdateApp_FieldNumber) {
   UpdateApp_FieldNumber_ThirdPartyConfig = 11,
   UpdateApp_FieldNumber_SensitiveConfig = 12,
   UpdateApp_FieldNumber_PushConfig = 13,
+  UpdateApp_FieldNumber_InviteHost = 14,
 };
 
 /**
@@ -422,6 +427,9 @@ GPB_FINAL @interface UpdateApp : GPBMessage
 
 /** 应用描述（可选，最大长度500字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *appDescription;
+
+/** 邀请链接HOST配置（可选，用于生成邀请链接的子域名格式） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *inviteHost;
 
 /** 客户端配置（可选，JSON格式） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *clientConfig;

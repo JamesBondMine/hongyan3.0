@@ -28,7 +28,9 @@
 CF_EXTERN_C_BEGIN
 
 @class Cmty;
+@class CmtyMember;
 @class Page;
+@class PermissionTemplate;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -138,9 +140,6 @@ typedef GPB_ENUM(Cmty_FieldNumber) {
   Cmty_FieldNumber_OwnerId = 5,
   Cmty_FieldNumber_MemberCount = 6,
   Cmty_FieldNumber_Status = 7,
-  Cmty_FieldNumber_NeedVerify = 8,
-  Cmty_FieldNumber_AllowPrivateChat = 9,
-  Cmty_FieldNumber_AllowAddFriend = 10,
   Cmty_FieldNumber_CreatedAt = 11,
   Cmty_FieldNumber_UpdatedAt = 12,
   Cmty_FieldNumber_ExtraInfo = 13,
@@ -172,15 +171,6 @@ GPB_FINAL @interface Cmty : GPBMessage
 
 /** 社群状态（返回字段） */
 @property(nonatomic, readwrite) CmtyStatus status;
-
-/** 是否需要审核（返回字段） */
-@property(nonatomic, readwrite) BOOL needVerify;
-
-/** 是否允许单聊（返回字段） */
-@property(nonatomic, readwrite) BOOL allowPrivateChat;
-
-/** 是否允许添加好友（返回字段） */
-@property(nonatomic, readwrite) BOOL allowAddFriend;
 
 /** 创建时间（返回字段） */
 @property(nonatomic, readwrite) int64_t createdAt;
@@ -232,55 +222,33 @@ GPB_FINAL @interface CmtyList : GPBMessage
 
 @end
 
-#pragma mark - CmtySettings
+#pragma mark - CmtyDetailResult
 
-typedef GPB_ENUM(CmtySettings_FieldNumber) {
-  CmtySettings_FieldNumber_CommunityId = 1,
-  CmtySettings_FieldNumber_NeedVerify = 2,
-  CmtySettings_FieldNumber_AllowPrivateChat = 3,
-  CmtySettings_FieldNumber_AllowAddFriend = 4,
-  CmtySettings_FieldNumber_PauseInvite = 5,
-  CmtySettings_FieldNumber_AllowAccessOtherChannels = 6,
-  CmtySettings_FieldNumber_NewMemberSpeakTime = 7,
-  CmtySettings_FieldNumber_SpeakFrequencyLimit = 8,
-  CmtySettings_FieldNumber_SpeakTypeLimit = 9,
-  CmtySettings_FieldNumber_SpeakCountLimit = 10,
+typedef GPB_ENUM(CmtyDetailResult_FieldNumber) {
+  CmtyDetailResult_FieldNumber_Community = 1,
+  CmtyDetailResult_FieldNumber_Member = 2,
+  CmtyDetailResult_FieldNumber_PermissionTemplate = 3,
 };
 
 /**
- * CmtySettings - 社群设置
+ * CmtyDetailResult - 社群详细信息结果（用于detail方法）
  **/
-GPB_FINAL @interface CmtySettings : GPBMessage
+GPB_FINAL @interface CmtyDetailResult : GPBMessage
 
-/** 社群ID（返回字段） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *communityId;
+/** 社群信息（返回字段） */
+@property(nonatomic, readwrite, strong, null_resettable) Cmty *community;
+/** Test to see if @c community has been set. */
+@property(nonatomic, readwrite) BOOL hasCommunity;
 
-/** 是否需要审核（返回字段） */
-@property(nonatomic, readwrite) BOOL needVerify;
+/** 成员信息（返回字段，包含角色列表） */
+@property(nonatomic, readwrite, strong, null_resettable) CmtyMember *member;
+/** Test to see if @c member has been set. */
+@property(nonatomic, readwrite) BOOL hasMember;
 
-/** 是否允许单聊（返回字段） */
-@property(nonatomic, readwrite) BOOL allowPrivateChat;
-
-/** 是否允许添加好友（返回字段） */
-@property(nonatomic, readwrite) BOOL allowAddFriend;
-
-/** 是否暂停邀请（返回字段） */
-@property(nonatomic, readwrite) BOOL pauseInvite;
-
-/** 是否允许访问其他频道（返回字段） */
-@property(nonatomic, readwrite) BOOL allowAccessOtherChannels;
-
-/** 新加入用户发言时间要求（分钟，返回字段） */
-@property(nonatomic, readwrite) int32_t newMemberSpeakTime;
-
-/** 发言频率限制（条/分钟，返回字段） */
-@property(nonatomic, readwrite) int32_t speakFrequencyLimit;
-
-/** 发言类型限制（位掩码，返回字段） */
-@property(nonatomic, readwrite) int32_t speakTypeLimit;
-
-/** 发言数量限制（条/周期，返回字段） */
-@property(nonatomic, readwrite) int32_t speakCountLimit;
+/** 基于当前角色的权限模板（返回字段） */
+@property(nonatomic, readwrite, strong, null_resettable) PermissionTemplate *permissionTemplate;
+/** Test to see if @c permissionTemplate has been set. */
+@property(nonatomic, readwrite) BOOL hasPermissionTemplate;
 
 @end
 
@@ -289,6 +257,7 @@ GPB_FINAL @interface CmtySettings : GPBMessage
 typedef GPB_ENUM(CmtyJoin_FieldNumber) {
   CmtyJoin_FieldNumber_InviteCode = 1,
   CmtyJoin_FieldNumber_InviteLink = 2,
+  CmtyJoin_FieldNumber_InviterUserId = 3,
 };
 
 /**
@@ -303,54 +272,25 @@ GPB_FINAL @interface CmtyJoin : GPBMessage
 /** 邀请链接（可选） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *inviteLink;
 
+/** 邀请人用户ID（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *inviterUserId;
+
 @end
 
-#pragma mark - CmtyUpdateSettings
+#pragma mark - CmtyUpdateMemberCount
 
-typedef GPB_ENUM(CmtyUpdateSettings_FieldNumber) {
-  CmtyUpdateSettings_FieldNumber_NeedVerify = 1,
-  CmtyUpdateSettings_FieldNumber_AllowPrivateChat = 2,
-  CmtyUpdateSettings_FieldNumber_AllowAddFriend = 3,
-  CmtyUpdateSettings_FieldNumber_PauseInvite = 4,
-  CmtyUpdateSettings_FieldNumber_AllowAccessOtherChannels = 5,
-  CmtyUpdateSettings_FieldNumber_NewMemberSpeakTime = 6,
-  CmtyUpdateSettings_FieldNumber_SpeakFrequencyLimit = 7,
-  CmtyUpdateSettings_FieldNumber_SpeakTypeLimit = 8,
-  CmtyUpdateSettings_FieldNumber_SpeakCountLimit = 9,
+typedef GPB_ENUM(CmtyUpdateMemberCount_FieldNumber) {
+  CmtyUpdateMemberCount_FieldNumber_MemberCount = 1,
 };
 
 /**
- * CmtyUpdateSettings - 更新社群设置
- * 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updateSettings）
+ * CmtyUpdateMemberCount - 更新社群成员总数
+ * 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/updateMemberCount）
  **/
-GPB_FINAL @interface CmtyUpdateSettings : GPBMessage
+GPB_FINAL @interface CmtyUpdateMemberCount : GPBMessage
 
-/** 是否需要审核（可选） */
-@property(nonatomic, readwrite) BOOL needVerify;
-
-/** 是否允许单聊（可选） */
-@property(nonatomic, readwrite) BOOL allowPrivateChat;
-
-/** 是否允许添加好友（可选） */
-@property(nonatomic, readwrite) BOOL allowAddFriend;
-
-/** 是否暂停邀请（可选） */
-@property(nonatomic, readwrite) BOOL pauseInvite;
-
-/** 是否允许访问其他频道（可选） */
-@property(nonatomic, readwrite) BOOL allowAccessOtherChannels;
-
-/** 新加入用户发言时间要求（可选） */
-@property(nonatomic, readwrite) int32_t newMemberSpeakTime;
-
-/** 发言频率限制（可选） */
-@property(nonatomic, readwrite) int32_t speakFrequencyLimit;
-
-/** 发言类型限制（可选） */
-@property(nonatomic, readwrite) int32_t speakTypeLimit;
-
-/** 发言数量限制（可选） */
-@property(nonatomic, readwrite) int32_t speakCountLimit;
+/** 成员总数（必填） */
+@property(nonatomic, readwrite) int32_t memberCount;
 
 @end
 
@@ -375,6 +315,71 @@ GPB_FINAL @interface CmtySearchQuery : GPBMessage
 @property(nonatomic, readwrite) BOOL hasPage;
 
 @end
+
+#pragma mark - CmtyQuery
+
+typedef GPB_ENUM(CmtyQuery_FieldNumber) {
+  CmtyQuery_FieldNumber_CommunityName = 1,
+  CmtyQuery_FieldNumber_Status = 2,
+  CmtyQuery_FieldNumber_OwnerName = 3,
+  CmtyQuery_FieldNumber_StartTime = 4,
+  CmtyQuery_FieldNumber_EndTime = 5,
+  CmtyQuery_FieldNumber_AppId = 6,
+  CmtyQuery_FieldNumber_Page = 7,
+};
+
+/**
+ * CmtyQuery - 查询列表-管理端
+ **/
+GPB_FINAL @interface CmtyQuery : GPBMessage
+
+/** 社群名称（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *communityName;
+/** Test to see if @c communityName has been set. */
+@property(nonatomic, readwrite) BOOL hasCommunityName;
+
+/** 社群状态（可选） */
+@property(nonatomic, readwrite) CmtyStatus status;
+
+@property(nonatomic, readwrite) BOOL hasStatus;
+/** 超管账号（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *ownerName;
+/** Test to see if @c ownerName has been set. */
+@property(nonatomic, readwrite) BOOL hasOwnerName;
+
+/** 时间范围（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *startTime;
+/** Test to see if @c startTime has been set. */
+@property(nonatomic, readwrite) BOOL hasStartTime;
+
+/** 时间范围（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *endTime;
+/** Test to see if @c endTime has been set. */
+@property(nonatomic, readwrite) BOOL hasEndTime;
+
+/** 标识（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
+/** Test to see if @c appId has been set. */
+@property(nonatomic, readwrite) BOOL hasAppId;
+
+/** 分页参数（可选，使用系统类型） */
+@property(nonatomic, readwrite, strong, null_resettable) Page *page;
+/** Test to see if @c page has been set. */
+@property(nonatomic, readwrite) BOOL hasPage;
+
+@end
+
+/**
+ * Fetches the raw value of a @c CmtyQuery's @c status property, even
+ * if the value was not defined by the enum at the time the code was generated.
+ **/
+int32_t CmtyQuery_Status_RawValue(CmtyQuery *message);
+/**
+ * Sets the raw value of an @c CmtyQuery's @c status property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetCmtyQuery_Status_RawValue(CmtyQuery *message, int32_t value);
 
 #pragma mark - CmtyOnlineCount
 

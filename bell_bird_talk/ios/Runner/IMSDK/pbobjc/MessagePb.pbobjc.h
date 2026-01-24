@@ -37,11 +37,14 @@ CF_EXTERN_C_BEGIN
 @class EncryptedMessage;
 @class FileMessage;
 @class ForwardMessage;
-@class GetUnreadAndLastMessage;
 @class ImMessage;
 @class ImageMessage;
 @class LocationMessage;
+@class MessageGetUnreadAndLastMessage;
+@class MessageGetUnreadAndLastMessage_GroupChat;
+@class MessageGetUnreadAndLastMessage_SingleChat;
 @class MessageMetadata;
+@class MessageUnreadAndLastMessage;
 @class NetCallMessage;
 @class PollMessage;
 @class RedPacketMessage;
@@ -52,7 +55,6 @@ CF_EXTERN_C_BEGIN
 @class SystemMessage;
 @class TextMessage;
 @class TipMessage;
-@class UnreadAndLastMessage;
 @class VideoMessage;
 @class VoiceMessage;
 GPB_ENUM_FWD_DECLARE(ConversationType);
@@ -2240,17 +2242,49 @@ GPB_FINAL @interface SendAck : GPBMessage
 
 @end
 
-#pragma mark - GetUnreadAndLastMessage
+#pragma mark - MessageGetUnreadAndLastMessage
 
-typedef GPB_ENUM(GetUnreadAndLastMessage_FieldNumber) {
-  GetUnreadAndLastMessage_FieldNumber_FromUserId = 1,
-  GetUnreadAndLastMessage_FieldNumber_ToUserId = 2,
+typedef GPB_ENUM(MessageGetUnreadAndLastMessage_FieldNumber) {
+  MessageGetUnreadAndLastMessage_FieldNumber_Single = 1,
+  MessageGetUnreadAndLastMessage_FieldNumber_Group = 2,
+};
+
+typedef GPB_ENUM(MessageGetUnreadAndLastMessage_Scope_OneOfCase) {
+  MessageGetUnreadAndLastMessage_Scope_OneOfCase_GPBUnsetOneOfCase = 0,
+  MessageGetUnreadAndLastMessage_Scope_OneOfCase_Single = 1,
+  MessageGetUnreadAndLastMessage_Scope_OneOfCase_Group = 2,
 };
 
 /**
  * 获取未读数和最后一条消息请求
  **/
-GPB_FINAL @interface GetUnreadAndLastMessage : GPBMessage
+GPB_FINAL @interface MessageGetUnreadAndLastMessage : GPBMessage
+
+/** 会话范围（单聊 / 群聊） */
+@property(nonatomic, readonly) MessageGetUnreadAndLastMessage_Scope_OneOfCase scopeOneOfCase;
+
+@property(nonatomic, readwrite, strong, null_resettable) MessageGetUnreadAndLastMessage_SingleChat *single;
+
+@property(nonatomic, readwrite, strong, null_resettable) MessageGetUnreadAndLastMessage_GroupChat *group;
+
+@end
+
+/**
+ * Clears whatever value was set for the oneof 'scope'.
+ **/
+void MessageGetUnreadAndLastMessage_ClearScopeOneOfCase(MessageGetUnreadAndLastMessage *message);
+
+#pragma mark - MessageGetUnreadAndLastMessage_SingleChat
+
+typedef GPB_ENUM(MessageGetUnreadAndLastMessage_SingleChat_FieldNumber) {
+  MessageGetUnreadAndLastMessage_SingleChat_FieldNumber_FromUserId = 1,
+  MessageGetUnreadAndLastMessage_SingleChat_FieldNumber_ToUserId = 2,
+};
+
+/**
+ * 单聊会话标识
+ **/
+GPB_FINAL @interface MessageGetUnreadAndLastMessage_SingleChat : GPBMessage
 
 /** 发送者ID（对方） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *fromUserId;
@@ -2260,37 +2294,58 @@ GPB_FINAL @interface GetUnreadAndLastMessage : GPBMessage
 
 @end
 
-#pragma mark - BatchGetUnreadAndLastMessage
+#pragma mark - MessageGetUnreadAndLastMessage_GroupChat
 
-typedef GPB_ENUM(BatchGetUnreadAndLastMessage_FieldNumber) {
-  BatchGetUnreadAndLastMessage_FieldNumber_ItemsArray = 1,
+typedef GPB_ENUM(MessageGetUnreadAndLastMessage_GroupChat_FieldNumber) {
+  MessageGetUnreadAndLastMessage_GroupChat_FieldNumber_GroupId = 1,
+  MessageGetUnreadAndLastMessage_GroupChat_FieldNumber_MemberId = 2,
+};
+
+/**
+ * 群聊会话标识
+ **/
+GPB_FINAL @interface MessageGetUnreadAndLastMessage_GroupChat : GPBMessage
+
+/** 群组ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *groupId;
+
+/** 群成员ID（自己） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *memberId;
+
+@end
+
+#pragma mark - BatchMessageGetUnreadAndLastMessage
+
+typedef GPB_ENUM(BatchMessageGetUnreadAndLastMessage_FieldNumber) {
+  BatchMessageGetUnreadAndLastMessage_FieldNumber_ItemsArray = 1,
 };
 
 /**
  * 批量获取未读数和最后一条消息请求
  **/
-GPB_FINAL @interface BatchGetUnreadAndLastMessage : GPBMessage
+GPB_FINAL @interface BatchMessageGetUnreadAndLastMessage : GPBMessage
 
 /** 查询项列表 */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<GetUnreadAndLastMessage*> *itemsArray;
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<MessageGetUnreadAndLastMessage*> *itemsArray;
 /** The number of items in @c itemsArray without causing the array to be created. */
 @property(nonatomic, readonly) NSUInteger itemsArray_Count;
 
 @end
 
-#pragma mark - UnreadAndLastMessage
+#pragma mark - MessageUnreadAndLastMessage
 
-typedef GPB_ENUM(UnreadAndLastMessage_FieldNumber) {
-  UnreadAndLastMessage_FieldNumber_UnreadCount = 1,
-  UnreadAndLastMessage_FieldNumber_LastMessage = 2,
-  UnreadAndLastMessage_FieldNumber_Seq = 3,
-  UnreadAndLastMessage_FieldNumber_ReadSeq = 4,
+typedef GPB_ENUM(MessageUnreadAndLastMessage_FieldNumber) {
+  MessageUnreadAndLastMessage_FieldNumber_UnreadCount = 1,
+  MessageUnreadAndLastMessage_FieldNumber_LastMessage = 2,
+  MessageUnreadAndLastMessage_FieldNumber_Seq = 3,
+  MessageUnreadAndLastMessage_FieldNumber_ReadSeq = 4,
+  MessageUnreadAndLastMessage_FieldNumber_LastAtMessage = 5,
 };
 
 /**
  * 未读数和最后一条消息响应
  **/
-GPB_FINAL @interface UnreadAndLastMessage : GPBMessage
+GPB_FINAL @interface MessageUnreadAndLastMessage : GPBMessage
 
 /** 未读数 = seq - read_seq */
 @property(nonatomic, readwrite) int64_t unreadCount;
@@ -2306,21 +2361,26 @@ GPB_FINAL @interface UnreadAndLastMessage : GPBMessage
 /** 已读序号 */
 @property(nonatomic, readwrite) int64_t readSeq;
 
+/** 最后一条\@消息（群聊可选，单聊不填） */
+@property(nonatomic, readwrite, strong, null_resettable) ImMessage *lastAtMessage;
+/** Test to see if @c lastAtMessage has been set. */
+@property(nonatomic, readwrite) BOOL hasLastAtMessage;
+
 @end
 
-#pragma mark - BatchUnreadAndLastMessage
+#pragma mark - BatchMessageUnreadAndLastMessage
 
-typedef GPB_ENUM(BatchUnreadAndLastMessage_FieldNumber) {
-  BatchUnreadAndLastMessage_FieldNumber_Results = 1,
+typedef GPB_ENUM(BatchMessageUnreadAndLastMessage_FieldNumber) {
+  BatchMessageUnreadAndLastMessage_FieldNumber_Results = 1,
 };
 
 /**
  * 批量未读数和最后一条消息响应
  **/
-GPB_FINAL @interface BatchUnreadAndLastMessage : GPBMessage
+GPB_FINAL @interface BatchMessageUnreadAndLastMessage : GPBMessage
 
 /** key: "from_user_id:to_user_id" */
-@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, UnreadAndLastMessage*> *results;
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, MessageUnreadAndLastMessage*> *results;
 /** The number of items in @c results without causing the array to be created. */
 @property(nonatomic, readonly) NSUInteger results_Count;
 

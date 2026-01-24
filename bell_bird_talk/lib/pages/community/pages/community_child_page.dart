@@ -1,5 +1,6 @@
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_setting_page.dart';
@@ -109,7 +110,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   Widget _bodyView() {
-    String? communityId = _cmty==null ? '' : _cmty!.name;
+    String? communityId = _cmty == null ? '' : _cmty!.name;
     return Column(
       children: [
         // 头部
@@ -137,7 +138,9 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: Get.width - 140),
+                              constraints: BoxConstraints(
+                                maxWidth: Get.width - 140,
+                              ),
                               child: Text(
                                 communityId,
                                 overflow: TextOverflow.ellipsis,
@@ -326,7 +329,12 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 社群设置
-  void _showCommunitySettingView() {
+  void _showCommunitySettingView() async {
+    CommunitySettingsModel? resSetting = await CommunityController.to
+        .loadCommunitySettings(_cmty!.id);
+    if (resSetting == null) {
+      return;
+    }
     gbs.shower.showScreenViewCustom(
       context,
       Get.height - 150,
@@ -350,7 +358,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
               case 2:
                 // 处理社群设置
-                Get.to(CommunitySettingPage(cmtyId: _cmty?.id));
+                Get.to(CommunitySettingPage(cmtyModel: _cmty!));
                 break;
               case 3:
                 // 处理创建频道
@@ -374,6 +382,7 @@ class CommunityChildPageState extends State<CommunityChildPage> {
                 break;
             }
           },
+          cmtSetting: resSetting,
         ),
       ),
     );
@@ -433,7 +442,12 @@ class CommunityChildPageState extends State<CommunityChildPage> {
   }
 
   // 隐私设置--CommunityPriSettingView
-  void _showPrivacySettingView() {
+  void _showPrivacySettingView() async {
+    CommunitySettingsModel? resSetting = await CommunityController.to
+        .loadCommunitySettings(_cmty!.id);
+    if (resSetting == null) {
+      return;
+    }
     gbs.shower.showScreenViewCustom(
       context,
       360,
@@ -448,6 +462,8 @@ class CommunityChildPageState extends State<CommunityChildPage> {
           ),
         ),
         child: CommunityPriSettingView(
+          cmtSetting: resSetting,
+          cmtyId: _cmty!.id,
           selectedCategory: 0,
           onConfirm: (value) {},
         ),

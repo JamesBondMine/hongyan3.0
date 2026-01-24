@@ -89,7 +89,7 @@ GPBEnumDescriptor *AddChannel_EnumDescriptor(void) {
                                      enumVerifier:AddChannel_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+   //   [worker release];
     }
   }
   return descriptor;
@@ -134,7 +134,7 @@ GPBEnumDescriptor *Relationship_EnumDescriptor(void) {
                                      enumVerifier:Relationship_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+   //   [worker release];
     }
   }
   return descriptor;
@@ -175,7 +175,7 @@ GPBEnumDescriptor *RequestStatus_EnumDescriptor(void) {
                                      enumVerifier:RequestStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+   //   [worker release];
     }
   }
   return descriptor;
@@ -215,7 +215,7 @@ GPBEnumDescriptor *BlockDirection_EnumDescriptor(void) {
                                      enumVerifier:BlockDirection_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+   //   [worker release];
     }
   }
   return descriptor;

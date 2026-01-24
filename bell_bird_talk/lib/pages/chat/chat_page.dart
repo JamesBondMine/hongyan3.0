@@ -1252,9 +1252,6 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               ),
-
-              
-
               if (isMine) ...[const SizedBox(width: 8)],
             ],
           ),

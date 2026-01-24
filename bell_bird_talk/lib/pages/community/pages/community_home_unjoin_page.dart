@@ -1,6 +1,7 @@
 import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/controllers/user_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_search_page.dart';
 import 'package:bell_bird_talk/pages/profile/side_menu_page.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
@@ -100,69 +101,81 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
 
   /// 申请加入社群
   Future<void> _applyToJoin(CommunityModel community) async {
-    if (community.isJoined) {
-      EasyLoading.showInfo('您已加入该社群'.tr);
-      return;
-    }
+    try {
+      if (community.isJoined) {
+        EasyLoading.showInfo('您已加入该社群'.tr);
+        return;
+      }
 
-    if (community.hasApplied) {
-      EasyLoading.showInfo('您已申请加入，请等待审核'.tr);
-      return;
-    }
+      if (community.hasApplied) {
+        EasyLoading.showInfo('您已申请加入，请等待审核'.tr);
+        return;
+      }
 
-    if (community.isFull) {
-      EasyLoading.showError('该社群已满员'.tr);
-      return;
-    }
+      if (community.isFull) {
+        EasyLoading.showError('该社群已满员'.tr);
+        return;
+      }
 
-    final result = await _nativeService.showNativeAlert(
-      title: '申请加入社群'.tr,
-      message: '社群将会给你发消息'.tr,
-      confirmText: '确认'.tr,
-      cancelText: '取消'.tr,
-      showCancel: true,
-    );
-    bool confirmed = result != null && result['action'] == 'confirm';
-
-    if (confirmed == true) {
-      EasyLoading.show(status: '正在申请...'.tr);
-      bool res = await CommunityController.to.joinCommunity(
-        cmtyId: community.id,
+      final result = await _nativeService.showNativeAlert(
+        title: '申请加入社群'.tr,
+        message: '社群将会给你发消息'.tr,
+        confirmText: '确认'.tr,
+        cancelText: '取消'.tr,
+        showCancel: true,
       );
-      print(res);
-      // 模拟申请过程
-      if (res == true) {
-        GlobalController.to.joinedCommunitys = [community];
-        GlobalController.to.updatecommunityTabRefresh();
-      }
+      bool confirmed = result != null && result['action'] == 'confirm';
 
-      // 更新状态
-      if (mounted) {
-        setState(() {
-          final index = _communities.indexWhere((c) => c.id == community.id);
-          if (index != -1) {
-            _communities[index] = CommunityModel(
-              id: community.id,
-              name: community.name,
-              description: community.description,
-              avatar: community.avatar,
-              memberCount: community.memberCount,
-              maxMembers: community.maxMembers,
-              category: community.category,
-              isPublic: community.isPublic,
-              ownerId: community.ownerId,
-              ownerName: community.ownerName,
-              createTime: community.createTime,
-              isJoined: false,
-              hasApplied: true,
-            );
+      if (confirmed == true) {
+        EasyLoading.show(status: '正在加入...'.tr);
+        bool res = await CommunityController.to.joinCommunity(
+          cmtyId: community.id,
+        );
+        print(res);
+        // 模拟申请过程
+        if (res == true) {
+          CommunitySettingsModel? res = await CommunityController.to
+              .loadCommunitySettings(community.id);
+          EasyLoading.dismiss();
+          if (res != null && res.settings.needVerify == false) {
+            GlobalController.to.joinedCommunitys = [community];
+            GlobalController.to.updatecommunityTabRefresh();
+          } else {
+            EasyLoading.showSuccess('申请已提交，请等待审核'.tr);
           }
-          _filterCommunities();
-        });
-      }
+        } else {
+          EasyLoading.dismiss();
+          EasyLoading.showError('失败'.tr);
+        }
 
+        // 更新状态
+        if (mounted) {
+          setState(() {
+            final index = _communities.indexWhere((c) => c.id == community.id);
+            if (index != -1) {
+              _communities[index] = CommunityModel(
+                id: community.id,
+                name: community.name,
+                description: community.description,
+                avatar: community.avatar,
+                memberCount: community.memberCount,
+                maxMembers: community.maxMembers,
+                category: community.category,
+                isPublic: community.isPublic,
+                ownerId: community.ownerId,
+                ownerName: community.ownerName,
+                createTime: community.createTime,
+                isJoined: false,
+                hasApplied: true,
+              );
+            }
+            _filterCommunities();
+          });
+        }
+      }
+    } catch (e) {
       EasyLoading.dismiss();
-      EasyLoading.showSuccess('申请已提交，请等待审核'.tr);
+      EasyLoading.showError('失败'.tr);
     }
   }
 
@@ -393,6 +406,7 @@ class _CommunityHomeUnjoinPageState extends State<CommunityHomeUnjoinPage> {
                         Container(
                           width: 32.w,
                           height: 32.h,
+                          clipBehavior: Clip.hardEdge,
                           margin: EdgeInsets.only(right: 16),
                           decoration: BoxDecoration(
                             color: Colors.blue[100],

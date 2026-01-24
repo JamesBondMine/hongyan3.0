@@ -7,12 +7,15 @@ import "system_pb.proto";
 option java_package = "com.cloud.im.common.core.protocol.cmty.member";
 option java_outer_classname = "CmtyMemberProtos";
 
-// ========== 枚举类型定义 ==========
+// ========== 枚举类型 ==========
 
-// 成员角色枚举
-enum CmtyMemberRole {
-    MEMBER = 0;     // 普通成员（默认值）
-    OWNER = 1;      // 超管
+// 加入状态枚举（去除 Request 后缀）
+enum CmtyJoinStatus {
+    PENDING = 0;     // 待审核（默认值）
+    APPROVED = 1;    // 已通过
+    REJECTED = 2;    // 已拒绝
+    EXPIRED = 3;     // 已过期
+    CANCELLED = 4;   // 已取消
 }
 
 // ========== 查询操作 ==========
@@ -20,7 +23,26 @@ enum CmtyMemberRole {
 // CmtyMembersQuery - 成员查询（用于members方法）
 // 注意：communityId 从 Topic 路径中获取（/im/CMTY/{communityId}/members）
 message CmtyMembersQuery {
-    com.cloud.im.common.core.system.Page page = 1;  // 分页参数（可选，使用系统类型）
+    optional string keyword = 1;//昵称或用户名（可选）
+    optional string start_time = 2; //加入时间筛选（可选，为空时查询所有时间）
+    optional string end_time = 3; //加入时间筛选（可选，为空时查询所有时间）
+    optional string join_way = 4;  // 加入方式筛选（可选，为空时查询所有方式）
+    optional bool is_muted = 5;  // 是否禁言（可选）
+    optional string cmty_id = 6;  // 社群id
+    com.cloud.im.common.core.system.Page page = 7;  // 分页参数（可选，使用系统类型）
+}
+
+// CmtyGetMemberRoles - 获取成员角色（用于getMemberRoles方法）
+// 注意：cmtyId 从 Topic 路径中获取（/im/CMTY/{cmtyId}/getMemberRoles）
+message CmtyGetMemberRoles {
+    string user_id = 1;  // 用户ID（必填）
+}
+
+// CmtyJoinsQuery - 加入申请查询（用于listJoinRequests方法，去除 Request）
+// 注意：cmtyId 从 Topic 路径中获取（/im/CMTY/{cmtyId}/listJoinRequests）
+message CmtyJoinsQuery {
+    CmtyJoinStatus status = 1;  // 申请状态筛选（可选，为空时查询所有状态）
+    com.cloud.im.common.core.system.Page page = 2;  // 分页参数（可选，使用系统类型）
 }
 
 // ========== 领域对象 ==========
@@ -31,10 +53,29 @@ message CmtyMember {
     string nickname = 2;    // 昵称（返回字段）
     string username = 3;    // 用户名（返回字段）
     string avatar = 4;      // 头像URL（返回字段）
-    CmtyMemberRole role = 5;    // 角色（返回字段）
+    repeated com.cloud.im.common.core.system.Role roles = 5;    // 角色列表（返回字段，使用通用的Role对象）
     int64 joined_at = 6;    // 加入时间（返回字段）
     string join_way = 7;    // 加入方式（自主加入、邀请加入，返回字段）
     int32 invite_count = 8; // 邀请人数（返回字段）
+}
+
+// CmtyJoinRecord - 加入申请记录（用于列表展示，区别于 cmty_pb.CmtyJoin 请求参数）
+message CmtyJoinRecord {
+    int64 request_id = 1;                    // 申请ID（返回字段）
+    string cmty_id = 2;                      // 社群ID（返回字段）
+    string user_id = 3;                      // 申请人用户ID（返回字段）
+    string nickname = 4;                     // 申请人昵称（返回字段）
+    string username = 5;                     // 申请人用户名（返回字段）
+    string avatar = 6;                       // 申请人头像（返回字段）
+    string request_message = 7;              // 申请消息（返回字段）
+    int64 request_time = 8;                  // 申请时间戳（返回字段）
+    int64 expire_time = 9;                   // 过期时间戳（返回字段）
+    CmtyJoinStatus status = 10;              // 申请状态（返回字段）
+    string review_user_id = 11;              // 审核人用户ID（返回字段）
+    int64 review_time = 12;                  // 审核时间戳（返回字段）
+    string review_message = 13;              // 审核消息（返回字段）
+    string invite_code = 14;                 // 邀请码（返回字段）
+    string invite_link = 15;                 // 邀请链接（返回字段）
 }
 
 // ========== 结果对象 ==========
@@ -45,9 +86,26 @@ message CmtyMemberList {
     int32 total = 2;              // 总成员数
 }
 
+// CmtyMemberRoles - 成员角色列表（用于getMemberRoles方法）
+message CmtyMemberRoles {
+    repeated string role_codes = 1;  // 角色代码列表（返回字段）
+}
+
+// CmtyJoinRecordList - 加入申请记录列表
+message CmtyJoinRecordList {
+    repeated CmtyJoinRecord records = 1;  // 申请记录列表（返回字段）
+    int32 total = 2;                      // 总申请数（返回字段）
+}
+
 // ========== 操作对象 ==========
+
+// CmtyReviewJoin - 审核加入申请（用于approveJoinRequest和rejectJoinRequest方法，去除 Request 后缀）
+// 注意：cmtyId 从 Topic 路径中获取，审核人从 fromId 获取
+message CmtyReviewJoin {
+    int64 request_id = 1;       // 申请ID（必填）
+    string review_message = 2;  // 审核消息（可选，拒绝时建议提供原因）
+}
 
 // 注意：KickMember 方法使用 system.Param (param=user_id)，communityId 从 Topic 路径中获取
 // 注意：Leave 方法使用 system.EmptyResponse，communityId 从 Topic 路径中获取
 // 注意：MuteMember 和 BanMember 已移至 cmty_security_pb.proto
-

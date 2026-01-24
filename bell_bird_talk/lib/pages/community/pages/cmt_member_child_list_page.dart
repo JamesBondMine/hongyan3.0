@@ -349,26 +349,26 @@ class CmtMemberListPageState extends State<CmtMemberListPage> {
                               color: GbsColors.des1Color,
                             ),
                           ),
-                          if (roleText != null && roleText.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: GbsColors.des6Color.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                roleText,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: GbsColors.des6Color,
-                                ),
-                              ),
-                            ),
-                          ],
+                          // if (roleText != null && roleText.isNotEmpty) ...[
+                          //   const SizedBox(width: 8),
+                          //   Container(
+                          //     padding: const EdgeInsets.symmetric(
+                          //       horizontal: 6,
+                          //       vertical: 2,
+                          //     ),
+                          //     decoration: BoxDecoration(
+                          //       color: GbsColors.des6Color.withOpacity(0.2),
+                          //       borderRadius: BorderRadius.circular(4),
+                          //     ),
+                          //     child: Text(
+                          //       roleText,
+                          //       style: const TextStyle(
+                          //         fontSize: 12,
+                          //         color: GbsColors.des6Color,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ],
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -395,7 +395,7 @@ class CmtMemberListPageState extends State<CmtMemberListPage> {
   // 卡片
   Widget _buildCard(List<Widget> children) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: GbsColors.lightBackgroundB,

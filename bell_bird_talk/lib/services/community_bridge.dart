@@ -22,7 +22,7 @@ class CommunityBridge {
     try {
       final Map<String, dynamic> params = {
         'page': page,
-        'page_size': pageSize,
+        'pageSize': pageSize,
       };
 
       final result = await _bridge.invokeMethod<Map>('imGetCommunityList', params);
@@ -570,6 +570,145 @@ class CommunityBridge {
       NativeLogger.log('imKickCommunityMember', {
         'cmtyId': cmtyId,
         'userId': userId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 获取社群设置
+  /// @param cmtyId 社群ID
+  /// @return 社群设置结果
+  Future<Map<String, dynamic>> getCommunitySettings({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetCommunitySettings', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunitySettings', params, resultMap, stopwatch.elapsed);
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetCommunitySettings', {
+        'cmtyId': cmtyId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 更新社群设置
+  /// @param cmtyId 社群ID
+  /// @param settings 设置项字典（键值对形式：{"allow_add_friend": true, ...}）
+  /// @return 更新结果
+  Future<Map<String, dynamic>> updateCommunitySettings({
+    required String cmtyId,
+    required Map<String, dynamic> settings,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'settings': settings,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imUpdateCommunitySettings', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imUpdateCommunitySettings', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imUpdateCommunitySettings', {
+        'cmtyId': cmtyId,
+        'settings': settings,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 查询加入申请列表
+  /// @param cmtyId 社群ID
+  /// @param status 申请状态筛选（可选，0=全部，1=待审核，2=已通过，3=已拒绝，4=已过期，5=已取消）
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 加入申请列表结果
+  Future<Map<String, dynamic>> listJoinRequests({
+    required String cmtyId,
+    int status = 0,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'status': status,
+        'page': page,
+        'pageSize': pageSize,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imListJoinRequests', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imListJoinRequests', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imListJoinRequests', {
+        'cmtyId': cmtyId,
+        'status': status,
+        'page': page,
+        'pageSize': pageSize,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
+  /// 审核加入申请
+  /// @param cmtyId 社群ID
+  /// @param requestId 申请ID
+  /// @param approve 是否同意（true=同意，false=拒绝）
+  /// @param reviewMessage 审核消息（可选，拒绝时可填写原因）
+  /// @return 审核结果
+  Future<Map<String, dynamic>> reviewJoinRequest({
+    required String cmtyId,
+    required int requestId,
+    required bool approve,
+    String reviewMessage = '',
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+        'requestId': requestId,
+        'approve': approve,
+      };
+      if (reviewMessage.isNotEmpty) {
+        params['reviewMessage'] = reviewMessage;
+      }
+
+      final result = await _bridge.invokeMethod<Map>('imReviewJoinRequest', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+
+      stopwatch.stop();
+      NativeLogger.log('imReviewJoinRequest', params, resultMap, stopwatch.elapsed);
+
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imReviewJoinRequest', {
+        'cmtyId': cmtyId,
+        'requestId': requestId,
+        'approve': approve,
       }, e.toString(), stopwatch.elapsed, isError: true);
       return {'errorCode': -999, 'message': e.toString()};
     }

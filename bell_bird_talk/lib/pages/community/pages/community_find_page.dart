@@ -1,11 +1,14 @@
+import 'package:bell_bird_talk/controllers/community_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
 
 class CommunityFindSettingPage extends StatefulWidget {
-  CommunityFindSettingPage({Key? key, required this.cmtyId}) : super(key: key);
+  const CommunityFindSettingPage({Key? key, required this.cmtyId})
+    : super(key: key);
 
-  String? cmtyId = '';
+  final String? cmtyId;
 
   @override
   State<CommunityFindSettingPage> createState() => CommunityChildPageState();
@@ -13,6 +16,62 @@ class CommunityFindSettingPage extends StatefulWidget {
 
 class CommunityChildPageState extends State<CommunityFindSettingPage> {
   bool valueCheckChannel = true;
+
+  // 社群设置
+  CommunitySettingsModel? _communitySettings;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _getCmtSetting();
+  }
+
+  // 获取社群设置
+  void _getCmtSetting() async {
+    // 处理社群设置
+    CommunityController.to.loadCommunitySettings(widget.cmtyId!).then((result) {
+      if (mounted) {
+        setState(() {
+          _communitySettings = result;
+        });
+      }
+    });
+  }
+
+  // 更新社群设置
+  void _updateCmtSetting(int type) async {
+    // 处理社群设置
+    if (_communitySettings != null) {
+      switch (type) {
+        case 1:
+          CommunityController.to.updateCommunitySettings(
+            cmtyId: widget.cmtyId!,
+            settings: {
+              "allow_access_other_channels":
+                  _communitySettings!.settings.allowAccessOtherChannels,
+            },
+          );
+          break;
+        case 2:
+          CommunityController.to.updateCommunitySettings(
+            cmtyId: widget.cmtyId!,
+            settings: {"need_verify": _communitySettings!.settings.needVerify},
+          );
+          break;
+        case 3:
+          CommunityController.to.updateCommunitySettings(
+            cmtyId: widget.cmtyId!,
+            settings: {
+              "allow_join_by_invite_link": _communitySettings!.settings.allowJoinByInviteLink,
+            },
+          );
+          break;
+        default:
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,25 +85,41 @@ class CommunityChildPageState extends State<CommunityFindSettingPage> {
             _buildItem(
               '访问社群其他频道',
               '新人社群加入时，可访问默认频道之外的其他频道',
-              valueCheckChannel,
+              _communitySettings != null &&
+                  _communitySettings!.settings.allowAccessOtherChannels,
               (value) {
                 setState(() {
-                  valueCheckChannel = value;
+                  _communitySettings!.settings.allowAccessOtherChannels = value;
                 });
+                _updateCmtSetting(1);
               },
             ),
             _buildDivider(),
-            _buildItem('社群加入审批', '新人加入社群时需要经过审批', valueCheckChannel, (value) {
-              setState(() {
-                valueCheckChannel = value;
-              });
-            }),
+            _buildItem(
+              '社群加入审批',
+              '新人加入社群时需要经过审批',
+              _communitySettings != null &&
+                  _communitySettings!.settings.needVerify,
+              (value) {
+                setState(() {
+                  _communitySettings!.settings.needVerify = value;
+                });
+                _updateCmtSetting(2);
+              },
+            ),
             _buildDivider(),
-            _buildItem('社群邀请加入', '新人可通过邀请链接加入社群', valueCheckChannel, (value) {
-              setState(() {
-                valueCheckChannel = value;
-              });
-            }),
+            _buildItem(
+              '社群邀请加入',
+              '新人可通过邀请链接加入社群',
+              _communitySettings != null &&
+                  _communitySettings!.settings.allowJoinByInviteLink,
+              (value) {
+                setState(() {
+                  _communitySettings!.settings.allowJoinByInviteLink = value;
+                });
+                _updateCmtSetting(3);
+              },
+            ),
           ]),
         ],
       ),
@@ -133,7 +208,7 @@ class CommunityChildPageState extends State<CommunityFindSettingPage> {
               ],
             ),
           ),
-          SizedBox(width: 20,),
+          SizedBox(width: 20),
           Switch(
             focusColor: GbsColors.primaryColor,
             activeTrackColor: GbsColors.primaryColor,

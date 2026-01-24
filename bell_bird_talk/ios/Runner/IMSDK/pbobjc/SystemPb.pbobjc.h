@@ -28,12 +28,13 @@
 CF_EXTERN_C_BEGIN
 
 @class AreaCode;
+@class PermissionConfig;
 
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - Enum ConversationType
 
-/** 会话类型（单聊/群聊/系统/社区） */
+/** 会话类型（单聊/群聊/系统/社区/频道） */
 typedef GPB_ENUM(ConversationType) {
   /**
    * Value used if any message's field encounters a value that is not defined
@@ -53,8 +54,8 @@ typedef GPB_ENUM(ConversationType) {
   /** 系统 */
   ConversationType_System = 3,
 
-  /** 社区 */
-  ConversationType_Community = 4,
+  /** 社群 */
+  ConversationType_Cmch = 4,
 };
 
 GPBEnumDescriptor *ConversationType_EnumDescriptor(void);
@@ -391,6 +392,96 @@ GPB_FINAL @interface IpLocationResponse : GPBMessage
 
 /** 是否找到定位信息 */
 @property(nonatomic, readwrite) BOOL found;
+
+@end
+
+#pragma mark - PermissionConfig
+
+typedef GPB_ENUM(PermissionConfig_FieldNumber) {
+  PermissionConfig_FieldNumber_MethodName = 1,
+  PermissionConfig_FieldNumber_Attributes = 2,
+  PermissionConfig_FieldNumber_Status = 3,
+  PermissionConfig_FieldNumber_ExpireTime = 4,
+  PermissionConfig_FieldNumber_ConfigDesc = 5,
+};
+
+/**
+ * 权限配置 - 用于方法粒度控制
+ * 存储角色的权限详细配置，支持全局配置和方法级配置
+ **/
+GPB_FINAL @interface PermissionConfig : GPBMessage
+
+/** 方法名（可选，为空表示全局配置，如 "sendMessage", "viewChannel"） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *methodName;
+
+/** 权限属性（必填，JSON格式的键值对，如消息类型限制、频道限制等） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableDictionary<NSString*, NSString*> *attributes;
+/** The number of items in @c attributes without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger attributes_Count;
+
+/** 状态（可选，如 "active", "inactive"） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *status;
+
+/** 到期时间（可选，Unix时间戳，单位：秒，-1表示永久） */
+@property(nonatomic, readwrite) int64_t expireTime;
+
+/** 配置描述（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *configDesc;
+
+@end
+
+#pragma mark - Role
+
+typedef GPB_ENUM(Role_FieldNumber) {
+  Role_FieldNumber_Code = 1,
+  Role_FieldNumber_Name = 2,
+  Role_FieldNumber_ExpireTime = 3,
+  Role_FieldNumber_AssignedBy = 4,
+  Role_FieldNumber_AssignedTime = 5,
+  Role_FieldNumber_CreatedAt = 6,
+  Role_FieldNumber_UpdatedAt = 7,
+  Role_FieldNumber_Status = 8,
+  Role_FieldNumber_Description_p = 9,
+  Role_FieldNumber_PermissionConfigsArray = 10,
+};
+
+/**
+ * 角色信息 - 核心领域对象
+ * 用于表示用户在某个资源（如社群、群组等）中的角色
+ **/
+GPB_FINAL @interface Role : GPBMessage
+
+/** 角色代码（必填，如 "cmty_owner", "cmty_member"） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *code;
+
+/** 角色名称（可选，如 "社群管理员", "普通成员"） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *name;
+
+/** 到期时间（可选，Unix时间戳，单位：秒，-1表示永久） */
+@property(nonatomic, readwrite) int64_t expireTime;
+
+/** 分配者用户ID（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *assignedBy;
+
+/** 分配时间（可选，Unix时间戳，单位：秒） */
+@property(nonatomic, readwrite) int64_t assignedTime;
+
+/** 创建时间（可选，Unix时间戳，单位：秒） */
+@property(nonatomic, readwrite) int64_t createdAt;
+
+/** 更新时间（可选，Unix时间戳，单位：秒） */
+@property(nonatomic, readwrite) int64_t updatedAt;
+
+/** 状态（可选，如 "active", "inactive"） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *status;
+
+/** 角色描述（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *description_p;
+
+/** 权限配置列表（可选，支持方法粒度控制，包含全局配置和方法级配置） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<PermissionConfig*> *permissionConfigsArray;
+/** The number of items in @c permissionConfigsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger permissionConfigsArray_Count;
 
 @end
 

@@ -114,8 +114,8 @@ enum InviteCodeTypeEnum {
 message InvInviteCodeQuery {
   optional string biz_code = 1;               // 邀请码（可选，支持模糊查询）
   optional string app_id = 2;                 // 应用标识（可选）
-  optional string start_time = 3;             // 开始时间（可选，格式：yyyy-MM-dd HH:mm:ss）
-  optional string end_time = 4;              // 结束时间（可选，格式：yyyy-MM-dd HH:mm:ss）
+  optional int64 start_time = 3;             // 开始时间（可选）
+  optional int64 end_time = 4;              // 结束时间（可选）
   optional InviteCodeStatus status = 5;        // 状态（可选，使用枚举类型）
   optional InviteSourceTypeEnum source_type = 6; // 来源类型（可选，使用枚举类型）
   optional string source_id = 7;              // 来源ID（可选）

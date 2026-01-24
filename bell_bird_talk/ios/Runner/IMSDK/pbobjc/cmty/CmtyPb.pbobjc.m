@@ -17,6 +17,9 @@
 
 #import "CmtyPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
+#import "CmtyMemberPb.pbobjc.h"
+#import "CmtyPermissionPb.pbobjc.h"
+#import "CmtySettingsPb.pbobjc.h"
 // @@protoc_insertion_point(imports)
 
 #pragma clang diagnostic push
@@ -28,7 +31,9 @@
 // static values in struct initializers.
 // We don't use [Foo class] because it is not a static value.
 GPBObjCClassDeclaration(Cmty);
+GPBObjCClassDeclaration(CmtyMember);
 GPBObjCClassDeclaration(Page);
+GPBObjCClassDeclaration(PermissionTemplate);
 
 #pragma mark - CmtyPbRoot
 
@@ -72,9 +77,9 @@ GPBEnumDescriptor *CmtyStatus_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:CmtyStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -110,9 +115,9 @@ GPBEnumDescriptor *CmtyMemberStatus_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:CmtyMemberStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -196,9 +201,6 @@ typedef struct CmtyListQuery__storage_ {
 @dynamic ownerId;
 @dynamic memberCount;
 @dynamic status;
-@dynamic needVerify;
-@dynamic allowPrivateChat;
-@dynamic allowAddFriend;
 @dynamic createdAt;
 @dynamic updatedAt;
 @dynamic extraInfo;
@@ -288,37 +290,10 @@ typedef struct Cmty__storage_ {
         .dataType = GPBDataTypeEnum,
       },
       {
-        .name = "needVerify",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Cmty_FieldNumber_NeedVerify,
-        .hasIndex = 7,
-        .offset = 8,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowPrivateChat",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Cmty_FieldNumber_AllowPrivateChat,
-        .hasIndex = 9,
-        .offset = 10,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowAddFriend",
-        .dataTypeSpecific.clazz = Nil,
-        .number = Cmty_FieldNumber_AllowAddFriend,
-        .hasIndex = 11,
-        .offset = 12,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
         .name = "createdAt",
         .dataTypeSpecific.clazz = Nil,
         .number = Cmty_FieldNumber_CreatedAt,
-        .hasIndex = 13,
+        .hasIndex = 7,
         .offset = (uint32_t)offsetof(Cmty__storage_, createdAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -327,7 +302,7 @@ typedef struct Cmty__storage_ {
         .name = "updatedAt",
         .dataTypeSpecific.clazz = Nil,
         .number = Cmty_FieldNumber_UpdatedAt,
-        .hasIndex = 14,
+        .hasIndex = 8,
         .offset = (uint32_t)offsetof(Cmty__storage_, updatedAt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
@@ -336,7 +311,7 @@ typedef struct Cmty__storage_ {
         .name = "extraInfo",
         .dataTypeSpecific.clazz = Nil,
         .number = Cmty_FieldNumber_ExtraInfo,
-        .hasIndex = 15,
+        .hasIndex = 9,
         .offset = (uint32_t)offsetof(Cmty__storage_, extraInfo),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
@@ -345,8 +320,8 @@ typedef struct Cmty__storage_ {
         .name = "isMember",
         .dataTypeSpecific.clazz = Nil,
         .number = Cmty_FieldNumber_IsMember,
-        .hasIndex = 16,
-        .offset = 17,  // Stored in _has_storage_ to save space.
+        .hasIndex = 10,
+        .offset = 11,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeBool,
       },
@@ -437,29 +412,20 @@ typedef struct CmtyList__storage_ {
 
 @end
 
-#pragma mark - CmtySettings
+#pragma mark - CmtyDetailResult
 
-@implementation CmtySettings
+@implementation CmtyDetailResult
 
-@dynamic communityId;
-@dynamic needVerify;
-@dynamic allowPrivateChat;
-@dynamic allowAddFriend;
-@dynamic pauseInvite;
-@dynamic allowAccessOtherChannels;
-@dynamic newMemberSpeakTime;
-@dynamic speakFrequencyLimit;
-@dynamic speakTypeLimit;
-@dynamic speakCountLimit;
+@dynamic hasCommunity, community;
+@dynamic hasMember, member;
+@dynamic hasPermissionTemplate, permissionTemplate;
 
-typedef struct CmtySettings__storage_ {
+typedef struct CmtyDetailResult__storage_ {
   uint32_t _has_storage_[1];
-  int32_t newMemberSpeakTime;
-  int32_t speakFrequencyLimit;
-  int32_t speakTypeLimit;
-  int32_t speakCountLimit;
-  NSString *communityId;
-} CmtySettings__storage_;
+  Cmty *community;
+  CmtyMember *member;
+  PermissionTemplate *permissionTemplate;
+} CmtyDetailResult__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -468,103 +434,40 @@ typedef struct CmtySettings__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
-        .name = "communityId",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_CommunityId,
+        .name = "community",
+        .dataTypeSpecific.clazz = GPBObjCClass(Cmty),
+        .number = CmtyDetailResult_FieldNumber_Community,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(CmtySettings__storage_, communityId),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeString,
+        .offset = (uint32_t)offsetof(CmtyDetailResult__storage_, community),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "needVerify",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_NeedVerify,
+        .name = "member",
+        .dataTypeSpecific.clazz = GPBObjCClass(CmtyMember),
+        .number = CmtyDetailResult_FieldNumber_Member,
         .hasIndex = 1,
-        .offset = 2,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
+        .offset = (uint32_t)offsetof(CmtyDetailResult__storage_, member),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
       },
       {
-        .name = "allowPrivateChat",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_AllowPrivateChat,
-        .hasIndex = 3,
-        .offset = 4,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowAddFriend",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_AllowAddFriend,
-        .hasIndex = 5,
-        .offset = 6,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "pauseInvite",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_PauseInvite,
-        .hasIndex = 7,
-        .offset = 8,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowAccessOtherChannels",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_AllowAccessOtherChannels,
-        .hasIndex = 9,
-        .offset = 10,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "newMemberSpeakTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_NewMemberSpeakTime,
-        .hasIndex = 11,
-        .offset = (uint32_t)offsetof(CmtySettings__storage_, newMemberSpeakTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakFrequencyLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_SpeakFrequencyLimit,
-        .hasIndex = 12,
-        .offset = (uint32_t)offsetof(CmtySettings__storage_, speakFrequencyLimit),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakTypeLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_SpeakTypeLimit,
-        .hasIndex = 13,
-        .offset = (uint32_t)offsetof(CmtySettings__storage_, speakTypeLimit),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakCountLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtySettings_FieldNumber_SpeakCountLimit,
-        .hasIndex = 14,
-        .offset = (uint32_t)offsetof(CmtySettings__storage_, speakCountLimit),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
+        .name = "permissionTemplate",
+        .dataTypeSpecific.clazz = GPBObjCClass(PermissionTemplate),
+        .number = CmtyDetailResult_FieldNumber_PermissionTemplate,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyDetailResult__storage_, permissionTemplate),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[CmtySettings class]
+        [GPBDescriptor allocDescriptorForClass:[CmtyDetailResult class]
                                      rootClass:[CmtyPbRoot class]
                                           file:CmtyPbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(CmtySettings__storage_)
+                                   storageSize:sizeof(CmtyDetailResult__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -582,11 +485,13 @@ typedef struct CmtySettings__storage_ {
 
 @dynamic inviteCode;
 @dynamic inviteLink;
+@dynamic inviterUserId;
 
 typedef struct CmtyJoin__storage_ {
   uint32_t _has_storage_[1];
   NSString *inviteCode;
   NSString *inviteLink;
+  NSString *inviterUserId;
 } CmtyJoin__storage_;
 
 // This method is threadsafe because it is initially called
@@ -613,6 +518,15 @@ typedef struct CmtyJoin__storage_ {
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
+      {
+        .name = "inviterUserId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyJoin_FieldNumber_InviterUserId,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyJoin__storage_, inviterUserId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
     };
     GPBDescriptor *localDescriptor =
         [GPBDescriptor allocDescriptorForClass:[CmtyJoin class]
@@ -632,27 +546,16 @@ typedef struct CmtyJoin__storage_ {
 
 @end
 
-#pragma mark - CmtyUpdateSettings
+#pragma mark - CmtyUpdateMemberCount
 
-@implementation CmtyUpdateSettings
+@implementation CmtyUpdateMemberCount
 
-@dynamic needVerify;
-@dynamic allowPrivateChat;
-@dynamic allowAddFriend;
-@dynamic pauseInvite;
-@dynamic allowAccessOtherChannels;
-@dynamic newMemberSpeakTime;
-@dynamic speakFrequencyLimit;
-@dynamic speakTypeLimit;
-@dynamic speakCountLimit;
+@dynamic memberCount;
 
-typedef struct CmtyUpdateSettings__storage_ {
+typedef struct CmtyUpdateMemberCount__storage_ {
   uint32_t _has_storage_[1];
-  int32_t newMemberSpeakTime;
-  int32_t speakFrequencyLimit;
-  int32_t speakTypeLimit;
-  int32_t speakCountLimit;
-} CmtyUpdateSettings__storage_;
+  int32_t memberCount;
+} CmtyUpdateMemberCount__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -661,94 +564,22 @@ typedef struct CmtyUpdateSettings__storage_ {
   if (!descriptor) {
     static GPBMessageFieldDescription fields[] = {
       {
-        .name = "needVerify",
+        .name = "memberCount",
         .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_NeedVerify,
+        .number = CmtyUpdateMemberCount_FieldNumber_MemberCount,
         .hasIndex = 0,
-        .offset = 1,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowPrivateChat",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_AllowPrivateChat,
-        .hasIndex = 2,
-        .offset = 3,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowAddFriend",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_AllowAddFriend,
-        .hasIndex = 4,
-        .offset = 5,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "pauseInvite",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_PauseInvite,
-        .hasIndex = 6,
-        .offset = 7,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "allowAccessOtherChannels",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_AllowAccessOtherChannels,
-        .hasIndex = 8,
-        .offset = 9,  // Stored in _has_storage_ to save space.
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeBool,
-      },
-      {
-        .name = "newMemberSpeakTime",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_NewMemberSpeakTime,
-        .hasIndex = 10,
-        .offset = (uint32_t)offsetof(CmtyUpdateSettings__storage_, newMemberSpeakTime),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakFrequencyLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_SpeakFrequencyLimit,
-        .hasIndex = 11,
-        .offset = (uint32_t)offsetof(CmtyUpdateSettings__storage_, speakFrequencyLimit),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakTypeLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_SpeakTypeLimit,
-        .hasIndex = 12,
-        .offset = (uint32_t)offsetof(CmtyUpdateSettings__storage_, speakTypeLimit),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
-        .dataType = GPBDataTypeInt32,
-      },
-      {
-        .name = "speakCountLimit",
-        .dataTypeSpecific.clazz = Nil,
-        .number = CmtyUpdateSettings_FieldNumber_SpeakCountLimit,
-        .hasIndex = 13,
-        .offset = (uint32_t)offsetof(CmtyUpdateSettings__storage_, speakCountLimit),
+        .offset = (uint32_t)offsetof(CmtyUpdateMemberCount__storage_, memberCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[CmtyUpdateSettings class]
+        [GPBDescriptor allocDescriptorForClass:[CmtyUpdateMemberCount class]
                                      rootClass:[CmtyPbRoot class]
                                           file:CmtyPbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(CmtyUpdateSettings__storage_)
+                                   storageSize:sizeof(CmtyUpdateMemberCount__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -815,6 +646,129 @@ typedef struct CmtySearchQuery__storage_ {
 }
 
 @end
+
+#pragma mark - CmtyQuery
+
+@implementation CmtyQuery
+
+@dynamic hasCommunityName, communityName;
+@dynamic hasStatus, status;
+@dynamic hasOwnerName, ownerName;
+@dynamic hasStartTime, startTime;
+@dynamic hasEndTime, endTime;
+@dynamic hasAppId, appId;
+@dynamic hasPage, page;
+
+typedef struct CmtyQuery__storage_ {
+  uint32_t _has_storage_[1];
+  CmtyStatus status;
+  NSString *communityName;
+  NSString *ownerName;
+  NSString *startTime;
+  NSString *endTime;
+  NSString *appId;
+  Page *page;
+} CmtyQuery__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "communityName",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyQuery_FieldNumber_CommunityName,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, communityName),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.enumDescFunc = CmtyStatus_EnumDescriptor,
+        .number = CmtyQuery_FieldNumber_Status,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor),
+        .dataType = GPBDataTypeEnum,
+      },
+      {
+        .name = "ownerName",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyQuery_FieldNumber_OwnerName,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, ownerName),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "startTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyQuery_FieldNumber_StartTime,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, startTime),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "endTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyQuery_FieldNumber_EndTime,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, endTime),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "appId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = CmtyQuery_FieldNumber_AppId,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, appId),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "page",
+        .dataTypeSpecific.clazz = GPBObjCClass(Page),
+        .number = CmtyQuery_FieldNumber_Page,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(CmtyQuery__storage_, page),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyQuery class]
+                                     rootClass:[CmtyPbRoot class]
+                                          file:CmtyPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyQuery__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+int32_t CmtyQuery_Status_RawValue(CmtyQuery *message) {
+  GPBDescriptor *descriptor = [CmtyQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyQuery_FieldNumber_Status];
+  return GPBGetMessageRawEnumField(message, field);
+}
+
+void SetCmtyQuery_Status_RawValue(CmtyQuery *message, int32_t value) {
+  GPBDescriptor *descriptor = [CmtyQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:CmtyQuery_FieldNumber_Status];
+  GPBSetMessageRawEnumField(message, field, value);
+}
 
 #pragma mark - CmtyOnlineCount
 

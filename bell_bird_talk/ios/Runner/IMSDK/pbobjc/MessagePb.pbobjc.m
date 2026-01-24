@@ -31,7 +31,7 @@
 GPBObjCClassDeclaration(AnnouncementMessage);
 GPBObjCClassDeclaration(AtInfo);
 GPBObjCClassDeclaration(AtMessage);
-GPBObjCClassDeclaration(BatchUnreadAndLastMessage);
+GPBObjCClassDeclaration(BatchMessageUnreadAndLastMessage);
 GPBObjCClassDeclaration(CardMessage);
 GPBObjCClassDeclaration(ConvPull);
 GPBObjCClassDeclaration(CustomMessage);
@@ -39,11 +39,14 @@ GPBObjCClassDeclaration(EditMessage);
 GPBObjCClassDeclaration(EncryptedMessage);
 GPBObjCClassDeclaration(FileMessage);
 GPBObjCClassDeclaration(ForwardMessage);
-GPBObjCClassDeclaration(GetUnreadAndLastMessage);
 GPBObjCClassDeclaration(ImMessage);
 GPBObjCClassDeclaration(ImageMessage);
 GPBObjCClassDeclaration(LocationMessage);
+GPBObjCClassDeclaration(MessageGetUnreadAndLastMessage);
+GPBObjCClassDeclaration(MessageGetUnreadAndLastMessage_GroupChat);
+GPBObjCClassDeclaration(MessageGetUnreadAndLastMessage_SingleChat);
 GPBObjCClassDeclaration(MessageMetadata);
+GPBObjCClassDeclaration(MessageUnreadAndLastMessage);
 GPBObjCClassDeclaration(NetCallMessage);
 GPBObjCClassDeclaration(PollMessage);
 GPBObjCClassDeclaration(PullList);
@@ -55,7 +58,6 @@ GPBObjCClassDeclaration(StickerMessage);
 GPBObjCClassDeclaration(SystemMessage);
 GPBObjCClassDeclaration(TextMessage);
 GPBObjCClassDeclaration(TipMessage);
-GPBObjCClassDeclaration(UnreadAndLastMessage);
 GPBObjCClassDeclaration(UnreadCountStats);
 GPBObjCClassDeclaration(VideoMessage);
 GPBObjCClassDeclaration(VoiceMessage);
@@ -103,7 +105,7 @@ GPBEnumDescriptor *AcknowledgeType_EnumDescriptor(void) {
                                      enumVerifier:AcknowledgeType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -139,7 +141,7 @@ GPBEnumDescriptor *HistoryDirection_EnumDescriptor(void) {
                                      enumVerifier:HistoryDirection_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -177,7 +179,7 @@ GPBEnumDescriptor *StickerType_EnumDescriptor(void) {
                                      enumVerifier:StickerType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -216,7 +218,7 @@ GPBEnumDescriptor *RedPacketType_EnumDescriptor(void) {
                                      enumVerifier:RedPacketType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -252,7 +254,7 @@ GPBEnumDescriptor *NetCallType_EnumDescriptor(void) {
                                      enumVerifier:NetCallType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -302,7 +304,7 @@ GPBEnumDescriptor *NetCallStatus_EnumDescriptor(void) {
                                      enumVerifier:NetCallStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -346,7 +348,7 @@ GPBEnumDescriptor *ForwardType_EnumDescriptor(void) {
                                      enumVerifier:ForwardType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -381,7 +383,7 @@ GPBEnumDescriptor *NotificationPosition_EnumDescriptor(void) {
                                      enumVerifier:NotificationPosition_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -420,7 +422,7 @@ GPBEnumDescriptor *SystemMessageType_EnumDescriptor(void) {
                                      enumVerifier:SystemMessageType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -463,7 +465,7 @@ GPBEnumDescriptor *StatusType_EnumDescriptor(void) {
                                      enumVerifier:StatusType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -510,7 +512,7 @@ GPBEnumDescriptor *MessageStatus_EnumDescriptor(void) {
                                      enumVerifier:MessageStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -553,7 +555,7 @@ GPBEnumDescriptor *MessagePriority_EnumDescriptor(void) {
                                      enumVerifier:MessagePriority_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -594,7 +596,7 @@ GPBEnumDescriptor *ConversationNotificationType_EnumDescriptor(void) {
                                      enumVerifier:ConversationNotificationType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -796,7 +798,7 @@ typedef struct MessageMetadata__storage_ {
 typedef struct ImMessage__storage_ {
   uint32_t _has_storage_[2];
   ImMessage_MessageType mType;
-    enum ConversationType conversationType;
+  ConversationType conversationType;
   MessageMetadata *metadata;
   NSString *conversationId;
   TextMessage *textMessage;
@@ -880,7 +882,7 @@ typedef struct ImMessage__storage_ {
       },
       {
         .name = "conversationType",
-        .dataTypeSpecific.enumDescFunc = ForwardType_EnumDescriptor,
+        .dataTypeSpecific.enumDescFunc = ConversationType_EnumDescriptor,
         .number = ImMessage_FieldNumber_ConversationType,
         .hasIndex = 5,
         .offset = (uint32_t)offsetof(ImMessage__storage_, conversationType),
@@ -1207,7 +1209,7 @@ GPBEnumDescriptor *ImMessage_MessageType_EnumDescriptor(void) {
                               extraTextFormatInfo:extraTextFormatInfo];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+     // [worker release];
     }
   }
   return descriptor;
@@ -2383,7 +2385,7 @@ void SetRedPacketMessage_Type_RawValue(RedPacketMessage *message, int32_t value)
 typedef struct NetCallMessage__storage_ {
   uint32_t _has_storage_[1];
   NetCallType callType;
-    enum ConversationType chatType;
+  ConversationType chatType;
   NetCallStatus status;
   int32_t timeout;
   int32_t duration;
@@ -2450,7 +2452,7 @@ typedef struct NetCallMessage__storage_ {
       },
       {
         .name = "chatType",
-        .dataTypeSpecific.enumDescFunc = ForwardType_EnumDescriptor,
+        .dataTypeSpecific.enumDescFunc = ConversationType_EnumDescriptor,
         .number = NetCallMessage_FieldNumber_ChatType,
         .hasIndex = 5,
         .offset = (uint32_t)offsetof(NetCallMessage__storage_, chatType),
@@ -4305,7 +4307,7 @@ void SetMessageStatusUpdate_Status_RawValue(MessageStatusUpdate *message, int32_
 
 typedef struct ConvPull__storage_ {
   uint32_t _has_storage_[1];
-    enum ConversationType convType;
+  ConversationType convType;
   NSString *targetId;
   NSString *conversationId;
   int64_t lastConvSeq;
@@ -4319,7 +4321,7 @@ typedef struct ConvPull__storage_ {
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "convType",
-        .dataTypeSpecific.enumDescFunc = ForwardType_EnumDescriptor,
+        .dataTypeSpecific.enumDescFunc = ConversationType_EnumDescriptor,
         .number = ConvPull_FieldNumber_ConvType,
         .hasIndex = 0,
         .offset = (uint32_t)offsetof(ConvPull__storage_, convType),
@@ -4695,18 +4697,86 @@ typedef struct SendAck__storage_ {
 
 @end
 
-#pragma mark - GetUnreadAndLastMessage
+#pragma mark - MessageGetUnreadAndLastMessage
 
-@implementation GetUnreadAndLastMessage
+@implementation MessageGetUnreadAndLastMessage
+
+@dynamic scopeOneOfCase;
+@dynamic single;
+@dynamic group;
+
+typedef struct MessageGetUnreadAndLastMessage__storage_ {
+  uint32_t _has_storage_[2];
+  MessageGetUnreadAndLastMessage_SingleChat *single;
+  MessageGetUnreadAndLastMessage_GroupChat *group;
+} MessageGetUnreadAndLastMessage__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "single",
+        .dataTypeSpecific.clazz = GPBObjCClass(MessageGetUnreadAndLastMessage_SingleChat),
+        .number = MessageGetUnreadAndLastMessage_FieldNumber_Single,
+        .hasIndex = -1,
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage__storage_, single),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+      {
+        .name = "group",
+        .dataTypeSpecific.clazz = GPBObjCClass(MessageGetUnreadAndLastMessage_GroupChat),
+        .number = MessageGetUnreadAndLastMessage_FieldNumber_Group,
+        .hasIndex = -1,
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage__storage_, group),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[MessageGetUnreadAndLastMessage class]
+                                     rootClass:[MessagePbRoot class]
+                                          file:MessagePbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(MessageGetUnreadAndLastMessage__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    static const char *oneofs[] = {
+      "scope",
+    };
+    [localDescriptor setupOneofs:oneofs
+                           count:(uint32_t)(sizeof(oneofs) / sizeof(char*))
+                   firstHasIndex:-1];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+void MessageGetUnreadAndLastMessage_ClearScopeOneOfCase(MessageGetUnreadAndLastMessage *message) {
+  GPBDescriptor *descriptor = [MessageGetUnreadAndLastMessage descriptor];
+  GPBOneofDescriptor *oneof = [descriptor.oneofs objectAtIndex:0];
+  GPBClearOneof(message, oneof);
+}
+#pragma mark - MessageGetUnreadAndLastMessage_SingleChat
+
+@implementation MessageGetUnreadAndLastMessage_SingleChat
 
 @dynamic fromUserId;
 @dynamic toUserId;
 
-typedef struct GetUnreadAndLastMessage__storage_ {
+typedef struct MessageGetUnreadAndLastMessage_SingleChat__storage_ {
   uint32_t _has_storage_[1];
   NSString *fromUserId;
   NSString *toUserId;
-} GetUnreadAndLastMessage__storage_;
+} MessageGetUnreadAndLastMessage_SingleChat__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -4717,30 +4787,31 @@ typedef struct GetUnreadAndLastMessage__storage_ {
       {
         .name = "fromUserId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GetUnreadAndLastMessage_FieldNumber_FromUserId,
+        .number = MessageGetUnreadAndLastMessage_SingleChat_FieldNumber_FromUserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(GetUnreadAndLastMessage__storage_, fromUserId),
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage_SingleChat__storage_, fromUserId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "toUserId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GetUnreadAndLastMessage_FieldNumber_ToUserId,
+        .number = MessageGetUnreadAndLastMessage_SingleChat_FieldNumber_ToUserId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(GetUnreadAndLastMessage__storage_, toUserId),
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage_SingleChat__storage_, toUserId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[GetUnreadAndLastMessage class]
+        [GPBDescriptor allocDescriptorForClass:[MessageGetUnreadAndLastMessage_SingleChat class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(GetUnreadAndLastMessage__storage_)
+                                   storageSize:sizeof(MessageGetUnreadAndLastMessage_SingleChat__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    [localDescriptor setupContainingMessageClass:GPBObjCClass(MessageGetUnreadAndLastMessage)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
     #endif  // DEBUG
@@ -4751,16 +4822,73 @@ typedef struct GetUnreadAndLastMessage__storage_ {
 
 @end
 
-#pragma mark - BatchGetUnreadAndLastMessage
+#pragma mark - MessageGetUnreadAndLastMessage_GroupChat
 
-@implementation BatchGetUnreadAndLastMessage
+@implementation MessageGetUnreadAndLastMessage_GroupChat
+
+@dynamic groupId;
+@dynamic memberId;
+
+typedef struct MessageGetUnreadAndLastMessage_GroupChat__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *groupId;
+  NSString *memberId;
+} MessageGetUnreadAndLastMessage_GroupChat__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "groupId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = MessageGetUnreadAndLastMessage_GroupChat_FieldNumber_GroupId,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage_GroupChat__storage_, groupId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "memberId",
+        .dataTypeSpecific.clazz = Nil,
+        .number = MessageGetUnreadAndLastMessage_GroupChat_FieldNumber_MemberId,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(MessageGetUnreadAndLastMessage_GroupChat__storage_, memberId),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[MessageGetUnreadAndLastMessage_GroupChat class]
+                                     rootClass:[MessagePbRoot class]
+                                          file:MessagePbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(MessageGetUnreadAndLastMessage_GroupChat__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    [localDescriptor setupContainingMessageClass:GPBObjCClass(MessageGetUnreadAndLastMessage)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - BatchMessageGetUnreadAndLastMessage
+
+@implementation BatchMessageGetUnreadAndLastMessage
 
 @dynamic itemsArray, itemsArray_Count;
 
-typedef struct BatchGetUnreadAndLastMessage__storage_ {
+typedef struct BatchMessageGetUnreadAndLastMessage__storage_ {
   uint32_t _has_storage_[1];
   NSMutableArray *itemsArray;
-} BatchGetUnreadAndLastMessage__storage_;
+} BatchMessageGetUnreadAndLastMessage__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -4770,21 +4898,21 @@ typedef struct BatchGetUnreadAndLastMessage__storage_ {
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "itemsArray",
-        .dataTypeSpecific.clazz = GPBObjCClass(GetUnreadAndLastMessage),
-        .number = BatchGetUnreadAndLastMessage_FieldNumber_ItemsArray,
+        .dataTypeSpecific.clazz = GPBObjCClass(MessageGetUnreadAndLastMessage),
+        .number = BatchMessageGetUnreadAndLastMessage_FieldNumber_ItemsArray,
         .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(BatchGetUnreadAndLastMessage__storage_, itemsArray),
+        .offset = (uint32_t)offsetof(BatchMessageGetUnreadAndLastMessage__storage_, itemsArray),
         .flags = GPBFieldRepeated,
         .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[BatchGetUnreadAndLastMessage class]
+        [GPBDescriptor allocDescriptorForClass:[BatchMessageGetUnreadAndLastMessage class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(BatchGetUnreadAndLastMessage__storage_)
+                                   storageSize:sizeof(BatchMessageGetUnreadAndLastMessage__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -4796,22 +4924,24 @@ typedef struct BatchGetUnreadAndLastMessage__storage_ {
 
 @end
 
-#pragma mark - UnreadAndLastMessage
+#pragma mark - MessageUnreadAndLastMessage
 
-@implementation UnreadAndLastMessage
+@implementation MessageUnreadAndLastMessage
 
 @dynamic unreadCount;
 @dynamic hasLastMessage, lastMessage;
 @dynamic seq;
 @dynamic readSeq;
+@dynamic hasLastAtMessage, lastAtMessage;
 
-typedef struct UnreadAndLastMessage__storage_ {
+typedef struct MessageUnreadAndLastMessage__storage_ {
   uint32_t _has_storage_[1];
   ImMessage *lastMessage;
+  ImMessage *lastAtMessage;
   int64_t unreadCount;
   int64_t seq;
   int64_t readSeq;
-} UnreadAndLastMessage__storage_;
+} MessageUnreadAndLastMessage__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -4822,47 +4952,56 @@ typedef struct UnreadAndLastMessage__storage_ {
       {
         .name = "unreadCount",
         .dataTypeSpecific.clazz = Nil,
-        .number = UnreadAndLastMessage_FieldNumber_UnreadCount,
+        .number = MessageUnreadAndLastMessage_FieldNumber_UnreadCount,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(UnreadAndLastMessage__storage_, unreadCount),
+        .offset = (uint32_t)offsetof(MessageUnreadAndLastMessage__storage_, unreadCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
         .name = "lastMessage",
         .dataTypeSpecific.clazz = GPBObjCClass(ImMessage),
-        .number = UnreadAndLastMessage_FieldNumber_LastMessage,
+        .number = MessageUnreadAndLastMessage_FieldNumber_LastMessage,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(UnreadAndLastMessage__storage_, lastMessage),
+        .offset = (uint32_t)offsetof(MessageUnreadAndLastMessage__storage_, lastMessage),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
         .name = "seq",
         .dataTypeSpecific.clazz = Nil,
-        .number = UnreadAndLastMessage_FieldNumber_Seq,
+        .number = MessageUnreadAndLastMessage_FieldNumber_Seq,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(UnreadAndLastMessage__storage_, seq),
+        .offset = (uint32_t)offsetof(MessageUnreadAndLastMessage__storage_, seq),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
       {
         .name = "readSeq",
         .dataTypeSpecific.clazz = Nil,
-        .number = UnreadAndLastMessage_FieldNumber_ReadSeq,
+        .number = MessageUnreadAndLastMessage_FieldNumber_ReadSeq,
         .hasIndex = 3,
-        .offset = (uint32_t)offsetof(UnreadAndLastMessage__storage_, readSeq),
+        .offset = (uint32_t)offsetof(MessageUnreadAndLastMessage__storage_, readSeq),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
+      {
+        .name = "lastAtMessage",
+        .dataTypeSpecific.clazz = GPBObjCClass(ImMessage),
+        .number = MessageUnreadAndLastMessage_FieldNumber_LastAtMessage,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(MessageUnreadAndLastMessage__storage_, lastAtMessage),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[UnreadAndLastMessage class]
+        [GPBDescriptor allocDescriptorForClass:[MessageUnreadAndLastMessage class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(UnreadAndLastMessage__storage_)
+                                   storageSize:sizeof(MessageUnreadAndLastMessage__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -4874,16 +5013,16 @@ typedef struct UnreadAndLastMessage__storage_ {
 
 @end
 
-#pragma mark - BatchUnreadAndLastMessage
+#pragma mark - BatchMessageUnreadAndLastMessage
 
-@implementation BatchUnreadAndLastMessage
+@implementation BatchMessageUnreadAndLastMessage
 
 @dynamic results, results_Count;
 
-typedef struct BatchUnreadAndLastMessage__storage_ {
+typedef struct BatchMessageUnreadAndLastMessage__storage_ {
   uint32_t _has_storage_[1];
   NSMutableDictionary *results;
-} BatchUnreadAndLastMessage__storage_;
+} BatchMessageUnreadAndLastMessage__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -4893,21 +5032,21 @@ typedef struct BatchUnreadAndLastMessage__storage_ {
     static GPBMessageFieldDescription fields[] = {
       {
         .name = "results",
-        .dataTypeSpecific.clazz = GPBObjCClass(UnreadAndLastMessage),
-        .number = BatchUnreadAndLastMessage_FieldNumber_Results,
+        .dataTypeSpecific.clazz = GPBObjCClass(MessageUnreadAndLastMessage),
+        .number = BatchMessageUnreadAndLastMessage_FieldNumber_Results,
         .hasIndex = GPBNoHasBit,
-        .offset = (uint32_t)offsetof(BatchUnreadAndLastMessage__storage_, results),
+        .offset = (uint32_t)offsetof(BatchMessageUnreadAndLastMessage__storage_, results),
         .flags = GPBFieldMapKeyString,
         .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[BatchUnreadAndLastMessage class]
+        [GPBDescriptor allocDescriptorForClass:[BatchMessageUnreadAndLastMessage class]
                                      rootClass:[MessagePbRoot class]
                                           file:MessagePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(BatchUnreadAndLastMessage__storage_)
+                                   storageSize:sizeof(BatchMessageUnreadAndLastMessage__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

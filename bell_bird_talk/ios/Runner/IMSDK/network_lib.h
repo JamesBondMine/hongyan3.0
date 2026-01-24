@@ -1076,6 +1076,79 @@ NET_API int kick_community_member(CB_I_S_I_U cCallback, const char* data, int le
 NET_API int ban_community_member(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
 /**
+ * 查询加入申请列表
+ * Topic: /im/CMTY/{cmtyId}/listJoins
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 查询参数（序列化后的CmtyJoinsQuery数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note 需要 cmty_admin 权限
+ */
+NET_API int list_join_requests(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 批准加入申请
+ * Topic: /im/CMTY/{cmtyId}/approveJoin
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 批准参数（序列化后的CmtyReviewJoin数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note 需要 cmty_admin 权限
+ */
+NET_API int approve_join_request(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 拒绝加入申请
+ * Topic: /im/CMTY/{cmtyId}/rejectJoin
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 拒绝参数（序列化后的CmtyReviewJoin数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note 需要 cmty_admin 权限
+ */
+NET_API int reject_join_request(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取设置定义列表
+ * Topic: /im/CMTY/{cmtyId}/definitions
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note 获取所有可用的设置项定义
+ */
+NET_API int get_setting_definitions(CB_I_S_I_U cCallback, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取社群设置
+ * Topic: /im/CMTY/{cmtyId}/settings
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_community_settings(CB_I_S_I_U cCallback, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 更新社群设置
+ * Topic: /im/CMTY/{cmtyId}/settings/update
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）
+ * @param data 更新参数（序列化后的CmtyUpdateSettings数据）
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ * @note 需要管理员权限
+ */
+NET_API int update_community_settings(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
  * 获取社群封禁成员列表
  * Topic: /im/CMTY/{cmtyId}/bannedMembers
  * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId）

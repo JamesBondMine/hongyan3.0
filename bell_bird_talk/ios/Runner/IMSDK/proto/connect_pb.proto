@@ -86,13 +86,13 @@ message KickNotify {
 // ============ 查询操作 ============
 
 // 查询用户在线状态 - 查询操作
-message Check {
+message ConnectCheck {
   string user_id = 1;                   // 用户ID（必填）
   string device_id = 2;                 // 设备ID（可选，如果提供则检查特定设备）
 }
 
 // 批量查询用户在线状态 - 查询操作
-message BatchCheck {
+message BatchConnectCheck {
   repeated string user_ids = 1;         // 用户ID列表（必填，最多100个）
 }
 

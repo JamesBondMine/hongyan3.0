@@ -31,7 +31,8 @@ typedef enum {
     NET_EVENT_TCP_CONNECT_ERROR,   //TCP连接错误
     NET_EVENT_AUTH,               // 安全通道创建成功
     NET_USER_AUTH_SUCCESS,         // 用户认证成功
-    NET_TOKEN_INVALID             // Token 无效
+    NET_TOKEN_INVALID,             // Token 无效
+    NET_HTTPDNS_RESOLVE_FAILED,          // HttpDns 解析失败
 } NetworkEventType;
 
 #ifdef __cplusplus

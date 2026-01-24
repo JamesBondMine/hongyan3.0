@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package im.cmty;
+
+import "system_pb.proto";
+
+option java_package = "com.cloud.im.common.core.protocol.cmty";
+option java_outer_classname = "CmtyPermissionProtos";
+
+// ========== 枚举类型定义 ==========
+
+// 角色状态枚举
+enum CmtyRoleStatus {
+    ROLE_ENABLED = 0;    // 启用（默认值）
+    ROLE_DISABLED = 1;  // 禁用
+}
+
+// 成员角色状态枚举
+enum CmtyMemberRoleStatus {
+    MEMBER_ROLE_ACTIVE = 0;     // 生效（默认值）
+    MEMBER_ROLE_INACTIVE = 1;   // 失效
+}
+
+// ========== 核心领域对象 ==========
+
+// CmtyRole - 社群角色信息
+message CmtyRole {
+    string role_code = 1;          // 角色代码（返回字段，必填）
+    string role_name = 2;          // 角色名称（返回字段，必填）
+    string role_description = 3;   // 角色描述（返回字段，可选）
+    string permissions = 4;        // 权限列表（JSON格式，返回字段，可选）
+    bool is_system = 5;            // 是否系统预定义角色（返回字段）
+    int32 priority = 6;           // 优先级：数字越大权限越高（返回字段）
+    CmtyRoleStatus status = 7;     // 状态（返回字段）
+    int64 create_time = 8;         // 创建时间（返回字段，系统自动生成）
+    int64 update_time = 9;        // 更新时间（返回字段，系统自动更新）
+}
+
+// CmtyMemberRole - 成员角色关系
+message CmtyMemberRole {
+    string user_id = 1;            // 用户ID（返回字段，必填）
+    string role_code = 2;         // 角色代码（返回字段，必填）
+    CmtyRole role = 3;             // 角色详情（返回字段，可选）
+    string assigned_by = 4;        // 分配者用户ID（返回字段，可选）
+    int64 assigned_time = 5;       // 分配时间（返回字段，系统自动生成）
+    int64 expire_time = 6;        // 过期时间（返回字段，可选，0表示永不过期）
+    CmtyMemberRoleStatus status = 7;  // 状态（返回字段）
+}
+
+// CmtyRoleResource - 角色资源权限
+message CmtyRoleResource {
+    string role_code = 1;         // 角色代码（返回字段，必填）
+    string method = 2;             // 方法名（返回字段，必填）
+    string resource_id = 3;        // 资源ID（返回字段，可选，NULL或'*'表示所有资源）
+    bool is_enabled = 4;           // 是否启用（返回字段）
+    int64 create_time = 5;         // 创建时间（返回字段，系统自动生成）
+    int64 update_time = 6;        // 更新时间（返回字段，系统自动更新）
+}
+
+// ========== 查询操作 ==========
+
+// CmtyGetAllRoles - 获取所有角色查询
+message CmtyGetAllRoles {
+    com.cloud.im.common.core.system.Page page = 1;  // 分页参数（可选，使用系统类型）
+}
+
+// CmtyGetRoleResources - 获取角色资源查询
+message CmtyGetRoleResources {
+    repeated string role_codes = 1;        // 角色代码列表（必填，单个或批量）
+}
+
+// ========== 结果对象 ==========
+
+// CmtyRoleList - 角色列表
+message CmtyRoleList {
+    repeated CmtyRole roles = 1;           // 角色列表
+    com.cloud.im.common.core.system.Page page = 2;  // 分页元数据（使用系统类型，可选）
+}
+
+// CmtyMemberRoleList - 成员角色列表
+message CmtyMemberRoleList {
+    repeated CmtyMemberRole member_roles = 1;  // 成员角色列表
+}
+
+// CmtyRoleResourceList - 角色资源列表
+message CmtyRoleResourceList {
+    repeated CmtyRoleResource resources = 1;   // 角色资源列表
+}
+
+// ========== 权限配置相关消息 ==========
+
+// 权限项定义 - 权限模版中的单个权限项
+message PermissionItem {
+    string permission_key = 1;        // 权限键（如 "view_channel", "send_message"）
+    string permission_name = 2;       // 权限名称的国际化消息键（如 "cmty.permission.view_channel.name"）
+    bool default_enabled = 3;         // 默认是否开启
+    string description = 4;          // 权限描述的国际化消息键（如 "cmty.permission.view_channel.desc"）
+    string message_types = 5;        // 消息类型的国际化消息键（如 "cmty.permission.send_message_types.default_types"）
+}
+
+// 权限模版 - 包含所有可配置的权限项及其默认状态
+message PermissionTemplate {
+    repeated PermissionItem items = 1;  // 权限项列表
+}
+
+// 角色权限配置 - 客户端传入的权限配置
+message RolePermissionConfig {
+    string role_code = 1;                    // 角色代码（必填）
+    repeated PermissionItem permissions = 2;  // 权限配置列表（必填）
+}
+
+// 配置权限请求 - 客户端传入角色和权限配置
+message ConfigurePermissions {
+    string cmty_id = 1;                       // 社群ID（必填）
+    repeated RolePermissionConfig role_configs = 2;  // 角色权限配置列表（必填）
+}
+
+// CmtyRolesAndTemplate - 角色列表和权限模版（用于getRolesAndTemplate方法）
+// 注意：请求使用空请求体，社群ID从路由键（targetId/toId）获取
+message CmtyRolesAndTemplate {
+    repeated com.cloud.im.common.core.system.Role roles = 1;  // 角色列表（返回字段，使用 system.Role）
+    PermissionTemplate template = 2;                          // 权限模版（返回字段）
+}
+

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package im.cmty.channel;
 
+import "cmty/cmty_channel_group_pb.proto";
+
 option java_package = "com.cloud.im.common.core.protocol.cmty.channel";
 option java_outer_classname = "CmtyChannelProtos";
 
@@ -25,26 +27,29 @@ enum CmtyNotificationType {
 // CmtyChannelsQuery - 频道查询（用于channels方法）
 message CmtyChannelsQuery {
     string community_id = 1;  // 社群ID（必填）
-    string category_id = 2;    // 分类ID（可选，不填则查询所有分类）
+    string group_id = 2;      // 分组ID（可选，不填则查询所有分组）
+    optional CmtyChannelType channel_type = 3;  // 频道类型（可选）
 }
 
 // ========== 领域对象 ==========
 
 // CmtyChannel - 频道信息
+// 用于：update 方法请求和响应、channels 方法响应
+// 注意：作为更新请求时，只设置需要更新的字段，服务端会对比字段变化后更新
+// 分组更新：通过 channel_group.group_id 字段更新分组（空字符串表示移除分组）
 message CmtyChannel {
-    string channel_id = 1;        // 频道ID（群组ID，返回字段）
-    string community_id = 2;      // 社群ID（返回字段）
-    string category_id = 3;       // 分类ID（返回字段）
-    string channel_name = 4;      // 频道名称（返回字段）
+    string community_id = 1;      // 社群ID（返回字段）
+    string channel_id = 2;        // 频道ID（群组ID，返回字段；更新请求时必填，用于路由）
+    im.cmty.channel.group.CmtyChannelGroup channel_group = 3;  // 频道分组信息（返回字段；更新请求时可选，用于更新分组）
+    string channel_name = 4;      // 频道名称（返回字段；更新请求时可选，2-50字符）
     CmtyChannelType channel_type = 5;  // 频道类型（返回字段）
     string description = 6;        // 频道描述（返回字段）
-    int32 member_count = 7;       // 成员数量（返回字段）
-    int32 max_members = 8;        // 最大成员数（语音频道，返回字段）
-    bool pause_invite = 9;        // 是否暂停邀请（返回字段）
-    bool mute_all = 10;           // 是否禁止发言（返回字段）
-    CmtyNotificationType notification_type = 11; // 通知类型（返回字段）
-    int64 created_at = 12;        // 创建时间（返回字段）
-    int64 updated_at = 13;         // 更新时间（返回字段）
+    int32 max_members = 7;        // 最大成员数（语音频道，返回字段）
+    bool pause_invite = 8;        // 是否暂停邀请（返回字段；更新请求时可选）
+    bool mute_all = 9;           // 是否禁止发言（返回字段；更新请求时可选）
+    CmtyNotificationType notification_type = 10; // 通知类型（返回字段；更新请求时可选）
+    int64 created_at = 11;        // 创建时间（返回字段）
+    int64 updated_at = 12;         // 更新时间（返回字段）
 }
 
 // ========== 结果对象 ==========
@@ -67,7 +72,7 @@ message CmtyChannelSettings {
 // CmtyCreateChannel - 创建频道
 message CmtyCreateChannel {
     string community_id = 1;  // 社群ID（必填）
-    string category_id = 2;   // 分类ID（必填）
+    string group_id = 2;      // 分组ID（必填）
     string channel_name = 3;  // 频道名称（必填，2-50字符）
     CmtyChannelType channel_type = 4;   // 频道类型（必填）
     string description = 5;   // 频道描述（可选）
@@ -75,16 +80,74 @@ message CmtyCreateChannel {
 }
 
 // CmtyUpdateChannel - 更新频道
+// ⚠️ 已废弃：频道模块的 update 方法已改为使用 CmtyChannel 对象作为请求参数
+// 请使用 CmtyChannel 对象，通过 channel_group.group_id 字段更新分组
+// 保留此消息类型仅用于向后兼容，新代码请使用 CmtyChannel
 message CmtyUpdateChannel {
+    option deprecated = true;  // 标记为废弃
     string channel_id = 1;        // 频道ID（必填）
     string channel_name = 2;      // 频道名称（可选，2-50字符）
-    bool pause_invite = 3;        // 是否暂停邀请（可选）
-    bool mute_all = 4;           // 是否禁止发言（可选）
-    CmtyNotificationType notification_type = 5;   // 通知类型（可选）
+    optional bool pause_invite = 3;        // 是否暂停邀请（可选）
+    optional bool mute_all = 4;           // 是否禁止发言（可选）
+    optional CmtyNotificationType notification_type = 5;   // 通知类型（可选）
+    optional string description = 6;   // 频道描述（可选）
 }
 
 // CmtyDeleteChannel - 删除频道
 message CmtyDeleteChannel {
     string channel_id = 1;  // 频道ID（必填）
+}
+
+// ========== 频道在线状态操作 ==========
+
+// CmtyEnterChannel - 进入频道
+message CmtyEnterChannel {
+    string channel_id = 1;  // 频道ID（必填）
+}
+
+// CmtyLeaveChannel - 退出频道
+message CmtyLeaveChannel {
+    string channel_id = 1;  // 频道ID（必填）
+}
+
+// CmtyChannelOnlineUsers - 频道在线用户列表响应
+message CmtyChannelOnlineUsers {
+    string channel_id = 1;           // 频道ID
+    repeated string user_ids = 2;    // 在线用户ID列表
+    int32 count = 3;                 // 在线用户数量
+}
+
+// CmtyChannelHistoryQuery - 查询频道历史消息
+message CmtyChannelHistoryQuery {
+    string channel_id = 1;  // 频道ID（必填）
+    int32 page = 2;         // 页码（从1开始，可选，默认1）
+    int32 size = 3;         // 每页数量（可选，默认20，最大100）
+}
+
+// ========== 消息汇总相关 ==========
+
+// ChannelUnreadSummary - 频道未读摘要
+message ChannelUnreadSummary {
+    string channel_id = 1;        // 频道ID
+    string last_message_id = 2;   // 最后一条消息ID
+    int32 unread_count = 3;       // 未读数量
+    bool has_mention = 4;         // 是否有@提及
+    int64 timestamp = 5;          // 时间戳（最后一条消息时间）
+}
+
+// CmtyChannelUnreadAggregation - 频道未读汇总（CMCH -> CMTY）
+message CmtyChannelUnreadAggregation {
+    string app_id = 1;                    // 应用ID
+    string cmty_id = 2;                   // 社群ID
+    repeated ChannelUnreadSummary channel_summaries = 3;  // 频道未读摘要列表
+}
+
+// ChannelUnreadEvent - 频道未读事件（CMTY -> 客户端）
+message ChannelUnreadEvent {
+    string channel_id = 1;        // 频道ID
+    string last_message_id = 2;   // 最后一条消息ID
+    int32 unread_count = 3;       // 未读数量
+    bool has_mention = 4;         // 是否有@提及
+    int64 timestamp = 5;          // 时间戳（最后一条消息时间）
 }
 

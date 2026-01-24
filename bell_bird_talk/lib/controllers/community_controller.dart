@@ -7,6 +7,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,6 +42,12 @@ class CommunityController extends GetxController {
   String cmtSendMaxRefreshId = 'cmtSendMaxRefreshId';
   void updateCmtSendMax(){
     update([cmtSendMaxRefreshId]);
+  }
+
+  // 社群隐私设置刷新
+  String cmtPriSettingRefreshId = 'cmtPriSettingRefreshId';
+  void updateCmtPriSettingRefresh(){
+    update([cmtPriSettingRefreshId]);
   }
 
   // 缓存相关方法
@@ -97,9 +104,18 @@ class CommunityController extends GetxController {
           final data = json.decode(dataStr) as Map<String, dynamic>;
           final communitiesData = data['communities'] as List<dynamic>? ?? [];
 
+          for (var i = 0; i < communitiesData.length; i++) {
+            
+            final community = communitiesData[i];
+            print('\n社群列表信息: \n$community');
+          }
+
           List<CommunityModel> communities = communitiesData.map((item) {
+            
             return CommunityModel.fromJson(Map<String, dynamic>.from(item));
           }).toList();
+
+
 
           if (page == 1) {
             communityList.value = communities;
@@ -734,6 +750,112 @@ class CommunityController extends GetxController {
       return false;
     } finally {
       EasyLoading.dismiss();
+      isLoading.value = false;
+    }
+  }
+
+  /// 获取社群设置
+  /// @param cmtyId 社群ID
+  /// @return 社群设置对象，失败返回null
+  Future<CommunitySettingsModel?> loadCommunitySettings(String cmtyId) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _nativeService.community.getCommunitySettings(
+        cmtyId: cmtyId,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+          return CommunitySettingsModel.fromJson(data);
+        }
+        return null;
+      } else {
+        print('获取社群设置失败: ${result['message']}');
+        return null;
+      }
+    } catch (e) {
+      print('获取社群设置异常: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 更新社群设置
+  /// @param cmtyId 社群ID
+  /// @param settings 设置项字典（键值对形式：{"allow_add_friend": true, ...}）
+  /// @return 操作结果，true表示成功，false表示失败
+  Future<bool> updateCommunitySettings({
+    required String cmtyId,
+    required Map<String, dynamic> settings,
+  }) async {
+    try {
+      EasyLoading.show();
+      isLoading.value = true;
+
+      final result = await _nativeService.community.updateCommunitySettings(
+        cmtyId: cmtyId,
+        settings: settings,
+      );
+
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        EasyLoading.showSuccess('更新成功');
+        return true;
+      } else {
+        EasyLoading.showError(result['message'] ?? '更新失败');
+        return false;
+      }
+    } catch (e) {
+      print('更新社群设置异常: $e');
+      EasyLoading.dismiss();
+      return false;
+    } finally {
+      EasyLoading.dismiss();
+      isLoading.value = false;
+    }
+  }
+
+  /// 查询加入申请列表
+  /// @param cmtyId 社群ID
+  /// @param status 申请状态筛选（可选，0=全部，1=待审核，2=已通过，3=已拒绝，4=已过期，5=已取消）
+  /// @param page 页码（从1开始）
+  /// @param pageSize 每页数量
+  /// @return 加入申请列表，失败返回空列表
+  Future<JoinRequestListModel> loadlistJoinRequests({
+    required String cmtyId,
+    int status = 0,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _nativeService.community.listJoinRequests(
+        cmtyId: cmtyId,
+        status: status,
+        page: page,
+        pageSize: pageSize,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+          return JoinRequestListModel.fromJson(data);
+        }
+        return JoinRequestListModel(total: 0, records: []);
+      } else {
+        print('查询加入申请列表失败: ${result['message']}');
+        return JoinRequestListModel(total: 0, records: []);
+      }
+    } catch (e) {
+      print('查询加入申请列表异常: $e');
+      return JoinRequestListModel(total: 0, records: []);
+    } finally {
       isLoading.value = false;
     }
   }

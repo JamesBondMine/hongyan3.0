@@ -73,9 +73,9 @@ GPBEnumDescriptor *DeviceType_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:DeviceType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -112,9 +112,9 @@ GPBEnumDescriptor *DeviceStatus_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:DeviceStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }
@@ -585,20 +585,20 @@ void SetDevice_Status_RawValue(Device *message, int32_t value) {
   GPBSetMessageRawEnumField(message, field, value);
 }
 
-#pragma mark - CheckDevice
+#pragma mark - Check
 
-@implementation CheckDevice
+@implementation Check
 
 @dynamic userId;
 @dynamic deviceId;
 @dynamic hasDevice, device;
 
-typedef struct CheckDevice__storage_ {
+typedef struct Check__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   NSString *deviceId;
   Device *device;
-} CheckDevice__storage_;
+} Check__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -609,38 +609,38 @@ typedef struct CheckDevice__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = CheckDevice_FieldNumber_UserId,
+        .number = Check_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(CheckDevice__storage_, userId),
+        .offset = (uint32_t)offsetof(Check__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
-        .number = CheckDevice_FieldNumber_DeviceId,
+        .number = Check_FieldNumber_DeviceId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(CheckDevice__storage_, deviceId),
+        .offset = (uint32_t)offsetof(Check__storage_, deviceId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "device",
         .dataTypeSpecific.clazz = GPBObjCClass(Device),
-        .number = CheckDevice_FieldNumber_Device,
+        .number = Check_FieldNumber_Device,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(CheckDevice__storage_, device),
+        .offset = (uint32_t)offsetof(Check__storage_, device),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[CheckDevice class]
+        [GPBDescriptor allocDescriptorForClass:[Check class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(CheckDevice__storage_)
+                                   storageSize:sizeof(Check__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -652,18 +652,18 @@ typedef struct CheckDevice__storage_ {
 
 @end
 
-#pragma mark - GetDevice
+#pragma mark - Get
 
-@implementation GetDevice
+@implementation Get
 
 @dynamic userId;
 @dynamic deviceId;
 
-typedef struct GetDevice__storage_ {
+typedef struct Get__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   NSString *deviceId;
-} GetDevice__storage_;
+} Get__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -674,29 +674,29 @@ typedef struct GetDevice__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GetDevice_FieldNumber_UserId,
+        .number = Get_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(GetDevice__storage_, userId),
+        .offset = (uint32_t)offsetof(Get__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
-        .number = GetDevice_FieldNumber_DeviceId,
+        .number = Get_FieldNumber_DeviceId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(GetDevice__storage_, deviceId),
+        .offset = (uint32_t)offsetof(Get__storage_, deviceId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[GetDevice class]
+        [GPBDescriptor allocDescriptorForClass:[Get class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(GetDevice__storage_)
+                                   storageSize:sizeof(Get__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -708,22 +708,22 @@ typedef struct GetDevice__storage_ {
 
 @end
 
-#pragma mark - DeviceListQuery
+#pragma mark - ListQuery
 
-@implementation DeviceListQuery
+@implementation ListQuery
 
 @dynamic userId;
 @dynamic deviceType;
 @dynamic status;
 @dynamic hasPage, page;
 
-typedef struct DeviceListQuery__storage_ {
+typedef struct ListQuery__storage_ {
   uint32_t _has_storage_[1];
   DeviceType deviceType;
   DeviceStatus status;
   NSString *userId;
   Page *page;
-} DeviceListQuery__storage_;
+} ListQuery__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -734,47 +734,47 @@ typedef struct DeviceListQuery__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = DeviceListQuery_FieldNumber_UserId,
+        .number = ListQuery_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(DeviceListQuery__storage_, userId),
+        .offset = (uint32_t)offsetof(ListQuery__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "deviceType",
         .dataTypeSpecific.enumDescFunc = DeviceType_EnumDescriptor,
-        .number = DeviceListQuery_FieldNumber_DeviceType,
+        .number = ListQuery_FieldNumber_DeviceType,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(DeviceListQuery__storage_, deviceType),
+        .offset = (uint32_t)offsetof(ListQuery__storage_, deviceType),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
         .name = "status",
         .dataTypeSpecific.enumDescFunc = DeviceStatus_EnumDescriptor,
-        .number = DeviceListQuery_FieldNumber_Status,
+        .number = ListQuery_FieldNumber_Status,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(DeviceListQuery__storage_, status),
+        .offset = (uint32_t)offsetof(ListQuery__storage_, status),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldHasEnumDescriptor | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeEnum,
       },
       {
         .name = "page",
         .dataTypeSpecific.clazz = GPBObjCClass(Page),
-        .number = DeviceListQuery_FieldNumber_Page,
+        .number = ListQuery_FieldNumber_Page,
         .hasIndex = 3,
-        .offset = (uint32_t)offsetof(DeviceListQuery__storage_, page),
+        .offset = (uint32_t)offsetof(ListQuery__storage_, page),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[DeviceListQuery class]
+        [GPBDescriptor allocDescriptorForClass:[ListQuery class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(DeviceListQuery__storage_)
+                                   storageSize:sizeof(ListQuery__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -786,40 +786,40 @@ typedef struct DeviceListQuery__storage_ {
 
 @end
 
-int32_t DeviceListQuery_DeviceType_RawValue(DeviceListQuery *message) {
-  GPBDescriptor *descriptor = [DeviceListQuery descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:DeviceListQuery_FieldNumber_DeviceType];
+int32_t ListQuery_DeviceType_RawValue(ListQuery *message) {
+  GPBDescriptor *descriptor = [ListQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ListQuery_FieldNumber_DeviceType];
   return GPBGetMessageRawEnumField(message, field);
 }
 
-void SetDeviceListQuery_DeviceType_RawValue(DeviceListQuery *message, int32_t value) {
-  GPBDescriptor *descriptor = [DeviceListQuery descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:DeviceListQuery_FieldNumber_DeviceType];
+void SetListQuery_DeviceType_RawValue(ListQuery *message, int32_t value) {
+  GPBDescriptor *descriptor = [ListQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ListQuery_FieldNumber_DeviceType];
   GPBSetMessageRawEnumField(message, field, value);
 }
 
-int32_t DeviceListQuery_Status_RawValue(DeviceListQuery *message) {
-  GPBDescriptor *descriptor = [DeviceListQuery descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:DeviceListQuery_FieldNumber_Status];
+int32_t ListQuery_Status_RawValue(ListQuery *message) {
+  GPBDescriptor *descriptor = [ListQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ListQuery_FieldNumber_Status];
   return GPBGetMessageRawEnumField(message, field);
 }
 
-void SetDeviceListQuery_Status_RawValue(DeviceListQuery *message, int32_t value) {
-  GPBDescriptor *descriptor = [DeviceListQuery descriptor];
-  GPBFieldDescriptor *field = [descriptor fieldWithNumber:DeviceListQuery_FieldNumber_Status];
+void SetListQuery_Status_RawValue(ListQuery *message, int32_t value) {
+  GPBDescriptor *descriptor = [ListQuery descriptor];
+  GPBFieldDescriptor *field = [descriptor fieldWithNumber:ListQuery_FieldNumber_Status];
   GPBSetMessageRawEnumField(message, field, value);
 }
 
-#pragma mark - getUserByDevice
+#pragma mark - GetUserByDevice
 
-@implementation getUserByDevice
+@implementation GetUserByDevice
 
 @dynamic deviceId;
 
-typedef struct getUserByDevice__storage_ {
+typedef struct GetUserByDevice__storage_ {
   uint32_t _has_storage_[1];
   NSString *deviceId;
-} getUserByDevice__storage_;
+} GetUserByDevice__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -830,20 +830,20 @@ typedef struct getUserByDevice__storage_ {
       {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
-        .number = getUserByDevice_FieldNumber_DeviceId,
+        .number = GetUserByDevice_FieldNumber_DeviceId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(getUserByDevice__storage_, deviceId),
+        .offset = (uint32_t)offsetof(GetUserByDevice__storage_, deviceId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[getUserByDevice class]
+        [GPBDescriptor allocDescriptorForClass:[GetUserByDevice class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(getUserByDevice__storage_)
+                                   storageSize:sizeof(GetUserByDevice__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -855,22 +855,22 @@ typedef struct getUserByDevice__storage_ {
 
 @end
 
-#pragma mark - updateActivity
+#pragma mark - UpdateActivity
 
-@implementation updateActivity
+@implementation UpdateActivity
 
 @dynamic userId;
 @dynamic deviceId;
 @dynamic clientIp;
 @dynamic activeTime;
 
-typedef struct updateActivity__storage_ {
+typedef struct UpdateActivity__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   NSString *deviceId;
   NSString *clientIp;
   int64_t activeTime;
-} updateActivity__storage_;
+} UpdateActivity__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -881,47 +881,47 @@ typedef struct updateActivity__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = updateActivity_FieldNumber_UserId,
+        .number = UpdateActivity_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(updateActivity__storage_, userId),
+        .offset = (uint32_t)offsetof(UpdateActivity__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
-        .number = updateActivity_FieldNumber_DeviceId,
+        .number = UpdateActivity_FieldNumber_DeviceId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(updateActivity__storage_, deviceId),
+        .offset = (uint32_t)offsetof(UpdateActivity__storage_, deviceId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "clientIp",
         .dataTypeSpecific.clazz = Nil,
-        .number = updateActivity_FieldNumber_ClientIp,
+        .number = UpdateActivity_FieldNumber_ClientIp,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(updateActivity__storage_, clientIp),
+        .offset = (uint32_t)offsetof(UpdateActivity__storage_, clientIp),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "activeTime",
         .dataTypeSpecific.clazz = Nil,
-        .number = updateActivity_FieldNumber_ActiveTime,
+        .number = UpdateActivity_FieldNumber_ActiveTime,
         .hasIndex = 3,
-        .offset = (uint32_t)offsetof(updateActivity__storage_, activeTime),
+        .offset = (uint32_t)offsetof(UpdateActivity__storage_, activeTime),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt64,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[updateActivity class]
+        [GPBDescriptor allocDescriptorForClass:[UpdateActivity class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(updateActivity__storage_)
+                                   storageSize:sizeof(UpdateActivity__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -1000,22 +1000,22 @@ typedef struct RenameDevice__storage_ {
 
 @end
 
-#pragma mark - authSuccess
+#pragma mark - DeviceAuthSuccess
 
-@implementation authSuccess
+@implementation DeviceAuthSuccess
 
 @dynamic userId;
 @dynamic deviceId;
 @dynamic hasDevice, device;
 @dynamic captchaId;
 
-typedef struct authSuccess__storage_ {
+typedef struct DeviceAuthSuccess__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   NSString *deviceId;
   Device *device;
   NSString *captchaId;
-} authSuccess__storage_;
+} DeviceAuthSuccess__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -1026,47 +1026,47 @@ typedef struct authSuccess__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = authSuccess_FieldNumber_UserId,
+        .number = DeviceAuthSuccess_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(authSuccess__storage_, userId),
+        .offset = (uint32_t)offsetof(DeviceAuthSuccess__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "deviceId",
         .dataTypeSpecific.clazz = Nil,
-        .number = authSuccess_FieldNumber_DeviceId,
+        .number = DeviceAuthSuccess_FieldNumber_DeviceId,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(authSuccess__storage_, deviceId),
+        .offset = (uint32_t)offsetof(DeviceAuthSuccess__storage_, deviceId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "device",
         .dataTypeSpecific.clazz = GPBObjCClass(Device),
-        .number = authSuccess_FieldNumber_Device,
+        .number = DeviceAuthSuccess_FieldNumber_Device,
         .hasIndex = 2,
-        .offset = (uint32_t)offsetof(authSuccess__storage_, device),
+        .offset = (uint32_t)offsetof(DeviceAuthSuccess__storage_, device),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
       {
         .name = "captchaId",
         .dataTypeSpecific.clazz = Nil,
-        .number = authSuccess_FieldNumber_CaptchaId,
+        .number = DeviceAuthSuccess_FieldNumber_CaptchaId,
         .hasIndex = 3,
-        .offset = (uint32_t)offsetof(authSuccess__storage_, captchaId),
+        .offset = (uint32_t)offsetof(DeviceAuthSuccess__storage_, captchaId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[authSuccess class]
+        [GPBDescriptor allocDescriptorForClass:[DeviceAuthSuccess class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(authSuccess__storage_)
+                                   storageSize:sizeof(DeviceAuthSuccess__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -1078,9 +1078,9 @@ typedef struct authSuccess__storage_ {
 
 @end
 
-#pragma mark - checkResult
+#pragma mark - DCheckResult
 
-@implementation checkResult
+@implementation DCheckResult
 
 @dynamic deviceExists;
 @dynamic authRequired;
@@ -1089,12 +1089,12 @@ typedef struct authSuccess__storage_ {
 @dynamic maxCount;
 @dynamic authTokenJwt;
 
-typedef struct checkResult__storage_ {
+typedef struct DCheckResult__storage_ {
   uint32_t _has_storage_[1];
   int32_t currentCount;
   int32_t maxCount;
   NSString *authTokenJwt;
-} checkResult__storage_;
+} DCheckResult__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -1105,7 +1105,7 @@ typedef struct checkResult__storage_ {
       {
         .name = "deviceExists",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_DeviceExists,
+        .number = DCheckResult_FieldNumber_DeviceExists,
         .hasIndex = 0,
         .offset = 1,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
@@ -1114,7 +1114,7 @@ typedef struct checkResult__storage_ {
       {
         .name = "authRequired",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_AuthRequired,
+        .number = DCheckResult_FieldNumber_AuthRequired,
         .hasIndex = 2,
         .offset = 3,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
@@ -1123,7 +1123,7 @@ typedef struct checkResult__storage_ {
       {
         .name = "limitExceeded",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_LimitExceeded,
+        .number = DCheckResult_FieldNumber_LimitExceeded,
         .hasIndex = 4,
         .offset = 5,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
@@ -1132,38 +1132,38 @@ typedef struct checkResult__storage_ {
       {
         .name = "currentCount",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_CurrentCount,
+        .number = DCheckResult_FieldNumber_CurrentCount,
         .hasIndex = 6,
-        .offset = (uint32_t)offsetof(checkResult__storage_, currentCount),
+        .offset = (uint32_t)offsetof(DCheckResult__storage_, currentCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
         .name = "maxCount",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_MaxCount,
+        .number = DCheckResult_FieldNumber_MaxCount,
         .hasIndex = 7,
-        .offset = (uint32_t)offsetof(checkResult__storage_, maxCount),
+        .offset = (uint32_t)offsetof(DCheckResult__storage_, maxCount),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeInt32,
       },
       {
         .name = "authTokenJwt",
         .dataTypeSpecific.clazz = Nil,
-        .number = checkResult_FieldNumber_AuthTokenJwt,
+        .number = DCheckResult_FieldNumber_AuthTokenJwt,
         .hasIndex = 8,
-        .offset = (uint32_t)offsetof(checkResult__storage_, authTokenJwt),
+        .offset = (uint32_t)offsetof(DCheckResult__storage_, authTokenJwt),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[checkResult class]
+        [GPBDescriptor allocDescriptorForClass:[DCheckResult class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(checkResult__storage_)
+                                   storageSize:sizeof(DCheckResult__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");
@@ -1231,18 +1231,18 @@ typedef struct DeviceList__storage_ {
 
 @end
 
-#pragma mark - userInfo
+#pragma mark - UserInfo
 
-@implementation userInfo
+@implementation UserInfo
 
 @dynamic userId;
 @dynamic hasDevice, device;
 
-typedef struct userInfo__storage_ {
+typedef struct UserInfo__storage_ {
   uint32_t _has_storage_[1];
   NSString *userId;
   Device *device;
-} userInfo__storage_;
+} UserInfo__storage_;
 
 // This method is threadsafe because it is initially called
 // in +initialize for each subclass.
@@ -1253,29 +1253,29 @@ typedef struct userInfo__storage_ {
       {
         .name = "userId",
         .dataTypeSpecific.clazz = Nil,
-        .number = userInfo_FieldNumber_UserId,
+        .number = UserInfo_FieldNumber_UserId,
         .hasIndex = 0,
-        .offset = (uint32_t)offsetof(userInfo__storage_, userId),
+        .offset = (uint32_t)offsetof(UserInfo__storage_, userId),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
         .dataType = GPBDataTypeString,
       },
       {
         .name = "device",
         .dataTypeSpecific.clazz = GPBObjCClass(Device),
-        .number = userInfo_FieldNumber_Device,
+        .number = UserInfo_FieldNumber_Device,
         .hasIndex = 1,
-        .offset = (uint32_t)offsetof(userInfo__storage_, device),
+        .offset = (uint32_t)offsetof(UserInfo__storage_, device),
         .flags = GPBFieldOptional,
         .dataType = GPBDataTypeMessage,
       },
     };
     GPBDescriptor *localDescriptor =
-        [GPBDescriptor allocDescriptorForClass:[userInfo class]
+        [GPBDescriptor allocDescriptorForClass:[UserInfo class]
                                      rootClass:[DevicePbRoot class]
                                           file:DevicePbRoot_FileDescriptor()
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
-                                   storageSize:sizeof(userInfo__storage_)
+                                   storageSize:sizeof(UserInfo__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

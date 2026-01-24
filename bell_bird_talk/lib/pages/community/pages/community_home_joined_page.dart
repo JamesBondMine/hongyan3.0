@@ -1,6 +1,7 @@
 import 'package:bell_bird_talk/config/global.dart';
 import 'package:bell_bird_talk/controllers/community_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_child_page.dart';
 import 'package:bell_bird_talk/pages/community/views/community_preview_view.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
@@ -30,7 +31,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
   final IOSNativeService _nativeService = IOSNativeService();
 
   int _currentPage = 1;
-  final int _pageSize = 12;
+  final int _pageSize = 15;
   bool _isLoading = false;
   bool _hasMore = true;
 
@@ -233,6 +234,7 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
                                   ? CachedNetworkImage(
                                       imageUrl: cm.avatar!,
                                       width: 32,
+                                      height: 32,
                                       fit: BoxFit.fill,
                                       errorWidget: (context, url, error) {
                                         return Image.asset(
@@ -331,11 +333,23 @@ class _CommunityHomeJoinedPageState extends State<CommunityHomeJoinedPage> {
       bool res = await CommunityController.to.joinCommunity(
         cmtyId: community.id,
       );
+
       if (res == true) {
         EasyLoading.dismiss();
-        EasyLoading.showSuccess('申请已提交，请等待审核');
-        // 刷新页面
-        _refreshController.requestRefresh();
+
+        CommunitySettingsModel? resSetting = await CommunityController.to
+            .loadCommunitySettings(community.id);
+        EasyLoading.dismiss();
+        if (resSetting != null && resSetting.settings.needVerify == false) {
+          EasyLoading.showSuccess('加入成功');
+        } else {
+          EasyLoading.showSuccess('申请已提交，请等待审核');
+          // 刷新页面
+          _refreshController.requestRefresh();
+        }
+      } else {
+        EasyLoading.dismiss();
+        EasyLoading.showError('加入失败');
       }
     }
   }

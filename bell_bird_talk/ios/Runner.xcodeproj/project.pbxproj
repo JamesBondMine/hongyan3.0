@@ -8,9 +8,41 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2A16E3A12F235123003E1503 /* ClusterRpc.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E37B2F235123003E1503 /* ClusterRpc.pbobjc.m */; };
+		2A16E3A22F235123003E1503 /* ContactPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E37F2F235123003E1503 /* ContactPb.pbobjc.m */; };
+		2A16E3A32F235123003E1503 /* CmtyPermissionPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E36A2F235123003E1503 /* CmtyPermissionPb.pbobjc.m */; };
+		2A16E3A42F235123003E1503 /* PushPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3952F235123003E1503 /* PushPb.pbobjc.m */; };
+		2A16E3A52F235123003E1503 /* UserPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E39F2F235123003E1503 /* UserPb.pbobjc.m */; };
+		2A16E3A62F235123003E1503 /* CmtyChannelPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3602F235123003E1503 /* CmtyChannelPb.pbobjc.m */; };
+		2A16E3A72F235123003E1503 /* CmtyConfigPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3622F235123003E1503 /* CmtyConfigPb.pbobjc.m */; };
+		2A16E3A82F235123003E1503 /* CmtySettingsPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E36E2F235123003E1503 /* CmtySettingsPb.pbobjc.m */; };
+		2A16E3A92F235123003E1503 /* CaptchaPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3772F235123003E1503 /* CaptchaPb.pbobjc.m */; };
+		2A16E3AA2F235123003E1503 /* SystemPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E39B2F235123003E1503 /* SystemPb.pbobjc.m */; };
+		2A16E3AB2F235123003E1503 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3792F235123003E1503 /* ChatPb.pbobjc.m */; };
+		2A16E3AC2F235123003E1503 /* BroadcastPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3752F235123003E1503 /* BroadcastPb.pbobjc.m */; };
+		2A16E3AD2F235123003E1503 /* InvitePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E38D2F235123003E1503 /* InvitePb.pbobjc.m */; };
+		2A16E3AE2F235123003E1503 /* CmtyCategoryPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E35C2F235123003E1503 /* CmtyCategoryPb.pbobjc.m */; };
+		2A16E3AF2F235123003E1503 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3832F235123003E1503 /* DevicePb.pbobjc.m */; };
+		2A16E3B02F235123003E1503 /* InnerPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E38B2F235123003E1503 /* InnerPb.pbobjc.m */; };
+		2A16E3B12F235123003E1503 /* ConvPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3812F235123003E1503 /* ConvPb.pbobjc.m */; };
+		2A16E3B22F235123003E1503 /* FilePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3852F235123003E1503 /* FilePb.pbobjc.m */; };
+		2A16E3B32F235123003E1503 /* SettingPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3992F235123003E1503 /* SettingPb.pbobjc.m */; };
+		2A16E3B42F235123003E1503 /* MessagePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E38F2F235123003E1503 /* MessagePb.pbobjc.m */; };
+		2A16E3B52F235123003E1503 /* CmtyMemberPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3662F235123003E1503 /* CmtyMemberPb.pbobjc.m */; };
+		2A16E3B62F235123003E1503 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3872F235123003E1503 /* GroupPb.pbobjc.m */; };
+		2A16E3B72F235123003E1503 /* BanPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3732F235123003E1503 /* BanPb.pbobjc.m */; };
+		2A16E3B82F235123003E1503 /* CmtySecurityPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E36C2F235123003E1503 /* CmtySecurityPb.pbobjc.m */; };
+		2A16E3B92F235123003E1503 /* PresencePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3932F235123003E1503 /* PresencePb.pbobjc.m */; };
+		2A16E3BA2F235123003E1503 /* AppPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3712F235123003E1503 /* AppPb.pbobjc.m */; };
+		2A16E3BB2F235123003E1503 /* PermissionPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3912F235123003E1503 /* PermissionPb.pbobjc.m */; };
+		2A16E3BC2F235123003E1503 /* CmtyPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3682F235123003E1503 /* CmtyPb.pbobjc.m */; };
+		2A16E3BD2F235123003E1503 /* SensitivePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3972F235123003E1503 /* SensitivePb.pbobjc.m */; };
+		2A16E3BE2F235123003E1503 /* ConnectPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E37D2F235123003E1503 /* ConnectPb.pbobjc.m */; };
+		2A16E3BF2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E35E2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.m */; };
+		2A16E3C02F235123003E1503 /* CmtyInvitePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3642F235123003E1503 /* CmtyInvitePb.pbobjc.m */; };
+		2A16E3C12F235123003E1503 /* TranslatePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E39D2F235123003E1503 /* TranslatePb.pbobjc.m */; };
+		2A16E3C22F235123003E1503 /* HandshakePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A16E3892F235123003E1503 /* HandshakePb.pbobjc.m */; };
+		2A27BFF82F231F34000DF16E /* cmty_permission_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2A27BFF72F231F34000DF16E /* cmty_permission_pb.proto */; };
 		2A417C052F173F1C0037B0B9 /* captcha_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C042F173F1C0037B0B9 /* captcha_pb.proto */; };
 		2A417C152F17A4B10037B0B9 /* IMSDKAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0C2F17A4B10037B0B9 /* IMSDKAPIHandler.swift */; };
 		2A417C162F17A4B10037B0B9 /* DeviceAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C0A2F17A4B10037B0B9 /* DeviceAPIHandler.swift */; };
@@ -28,11 +60,6 @@
 		2A417C232F17A4BF0037B0B9 /* AppDelegate_New.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C222F17A4BF0037B0B9 /* AppDelegate_New.swift */; };
 		2A417C252F17A8910037B0B9 /* AppDelegate_old.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C242F17A8910037B0B9 /* AppDelegate_old.swift */; };
 		2A417C272F17AAC10037B0B9 /* LegacyMethodsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A417C262F17AAC10037B0B9 /* LegacyMethodsHandler.swift */; };
-		2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */; };
-		2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */; };
-		2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */; };
-		2A74363F2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */; };
-		2A7436402F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */; };
 		2A7ADB6C2EDD2A6F00D0B045 /* libnet_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */; };
 		2A7ADED02EDD7AAF00D0B045 /* libabsl_random_distributions.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEA62EDD7AAF00D0B045 /* libabsl_random_distributions.a */; };
 		2A7ADED12EDD7AAF00D0B045 /* libabsl_scoped_set_env.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEB32EDD7AAF00D0B045 /* libabsl_scoped_set_env.a */; };
@@ -134,11 +161,9 @@
 		2A7ADF312EDD7AAF00D0B045 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADEC42EDD7AAF00D0B045 /* libcrypto.a */; };
 		2A7ADF332EDD7D6100D0B045 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */; };
 		2A7ADF352EDD807300D0B045 /* libcurses.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A7ADF342EDD807300D0B045 /* libcurses.tbd */; };
-		2AC476FF2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */; };
 		2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */; };
 		2AD9E3392ED409A800C4E6A3 /* DataTransViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */; };
 		2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */; };
-		2ADEF6EA2F0CC30600AB984D /* AppPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */; };
 		2ADEF71E2F0E0A5100AB984D /* cmty_security_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */; };
 		2ADEF71F2F0E0A5100AB984D /* cmty_channel_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */; };
 		2ADEF7202F0E0A5100AB984D /* cmty_member_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF71A2F0E0A5100AB984D /* cmty_member_pb.proto */; };
@@ -146,11 +171,7 @@
 		2ADEF7222F0E0A5100AB984D /* cmty_category_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */; };
 		2ADEF7232F0E0A5100AB984D /* cmty_invite_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7192F0E0A5100AB984D /* cmty_invite_pb.proto */; };
 		2ADEF7242F0E0A5100AB984D /* cmty_config_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */; };
-		2ADEF7282F0E0AA500AB984D /* CmtyPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */; };
 		2ADEF72B2F0E608500AB984D /* IMSDKCommunityManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEF72A2F0E608500AB984D /* IMSDKCommunityManager.mm */; };
-		2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */; };
-		2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */; };
-		2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */; };
 		2AF663B92EFBC3A000A18180 /* Protobuf命名规范.md in Resources */ = {isa = PBXBuildFile; fileRef = 2AF663B12EFBC3A000A18180 /* Protobuf命名规范.md */; };
 		2AF663BA2EFBC3A000A18180 /* broadcast_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */; };
 		2AF663BB2EFBC3A000A18180 /* system_pb.proto in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663B52EFBC3A000A18180 /* system_pb.proto */; };
@@ -185,10 +206,6 @@
 		2AF663F22EFBDB3700A18180 /* IMSDKConversationManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663E12EFBDB3700A18180 /* IMSDKConversationManager.mm */; };
 		2AF663F32EFBDB3700A18180 /* IMSDKContactManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663DF2EFBDB3700A18180 /* IMSDKContactManager.mm */; };
 		2AF663F42EFBDB3700A18180 /* IMSDKUserManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2AF663EB2EFBDB3700A18180 /* IMSDKUserManager.mm */; };
-		2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		31EB8EEFDBA90F6F0A55D7D2 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -230,12 +247,75 @@
 		0A77AA7B44BE69DDB1F1FFD9 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
-		2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessagePb.pbobjc.h; sourceTree = "<group>"; };
-		2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessagePb.pbobjc.m; sourceTree = "<group>"; };
-		2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContactPb.pbobjc.h; sourceTree = "<group>"; };
-		2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
-		2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
-		2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E35B2F235123003E1503 /* CmtyCategoryPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyCategoryPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E35C2F235123003E1503 /* CmtyCategoryPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyCategoryPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E35D2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyChannelGroupPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E35E2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyChannelGroupPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E35F2F235123003E1503 /* CmtyChannelPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyChannelPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3602F235123003E1503 /* CmtyChannelPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyChannelPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3612F235123003E1503 /* CmtyConfigPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyConfigPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3622F235123003E1503 /* CmtyConfigPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyConfigPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3632F235123003E1503 /* CmtyInvitePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyInvitePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3642F235123003E1503 /* CmtyInvitePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyInvitePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3652F235123003E1503 /* CmtyMemberPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyMemberPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3662F235123003E1503 /* CmtyMemberPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyMemberPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3672F235123003E1503 /* CmtyPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3682F235123003E1503 /* CmtyPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3692F235123003E1503 /* CmtyPermissionPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPermissionPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E36A2F235123003E1503 /* CmtyPermissionPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPermissionPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E36B2F235123003E1503 /* CmtySecurityPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtySecurityPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E36C2F235123003E1503 /* CmtySecurityPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtySecurityPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E36D2F235123003E1503 /* CmtySettingsPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtySettingsPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E36E2F235123003E1503 /* CmtySettingsPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtySettingsPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3702F235123003E1503 /* AppPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3712F235123003E1503 /* AppPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3722F235123003E1503 /* BanPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BanPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3732F235123003E1503 /* BanPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BanPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3742F235123003E1503 /* BroadcastPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BroadcastPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3752F235123003E1503 /* BroadcastPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BroadcastPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3762F235123003E1503 /* CaptchaPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptchaPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3772F235123003E1503 /* CaptchaPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CaptchaPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3782F235123003E1503 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3792F235123003E1503 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E37A2F235123003E1503 /* ClusterRpc.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClusterRpc.pbobjc.h; sourceTree = "<group>"; };
+		2A16E37B2F235123003E1503 /* ClusterRpc.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ClusterRpc.pbobjc.m; sourceTree = "<group>"; };
+		2A16E37C2F235123003E1503 /* ConnectPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E37D2F235123003E1503 /* ConnectPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConnectPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E37E2F235123003E1503 /* ContactPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContactPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E37F2F235123003E1503 /* ContactPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ContactPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3802F235123003E1503 /* ConvPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConvPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3812F235123003E1503 /* ConvPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConvPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3822F235123003E1503 /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3832F235123003E1503 /* DevicePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DevicePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3842F235123003E1503 /* FilePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3852F235123003E1503 /* FilePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FilePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3862F235123003E1503 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3872F235123003E1503 /* GroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GroupPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3882F235123003E1503 /* HandshakePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HandshakePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3892F235123003E1503 /* HandshakePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HandshakePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E38A2F235123003E1503 /* InnerPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InnerPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E38B2F235123003E1503 /* InnerPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InnerPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E38C2F235123003E1503 /* InvitePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InvitePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E38D2F235123003E1503 /* InvitePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InvitePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E38E2F235123003E1503 /* MessagePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessagePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E38F2F235123003E1503 /* MessagePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessagePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3902F235123003E1503 /* PermissionPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PermissionPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3912F235123003E1503 /* PermissionPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PermissionPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3922F235123003E1503 /* PresencePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PresencePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3932F235123003E1503 /* PresencePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PresencePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3942F235123003E1503 /* PushPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3952F235123003E1503 /* PushPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3962F235123003E1503 /* SensitivePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SensitivePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3972F235123003E1503 /* SensitivePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SensitivePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E3982F235123003E1503 /* SettingPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E3992F235123003E1503 /* SettingPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E39A2F235123003E1503 /* SystemPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E39B2F235123003E1503 /* SystemPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemPb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E39C2F235123003E1503 /* TranslatePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TranslatePb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E39D2F235123003E1503 /* TranslatePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TranslatePb.pbobjc.m; sourceTree = "<group>"; };
+		2A16E39E2F235123003E1503 /* UserPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserPb.pbobjc.h; sourceTree = "<group>"; };
+		2A16E39F2F235123003E1503 /* UserPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserPb.pbobjc.m; sourceTree = "<group>"; };
+		2A27BFF72F231F34000DF16E /* cmty_permission_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_permission_pb.proto; sourceTree = "<group>"; };
 		2A417C042F173F1C0037B0B9 /* captcha_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = captcha_pb.proto; sourceTree = "<group>"; };
 		2A417C062F17A4B10037B0B9 /* AuthAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAPIHandler.swift; sourceTree = "<group>"; };
 		2A417C072F17A4B10037B0B9 /* CommunityAPIHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityAPIHandler.swift; sourceTree = "<group>"; };
@@ -253,16 +333,6 @@
 		2A417C222F17A4BF0037B0B9 /* AppDelegate_New.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate_New.swift; sourceTree = "<group>"; };
 		2A417C242F17A8910037B0B9 /* AppDelegate_old.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate_old.swift; sourceTree = "<group>"; };
 		2A417C262F17AAC10037B0B9 /* LegacyMethodsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyMethodsHandler.swift; sourceTree = "<group>"; };
-		2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyMemberPb.pbobjc.h; sourceTree = "<group>"; };
-		2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyMemberPb.pbobjc.m; sourceTree = "<group>"; };
-		2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyCategoryPb.pbobjc.h; sourceTree = "<group>"; };
-		2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyCategoryPb.pbobjc.m; sourceTree = "<group>"; };
-		2A7436372F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyChannelPb.pbobjc.h; sourceTree = "<group>"; };
-		2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyChannelPb.pbobjc.m; sourceTree = "<group>"; };
-		2A7436392F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyConfigPb.pbobjc.h; sourceTree = "<group>"; };
-		2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyConfigPb.pbobjc.m; sourceTree = "<group>"; };
-		2A74363B2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyInvitePb.pbobjc.h; sourceTree = "<group>"; };
-		2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyInvitePb.pbobjc.m; sourceTree = "<group>"; };
 		2A7ADB6A2EDD2A6F00D0B045 /* libnet_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnet_core.a; sourceTree = "<group>"; };
 		2A7ADB732EDD3E6B00D0B045 /* network_lib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = network_lib.h; sourceTree = "<group>"; };
 		2A7ADE6D2EDD7AAF00D0B045 /* libabsl_bad_any_cast_impl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libabsl_bad_any_cast_impl.a; sourceTree = "<group>"; };
@@ -365,15 +435,11 @@
 		2A7ADECE2EDD7AAF00D0B045 /* libutf8_validity.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libutf8_validity.a; sourceTree = "<group>"; };
 		2A7ADF322EDD7D6100D0B045 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		2A7ADF342EDD807300D0B045 /* libcurses.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurses.tbd; path = usr/lib/libcurses.tbd; sourceTree = SDKROOT; };
-		2AC476FD2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtySecurityPb.pbobjc.h; sourceTree = "<group>"; };
-		2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtySecurityPb.pbobjc.m; sourceTree = "<group>"; };
 		2AD9E3352ED409A800C4E6A3 /* DataTransViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTransViewController.h; sourceTree = "<group>"; };
 		2AD9E3362ED409A800C4E6A3 /* DataTransViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DataTransViewController.mm; sourceTree = "<group>"; };
 		2AD9E3372ED409A800C4E6A3 /* DataTransViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DataTransViewController.xib; sourceTree = "<group>"; };
 		2AD9E33A2ED409C100C4E6A3 /* DataCPlus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DataCPlus.hpp; sourceTree = "<group>"; };
 		2AD9E33B2ED409C100C4E6A3 /* DataCPlus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DataCPlus.cpp; sourceTree = "<group>"; };
-		2ADEF6E82F0CC30600AB984D /* AppPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppPb.pbobjc.h; sourceTree = "<group>"; };
-		2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppPb.pbobjc.m; sourceTree = "<group>"; };
 		2ADEF6EB2F0CF0FB00AB984D /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_category_pb.proto; sourceTree = "<group>"; };
 		2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_channel_pb.proto; sourceTree = "<group>"; };
@@ -382,16 +448,8 @@
 		2ADEF71A2F0E0A5100AB984D /* cmty_member_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_member_pb.proto; sourceTree = "<group>"; };
 		2ADEF71B2F0E0A5100AB984D /* cmty_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_pb.proto; sourceTree = "<group>"; };
 		2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = cmty_security_pb.proto; sourceTree = "<group>"; };
-		2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CmtyPb.pbobjc.h; sourceTree = "<group>"; };
-		2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CmtyPb.pbobjc.m; sourceTree = "<group>"; };
 		2ADEF7292F0E608500AB984D /* IMSDKCommunityManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKCommunityManager.h; sourceTree = "<group>"; };
 		2ADEF72A2F0E608500AB984D /* IMSDKCommunityManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKCommunityManager.mm; sourceTree = "<group>"; };
-		2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatPb.pbobjc.h; sourceTree = "<group>"; };
-		2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChatPb.pbobjc.m; sourceTree = "<group>"; };
-		2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GroupPb.pbobjc.h; sourceTree = "<group>"; };
-		2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GroupPb.pbobjc.m; sourceTree = "<group>"; };
-		2AF6639B2EFBC08300A18180 /* DevicePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DevicePb.pbobjc.h; sourceTree = "<group>"; };
-		2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DevicePb.pbobjc.m; sourceTree = "<group>"; };
 		2AF6639E2EFBC3A000A18180 /* app_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = app_pb.proto; sourceTree = "<group>"; };
 		2AF6639F2EFBC3A000A18180 /* ban_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = ban_pb.proto; sourceTree = "<group>"; };
 		2AF663A02EFBC3A000A18180 /* broadcast_pb.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = broadcast_pb.proto; sourceTree = "<group>"; };
@@ -436,14 +494,6 @@
 		2AF663E92EFBDB3700A18180 /* IMSDKMessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKMessageManager.mm; sourceTree = "<group>"; };
 		2AF663EA2EFBDB3700A18180 /* IMSDKUserManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMSDKUserManager.h; sourceTree = "<group>"; };
 		2AF663EB2EFBDB3700A18180 /* IMSDKUserManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IMSDKUserManager.mm; sourceTree = "<group>"; };
-		2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FilePb.pbobjc.m; sourceTree = "<group>"; };
-		2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilePb.pbobjc.h; sourceTree = "<group>"; };
-		2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserPb.pbobjc.m; sourceTree = "<group>"; };
-		2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemPb.pbobjc.m; sourceTree = "<group>"; };
-		2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CaptchaPb.pbobjc.m; sourceTree = "<group>"; };
-		2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserPb.pbobjc.h; sourceTree = "<group>"; };
-		2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemPb.pbobjc.h; sourceTree = "<group>"; };
-		2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptchaPb.pbobjc.h; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -591,6 +641,89 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2A16E36F2F235123003E1503 /* cmty */ = {
+			isa = PBXGroup;
+			children = (
+				2A16E35B2F235123003E1503 /* CmtyCategoryPb.pbobjc.h */,
+				2A16E35C2F235123003E1503 /* CmtyCategoryPb.pbobjc.m */,
+				2A16E35D2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.h */,
+				2A16E35E2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.m */,
+				2A16E35F2F235123003E1503 /* CmtyChannelPb.pbobjc.h */,
+				2A16E3602F235123003E1503 /* CmtyChannelPb.pbobjc.m */,
+				2A16E3612F235123003E1503 /* CmtyConfigPb.pbobjc.h */,
+				2A16E3622F235123003E1503 /* CmtyConfigPb.pbobjc.m */,
+				2A16E3632F235123003E1503 /* CmtyInvitePb.pbobjc.h */,
+				2A16E3642F235123003E1503 /* CmtyInvitePb.pbobjc.m */,
+				2A16E3652F235123003E1503 /* CmtyMemberPb.pbobjc.h */,
+				2A16E3662F235123003E1503 /* CmtyMemberPb.pbobjc.m */,
+				2A16E3672F235123003E1503 /* CmtyPb.pbobjc.h */,
+				2A16E3682F235123003E1503 /* CmtyPb.pbobjc.m */,
+				2A16E3692F235123003E1503 /* CmtyPermissionPb.pbobjc.h */,
+				2A16E36A2F235123003E1503 /* CmtyPermissionPb.pbobjc.m */,
+				2A16E36B2F235123003E1503 /* CmtySecurityPb.pbobjc.h */,
+				2A16E36C2F235123003E1503 /* CmtySecurityPb.pbobjc.m */,
+				2A16E36D2F235123003E1503 /* CmtySettingsPb.pbobjc.h */,
+				2A16E36E2F235123003E1503 /* CmtySettingsPb.pbobjc.m */,
+			);
+			path = cmty;
+			sourceTree = "<group>";
+		};
+		2A16E3A02F235123003E1503 /* pbobjc */ = {
+			isa = PBXGroup;
+			children = (
+				2A16E36F2F235123003E1503 /* cmty */,
+				2A16E3702F235123003E1503 /* AppPb.pbobjc.h */,
+				2A16E3712F235123003E1503 /* AppPb.pbobjc.m */,
+				2A16E3722F235123003E1503 /* BanPb.pbobjc.h */,
+				2A16E3732F235123003E1503 /* BanPb.pbobjc.m */,
+				2A16E3742F235123003E1503 /* BroadcastPb.pbobjc.h */,
+				2A16E3752F235123003E1503 /* BroadcastPb.pbobjc.m */,
+				2A16E3762F235123003E1503 /* CaptchaPb.pbobjc.h */,
+				2A16E3772F235123003E1503 /* CaptchaPb.pbobjc.m */,
+				2A16E3782F235123003E1503 /* ChatPb.pbobjc.h */,
+				2A16E3792F235123003E1503 /* ChatPb.pbobjc.m */,
+				2A16E37A2F235123003E1503 /* ClusterRpc.pbobjc.h */,
+				2A16E37B2F235123003E1503 /* ClusterRpc.pbobjc.m */,
+				2A16E37C2F235123003E1503 /* ConnectPb.pbobjc.h */,
+				2A16E37D2F235123003E1503 /* ConnectPb.pbobjc.m */,
+				2A16E37E2F235123003E1503 /* ContactPb.pbobjc.h */,
+				2A16E37F2F235123003E1503 /* ContactPb.pbobjc.m */,
+				2A16E3802F235123003E1503 /* ConvPb.pbobjc.h */,
+				2A16E3812F235123003E1503 /* ConvPb.pbobjc.m */,
+				2A16E3822F235123003E1503 /* DevicePb.pbobjc.h */,
+				2A16E3832F235123003E1503 /* DevicePb.pbobjc.m */,
+				2A16E3842F235123003E1503 /* FilePb.pbobjc.h */,
+				2A16E3852F235123003E1503 /* FilePb.pbobjc.m */,
+				2A16E3862F235123003E1503 /* GroupPb.pbobjc.h */,
+				2A16E3872F235123003E1503 /* GroupPb.pbobjc.m */,
+				2A16E3882F235123003E1503 /* HandshakePb.pbobjc.h */,
+				2A16E3892F235123003E1503 /* HandshakePb.pbobjc.m */,
+				2A16E38A2F235123003E1503 /* InnerPb.pbobjc.h */,
+				2A16E38B2F235123003E1503 /* InnerPb.pbobjc.m */,
+				2A16E38C2F235123003E1503 /* InvitePb.pbobjc.h */,
+				2A16E38D2F235123003E1503 /* InvitePb.pbobjc.m */,
+				2A16E38E2F235123003E1503 /* MessagePb.pbobjc.h */,
+				2A16E38F2F235123003E1503 /* MessagePb.pbobjc.m */,
+				2A16E3902F235123003E1503 /* PermissionPb.pbobjc.h */,
+				2A16E3912F235123003E1503 /* PermissionPb.pbobjc.m */,
+				2A16E3922F235123003E1503 /* PresencePb.pbobjc.h */,
+				2A16E3932F235123003E1503 /* PresencePb.pbobjc.m */,
+				2A16E3942F235123003E1503 /* PushPb.pbobjc.h */,
+				2A16E3952F235123003E1503 /* PushPb.pbobjc.m */,
+				2A16E3962F235123003E1503 /* SensitivePb.pbobjc.h */,
+				2A16E3972F235123003E1503 /* SensitivePb.pbobjc.m */,
+				2A16E3982F235123003E1503 /* SettingPb.pbobjc.h */,
+				2A16E3992F235123003E1503 /* SettingPb.pbobjc.m */,
+				2A16E39A2F235123003E1503 /* SystemPb.pbobjc.h */,
+				2A16E39B2F235123003E1503 /* SystemPb.pbobjc.m */,
+				2A16E39C2F235123003E1503 /* TranslatePb.pbobjc.h */,
+				2A16E39D2F235123003E1503 /* TranslatePb.pbobjc.m */,
+				2A16E39E2F235123003E1503 /* UserPb.pbobjc.h */,
+				2A16E39F2F235123003E1503 /* UserPb.pbobjc.m */,
+			);
+			path = pbobjc;
+			sourceTree = "<group>";
+		};
 		2A417C0F2F17A4B10037B0B9 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
@@ -623,9 +756,9 @@
 		2A7ADB6B2EDD2A6F00D0B045 /* IMSDK */ = {
 			isa = PBXGroup;
 			children = (
+				2A16E3A02F235123003E1503 /* pbobjc */,
 				2AF663D42EFBC3CA00A18180 /* sh */,
 				2AF663B82EFBC3A000A18180 /* proto */,
-				2AF663982EFBC01D00A18180 /* pbobjc */,
 				2AF663EC2EFBDB3700A18180 /* manager */,
 				2A7ADECF2EDD7AAF00D0B045 /* ios_sdk_la */,
 				2AF663DA2EFBDAFD00A18180 /* callback_types.h */,
@@ -756,6 +889,7 @@
 		2ADEF71D2F0E0A5100AB984D /* cmty */ = {
 			isa = PBXGroup;
 			children = (
+				2A27BFF72F231F34000DF16E /* cmty_permission_pb.proto */,
 				2ADEF7162F0E0A5100AB984D /* cmty_category_pb.proto */,
 				2ADEF7172F0E0A5100AB984D /* cmty_channel_pb.proto */,
 				2ADEF7182F0E0A5100AB984D /* cmty_config_pb.proto */,
@@ -765,57 +899,6 @@
 				2ADEF71C2F0E0A5100AB984D /* cmty_security_pb.proto */,
 			);
 			path = cmty;
-			sourceTree = "<group>";
-		};
-		2ADEF7272F0E0AA500AB984D /* cmty */ = {
-			isa = PBXGroup;
-			children = (
-				2AC476FD2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.h */,
-				2AC476FE2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m */,
-				2A7436352F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.h */,
-				2A7436362F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m */,
-				2A7436372F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.h */,
-				2A7436382F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m */,
-				2A7436392F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.h */,
-				2A74363A2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m */,
-				2A74363B2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.h */,
-				2A74363C2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m */,
-				2A7436322F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.h */,
-				2A7436332F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m */,
-				2ADEF7252F0E0AA500AB984D /* CmtyPb.pbobjc.h */,
-				2ADEF7262F0E0AA500AB984D /* CmtyPb.pbobjc.m */,
-			);
-			path = cmty;
-			sourceTree = "<group>";
-		};
-		2AF663982EFBC01D00A18180 /* pbobjc */ = {
-			isa = PBXGroup;
-			children = (
-				2ADEF7272F0E0AA500AB984D /* cmty */,
-				2ADEF6E82F0CC30600AB984D /* AppPb.pbobjc.h */,
-				2ADEF6E92F0CC30600AB984D /* AppPb.pbobjc.m */,
-				2APB000AEDDCCA7E0000000A /* UserPb.pbobjc.h */,
-				2APB0002EDDCCA7E00000002 /* UserPb.pbobjc.m */,
-				2APB000BEDDCCA7E0000000B /* SystemPb.pbobjc.h */,
-				2APB0004EDDCCA7E00000004 /* SystemPb.pbobjc.m */,
-				2APB000DEDDCCA7E0000000D /* CaptchaPb.pbobjc.h */,
-				2APB0008EDDCCA7E00000008 /* CaptchaPb.pbobjc.m */,
-				2AFPB003EDDCCA7E00000003 /* FilePb.pbobjc.h */,
-				2AFPB002EDDCCA7E00000002 /* FilePb.pbobjc.m */,
-				2A0BE5ED2EE428A1001FF039 /* ContactPb.pbobjc.h */,
-				2A0BE5EE2EE428A1001FF039 /* ContactPb.pbobjc.m */,
-				2A0BE5EF2EE428A1001FF039 /* ConvPb.pbobjc.h */,
-				2A0BE5F02EE428A1001FF039 /* ConvPb.pbobjc.m */,
-				2A0BE5E72EE428A1001FF039 /* MessagePb.pbobjc.h */,
-				2A0BE5E82EE428A1001FF039 /* MessagePb.pbobjc.m */,
-				2AF6639B2EFBC08300A18180 /* DevicePb.pbobjc.h */,
-				2AF6639C2EFBC08300A18180 /* DevicePb.pbobjc.m */,
-				2AF663942EFBC01D00A18180 /* ChatPb.pbobjc.h */,
-				2AF663952EFBC01D00A18180 /* ChatPb.pbobjc.m */,
-				2AF663962EFBC01D00A18180 /* GroupPb.pbobjc.h */,
-				2AF663972EFBC01D00A18180 /* GroupPb.pbobjc.m */,
-			);
-			path = pbobjc;
 			sourceTree = "<group>";
 		};
 		2AF663B82EFBC3A000A18180 /* proto */ = {
@@ -1233,39 +1316,26 @@
 				2AF663F22EFBDB3700A18180 /* IMSDKConversationManager.mm in Sources */,
 				2AF663F32EFBDB3700A18180 /* IMSDKContactManager.mm in Sources */,
 				2AF663F42EFBDB3700A18180 /* IMSDKUserManager.mm in Sources */,
-				2A0BE5F22EE428A1001FF039 /* ContactPb.pbobjc.m in Sources */,
-				2A0BE5F42EE428A1001FF039 /* ConvPb.pbobjc.m in Sources */,
 				2A417C232F17A4BF0037B0B9 /* AppDelegate_New.swift in Sources */,
-				2A0BE5F52EE428A1001FF039 /* MessagePb.pbobjc.m in Sources */,
-				2AFPB001EDDCCA7E00000001 /* FilePb.pbobjc.m in Sources */,
-				2AF663992EFBC01D00A18180 /* ChatPb.pbobjc.m in Sources */,
-				2A7436342F0F9A4A00D61297 /* CmtyMemberPb.pbobjc.m in Sources */,
-				2AF6639A2EFBC01D00A18180 /* GroupPb.pbobjc.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				2AD9E3382ED409A800C4E6A3 /* DataTransViewController.mm in Sources */,
-				2AF6639D2EFBC08300A18180 /* DevicePb.pbobjc.m in Sources */,
 				2AD9E33C2ED409C100C4E6A3 /* DataCPlus.cpp in Sources */,
 				2AF663BA2EFBC3A000A18180 /* broadcast_pb.proto in Sources */,
 				2AF663BB2EFBC3A000A18180 /* system_pb.proto in Sources */,
 				2AF663BC2EFBC3A000A18180 /* contact_pb.proto in Sources */,
 				2AF663BD2EFBC3A000A18180 /* captcha_pb.proto in Sources */,
-				2A74363D2F0F9AFE00D61297 /* CmtyConfigPb.pbobjc.m in Sources */,
-				2A74363E2F0F9AFE00D61297 /* CmtyCategoryPb.pbobjc.m in Sources */,
-				2A74363F2F0F9AFE00D61297 /* CmtyInvitePb.pbobjc.m in Sources */,
-				2A7436402F0F9AFE00D61297 /* CmtyChannelPb.pbobjc.m in Sources */,
 				2AF663BE2EFBC3A000A18180 /* ban_pb.proto in Sources */,
 				2AF663BF2EFBC3A000A18180 /* invite_pb.proto in Sources */,
 				2AF663C02EFBC3A000A18180 /* presence_pb.proto in Sources */,
 				2AF663C12EFBC3A000A18180 /* device_pb.proto in Sources */,
 				2AF663C22EFBC3A000A18180 /* translate_pb.proto in Sources */,
 				2AF663C32EFBC3A000A18180 /* connect_pb.proto in Sources */,
-				2AC476FF2F14C8C500D87FA0 /* CmtySecurityPb.pbobjc.m in Sources */,
 				2AF663C42EFBC3A000A18180 /* app_pb.proto in Sources */,
-				2ADEF6EA2F0CC30600AB984D /* AppPb.pbobjc.m in Sources */,
 				2AF663C52EFBC3A000A18180 /* conv_pb.proto in Sources */,
 				2A417C152F17A4B10037B0B9 /* IMSDKAPIHandler.swift in Sources */,
 				2A417C162F17A4B10037B0B9 /* DeviceAPIHandler.swift in Sources */,
 				2A417C172F17A4B10037B0B9 /* FlutterAPIHandler.swift in Sources */,
+				2A27BFF82F231F34000DF16E /* cmty_permission_pb.proto in Sources */,
 				2A417C182F17A4B10037B0B9 /* MessageAPIHandler.swift in Sources */,
 				2A417C192F17A4B10037B0B9 /* ContactAPIHandler.swift in Sources */,
 				2A417C1A2F17A4B10037B0B9 /* AuthAPIHandler.swift in Sources */,
@@ -1277,6 +1347,40 @@
 				2AF663C72EFBC3A000A18180 /* setting_pb.proto in Sources */,
 				2AF663C82EFBC3A000A18180 /* sensitive_pb.proto in Sources */,
 				2AF663C92EFBC3A000A18180 /* chat_pb.proto in Sources */,
+				2A16E3A12F235123003E1503 /* ClusterRpc.pbobjc.m in Sources */,
+				2A16E3A22F235123003E1503 /* ContactPb.pbobjc.m in Sources */,
+				2A16E3A32F235123003E1503 /* CmtyPermissionPb.pbobjc.m in Sources */,
+				2A16E3A42F235123003E1503 /* PushPb.pbobjc.m in Sources */,
+				2A16E3A52F235123003E1503 /* UserPb.pbobjc.m in Sources */,
+				2A16E3A62F235123003E1503 /* CmtyChannelPb.pbobjc.m in Sources */,
+				2A16E3A72F235123003E1503 /* CmtyConfigPb.pbobjc.m in Sources */,
+				2A16E3A82F235123003E1503 /* CmtySettingsPb.pbobjc.m in Sources */,
+				2A16E3A92F235123003E1503 /* CaptchaPb.pbobjc.m in Sources */,
+				2A16E3AA2F235123003E1503 /* SystemPb.pbobjc.m in Sources */,
+				2A16E3AB2F235123003E1503 /* ChatPb.pbobjc.m in Sources */,
+				2A16E3AC2F235123003E1503 /* BroadcastPb.pbobjc.m in Sources */,
+				2A16E3AD2F235123003E1503 /* InvitePb.pbobjc.m in Sources */,
+				2A16E3AE2F235123003E1503 /* CmtyCategoryPb.pbobjc.m in Sources */,
+				2A16E3AF2F235123003E1503 /* DevicePb.pbobjc.m in Sources */,
+				2A16E3B02F235123003E1503 /* InnerPb.pbobjc.m in Sources */,
+				2A16E3B12F235123003E1503 /* ConvPb.pbobjc.m in Sources */,
+				2A16E3B22F235123003E1503 /* FilePb.pbobjc.m in Sources */,
+				2A16E3B32F235123003E1503 /* SettingPb.pbobjc.m in Sources */,
+				2A16E3B42F235123003E1503 /* MessagePb.pbobjc.m in Sources */,
+				2A16E3B52F235123003E1503 /* CmtyMemberPb.pbobjc.m in Sources */,
+				2A16E3B62F235123003E1503 /* GroupPb.pbobjc.m in Sources */,
+				2A16E3B72F235123003E1503 /* BanPb.pbobjc.m in Sources */,
+				2A16E3B82F235123003E1503 /* CmtySecurityPb.pbobjc.m in Sources */,
+				2A16E3B92F235123003E1503 /* PresencePb.pbobjc.m in Sources */,
+				2A16E3BA2F235123003E1503 /* AppPb.pbobjc.m in Sources */,
+				2A16E3BB2F235123003E1503 /* PermissionPb.pbobjc.m in Sources */,
+				2A16E3BC2F235123003E1503 /* CmtyPb.pbobjc.m in Sources */,
+				2A16E3BD2F235123003E1503 /* SensitivePb.pbobjc.m in Sources */,
+				2A16E3BE2F235123003E1503 /* ConnectPb.pbobjc.m in Sources */,
+				2A16E3BF2F235123003E1503 /* CmtyChannelGroupPb.pbobjc.m in Sources */,
+				2A16E3C02F235123003E1503 /* CmtyInvitePb.pbobjc.m in Sources */,
+				2A16E3C12F235123003E1503 /* TranslatePb.pbobjc.m in Sources */,
+				2A16E3C22F235123003E1503 /* HandshakePb.pbobjc.m in Sources */,
 				2AF663CA2EFBC3A000A18180 /* file_pb.proto in Sources */,
 				2ADEF72B2F0E608500AB984D /* IMSDKCommunityManager.mm in Sources */,
 				2AF663CB2EFBC3A000A18180 /* group_pb.proto in Sources */,
@@ -1284,12 +1388,8 @@
 				2AF663CD2EFBC3A000A18180 /* push_pb.proto in Sources */,
 				2AF663CF2EFBC3A000A18180 /* permission_pb.proto in Sources */,
 				2AF663D02EFBC3A000A18180 /* message_pb.proto in Sources */,
-				2ADEF7282F0E0AA500AB984D /* CmtyPb.pbobjc.m in Sources */,
 				2AF663D12EFBC3A000A18180 /* user_pb.proto in Sources */,
 				2AF663D22EFBC3A000A18180 /* cluster_rpc.proto in Sources */,
-				2APB0001EDDCCA7E00000001 /* UserPb.pbobjc.m in Sources */,
-				2APB0003EDDCCA7E00000003 /* SystemPb.pbobjc.m in Sources */,
-				2APB0007EDDCCA7E00000007 /* CaptchaPb.pbobjc.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

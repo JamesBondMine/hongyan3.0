@@ -42,7 +42,7 @@ class FriendModel {
   bool get isOnline => onlineStatus == 1;
   
   /// 显示名称（优先显示备注）
-  String get displayName => (remark != null && remark!.isNotEmpty) ? remark! : nickname;
+  String get displayName => (remark.isNotEmpty) ? remark : nickname;
   
   /// 用户ID别名（兼容字段）
   String get userId => id;

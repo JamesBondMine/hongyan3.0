@@ -67,6 +67,15 @@ message Group {
   bool is_member = 15;                    // 是否在群组中（可选）
 }
 
+// 群组简要信息 - 结果对象
+// 用于消息搜索、会话列表等轻量展示场景（避免直接复用 Group 全量对象）
+message GroupBrief {
+  string group_id = 1;                    // 群组ID（必填）
+  string group_name = 2;                  // 群组名称（必填）
+  string group_avatar = 3;                // 群组头像URL（可选）
+  int32 member_count = 4;                 // 成员数量（可选）
+}
+
 // 群组策略配置 - 群组策略对象
 // 用于群组的各种策略配置
 message GroupPolicy {
@@ -459,31 +468,6 @@ message GroupPreview {
 }
 
 // ========== 群组消息状态管理 ==========
-
-// 获取未读数和最后一条消息请求
-message GetUnreadAndLastMessage {
-  string group_id = 1;    // 群组ID
-  string member_id = 2;   // 群成员ID（自己）
-}
-
-// 批量获取未读数和最后一条消息请求
-message BatchGetUnreadAndLastMessage {
-  repeated GetUnreadAndLastMessage items = 1;  // 查询项列表
-}
-
-// 未读数和最后一条消息响应
-message UnreadAndLastMessage {
-  int64 unread_count = 1;        // 未读数 = seq - read_seq
-  im.message.ImMessage last_message = 2;    // 最后一条消息（通过message_id查询，可选）
-  im.message.ImMessage last_at_message = 3;  // 最后一条@消息（通过last_at_message_id查询，可选）
-  int64 seq = 4;                 // 当前最大序号
-  int64 read_seq = 5;            // 已读序号
-}
-
-// 批量未读数和最后一条消息响应
-message BatchUnreadAndLastMessage {
-  map<string, UnreadAndLastMessage> results = 1;  // key: "group_id:member_id"
-}
 
 // 标记消息状态已读请求（用于群组消息状态管理）
 message MarkGroupMessageStateRead {

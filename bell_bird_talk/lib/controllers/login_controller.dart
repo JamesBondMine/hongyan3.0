@@ -82,7 +82,6 @@ class LoginController extends GetxController {
   @override
   void onClose() {
     usernameController.dispose();
-    phoneController.dispose();
     _countdownTimer?.cancel();
     super.onClose();
   }

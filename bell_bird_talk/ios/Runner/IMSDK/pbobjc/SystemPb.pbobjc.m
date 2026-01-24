@@ -28,6 +28,7 @@
 // We don't use [Foo class] because it is not a static value.
 GPBObjCClassDeclaration(AreaCode);
 GPBObjCClassDeclaration(ConfigResp);
+GPBObjCClassDeclaration(PermissionConfig);
 
 #pragma mark - SystemPbRoot
 
@@ -58,13 +59,13 @@ GPBEnumDescriptor *ConversationType_EnumDescriptor(void) {
   static _Atomic(GPBEnumDescriptor*) descriptor = nil;
   if (!descriptor) {
     static const char *valueNames =
-        "All\000Single\000Group\000System\000Community\000";
+        "All\000Single\000Group\000System\000Cmch\000";
     static const int32_t values[] = {
         ConversationType_All,
         ConversationType_Single,
         ConversationType_Group,
         ConversationType_System,
-        ConversationType_Community,
+        ConversationType_Cmch,
     };
     GPBEnumDescriptor *worker =
         [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol(ConversationType)
@@ -74,7 +75,7 @@ GPBEnumDescriptor *ConversationType_EnumDescriptor(void) {
                                      enumVerifier:ConversationType_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-      [worker release];
+   //   [worker release];
     }
   }
   return descriptor;
@@ -86,7 +87,7 @@ BOOL ConversationType_IsValidValue(int32_t value__) {
     case ConversationType_Single:
     case ConversationType_Group:
     case ConversationType_System:
-    case ConversationType_Community:
+    case ConversationType_Cmch:
       return YES;
     default:
       return NO;
@@ -945,6 +946,239 @@ typedef struct IpLocationResponse__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(IpLocationResponse__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - PermissionConfig
+
+@implementation PermissionConfig
+
+@dynamic methodName;
+@dynamic attributes, attributes_Count;
+@dynamic status;
+@dynamic expireTime;
+@dynamic configDesc;
+
+typedef struct PermissionConfig__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *methodName;
+  NSMutableDictionary *attributes;
+  NSString *status;
+  NSString *configDesc;
+  int64_t expireTime;
+} PermissionConfig__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "methodName",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PermissionConfig_FieldNumber_MethodName,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(PermissionConfig__storage_, methodName),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "attributes",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PermissionConfig_FieldNumber_Attributes,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(PermissionConfig__storage_, attributes),
+        .flags = GPBFieldMapKeyString,
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PermissionConfig_FieldNumber_Status,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(PermissionConfig__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "expireTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PermissionConfig_FieldNumber_ExpireTime,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(PermissionConfig__storage_, expireTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "configDesc",
+        .dataTypeSpecific.clazz = Nil,
+        .number = PermissionConfig_FieldNumber_ConfigDesc,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(PermissionConfig__storage_, configDesc),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[PermissionConfig class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(PermissionConfig__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - Role
+
+@implementation Role
+
+@dynamic code;
+@dynamic name;
+@dynamic expireTime;
+@dynamic assignedBy;
+@dynamic assignedTime;
+@dynamic createdAt;
+@dynamic updatedAt;
+@dynamic status;
+@dynamic description_p;
+@dynamic permissionConfigsArray, permissionConfigsArray_Count;
+
+typedef struct Role__storage_ {
+  uint32_t _has_storage_[1];
+  NSString *code;
+  NSString *name;
+  NSString *assignedBy;
+  NSString *status;
+  NSString *description_p;
+  NSMutableArray *permissionConfigsArray;
+  int64_t expireTime;
+  int64_t assignedTime;
+  int64_t createdAt;
+  int64_t updatedAt;
+} Role__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "code",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_Code,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(Role__storage_, code),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "name",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_Name,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(Role__storage_, name),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "expireTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_ExpireTime,
+        .hasIndex = 2,
+        .offset = (uint32_t)offsetof(Role__storage_, expireTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "assignedBy",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_AssignedBy,
+        .hasIndex = 3,
+        .offset = (uint32_t)offsetof(Role__storage_, assignedBy),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "assignedTime",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_AssignedTime,
+        .hasIndex = 4,
+        .offset = (uint32_t)offsetof(Role__storage_, assignedTime),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "createdAt",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_CreatedAt,
+        .hasIndex = 5,
+        .offset = (uint32_t)offsetof(Role__storage_, createdAt),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "updatedAt",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_UpdatedAt,
+        .hasIndex = 6,
+        .offset = (uint32_t)offsetof(Role__storage_, updatedAt),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeInt64,
+      },
+      {
+        .name = "status",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_Status,
+        .hasIndex = 7,
+        .offset = (uint32_t)offsetof(Role__storage_, status),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "description_p",
+        .dataTypeSpecific.clazz = Nil,
+        .number = Role_FieldNumber_Description_p,
+        .hasIndex = 8,
+        .offset = (uint32_t)offsetof(Role__storage_, description_p),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldClearHasIvarOnZero),
+        .dataType = GPBDataTypeString,
+      },
+      {
+        .name = "permissionConfigsArray",
+        .dataTypeSpecific.clazz = GPBObjCClass(PermissionConfig),
+        .number = Role_FieldNumber_PermissionConfigsArray,
+        .hasIndex = GPBNoHasBit,
+        .offset = (uint32_t)offsetof(Role__storage_, permissionConfigsArray),
+        .flags = GPBFieldRepeated,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[Role class]
+                                     rootClass:[SystemPbRoot class]
+                                          file:SystemPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(Role__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

@@ -43,8 +43,8 @@ enum RoleStatus {
 
 // ========== 核心领域对象（不加前缀）==========
 
-// Role - 角色信息（RBAC）
-message Role {
+// PermissionRole - 角色信息（RBAC）
+message PermissionRole {
   string role_code = 1;        // 角色代码（必填）
   string role_name = 2;        // 角色名称（必填）
   string role_description = 3; // 角色描述（可选）

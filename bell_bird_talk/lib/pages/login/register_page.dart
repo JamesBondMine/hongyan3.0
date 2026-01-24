@@ -63,9 +63,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 _buildAppBar(),
                 // 表单内容
                 Expanded(
-                  child: Padding(
+                  child: ListView(
                     padding: const EdgeInsets.all(24),
-                    child: Column(
+                    // child: Column(
                       children: [
                         // Logo 和标题
                         _buildHeader(),
@@ -84,7 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         _buildLoginButton(),
                       ],
                     ),
-                  ),
+                  // ),
                 ),
               ],
             ),
@@ -415,19 +415,16 @@ class _RegisterPageState extends State<RegisterPage> {
       final message = result['message'] ?? '未知错误'.tr;
 
       if (errorCode == 0) {
-        // 保存 captcha_id
         final data = result['data'];
         if (data != null && data.isNotEmpty) {
           try {
             final dataMap = json.decode(data);
             _emailCaptchaId = dataMap['captcha_id'];
-            print('✅ 获取到邮箱 captcha_id: $_emailCaptchaId');
             onVerifyCodeSuccess(_emailCaptchaId);
           } catch (e) {
             print('⚠️ 解析邮箱 captcha_id 失败: $e');
           }
         }
-
         EasyLoading.showSuccess('验证码已发送到邮箱'.tr);
       } else {
         EasyLoading.showError('${'发送失败'.tr}: $message (code: $errorCode)');

@@ -72,9 +72,9 @@ GPBEnumDescriptor *CmtyInviteLinkStatus_EnumDescriptor(void) {
                                             count:(uint32_t)(sizeof(values) / sizeof(int32_t))
                                      enumVerifier:CmtyInviteLinkStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
-//    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//      [worker release];
-//    }
+    if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
+//   //   [worker release];
+    }
   }
   return descriptor;
 }

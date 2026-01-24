@@ -27,35 +27,46 @@
 
 CF_EXTERN_C_BEGIN
 
+@class CmtyJoinRecord;
 @class CmtyMember;
 @class Page;
+@class Role;
 
 NS_ASSUME_NONNULL_BEGIN
 
-#pragma mark - Enum CmtyMemberRole
+#pragma mark - Enum CmtyJoinStatus
 
-/** 成员角色枚举 */
-typedef GPB_ENUM(CmtyMemberRole) {
+/** 加入状态枚举（去除 Request 后缀） */
+typedef GPB_ENUM(CmtyJoinStatus) {
   /**
    * Value used if any message's field encounters a value that is not defined
    * by this enum. The message will also have C functions to get/set the rawValue
    * of the field.
    **/
-  CmtyMemberRole_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
-  /** 普通成员（默认值） */
-  CmtyMemberRole_Member = 0,
+  CmtyJoinStatus_GPBUnrecognizedEnumeratorValue = kGPBUnrecognizedEnumeratorValue,
+  /** 待审核（默认值） */
+  CmtyJoinStatus_Pending = 0,
 
-  /** 超管 */
-  CmtyMemberRole_Owner = 1,
+  /** 已通过 */
+  CmtyJoinStatus_Approved = 1,
+
+  /** 已拒绝 */
+  CmtyJoinStatus_Rejected = 2,
+
+  /** 已过期 */
+  CmtyJoinStatus_Expired = 3,
+
+  /** 已取消 */
+  CmtyJoinStatus_Cancelled = 4,
 };
 
-GPBEnumDescriptor *CmtyMemberRole_EnumDescriptor(void);
+GPBEnumDescriptor *CmtyJoinStatus_EnumDescriptor(void);
 
 /**
  * Checks to see if the given value is defined by the enum or was not known at
  * the time this source was generated.
  **/
-BOOL CmtyMemberRole_IsValidValue(int32_t value);
+BOOL CmtyJoinStatus_IsValidValue(int32_t value);
 
 #pragma mark - CmtyMemberPbRoot
 
@@ -75,7 +86,13 @@ GPB_FINAL @interface CmtyMemberPbRoot : GPBRootObject
 #pragma mark - CmtyMembersQuery
 
 typedef GPB_ENUM(CmtyMembersQuery_FieldNumber) {
-  CmtyMembersQuery_FieldNumber_Page = 1,
+  CmtyMembersQuery_FieldNumber_Keyword = 1,
+  CmtyMembersQuery_FieldNumber_StartTime = 2,
+  CmtyMembersQuery_FieldNumber_EndTime = 3,
+  CmtyMembersQuery_FieldNumber_JoinWay = 4,
+  CmtyMembersQuery_FieldNumber_IsMuted = 5,
+  CmtyMembersQuery_FieldNumber_CmtyId = 6,
+  CmtyMembersQuery_FieldNumber_Page = 7,
 };
 
 /**
@@ -84,12 +101,93 @@ typedef GPB_ENUM(CmtyMembersQuery_FieldNumber) {
  **/
 GPB_FINAL @interface CmtyMembersQuery : GPBMessage
 
+/** 昵称或用户名（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *keyword;
+/** Test to see if @c keyword has been set. */
+@property(nonatomic, readwrite) BOOL hasKeyword;
+
+/** 加入时间筛选（可选，为空时查询所有时间） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *startTime;
+/** Test to see if @c startTime has been set. */
+@property(nonatomic, readwrite) BOOL hasStartTime;
+
+/** 加入时间筛选（可选，为空时查询所有时间） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *endTime;
+/** Test to see if @c endTime has been set. */
+@property(nonatomic, readwrite) BOOL hasEndTime;
+
+/** 加入方式筛选（可选，为空时查询所有方式） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *joinWay;
+/** Test to see if @c joinWay has been set. */
+@property(nonatomic, readwrite) BOOL hasJoinWay;
+
+/** 是否禁言（可选） */
+@property(nonatomic, readwrite) BOOL isMuted;
+
+@property(nonatomic, readwrite) BOOL hasIsMuted;
+/** 社群id */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *cmtyId;
+/** Test to see if @c cmtyId has been set. */
+@property(nonatomic, readwrite) BOOL hasCmtyId;
+
 /** 分页参数（可选，使用系统类型） */
 @property(nonatomic, readwrite, strong, null_resettable) Page *page;
 /** Test to see if @c page has been set. */
 @property(nonatomic, readwrite) BOOL hasPage;
 
 @end
+
+#pragma mark - CmtyGetMemberRoles
+
+typedef GPB_ENUM(CmtyGetMemberRoles_FieldNumber) {
+  CmtyGetMemberRoles_FieldNumber_UserId = 1,
+};
+
+/**
+ * CmtyGetMemberRoles - 获取成员角色（用于getMemberRoles方法）
+ * 注意：cmtyId 从 Topic 路径中获取（/im/CMTY/{cmtyId}/getMemberRoles）
+ **/
+GPB_FINAL @interface CmtyGetMemberRoles : GPBMessage
+
+/** 用户ID（必填） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
+
+@end
+
+#pragma mark - CmtyJoinsQuery
+
+typedef GPB_ENUM(CmtyJoinsQuery_FieldNumber) {
+  CmtyJoinsQuery_FieldNumber_Status = 1,
+  CmtyJoinsQuery_FieldNumber_Page = 2,
+};
+
+/**
+ * CmtyJoinsQuery - 加入申请查询（用于listJoinRequests方法，去除 Request）
+ * 注意：cmtyId 从 Topic 路径中获取（/im/CMTY/{cmtyId}/listJoinRequests）
+ **/
+GPB_FINAL @interface CmtyJoinsQuery : GPBMessage
+
+/** 申请状态筛选（可选，为空时查询所有状态） */
+@property(nonatomic, readwrite) CmtyJoinStatus status;
+
+/** 分页参数（可选，使用系统类型） */
+@property(nonatomic, readwrite, strong, null_resettable) Page *page;
+/** Test to see if @c page has been set. */
+@property(nonatomic, readwrite) BOOL hasPage;
+
+@end
+
+/**
+ * Fetches the raw value of a @c CmtyJoinsQuery's @c status property, even
+ * if the value was not defined by the enum at the time the code was generated.
+ **/
+int32_t CmtyJoinsQuery_Status_RawValue(CmtyJoinsQuery *message);
+/**
+ * Sets the raw value of an @c CmtyJoinsQuery's @c status property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetCmtyJoinsQuery_Status_RawValue(CmtyJoinsQuery *message, int32_t value);
 
 #pragma mark - CmtyMember
 
@@ -98,7 +196,7 @@ typedef GPB_ENUM(CmtyMember_FieldNumber) {
   CmtyMember_FieldNumber_Nickname = 2,
   CmtyMember_FieldNumber_Username = 3,
   CmtyMember_FieldNumber_Avatar = 4,
-  CmtyMember_FieldNumber_Role = 5,
+  CmtyMember_FieldNumber_RolesArray = 5,
   CmtyMember_FieldNumber_JoinedAt = 6,
   CmtyMember_FieldNumber_JoinWay = 7,
   CmtyMember_FieldNumber_InviteCount = 8,
@@ -121,8 +219,10 @@ GPB_FINAL @interface CmtyMember : GPBMessage
 /** 头像URL（返回字段） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *avatar;
 
-/** 角色（返回字段） */
-@property(nonatomic, readwrite) CmtyMemberRole role;
+/** 角色列表（返回字段，使用通用的Role对象） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<Role*> *rolesArray;
+/** The number of items in @c rolesArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger rolesArray_Count;
 
 /** 加入时间（返回字段） */
 @property(nonatomic, readwrite) int64_t joinedAt;
@@ -135,17 +235,89 @@ GPB_FINAL @interface CmtyMember : GPBMessage
 
 @end
 
+#pragma mark - CmtyJoinRecord
+
+typedef GPB_ENUM(CmtyJoinRecord_FieldNumber) {
+  CmtyJoinRecord_FieldNumber_RequestId = 1,
+  CmtyJoinRecord_FieldNumber_CmtyId = 2,
+  CmtyJoinRecord_FieldNumber_UserId = 3,
+  CmtyJoinRecord_FieldNumber_Nickname = 4,
+  CmtyJoinRecord_FieldNumber_Username = 5,
+  CmtyJoinRecord_FieldNumber_Avatar = 6,
+  CmtyJoinRecord_FieldNumber_RequestMessage = 7,
+  CmtyJoinRecord_FieldNumber_RequestTime = 8,
+  CmtyJoinRecord_FieldNumber_ExpireTime = 9,
+  CmtyJoinRecord_FieldNumber_Status = 10,
+  CmtyJoinRecord_FieldNumber_ReviewUserId = 11,
+  CmtyJoinRecord_FieldNumber_ReviewTime = 12,
+  CmtyJoinRecord_FieldNumber_ReviewMessage = 13,
+  CmtyJoinRecord_FieldNumber_InviteCode = 14,
+  CmtyJoinRecord_FieldNumber_InviteLink = 15,
+};
+
 /**
- * Fetches the raw value of a @c CmtyMember's @c role property, even
+ * CmtyJoinRecord - 加入申请记录（用于列表展示，区别于 cmty_pb.CmtyJoin 请求参数）
+ **/
+GPB_FINAL @interface CmtyJoinRecord : GPBMessage
+
+/** 申请ID（返回字段） */
+@property(nonatomic, readwrite) int64_t requestId;
+
+/** 社群ID（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *cmtyId;
+
+/** 申请人用户ID（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
+
+/** 申请人昵称（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *nickname;
+
+/** 申请人用户名（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *username;
+
+/** 申请人头像（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *avatar;
+
+/** 申请消息（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *requestMessage;
+
+/** 申请时间戳（返回字段） */
+@property(nonatomic, readwrite) int64_t requestTime;
+
+/** 过期时间戳（返回字段） */
+@property(nonatomic, readwrite) int64_t expireTime;
+
+/** 申请状态（返回字段） */
+@property(nonatomic, readwrite) CmtyJoinStatus status;
+
+/** 审核人用户ID（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *reviewUserId;
+
+/** 审核时间戳（返回字段） */
+@property(nonatomic, readwrite) int64_t reviewTime;
+
+/** 审核消息（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *reviewMessage;
+
+/** 邀请码（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *inviteCode;
+
+/** 邀请链接（返回字段） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *inviteLink;
+
+@end
+
+/**
+ * Fetches the raw value of a @c CmtyJoinRecord's @c status property, even
  * if the value was not defined by the enum at the time the code was generated.
  **/
-int32_t CmtyMember_Role_RawValue(CmtyMember *message);
+int32_t CmtyJoinRecord_Status_RawValue(CmtyJoinRecord *message);
 /**
- * Sets the raw value of an @c CmtyMember's @c role property, allowing
+ * Sets the raw value of an @c CmtyJoinRecord's @c status property, allowing
  * it to be set to a value that was not defined by the enum at the time the code
  * was generated.
  **/
-void SetCmtyMember_Role_RawValue(CmtyMember *message, int32_t value);
+void SetCmtyJoinRecord_Status_RawValue(CmtyJoinRecord *message, int32_t value);
 
 #pragma mark - CmtyMemberList
 
@@ -166,6 +338,67 @@ GPB_FINAL @interface CmtyMemberList : GPBMessage
 
 /** 总成员数 */
 @property(nonatomic, readwrite) int32_t total;
+
+@end
+
+#pragma mark - CmtyMemberRoles
+
+typedef GPB_ENUM(CmtyMemberRoles_FieldNumber) {
+  CmtyMemberRoles_FieldNumber_RoleCodesArray = 1,
+};
+
+/**
+ * CmtyMemberRoles - 成员角色列表（用于getMemberRoles方法）
+ **/
+GPB_FINAL @interface CmtyMemberRoles : GPBMessage
+
+/** 角色代码列表（返回字段） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<NSString*> *roleCodesArray;
+/** The number of items in @c roleCodesArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger roleCodesArray_Count;
+
+@end
+
+#pragma mark - CmtyJoinRecordList
+
+typedef GPB_ENUM(CmtyJoinRecordList_FieldNumber) {
+  CmtyJoinRecordList_FieldNumber_RecordsArray = 1,
+  CmtyJoinRecordList_FieldNumber_Total = 2,
+};
+
+/**
+ * CmtyJoinRecordList - 加入申请记录列表
+ **/
+GPB_FINAL @interface CmtyJoinRecordList : GPBMessage
+
+/** 申请记录列表（返回字段） */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<CmtyJoinRecord*> *recordsArray;
+/** The number of items in @c recordsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger recordsArray_Count;
+
+/** 总申请数（返回字段） */
+@property(nonatomic, readwrite) int32_t total;
+
+@end
+
+#pragma mark - CmtyReviewJoin
+
+typedef GPB_ENUM(CmtyReviewJoin_FieldNumber) {
+  CmtyReviewJoin_FieldNumber_RequestId = 1,
+  CmtyReviewJoin_FieldNumber_ReviewMessage = 2,
+};
+
+/**
+ * CmtyReviewJoin - 审核加入申请（用于approveJoinRequest和rejectJoinRequest方法，去除 Request 后缀）
+ * 注意：cmtyId 从 Topic 路径中获取，审核人从 fromId 获取
+ **/
+GPB_FINAL @interface CmtyReviewJoin : GPBMessage
+
+/** 申请ID（必填） */
+@property(nonatomic, readwrite) int64_t requestId;
+
+/** 审核消息（可选，拒绝时建议提供原因） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *reviewMessage;
 
 @end
 

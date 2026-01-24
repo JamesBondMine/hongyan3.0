@@ -27,7 +27,9 @@
 
 CF_EXTERN_C_BEGIN
 
+@class ChannelUnreadSummary;
 @class CmtyChannel;
+@class CmtyChannelGroup;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -103,7 +105,8 @@ GPB_FINAL @interface CmtyChannelPbRoot : GPBRootObject
 
 typedef GPB_ENUM(CmtyChannelsQuery_FieldNumber) {
   CmtyChannelsQuery_FieldNumber_CommunityId = 1,
-  CmtyChannelsQuery_FieldNumber_CategoryId = 2,
+  CmtyChannelsQuery_FieldNumber_GroupId = 2,
+  CmtyChannelsQuery_FieldNumber_ChannelType = 3,
 };
 
 /**
@@ -114,44 +117,64 @@ GPB_FINAL @interface CmtyChannelsQuery : GPBMessage
 /** 社群ID（必填） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *communityId;
 
-/** 分类ID（可选，不填则查询所有分类） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *categoryId;
+/** 分组ID（可选，不填则查询所有分组） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *groupId;
 
+/** 频道类型（可选） */
+@property(nonatomic, readwrite) CmtyChannelType channelType;
+
+@property(nonatomic, readwrite) BOOL hasChannelType;
 @end
+
+/**
+ * Fetches the raw value of a @c CmtyChannelsQuery's @c channelType property, even
+ * if the value was not defined by the enum at the time the code was generated.
+ **/
+int32_t CmtyChannelsQuery_ChannelType_RawValue(CmtyChannelsQuery *message);
+/**
+ * Sets the raw value of an @c CmtyChannelsQuery's @c channelType property, allowing
+ * it to be set to a value that was not defined by the enum at the time the code
+ * was generated.
+ **/
+void SetCmtyChannelsQuery_ChannelType_RawValue(CmtyChannelsQuery *message, int32_t value);
 
 #pragma mark - CmtyChannel
 
 typedef GPB_ENUM(CmtyChannel_FieldNumber) {
-  CmtyChannel_FieldNumber_ChannelId = 1,
-  CmtyChannel_FieldNumber_CommunityId = 2,
-  CmtyChannel_FieldNumber_CategoryId = 3,
+  CmtyChannel_FieldNumber_CommunityId = 1,
+  CmtyChannel_FieldNumber_ChannelId = 2,
+  CmtyChannel_FieldNumber_ChannelGroup = 3,
   CmtyChannel_FieldNumber_ChannelName = 4,
   CmtyChannel_FieldNumber_ChannelType = 5,
   CmtyChannel_FieldNumber_Description_p = 6,
-  CmtyChannel_FieldNumber_MemberCount = 7,
-  CmtyChannel_FieldNumber_MaxMembers = 8,
-  CmtyChannel_FieldNumber_PauseInvite = 9,
-  CmtyChannel_FieldNumber_MuteAll = 10,
-  CmtyChannel_FieldNumber_NotificationType = 11,
-  CmtyChannel_FieldNumber_CreatedAt = 12,
-  CmtyChannel_FieldNumber_UpdatedAt = 13,
+  CmtyChannel_FieldNumber_MaxMembers = 7,
+  CmtyChannel_FieldNumber_PauseInvite = 8,
+  CmtyChannel_FieldNumber_MuteAll = 9,
+  CmtyChannel_FieldNumber_NotificationType = 10,
+  CmtyChannel_FieldNumber_CreatedAt = 11,
+  CmtyChannel_FieldNumber_UpdatedAt = 12,
 };
 
 /**
  * CmtyChannel - 频道信息
+ * 用于：update 方法请求和响应、channels 方法响应
+ * 注意：作为更新请求时，只设置需要更新的字段，服务端会对比字段变化后更新
+ * 分组更新：通过 channel_group.group_id 字段更新分组（空字符串表示移除分组）
  **/
 GPB_FINAL @interface CmtyChannel : GPBMessage
-
-/** 频道ID（群组ID，返回字段） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
 
 /** 社群ID（返回字段） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *communityId;
 
-/** 分类ID（返回字段） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *categoryId;
+/** 频道ID（群组ID，返回字段；更新请求时必填，用于路由） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
 
-/** 频道名称（返回字段） */
+/** 频道分组信息（返回字段；更新请求时可选，用于更新分组） */
+@property(nonatomic, readwrite, strong, null_resettable) CmtyChannelGroup *channelGroup;
+/** Test to see if @c channelGroup has been set. */
+@property(nonatomic, readwrite) BOOL hasChannelGroup;
+
+/** 频道名称（返回字段；更新请求时可选，2-50字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *channelName;
 
 /** 频道类型（返回字段） */
@@ -160,19 +183,16 @@ GPB_FINAL @interface CmtyChannel : GPBMessage
 /** 频道描述（返回字段） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *description_p;
 
-/** 成员数量（返回字段） */
-@property(nonatomic, readwrite) int32_t memberCount;
-
 /** 最大成员数（语音频道，返回字段） */
 @property(nonatomic, readwrite) int32_t maxMembers;
 
-/** 是否暂停邀请（返回字段） */
+/** 是否暂停邀请（返回字段；更新请求时可选） */
 @property(nonatomic, readwrite) BOOL pauseInvite;
 
-/** 是否禁止发言（返回字段） */
+/** 是否禁止发言（返回字段；更新请求时可选） */
 @property(nonatomic, readwrite) BOOL muteAll;
 
-/** 通知类型（返回字段） */
+/** 通知类型（返回字段；更新请求时可选） */
 @property(nonatomic, readwrite) CmtyNotificationType notificationType;
 
 /** 创建时间（返回字段） */
@@ -269,7 +289,7 @@ void SetCmtyChannelSettings_NotificationType_RawValue(CmtyChannelSettings *messa
 
 typedef GPB_ENUM(CmtyCreateChannel_FieldNumber) {
   CmtyCreateChannel_FieldNumber_CommunityId = 1,
-  CmtyCreateChannel_FieldNumber_CategoryId = 2,
+  CmtyCreateChannel_FieldNumber_GroupId = 2,
   CmtyCreateChannel_FieldNumber_ChannelName = 3,
   CmtyCreateChannel_FieldNumber_ChannelType = 4,
   CmtyCreateChannel_FieldNumber_Description_p = 5,
@@ -284,8 +304,8 @@ GPB_FINAL @interface CmtyCreateChannel : GPBMessage
 /** 社群ID（必填） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *communityId;
 
-/** 分类ID（必填） */
-@property(nonatomic, readwrite, copy, null_resettable) NSString *categoryId;
+/** 分组ID（必填） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *groupId;
 
 /** 频道名称（必填，2-50字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *channelName;
@@ -321,11 +341,16 @@ typedef GPB_ENUM(CmtyUpdateChannel_FieldNumber) {
   CmtyUpdateChannel_FieldNumber_PauseInvite = 3,
   CmtyUpdateChannel_FieldNumber_MuteAll = 4,
   CmtyUpdateChannel_FieldNumber_NotificationType = 5,
+  CmtyUpdateChannel_FieldNumber_Description_p = 6,
 };
 
 /**
  * CmtyUpdateChannel - 更新频道
+ * ⚠️ 已废弃：频道模块的 update 方法已改为使用 CmtyChannel 对象作为请求参数
+ * 请使用 CmtyChannel 对象，通过 channel_group.group_id 字段更新分组
+ * 保留此消息类型仅用于向后兼容，新代码请使用 CmtyChannel
  **/
+GPB_DEPRECATED_MSG("im.cmty.channel.CmtyUpdateChannel is deprecated (see cmty/cmty_channel_pb.proto).")
 GPB_FINAL @interface CmtyUpdateChannel : GPBMessage
 
 /** 频道ID（必填） */
@@ -337,11 +362,19 @@ GPB_FINAL @interface CmtyUpdateChannel : GPBMessage
 /** 是否暂停邀请（可选） */
 @property(nonatomic, readwrite) BOOL pauseInvite;
 
+@property(nonatomic, readwrite) BOOL hasPauseInvite;
 /** 是否禁止发言（可选） */
 @property(nonatomic, readwrite) BOOL muteAll;
 
+@property(nonatomic, readwrite) BOOL hasMuteAll;
 /** 通知类型（可选） */
 @property(nonatomic, readwrite) CmtyNotificationType notificationType;
+
+@property(nonatomic, readwrite) BOOL hasNotificationType;
+/** 频道描述（可选） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *description_p;
+/** Test to see if @c description_p has been set. */
+@property(nonatomic, readwrite) BOOL hasDescription_p;
 
 @end
 
@@ -370,6 +403,178 @@ GPB_FINAL @interface CmtyDeleteChannel : GPBMessage
 
 /** 频道ID（必填） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+@end
+
+#pragma mark - CmtyEnterChannel
+
+typedef GPB_ENUM(CmtyEnterChannel_FieldNumber) {
+  CmtyEnterChannel_FieldNumber_ChannelId = 1,
+};
+
+/**
+ * CmtyEnterChannel - 进入频道
+ **/
+GPB_FINAL @interface CmtyEnterChannel : GPBMessage
+
+/** 频道ID（必填） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+@end
+
+#pragma mark - CmtyLeaveChannel
+
+typedef GPB_ENUM(CmtyLeaveChannel_FieldNumber) {
+  CmtyLeaveChannel_FieldNumber_ChannelId = 1,
+};
+
+/**
+ * CmtyLeaveChannel - 退出频道
+ **/
+GPB_FINAL @interface CmtyLeaveChannel : GPBMessage
+
+/** 频道ID（必填） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+@end
+
+#pragma mark - CmtyChannelOnlineUsers
+
+typedef GPB_ENUM(CmtyChannelOnlineUsers_FieldNumber) {
+  CmtyChannelOnlineUsers_FieldNumber_ChannelId = 1,
+  CmtyChannelOnlineUsers_FieldNumber_UserIdsArray = 2,
+  CmtyChannelOnlineUsers_FieldNumber_Count = 3,
+};
+
+/**
+ * CmtyChannelOnlineUsers - 频道在线用户列表响应
+ **/
+GPB_FINAL @interface CmtyChannelOnlineUsers : GPBMessage
+
+/** 频道ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+/** 在线用户ID列表 */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<NSString*> *userIdsArray;
+/** The number of items in @c userIdsArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger userIdsArray_Count;
+
+/** 在线用户数量 */
+@property(nonatomic, readwrite) int32_t count;
+
+@end
+
+#pragma mark - CmtyChannelHistoryQuery
+
+typedef GPB_ENUM(CmtyChannelHistoryQuery_FieldNumber) {
+  CmtyChannelHistoryQuery_FieldNumber_ChannelId = 1,
+  CmtyChannelHistoryQuery_FieldNumber_Page = 2,
+  CmtyChannelHistoryQuery_FieldNumber_Size = 3,
+};
+
+/**
+ * CmtyChannelHistoryQuery - 查询频道历史消息
+ **/
+GPB_FINAL @interface CmtyChannelHistoryQuery : GPBMessage
+
+/** 频道ID（必填） */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+/** 页码（从1开始，可选，默认1） */
+@property(nonatomic, readwrite) int32_t page;
+
+/** 每页数量（可选，默认20，最大100） */
+@property(nonatomic, readwrite) int32_t size;
+
+@end
+
+#pragma mark - ChannelUnreadSummary
+
+typedef GPB_ENUM(ChannelUnreadSummary_FieldNumber) {
+  ChannelUnreadSummary_FieldNumber_ChannelId = 1,
+  ChannelUnreadSummary_FieldNumber_LastMessageId = 2,
+  ChannelUnreadSummary_FieldNumber_UnreadCount = 3,
+  ChannelUnreadSummary_FieldNumber_HasMention = 4,
+  ChannelUnreadSummary_FieldNumber_Timestamp = 5,
+};
+
+/**
+ * ChannelUnreadSummary - 频道未读摘要
+ **/
+GPB_FINAL @interface ChannelUnreadSummary : GPBMessage
+
+/** 频道ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+/** 最后一条消息ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *lastMessageId;
+
+/** 未读数量 */
+@property(nonatomic, readwrite) int32_t unreadCount;
+
+/** 是否有\@提及 */
+@property(nonatomic, readwrite) BOOL hasMention;
+
+/** 时间戳（最后一条消息时间） */
+@property(nonatomic, readwrite) int64_t timestamp;
+
+@end
+
+#pragma mark - CmtyChannelUnreadAggregation
+
+typedef GPB_ENUM(CmtyChannelUnreadAggregation_FieldNumber) {
+  CmtyChannelUnreadAggregation_FieldNumber_AppId = 1,
+  CmtyChannelUnreadAggregation_FieldNumber_CmtyId = 2,
+  CmtyChannelUnreadAggregation_FieldNumber_ChannelSummariesArray = 3,
+};
+
+/**
+ * CmtyChannelUnreadAggregation - 频道未读汇总（CMCH -> CMTY）
+ **/
+GPB_FINAL @interface CmtyChannelUnreadAggregation : GPBMessage
+
+/** 应用ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *appId;
+
+/** 社群ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *cmtyId;
+
+/** 频道未读摘要列表 */
+@property(nonatomic, readwrite, strong, null_resettable) NSMutableArray<ChannelUnreadSummary*> *channelSummariesArray;
+/** The number of items in @c channelSummariesArray without causing the array to be created. */
+@property(nonatomic, readonly) NSUInteger channelSummariesArray_Count;
+
+@end
+
+#pragma mark - ChannelUnreadEvent
+
+typedef GPB_ENUM(ChannelUnreadEvent_FieldNumber) {
+  ChannelUnreadEvent_FieldNumber_ChannelId = 1,
+  ChannelUnreadEvent_FieldNumber_LastMessageId = 2,
+  ChannelUnreadEvent_FieldNumber_UnreadCount = 3,
+  ChannelUnreadEvent_FieldNumber_HasMention = 4,
+  ChannelUnreadEvent_FieldNumber_Timestamp = 5,
+};
+
+/**
+ * ChannelUnreadEvent - 频道未读事件（CMTY -> 客户端）
+ **/
+GPB_FINAL @interface ChannelUnreadEvent : GPBMessage
+
+/** 频道ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *channelId;
+
+/** 最后一条消息ID */
+@property(nonatomic, readwrite, copy, null_resettable) NSString *lastMessageId;
+
+/** 未读数量 */
+@property(nonatomic, readwrite) int32_t unreadCount;
+
+/** 是否有\@提及 */
+@property(nonatomic, readwrite) BOOL hasMention;
+
+/** 时间戳（最后一条消息时间） */
+@property(nonatomic, readwrite) int64_t timestamp;
 
 @end
 

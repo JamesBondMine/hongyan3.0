@@ -60,9 +60,7 @@ class _HomePageState extends State<HomePage> {
       if (isAllowed) {
         
        Future.delayed(  const Duration(seconds: 10), () {
-          print('✅ 本地通知权限已授予');
           _createNotification(0, '登录成功！欢迎使用本应用。');
-;
         });
       }
     });
@@ -84,17 +82,17 @@ class _HomePageState extends State<HomePage> {
         // largeIcon: 'asset://assets/img/noti/noti.png',
         // icon: 'asset://assets/img/noti/noti.png',
       ),
-      actionButtons: [
-        NotificationActionButton(
-          key: 'REPLY',
-          label: '回复',
-        ),
-        NotificationActionButton(
-          key: 'DISMISS',
-          label: '忽略',
-          isDangerousOption: true,
-        ),
-      ],
+      // actionButtons: [
+      //   NotificationActionButton(
+      //     key: 'REPLY',
+      //     label: '回复',
+      //   ),
+      //   NotificationActionButton(
+      //     key: 'DISMISS',
+      //     label: '忽略',
+      //     isDangerousOption: true,
+      //   ),
+      // ],
       schedule: NotificationInterval(
         interval: Duration(seconds: 5),
       ),

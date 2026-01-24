@@ -292,19 +292,19 @@ int32_t Device_Status_RawValue(Device *message);
  **/
 void SetDevice_Status_RawValue(Device *message, int32_t value);
 
-#pragma mark - CheckDevice
+#pragma mark - Check
 
-typedef GPB_ENUM(CheckDevice_FieldNumber) {
-  CheckDevice_FieldNumber_UserId = 1,
-  CheckDevice_FieldNumber_DeviceId = 2,
-  CheckDevice_FieldNumber_Device = 3,
+typedef GPB_ENUM(Check_FieldNumber) {
+  Check_FieldNumber_UserId = 1,
+  Check_FieldNumber_DeviceId = 2,
+  Check_FieldNumber_Device = 3,
 };
 
 /**
  * 检查设备 - 查询操作
  * 用于检查设备是否存在、是否需要认证等
  **/
-GPB_FINAL @interface CheckDevice : GPBMessage
+GPB_FINAL @interface Check : GPBMessage
 
 /** 用户ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -319,18 +319,18 @@ GPB_FINAL @interface CheckDevice : GPBMessage
 
 @end
 
-#pragma mark - GetDevice
+#pragma mark - Get
 
-typedef GPB_ENUM(GetDevice_FieldNumber) {
-  GetDevice_FieldNumber_UserId = 1,
-  GetDevice_FieldNumber_DeviceId = 2,
+typedef GPB_ENUM(Get_FieldNumber) {
+  Get_FieldNumber_UserId = 1,
+  Get_FieldNumber_DeviceId = 2,
 };
 
 /**
  * 获取设备详情 - 查询操作
  * 用于获取指定设备的详细信息
  **/
-GPB_FINAL @interface GetDevice : GPBMessage
+GPB_FINAL @interface Get : GPBMessage
 
 /** 用户ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -340,20 +340,20 @@ GPB_FINAL @interface GetDevice : GPBMessage
 
 @end
 
-#pragma mark - DeviceListQuery
+#pragma mark - ListQuery
 
-typedef GPB_ENUM(DeviceListQuery_FieldNumber) {
-  DeviceListQuery_FieldNumber_UserId = 1,
-  DeviceListQuery_FieldNumber_DeviceType = 2,
-  DeviceListQuery_FieldNumber_Status = 3,
-  DeviceListQuery_FieldNumber_Page = 4,
+typedef GPB_ENUM(ListQuery_FieldNumber) {
+  ListQuery_FieldNumber_UserId = 1,
+  ListQuery_FieldNumber_DeviceType = 2,
+  ListQuery_FieldNumber_Status = 3,
+  ListQuery_FieldNumber_Page = 4,
 };
 
 /**
  * 设备列表查询 - 查询操作
  * 用于分页查询用户的设备列表
  **/
-GPB_FINAL @interface DeviceListQuery : GPBMessage
+GPB_FINAL @interface ListQuery : GPBMessage
 
 /** 用户ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -372,60 +372,60 @@ GPB_FINAL @interface DeviceListQuery : GPBMessage
 @end
 
 /**
- * Fetches the raw value of a @c DeviceListQuery's @c deviceType property, even
+ * Fetches the raw value of a @c ListQuery's @c deviceType property, even
  * if the value was not defined by the enum at the time the code was generated.
  **/
-int32_t DeviceListQuery_DeviceType_RawValue(DeviceListQuery *message);
+int32_t ListQuery_DeviceType_RawValue(ListQuery *message);
 /**
- * Sets the raw value of an @c DeviceListQuery's @c deviceType property, allowing
+ * Sets the raw value of an @c ListQuery's @c deviceType property, allowing
  * it to be set to a value that was not defined by the enum at the time the code
  * was generated.
  **/
-void SetDeviceListQuery_DeviceType_RawValue(DeviceListQuery *message, int32_t value);
+void SetListQuery_DeviceType_RawValue(ListQuery *message, int32_t value);
 
 /**
- * Fetches the raw value of a @c DeviceListQuery's @c status property, even
+ * Fetches the raw value of a @c ListQuery's @c status property, even
  * if the value was not defined by the enum at the time the code was generated.
  **/
-int32_t DeviceListQuery_Status_RawValue(DeviceListQuery *message);
+int32_t ListQuery_Status_RawValue(ListQuery *message);
 /**
- * Sets the raw value of an @c DeviceListQuery's @c status property, allowing
+ * Sets the raw value of an @c ListQuery's @c status property, allowing
  * it to be set to a value that was not defined by the enum at the time the code
  * was generated.
  **/
-void SetDeviceListQuery_Status_RawValue(DeviceListQuery *message, int32_t value);
+void SetListQuery_Status_RawValue(ListQuery *message, int32_t value);
 
-#pragma mark - getUserByDevice
+#pragma mark - GetUserByDevice
 
-typedef GPB_ENUM(getUserByDevice_FieldNumber) {
-  getUserByDevice_FieldNumber_DeviceId = 1,
+typedef GPB_ENUM(GetUserByDevice_FieldNumber) {
+  GetUserByDevice_FieldNumber_DeviceId = 1,
 };
 
 /**
  * 根据设备ID查询用户 - 查询操作
  * 用于从设备ID反向查询用户信息
  **/
-GPB_FINAL @interface getUserByDevice : GPBMessage
+GPB_FINAL @interface GetUserByDevice : GPBMessage
 
 /** 设备ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *deviceId;
 
 @end
 
-#pragma mark - updateActivity
+#pragma mark - UpdateActivity
 
-typedef GPB_ENUM(updateActivity_FieldNumber) {
-  updateActivity_FieldNumber_UserId = 1,
-  updateActivity_FieldNumber_DeviceId = 2,
-  updateActivity_FieldNumber_ClientIp = 3,
-  updateActivity_FieldNumber_ActiveTime = 4,
+typedef GPB_ENUM(UpdateActivity_FieldNumber) {
+  UpdateActivity_FieldNumber_UserId = 1,
+  UpdateActivity_FieldNumber_DeviceId = 2,
+  UpdateActivity_FieldNumber_ClientIp = 3,
+  UpdateActivity_FieldNumber_ActiveTime = 4,
 };
 
 /**
  * 更新设备活跃状态 - 操作对象
  * 用于更新设备的最后活跃时间和IP
  **/
-GPB_FINAL @interface updateActivity : GPBMessage
+GPB_FINAL @interface UpdateActivity : GPBMessage
 
 /** 用户ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -466,20 +466,20 @@ GPB_FINAL @interface RenameDevice : GPBMessage
 
 @end
 
-#pragma mark - authSuccess
+#pragma mark - DeviceAuthSuccess
 
-typedef GPB_ENUM(authSuccess_FieldNumber) {
-  authSuccess_FieldNumber_UserId = 1,
-  authSuccess_FieldNumber_DeviceId = 2,
-  authSuccess_FieldNumber_Device = 3,
-  authSuccess_FieldNumber_CaptchaId = 4,
+typedef GPB_ENUM(DeviceAuthSuccess_FieldNumber) {
+  DeviceAuthSuccess_FieldNumber_UserId = 1,
+  DeviceAuthSuccess_FieldNumber_DeviceId = 2,
+  DeviceAuthSuccess_FieldNumber_Device = 3,
+  DeviceAuthSuccess_FieldNumber_CaptchaId = 4,
 };
 
 /**
  * 设备认证成功 - 操作对象
  * 用于设备认证通过后的信息记录
  **/
-GPB_FINAL @interface authSuccess : GPBMessage
+GPB_FINAL @interface DeviceAuthSuccess : GPBMessage
 
 /** 用户ID（必填，最大长度100字符） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -497,22 +497,22 @@ GPB_FINAL @interface authSuccess : GPBMessage
 
 @end
 
-#pragma mark - checkResult
+#pragma mark - DCheckResult
 
-typedef GPB_ENUM(checkResult_FieldNumber) {
-  checkResult_FieldNumber_DeviceExists = 1,
-  checkResult_FieldNumber_AuthRequired = 2,
-  checkResult_FieldNumber_LimitExceeded = 3,
-  checkResult_FieldNumber_CurrentCount = 4,
-  checkResult_FieldNumber_MaxCount = 5,
-  checkResult_FieldNumber_AuthTokenJwt = 6,
+typedef GPB_ENUM(DCheckResult_FieldNumber) {
+  DCheckResult_FieldNumber_DeviceExists = 1,
+  DCheckResult_FieldNumber_AuthRequired = 2,
+  DCheckResult_FieldNumber_LimitExceeded = 3,
+  DCheckResult_FieldNumber_CurrentCount = 4,
+  DCheckResult_FieldNumber_MaxCount = 5,
+  DCheckResult_FieldNumber_AuthTokenJwt = 6,
 };
 
 /**
  * 设备检查结果 - 结果对象
  * 用于设备检查操作的响应
  **/
-GPB_FINAL @interface checkResult : GPBMessage
+GPB_FINAL @interface DCheckResult : GPBMessage
 
 /** 设备是否存在 */
 @property(nonatomic, readwrite) BOOL deviceExists;
@@ -559,18 +559,18 @@ GPB_FINAL @interface DeviceList : GPBMessage
 
 @end
 
-#pragma mark - userInfo
+#pragma mark - UserInfo
 
-typedef GPB_ENUM(userInfo_FieldNumber) {
-  userInfo_FieldNumber_UserId = 1,
-  userInfo_FieldNumber_Device = 2,
+typedef GPB_ENUM(UserInfo_FieldNumber) {
+  UserInfo_FieldNumber_UserId = 1,
+  UserInfo_FieldNumber_Device = 2,
 };
 
 /**
  * 用户信息 - 结果对象
  * 用于根据设备查询用户的响应
  **/
-GPB_FINAL @interface userInfo : GPBMessage
+GPB_FINAL @interface UserInfo : GPBMessage
 
 /** 用户ID */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *userId;
@@ -594,7 +594,7 @@ typedef GPB_ENUM(GenerateQR_FieldNumber) {
  **/
 GPB_FINAL @interface GenerateQR : GPBMessage
 
-/** 认证令牌JWT（必填，从 checkResult 中获取，已签名） */
+/** 认证令牌JWT（必填，从 DCheckResult 中获取，已签名） */
 @property(nonatomic, readwrite, copy, null_resettable) NSString *authTokenJwt;
 
 @end

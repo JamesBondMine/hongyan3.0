@@ -52,6 +52,14 @@ class CommunityAPIHandler {
             muteCommunityMember(call: call, result: result)
         case "imKickCommunityMember":
             kickCommunityMember(call: call, result: result)
+        case "imGetCommunitySettings":
+            getCommunitySettings(call: call, result: result)
+        case "imUpdateCommunitySettings":
+            updateCommunitySettings(call: call, result: result)
+        case "imListJoinRequests":
+            listJoinRequests(call: call, result: result)
+        case "imReviewJoinRequest":
+            reviewJoinRequest(call: call, result: result)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -476,6 +484,137 @@ class CommunityAPIHandler {
         if code != 0 {
             result(FlutterError(code: "KICK_COMMUNITY_MEMBER_ERROR",
                               message: "踢出社群成员请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func getCommunitySettings(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("⚙️ 获取社群设置: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().getCommunitySettings(
+            withCmtyId: cmtyId,
+            completion: { errorCode, reqId, data in
+                print("⚙️ 获取社群设置回调: errorCode=\(errorCode), reqId=\(reqId)")
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "获取成功" : "获取失败",
+                    "data": data ?? ""
+                ])
+            })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_COMMUNITY_SETTINGS_ERROR",
+                              message: "获取社群设置请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func updateCommunitySettings(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let settings = args["settings"] as? [String: Any] ?? [:]
+        
+        print("⚙️ 更新社群设置: cmtyId=\(cmtyId)")
+        
+        // 将 Swift Dictionary 转换为 NSDictionary
+        let settingsDict = settings as NSDictionary
+        
+        let code = IMSDKCommunityManager.shared().updateCommunitySettings(
+            withCmtyId: cmtyId,
+            settings: settingsDict as! [String : Any],
+            completion: { errorCode, reqId, data in
+                print("⚙️ 更新社群设置回调: errorCode=\(errorCode), reqId=\(reqId)")
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "更新成功" : "更新失败",
+                    "data": data ?? ""
+                ])
+            })
+        
+        if code != 0 {
+            result(FlutterError(code: "UPDATE_COMMUNITY_SETTINGS_ERROR",
+                              message: "更新社群设置请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func listJoinRequests(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let status = args["status"] as? Int ?? 0
+        let page = args["page"] as? Int ?? 1
+        let pageSize = args["pageSize"] as? Int ?? 20
+        
+        print("📋 查询加入申请列表: cmtyId=\(cmtyId), status=\(status), page=\(page), pageSize=\(pageSize)")
+        
+        let code = IMSDKCommunityManager.shared().listJoinRequests(
+            withCmtyId: cmtyId,
+            status: Int32(status),
+            page: Int32(page),
+            pageSize: Int32(pageSize),
+            completion: { errorCode, reqId, data in
+                print("📋 查询加入申请列表回调: errorCode=\(errorCode), reqId=\(reqId)")
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "查询成功" : "查询失败",
+                    "data": data ?? ""
+                ])
+            })
+        
+        if code != 0 {
+            result(FlutterError(code: "LIST_JOIN_REQUESTS_ERROR",
+                              message: "查询加入申请列表请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func reviewJoinRequest(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        let requestId = args["requestId"] as? Int ?? 0
+        let approve = args["approve"] as? Bool ?? false
+        let reviewMessage = args["reviewMessage"] as? String ?? ""
+        print("\(approve ? "✅" : "❌") 审核加入申请: cmtyId=\(cmtyId), requestId=\(requestId), approve=\(approve), reviewMessage=\(reviewMessage)")
+        let code: Int32
+        if approve {
+            code = IMSDKCommunityManager.shared().approveJoinRequest(
+                withCmtyId: cmtyId,
+                requestId: Int64(requestId),
+                reviewMessage: reviewMessage.isEmpty ? nil : reviewMessage,
+                completion: { errorCode, reqId, data in
+                    print("\(approve ? "✅" : "❌") 审核加入申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+                    result([
+                        "errorCode": errorCode,
+                        "reqId": reqId,
+                        "message": errorCode == 0 ? "审核成功" : "审核失败",
+                        "data": data ?? ""
+                    ])
+                })
+        } else {
+            code = IMSDKCommunityManager.shared().rejectJoinRequest(
+                withCmtyId: cmtyId,
+                requestId: Int64(requestId),
+                reviewMessage: reviewMessage.isEmpty ? nil : reviewMessage,
+                completion: { errorCode, reqId, data in
+                    print("\(approve ? "✅" : "❌") 审核加入申请回调: errorCode=\(errorCode), reqId=\(reqId)")
+                    result([
+                        "errorCode": errorCode,
+                        "reqId": reqId,
+                        "message": errorCode == 0 ? "审核成功" : "审核失败",
+                        "data": data ?? ""
+                    ])
+                })
+        }
+        
+        if code != 0 {
+            result(FlutterError(code: "REVIEW_JOIN_REQUEST_ERROR",
+                              message: "审核加入申请请求发送失败: \(code)",
                               details: nil))
         }
     }

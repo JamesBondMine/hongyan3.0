@@ -7,8 +7,10 @@
 
 #import "IMSDKCommunityManager.h"
 #import "CmtyPb.pbobjc.h"
+#import "CmtySettingsPb.pbobjc.h"
 #import "CmtyCategoryPb.pbobjc.h"
 #import "CmtyChannelPb.pbobjc.h"
+#import "CmtyChannelGroupPb.pbobjc.h"
 #import "CmtyMemberPb.pbobjc.h"
 #import "CmtySecurityPb.pbobjc.h"
 #import "SystemPb.pbobjc.h"
@@ -64,9 +66,9 @@ static void ListCommunitiesCallback(int errorCode, const char* data, int dataLen
                         dict[@"owner_id"] = cmty.ownerId ?: @"";
                         dict[@"member_count"] = @(cmty.memberCount);
                         dict[@"status"] = @(cmty.status);
-                        dict[@"need_verify"] = @(cmty.needVerify);
-                        dict[@"allow_private_chat"] = @(cmty.allowPrivateChat);
-                        dict[@"allow_add_friend"] = @(cmty.allowAddFriend);
+//                        dict[@"need_verify"] = @(cmty.needVerify);
+//                        dict[@"allow_private_chat"] = @(cmty.allowPrivateChat);
+//                        dict[@"allow_add_friend"] = @(cmty.allowAddFriend);
                         dict[@"created_at"] = @(cmty.createdAt);
                         dict[@"updated_at"] = @(cmty.updatedAt);
                         dict[@"extra_info"] = cmty.extraInfo ?: @"";
@@ -199,9 +201,9 @@ static void GetCommunityInfoCallback(int errorCode, const char* data, int dataLe
                         dict[@"owner_id"] = result.ownerId ?: @"";
                         dict[@"member_count"] = @(result.memberCount);
                         dict[@"status"] = @(result.status);
-                        dict[@"need_verify"] = @(result.needVerify);
-                        dict[@"allow_private_chat"] = @(result.allowPrivateChat);
-                        dict[@"allow_add_friend"] = @(result.allowAddFriend);
+//                        dict[@"need_verify"] = @(result.needVerify);
+//                        dict[@"allow_private_chat"] = @(result.allowPrivateChat);
+//                        dict[@"allow_add_friend"] = @(result.allowAddFriend);
                         dict[@"created_at"] = @(result.createdAt);
                         dict[@"updated_at"] = @(result.updatedAt);
                         dict[@"extra_info"] = result.extraInfo ?: @"";
@@ -310,11 +312,11 @@ static void GetChannelsCallback(int errorCode, const char* data, int dataLen, ui
                                 NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                                 dict[@"channel_id"] = channel.channelId ?: @"";
                                 dict[@"community_id"] = channel.communityId ?: @"";
-                                dict[@"category_id"] = channel.categoryId ?: @"";
+                                dict[@"category_id"] = (channel.hasChannelGroup && channel.channelGroup.groupId) ? channel.channelGroup.groupId : @"";
                                 dict[@"channel_name"] = channel.channelName ?: @"";
                                 dict[@"channel_type"] = @(channel.channelType);
                                 dict[@"description"] = channel.description_p ?: @"";
-                                dict[@"member_count"] = @(channel.memberCount);
+//                                dict[@"member_count"] = @(channel.memberCount);
                                 dict[@"max_members"] = @(channel.maxMembers);
                                 dict[@"pause_invite"] = @(channel.pauseInvite);
                                 dict[@"mute_all"] = @(channel.muteAll);
@@ -607,7 +609,7 @@ static void GetCommunityMembersCallback(int errorCode, const char* data, int dat
                                 dict[@"nickname"] = member.nickname ?: @"";
                                 dict[@"username"] = member.username ?: @"";
                                 dict[@"avatar"] = member.avatar ?: @"";
-                                dict[@"role"] = @(member.role);
+//                                dict[@"role"] = @(member.role);
                                 dict[@"joined_at"] = @(member.joinedAt);
                                 dict[@"join_way"] = member.joinWay ?: @"";
                                 dict[@"invite_count"] = @(member.inviteCount);
@@ -671,7 +673,7 @@ static void GetCommunityBannedMembersCallback(int errorCode, const char* data, i
                                 dict[@"nickname"] = member.nickname ?: @"";
                                 dict[@"username"] = member.username ?: @"";
                                 dict[@"avatar"] = member.avatar ?: @"";
-                                dict[@"role"] = @(member.role);
+//                                dict[@"role"] = @(member.role);
                                 dict[@"joined_at"] = @(member.joinedAt);
                                 dict[@"join_way"] = member.joinWay ?: @"";
                                 dict[@"invite_count"] = @(member.inviteCount);
@@ -738,6 +740,228 @@ static void MuteCommunityMemberCallback(int errorCode, const char* data, int dat
 /// 踢出社群成员回调
 static void KickCommunityMemberCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"👢 踢出社群成员回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 获取社群设置回调
+static void GetCommunitySettingsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"⚙️ 获取社群设置回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    NSError *parseError = nil;
+                    CmtySettingsList *result = [CmtySettingsList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        // 构建 JSON 字典
+                        NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+                        jsonDict[@"cmty_id"] = result.cmtyId ?: @"";
+                        // 转换设置数组
+                        NSMutableArray *settingsArray = [NSMutableArray array];
+                        for (CmtySetting *setting in result.settingsArray) {
+                            NSMutableDictionary *settingDict = [NSMutableDictionary dictionary];
+                            settingDict[@"setting_key"] = setting.settingKey ?: @"";
+                            settingDict[@"setting_value"] = setting.settingValue ?: @"";
+                            [settingsArray addObject:settingDict];
+                        }
+                        jsonDict[@"settings"] = settingsArray;
+                        
+                        // 序列化为 JSON 字符串
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 获取社群设置响应解析成功: %@", dataStr);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 查询加入申请列表回调
+static void ListJoinRequestsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"📋 查询加入申请列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时解析 CmtyJoinRecordList 对象
+                if (responseData && responseData.length > 0) {
+                    NSError *parseError = nil;
+                    CmtyJoinRecordList *result = [CmtyJoinRecordList parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        // 构建 JSON 字典
+                        NSMutableDictionary *jsonDict = [NSMutableDictionary dictionary];
+                        jsonDict[@"total"] = @(result.total);
+                        
+                        // 转换申请记录数组
+                        NSMutableArray *recordsArray = [NSMutableArray array];
+                        for (CmtyJoinRecord *record in result.recordsArray) {
+                            NSMutableDictionary *recordDict = [NSMutableDictionary dictionary];
+                            recordDict[@"request_id"] = @(record.requestId);
+                            recordDict[@"cmty_id"] = record.cmtyId ?: @"";
+                            recordDict[@"user_id"] = record.userId ?: @"";
+                            recordDict[@"nickname"] = record.nickname ?: @"";
+                            recordDict[@"username"] = record.username ?: @"";
+                            recordDict[@"avatar"] = record.avatar ?: @"";
+                            recordDict[@"request_message"] = record.requestMessage ?: @"";
+                            recordDict[@"request_time"] = @(record.requestTime);
+                            recordDict[@"expire_time"] = @(record.expireTime);
+                            recordDict[@"status"] = @(record.status);
+                            recordDict[@"review_user_id"] = record.reviewUserId ?: @"";
+                            recordDict[@"review_time"] = @(record.reviewTime);
+                            recordDict[@"review_message"] = record.reviewMessage ?: @"";
+                            recordDict[@"invite_code"] = record.inviteCode ?: @"";
+                            recordDict[@"invite_link"] = record.inviteLink ?: @"";
+                            [recordsArray addObject:recordDict];
+                        }
+                        jsonDict[@"records"] = recordsArray;
+                        
+                        // 序列化为 JSON 字符串
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
+                        NSLog(@"✅ 查询加入申请列表响应解析成功: total=%d", result.total);
+                    } else {
+                        // 尝试直接作为 JSON 解析
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 批准加入申请回调
+static void ApproveJoinRequestCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"✅ 批准加入申请回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+            } else {
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            }
+            completion(errorCode, reqId, dataStr ?: message);
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 拒绝加入申请回调
+static void RejectJoinRequestCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"❌ 拒绝加入申请回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+            } else {
+                if (responseData && responseData.length > 0) {
+                    dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                }
+            }
+            completion(errorCode, reqId, dataStr ?: message);
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
+/// 更新社群设置回调
+static void UpdateCommunitySettingsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"⚙️ 更新社群设置回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
     
     NSData *responseData = nil;
     if (data && dataLen > 0) {
@@ -963,7 +1187,7 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
     CmtyCreateChannel *createReq = [CmtyCreateChannel message];
     createReq.communityId = cmtyId;
     if (categoryId != nil && categoryId != @"") {
-        createReq.categoryId = categoryId;
+        createReq.groupId = categoryId;
     }
     createReq.channelName = channelName;
     createReq.channelType = (CmtyChannelType)channelType;
@@ -974,7 +1198,7 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
         createReq.maxMembers = maxMembers;
     }
     
-    NSLog(@"📁 创建频道: cmtyId=%@, categoryId=%@, channelName=%@, channelType=%d", createReq.communityId, createReq.categoryId, createReq.channelName, createReq.channelType);
+    NSLog(@"📁 创建频道: cmtyId=%@, groupId=%@, channelName=%@, channelType=%d", createReq.communityId, createReq.groupId, createReq.channelName, createReq.channelType);
     
     NSData *protoData = [createReq data];
     
@@ -1313,6 +1537,183 @@ static void KickCommunityMemberCallback(int errorCode, const char* data, int dat
     uint64_t reqId = 0;
     int code = kick_community_member(
         KickCommunityMemberCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)getCommunitySettingsWithCmtyId:(NSString *)cmtyId
+                            completion:(IMSDKCommunityCompletion)completion {
+ 
+    uint64_t reqId = 0;
+    int code = get_community_settings(
+        GetCommunitySettingsCallback,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)updateCommunitySettingsWithCmtyId:(NSString *)cmtyId
+                                 settings:(NSDictionary *)settings
+                               completion:(IMSDKCommunityCompletion)completion {
+    
+    // 创建更新参数 CmtyUpdateSettings
+    CmtyUpdateSettings *updateReq = [CmtyUpdateSettings message];
+    
+    // 将字典转换为 CmtySetting 数组
+    for (NSString *key in settings) {
+        id value = settings[key];
+        CmtySetting *setting = [CmtySetting message];
+        setting.settingKey = key;
+        
+        // 根据值的类型设置 settingValue
+        if ([value isKindOfClass:[NSString class]]) {
+            setting.settingValue = (NSString *)value;
+        } else if ([value isKindOfClass:[NSNumber class]]) {
+            setting.settingValue = [value boolValue] ? @"true" : @"false";
+        } else if ([value isKindOfClass:[NSArray class]]) {
+            // 数组类型，转换为 JSON 字符串
+            NSError *error = nil;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:value options:0 error:&error];
+            if (jsonData && !error) {
+                setting.settingValue = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            } else {
+                setting.settingValue = @"[]";
+            }
+        } else {
+            setting.settingValue = [value description];
+        }
+        
+        [updateReq.settingsArray addObject:setting];
+    }
+    
+    NSLog(@"⚙️ 更新社群设置1: cmtyId=%@, 数据: %@", cmtyId, updateReq.settingsArray);
+    
+    NSData *protoData = [updateReq data];
+    
+    uint64_t reqId = 0;
+    int code = update_community_settings(
+        UpdateCommunitySettingsCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)listJoinRequestsWithCmtyId:(NSString *)cmtyId
+                            status:(int32_t)status
+                              page:(int)page
+                          pageSize:(int)pageSize
+                        completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"📋 查询加入申请列表: cmtyId=%@, status=%d, page=%d, pageSize=%d", cmtyId, status, page, pageSize);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建查询参数 CmtyJoinsQuery
+    Page *pg = [Page message];
+    pg.page = page > 0 ? page : 1;
+    pg.size = pageSize > 0 ? pageSize : 20;
+    
+    CmtyJoinsQuery *query = [CmtyJoinsQuery message];
+    query.page = pg;
+    if (status > 0) {
+        // 使用 Protobuf 生成的函数设置枚举的原始值
+        SetCmtyJoinsQuery_Status_RawValue(query, status);
+    }
+    
+    NSData *protoData = [query data];
+    
+    uint64_t reqId = 0;
+    int code = list_join_requests(
+        ListJoinRequestsCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)approveJoinRequestWithCmtyId:(NSString *)cmtyId
+                           requestId:(int64_t)requestId
+                      reviewMessage:(NSString *)reviewMessage
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"✅ 批准加入申请: cmtyId=%@, requestId=%lld, reviewMessage=%@", cmtyId, requestId, reviewMessage);
+    
+    if (!cmtyId || cmtyId.length == 0 || requestId <= 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建审核参数 CmtyReviewJoin
+    CmtyReviewJoin *review = [CmtyReviewJoin message];
+    review.requestId = requestId;
+    if (reviewMessage && reviewMessage.length > 0) {
+        review.reviewMessage = reviewMessage;
+    }
+    
+    NSData *protoData = [review data];
+    
+    uint64_t reqId = 0;
+    int code = approve_join_request(
+        ApproveJoinRequestCallback,
+        (const char *)protoData.bytes,
+        (int)protoData.length,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)rejectJoinRequestWithCmtyId:(NSString *)cmtyId
+                           requestId:(int64_t)requestId
+                      reviewMessage:(NSString *)reviewMessage
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"❌ 拒绝加入申请: cmtyId=%@, requestId=%lld, reviewMessage=%@", cmtyId, requestId, reviewMessage);
+    
+    if (!cmtyId || cmtyId.length == 0 || requestId <= 0) {
+        return -1; // 参数错误
+    }
+    
+    // 创建审核参数 CmtyReviewJoin
+    CmtyReviewJoin *review = [CmtyReviewJoin message];
+    review.requestId = requestId;
+    if (reviewMessage && reviewMessage.length > 0) {
+        review.reviewMessage = reviewMessage;
+    }
+    
+    NSData *protoData = [review data];
+    
+    uint64_t reqId = 0;
+    int code = reject_join_request(
+        RejectJoinRequestCallback,
         (const char *)protoData.bytes,
         (int)protoData.length,
         [cmtyId UTF8String],

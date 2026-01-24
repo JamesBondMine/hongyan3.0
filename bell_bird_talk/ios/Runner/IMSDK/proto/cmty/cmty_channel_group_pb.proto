@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package im.cmty.channel.group;
+
+option java_package = "com.cloud.im.common.core.protocol.cmty.channel.group";
+option java_outer_classname = "CmtyChannelGroupProtos";
+
+// ========== 领域对象 ==========
+
+// CmtyChannelGroup - 频道分组信息
+message CmtyChannelGroup {
+    string group_id = 1;        // 分组ID
+    string community_id = 2;   // 社群ID
+    string group_name = 3;      // 分组名称
+    int32 sort_order = 4;       // 排序
+    int64 created_at = 5;      // 创建时间
+    int64 updated_at = 6;       // 更新时间
+}
+
+// ========== 结果对象 ==========
+
+// CmtyChannelGroupList - 分组列表
+message CmtyChannelGroupList {
+    repeated CmtyChannelGroup groups = 1;  // 分组列表
+}
+
+// ========== 操作对象 ==========
+
+// CmtyCreateChannelGroup - 创建分组
+message CmtyCreateChannelGroup {
+    string community_id = 1;  // 社群ID（必填）
+    string group_name = 2;     // 分组名称（必填，2-50字符）
+}
+
+// CmtyUpdateChannelGroup - 更新分组
+message CmtyUpdateChannelGroup {
+    string group_id = 1;       // 分组ID（必填）
+    string group_name = 2;     // 分组名称（必填，2-50字符）
+}
+
+// CmtyDeleteChannelGroup - 删除分组
+message CmtyDeleteChannelGroup {
+    string group_id = 1;       // 分组ID（必填）
+}
+
+// CmtyReorderChannelGroups - 重新排序分组
+message CmtyReorderChannelGroups {
+    string community_id = 1;           // 社群ID（必填）
+    repeated string group_ids = 2;      // 分组ID列表（按新顺序排列）
+}
+
+
+

@@ -104,10 +104,14 @@ class FlutterAPIHandler {
         }
         // 社群管理
         else if method.hasPrefix("imGetCommunity") || method.hasPrefix("imJoinCommunity") ||
+                    method.hasPrefix("imReviewJoinRequest") ||
+
                 method.hasPrefix("imLeaveCommunity") || method.hasPrefix("imGetChannel") ||
                 method.hasPrefix("imCreateChannel") || method.hasPrefix("imUpdateChannel") ||
                 method.hasPrefix("imDeleteChannel") || method.hasPrefix("imEnterChannel") ||
-                method.hasPrefix("imMuteCommunityMember") || method.hasPrefix("imKickCommunityMember") {
+                method.hasPrefix("imMuteCommunityMember") || method.hasPrefix("imKickCommunityMember") ||
+                method.hasPrefix("imGetCommunitySettings") || method.hasPrefix("imUpdateCommunitySettings") ||
+                method.hasPrefix("imListJoinRequests") {
             communityHandler.handle(call, result: result)
         }
         // 文件上传

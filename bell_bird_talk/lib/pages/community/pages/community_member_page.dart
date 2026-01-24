@@ -72,7 +72,7 @@ class CommunityMemberPageState extends State<CommunityMemberPage>
               itemBuilder: (c, index) {
                 return index == 0
                     ? CmtMemberListPage(cmtyId: widget.cmtyId,)
-                    : CmtMemberRequestsPage(type: RequestType.friend);
+                    : CmtMemberRequestsPage(cmtyId: widget.cmtyId!);
               },
             ),
           ),

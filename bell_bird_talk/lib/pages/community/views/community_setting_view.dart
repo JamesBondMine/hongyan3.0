@@ -2,6 +2,7 @@
 
 import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -9,10 +10,12 @@ class CommunitySettingView extends StatelessWidget {
 
   final ValueChanged<int> onConfirm;
   CommunityModel cmty;
+  CommunitySettingsModel cmtSetting;
   
   CommunitySettingView({
     super.key,
     required this.cmty,
+    required this.cmtSetting,
     required this.onConfirm,
   });
 
@@ -49,7 +52,7 @@ class CommunitySettingView extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          if (cmty.allowAddFriend) _buildCard([
+          if (cmtSetting.settings.allowAddFriend) _buildCard([
             _buildElement('邀请好友', 'setting_invate', () {
               Navigator.of(context).pop();
               onConfirm(1);
@@ -77,7 +80,7 @@ class CommunitySettingView extends StatelessWidget {
               Navigator.of(context).pop();
               onConfirm(5);
             }),
-          if (cmty.ownerId == currentUserId)  _buildElement('隐私设置', 'setting_pricy', () {
+          if (cmty.ownerId == currentUserId  || cmty.ownerId.isEmpty)  _buildElement('隐私设置', 'setting_pricy', () {
               Navigator.of(context).pop();
               onConfirm(6);
             }),

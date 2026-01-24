@@ -9,6 +9,8 @@ enum RequestType {
 class FriendRequestModel {
   final int requestId;
   final String requesterId;
+  final String userId;
+  
   final String requesterName;
   final String? requesterAvatar;
   final String? avatarBG;
@@ -21,6 +23,7 @@ class FriendRequestModel {
   FriendRequestModel({
     required this.requestId,
     required this.requesterId,
+    required this.userId,
     required this.requesterName,
     this.requesterAvatar,
     this.avatarBG,
@@ -35,6 +38,8 @@ class FriendRequestModel {
     return FriendRequestModel(
       requestId: json['request_id'] ?? 0,
       requesterId: json['requester_id'] ?? '',
+      userId: json['user_id'] ?? '',
+      
       requesterName: json['requester_name'] ?? '未知用户',
       requesterAvatar: json['requester_avatar'],
       avatarBG: json['avatar_bg'],

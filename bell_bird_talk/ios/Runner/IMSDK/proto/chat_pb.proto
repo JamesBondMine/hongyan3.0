@@ -7,6 +7,7 @@ option java_multiple_files = true;
 
 import "message_pb.proto";
 import "system_pb.proto";
+import "group_pb.proto";
 
 // ============ 查询操作 ============
 
@@ -32,7 +33,7 @@ message CSearchResult {
   
   // 扩展搜索结果：分类结果（每个类型最多3条）
   repeated ContactSearchResult contact_results = 3;   // 好友昵称搜索结果
-  repeated GroupSearchResult group_results = 4;       // 群聊名称搜索结果
+  repeated im.group.GroupBrief group_results = 4;       // 群聊名称搜索结果（使用群组PB轻量对象）
   repeated GroupMemberSearchResult member_results = 5; // 群成员昵称搜索结果
 }
 
@@ -42,14 +43,6 @@ message ContactSearchResult {
   string contact_nickname = 2;    // 好友昵称
   string remark = 3;              // 备注
   string avatar = 4;               // 头像
-}
-
-// 群聊搜索结果
-message GroupSearchResult {
-  string group_id = 1;             // 群组ID
-  string group_name = 2;            // 群组名称
-  string avatar = 3;                // 群组头像
-  int32 member_count = 4;           // 成员数量
 }
 
 // 群成员搜索结果
