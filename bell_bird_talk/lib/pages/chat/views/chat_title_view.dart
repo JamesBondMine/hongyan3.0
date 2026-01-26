@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/pages/chat/search_message_history.dart';
+import 'package:bell_bird_talk/pages/chat/voice_call_page.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 
 /// 聊天页面标题栏组件
@@ -92,7 +93,18 @@ class ChatTitleView extends StatelessWidget implements PreferredSizeWidget {
   List<Widget> _buildAppBarActions(BuildContext context) {
     return [
       _popviewItem(context, '语音聊天', 'msgitemphone', () {
-        print('语音聊天');
+        // 跳转到语音通话页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VoiceCallPage(
+              userId: targetUserId,
+              nickname: displayName,
+              avatar: avatar,
+              isIncoming: false,
+            ),
+          ),
+        );
       }),
       _popviewItem(context, '发起群聊', 'chataddchat', () {
         print('发起群聊');

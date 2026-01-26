@@ -15,6 +15,7 @@ PODS:
     - Mantle
     - SDWebImage
     - SDWebImageWebPCoder
+  - HydraAsync (2.0.6)
   - image_cropper (0.0.4):
     - Flutter
     - TOCropViewController (~> 2.7.4)
@@ -54,6 +55,9 @@ PODS:
   - QCloudTrack/Beacon (6.4.9)
   - record_ios (1.1.0):
     - Flutter
+  - RTCRoomEngine/Professional (3.6.2):
+    - TXIMSDK_Plus_iOS_XCFramework (>= 8.4.6676)
+    - TXLiteAVSDK_Professional (>= 12.8.0.19666)
   - SDWebImage (5.21.5):
     - SDWebImage/Core (= 5.21.5)
   - SDWebImage/Core (5.21.5)
@@ -65,10 +69,40 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - SnapKit (5.7.1)
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - tencent_calls_uikit (0.0.1):
+    - Flutter
+    - RTCRoomEngine/Professional (~> 3.6.0)
+    - SnapKit
+    - TUICore (>= 8.7.7201)
+  - tencent_cloud_chat_sdk (8.0.0):
+    - Flutter
+    - HydraAsync
+    - TXIMSDK_Plus_iOS_XCFramework (~> 8.8.7373)
+  - tencent_cloud_uikit_core (0.0.1):
+    - Flutter
+  - tencent_rtc_sdk (0.0.1):
+    - Flutter
+    - TXCustomBeautyProcesserPlugin (= 1.0.2)
+    - TXLiteAVSDK_Professional (~> 12.9.20085)
   - TOCropViewController (2.7.4)
+  - TUICore (8.7.7201):
+    - SDWebImage
+    - TUICore/ImSDK_Plus (= 8.7.7201)
+  - TUICore/Base (8.7.7201):
+    - SDWebImage
+  - TUICore/ImSDK_Plus (8.7.7201):
+    - SDWebImage
+    - TUICore/Base
+    - TXIMSDK_Plus_iOS_XCFramework
+  - TXCustomBeautyProcesserPlugin (1.0.2)
+  - TXIMSDK_Plus_iOS_XCFramework (8.8.7373)
+  - TXLiteAVSDK_Professional (12.9.20085):
+    - TXLiteAVSDK_Professional/Professional (= 12.9.20085)
+  - TXLiteAVSDK_Professional/Professional (12.9.20085)
   - url_launcher_ios (0.0.1):
     - Flutter
   - video_compress (0.3.0):
@@ -101,6 +135,10 @@ DEPENDENCIES:
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+  - tencent_calls_uikit (from `.symlinks/plugins/tencent_calls_uikit/ios`)
+  - tencent_cloud_chat_sdk (from `.symlinks/plugins/tencent_cloud_chat_sdk/ios`)
+  - tencent_cloud_uikit_core (from `.symlinks/plugins/tencent_cloud_uikit_core/ios`)
+  - tencent_rtc_sdk (from `.symlinks/plugins/tencent_rtc_sdk/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_compress (from `.symlinks/plugins/video_compress/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
@@ -112,6 +150,7 @@ SPEC REPOS:
     - AliyunOSSiOS
     - AWSCore
     - AWSS3
+    - HydraAsync
     - IosAwnCore
     - libwebp
     - Mantle
@@ -119,9 +158,15 @@ SPEC REPOS:
     - QCloudCore
     - QCloudCOSXML
     - QCloudTrack
+    - RTCRoomEngine
     - SDWebImage
     - SDWebImageWebPCoder
+    - SnapKit
     - TOCropViewController
+    - TUICore
+    - TXCustomBeautyProcesserPlugin
+    - TXIMSDK_Plus_iOS_XCFramework
+    - TXLiteAVSDK_Professional
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -150,6 +195,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
+  tencent_calls_uikit:
+    :path: ".symlinks/plugins/tencent_calls_uikit/ios"
+  tencent_cloud_chat_sdk:
+    :path: ".symlinks/plugins/tencent_cloud_chat_sdk/ios"
+  tencent_cloud_uikit_core:
+    :path: ".symlinks/plugins/tencent_cloud_uikit_core/ios"
+  tencent_rtc_sdk:
+    :path: ".symlinks/plugins/tencent_rtc_sdk/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   video_compress:
@@ -169,6 +222,7 @@ SPEC CHECKSUMS:
   AWSS3: 50da7408a26c1c2886d02968807f2a0b6bf936ca
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
+  HydraAsync: 8d589bd725b0224f899afafc9a396327405f8063
   image_cropper: 5f162dcf988100dc1513f9c6b7eb42cd6fbf9156
   image_gallery_saver: 14711d79da40581063e8842a11acf1969d781ed7
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
@@ -182,12 +236,22 @@ SPEC CHECKSUMS:
   QCloudCOSXML: b7f0b9cac61780a03318d40367a879f8d7eb3d86
   QCloudTrack: cc101dd57be7f87bffc3f2fb692a781d5efeda98
   record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
+  RTCRoomEngine: b24d03eb2eff560fb9f56649d57ca512ebe3254c
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  SnapKit: d612e99e678a2d3b95bf60b0705ed0a35c03484a
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  tencent_calls_uikit: 3ceaa45d9aab7cd12b2f28c85b8fd090c38074c6
+  tencent_cloud_chat_sdk: 2182475abf83a60de565b91c6eaed4dbef8c825a
+  tencent_cloud_uikit_core: 137e8ae40882b1929508e688182b2818708cc078
+  tencent_rtc_sdk: 4255c990b0cd74bdf832f76df6ff7d0c94b961dc
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  TUICore: f58c2bb34933590e144fa01644ebdbf04ee97ddc
+  TXCustomBeautyProcesserPlugin: 099393b941cb40eda12b3a80bf6c0319957b1cfd
+  TXIMSDK_Plus_iOS_XCFramework: a99356b102d4c47ee1c60fa91837d7efb0f8f83d
+  TXLiteAVSDK_Professional: 8cf38407bed4271f03389eecba30fbb64017ff49
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a

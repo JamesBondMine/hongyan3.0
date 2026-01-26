@@ -234,12 +234,17 @@ class CmtMemberListPageState extends State<CmtMemberListPage> {
                     final avatar = member.avatar;
                     final roleText = member.roleText;
 
+                    // 如果自己是超管 则不能对自己进行操作
                     return _buildElement(
+                      member.isOwner,
                       member.nickname!,
                       member.username,
                       avatar,
                       roleText,
                       () {
+                        if (member.isOwner) {
+                          return;
+                        }
                         gbs.shower.showScreenViewCustom(
                           context,
                           400,
@@ -302,6 +307,7 @@ class CmtMemberListPageState extends State<CmtMemberListPage> {
 
   // 元素
   Widget _buildElement(
+    bool isOwner,
     String nickname,
     String username,
     String? avatarUrl,
@@ -382,7 +388,7 @@ class CmtMemberListPageState extends State<CmtMemberListPage> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: GbsColors.des6Color),
+                if (!isOwner) Icon(Icons.chevron_right, color: GbsColors.des6Color),
               ],
             ),
             _buildDivider(),

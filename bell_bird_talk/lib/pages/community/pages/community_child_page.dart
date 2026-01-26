@@ -1,4 +1,5 @@
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/global_controller.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
 import 'package:bell_bird_talk/pages/community/pages/community_invate_page.dart';
@@ -424,6 +425,11 @@ class CommunityChildPageState extends State<CommunityChildPage> {
 
   // 离开社群
   void _showLeaveCommunityView() async {
+    final currentUserId =  GlobalController.to.currentUser.value?.id ?? '';
+    if (_cmty!.ownerId == currentUserId || _cmty!.ownerId.isEmpty) {
+      EasyLoading.showToast('超管不能离开社群');
+      return;
+    }
     final result = await _nativeService.showNativeAlert(
       title: '离开社群'.tr,
       message: '确定要退出当前账号吗？离开后只能通过邀请链接进入'.tr,

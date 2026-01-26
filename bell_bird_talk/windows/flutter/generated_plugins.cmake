@@ -9,6 +9,8 @@ list(APPEND FLUTTER_PLUGIN_LIST
   permission_handler_windows
   record_windows
   share_plus
+  tencent_cloud_chat_sdk
+  tencent_rtc_sdk
   url_launcher_windows
 )
 

@@ -1,3 +1,5 @@
+import 'package:bell_bird_talk/controllers/global_controller.dart';
+
 /// 社群模型
 class CommunityModel {
   final String id;
@@ -372,6 +374,7 @@ class CommunityMemberModel {
   bool get isAdmin => role == 'admin' || role == 'owner';
 
   /// 是否为群主
-  bool get isOwner => role == 'owner';
+  final currentUserId =  GlobalController.to.currentUser.value?.id ?? '';
+  bool get isOwner => id== currentUserId || role == 'owner';
 }
 
