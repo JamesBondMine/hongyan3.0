@@ -4,6 +4,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 // import 'package:tencent_calls_uikit/tencent_calls_uikit.dart';
 import '../controllers/global_controller.dart';
 import '../models/user_model.dart';
+import '../pages/chat/voice_call_page.dart';
 
 /// 语音通话控制器
 /// 管理语音通话的状态和逻辑
@@ -29,6 +30,9 @@ class VoiceCallController extends GetxController {
   
   // 对方用户信息
   final Rx<UserModel?> remoteUser = Rx<UserModel?>(null);
+  
+  // 🔥 新增：是否最小化
+  final RxBool isMinimized = false.obs;
   
   // 当前用户信息
   UserModel? get currentUser => _globalCtrl.currentUser.value;
@@ -189,12 +193,37 @@ class VoiceCallController extends GetxController {
       // await TUICallKit.instance.hangup();
       
       callState.value = CallState.idle;
+      isMinimized.value = false; // 挂断时重置最小化状态
       _stopCallTimer();
       Get.back();
       print('📞 挂断通话（需要根据实际API实现）');
     } catch (e) {
       print('❌ 挂断失败: $e');
       EasyLoading.showError('挂断失败');
+    }
+  }
+
+  /// 🔥 新增：最小化通话
+  void minimizeCall() {
+    if (isInCall) {
+      isMinimized.value = true;
+      Get.back(); // 关闭通话页面
+      print('📱 通话已最小化');
+    }
+  }
+
+  /// 🔥 新增：恢复通话（从最小化状态）
+  void restoreCall() {
+    if (isInCall && isMinimized.value) {
+      isMinimized.value = false;
+      // 重新打开通话页面
+      Get.to(() => VoiceCallPage(
+        userId: remoteUser.value?.id ?? '',
+        nickname: remoteUser.value?.nickname ?? '',
+        avatar: remoteUser.value?.avatar,
+        isIncoming: false,
+      ));
+      print('📱 通话已恢复');
     }
   }
 

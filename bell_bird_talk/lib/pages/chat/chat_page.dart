@@ -24,6 +24,7 @@ import '../../services/message_database.dart';
 import '../../models/chat_message.dart';
 import '../../controllers/global_controller.dart';
 import '../../widgets/voice_record_panel.dart';
+import '../../widgets/voice_call_card.dart'; // 🔥 新增：导入语音通话卡片
 import 'image_preview_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -214,50 +215,58 @@ class _ChatPageState extends State<ChatPage> {
             targetUserId: widget.targetUserId,
             convType: widget.convType,
           ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/img/chat/chat_bg.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          children: [
-            // 消息列表
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  // 点击消息列表区域时收起面板和键盘
-                  if (_showEmojiPicker || _showMorePanel) {
-                    setState(() {
-                      _showEmojiPicker = false;
-                      _showMorePanel = false;
-                    });
-                  }
-                  _focusNode.unfocus();
-                },
-                child: _buildMessageList(),
+      body: Stack( // 🔥 修改：使用 Stack 来叠加显示语音通话卡片
+        children: [
+          // 原有的聊天界面
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/img/chat/chat_bg.png'),
+                fit: BoxFit.cover,
               ),
             ),
-            // 输入区域：语音面板 或 文字输入栏
-            if (_showVoicePanel)
-              VoiceRecordPanel(
-                onSend: _handleVoiceSend,
-                onClose: () => setState(() => _showVoicePanel = false),
-                autoStart: true,
-              )
-            else ...[
-              // 黑名单提示卡片（单聊时显示：被拉黑或发送失败）
-              if (_showBlacklistWarning && widget.convType == 0)
-                _buildBlacklistWarningCard(),
-              _buildInputBar(),
-              // 表情选择器
-              if (_showEmojiPicker) _buildEmojiPicker(),
-              // 更多面板
-              // if (_showMorePanel) _buildMorePanel(),
-            ],
-          ],
-        ),
+            child: Column(
+              children: [
+                // 消息列表
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      // 点击消息列表区域时收起面板和键盘
+                      if (_showEmojiPicker || _showMorePanel) {
+                        setState(() {
+                          _showEmojiPicker = false;
+                          _showMorePanel = false;
+                        });
+                      }
+                      _focusNode.unfocus();
+                    },
+                    child: _buildMessageList(),
+                  ),
+                ),
+                // 输入区域：语音面板 或 文字输入栏
+                if (_showVoicePanel)
+                  VoiceRecordPanel(
+                    onSend: _handleVoiceSend,
+                    onClose: () => setState(() => _showVoicePanel = false),
+                    autoStart: true,
+                  )
+                else ...[
+                  // 黑名单提示卡片（单聊时显示：被拉黑或发送失败）
+                  if (_showBlacklistWarning && widget.convType == 0)
+                    _buildBlacklistWarningCard(),
+                  _buildInputBar(),
+                  // 表情选择器
+                  if (_showEmojiPicker) _buildEmojiPicker(),
+                  // 更多面板
+                  // if (_showMorePanel) _buildMorePanel(),
+                ],
+              ],
+            ),
+          ),
+          
+          // 🔥 新增：语音通话卡片（叠加在右下角）
+          const VoiceCallCard(),
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
+import 'package:bell_bird_talk/pages/chat/voice_call_page.dart';
 import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/material.dart';
@@ -239,6 +240,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
     return [
       popviewItem(context, '语音聊天', 'msgitemphone', () {
         print('发起群聊');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VoiceCallPage(
+              userId: widget.groupId,
+              nickname: widget.groupName,
+              avatar: '',
+              isIncoming: false,
+            ),
+          ),
+        );
       }),
       popviewItem(context, '添加好友', 'msgitemadd', () {
         Navigator.push<bool>(

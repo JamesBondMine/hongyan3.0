@@ -285,5 +285,23 @@ class EnUsTranslations {
     '撤回注销成功': 'Deactivation cancelled successfully',
     '撤回注销失败': 'Failed to cancel deactivation',
     '注销账号后，您的所有数据（包括好友、聊天记录等）将被永久删除且无法恢复，确定要继续吗？': 'After deactivating your account, all your data (including friends, chat history, etc.) will be permanently deleted and cannot be recovered. Are you sure you want to continue?',
+
+    // 语音通话相关
+    '语音通话': 'Voice Call',
+    '正在呼叫...': 'Calling...',
+    '通话中': 'In Call',
+    '通话已结束': 'Call Ended',
+    '接听': 'Answer',
+    '拒绝': 'Decline',
+    '挂断': 'Hang Up',
+    '静音': 'Mute',
+    '免提': 'Speaker',
+    '最小化': 'Minimize',
+    '恢复通话': 'Restore Call',
+    '语音通话测试': 'Voice Call Test',
+    '开始测试通话': 'Start Test Call',
+    '模拟来电': 'Simulate Incoming Call',
+    '发起通话': 'Make Call',
+    '通话功能测试页面': 'Voice Call Test Page',
   };
 }

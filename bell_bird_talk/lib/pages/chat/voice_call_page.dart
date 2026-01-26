@@ -117,8 +117,13 @@ class _VoiceCallPageState extends State<VoiceCallPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // 返回按钮（仅在非通话中显示）
-          if (!controller.isInCall)
+          // 左侧：最小化按钮（通话中显示）或返回按钮（非通话中显示）
+          if (controller.isInCall)
+            IconButton(
+              icon: const Icon(Icons.minimize, color: Colors.white),
+              onPressed: () => controller.minimizeCall(),
+            )
+          else if (!controller.isInCall)
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Get.back(),
@@ -126,7 +131,7 @@ class _VoiceCallPageState extends State<VoiceCallPage> {
           else
             const SizedBox(width: 48),
           
-          // 网络状态（可选）
+          // 中间：标题
           const Text(
             '语音通话',
             style: TextStyle(
@@ -135,6 +140,7 @@ class _VoiceCallPageState extends State<VoiceCallPage> {
             ),
           ),
           
+          // 右侧：占位
           const SizedBox(width: 48),
         ],
       ),

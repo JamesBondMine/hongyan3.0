@@ -3,6 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:get/route_manager.dart';
+import 'package:get/state_manager.dart';
 
 /// 添加群成员对话框
 class AddMemberDialog extends StatefulWidget {
@@ -79,7 +81,9 @@ class AddMemberDialogState extends State<AddMemberDialog> {
                   ),
                   const Spacer(),
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: (){
+                      Get.back();
+                    },
                     child: Text('取消'.tr),
                   ),
                   const SizedBox(width: 8),

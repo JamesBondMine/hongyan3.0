@@ -351,7 +351,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GbsColors.lightBackgroundA,
+      backgroundColor: GbsColors.lightBackgroundB,
       appBar: PreferredSize(
         preferredSize: Size(Get.width, 44),
         child: Row(

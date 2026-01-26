@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tencent_calls_uikit/tencent_calls_uikit.dart';
 import 'pages/native_demo_page.dart';
 import 'pages/framework_test_page.dart';
 import 'pages/login/login_page.dart';
@@ -123,6 +124,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
             fontFamily: 'PingFang',
           ),
+          navigatorObservers: [TUICallKit.navigatorObserver],
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.blue,
@@ -223,30 +225,26 @@ class _SplashPageState extends State<SplashPage> {
           children: [
             // Logo 或 App 图标
             Container(
-              width: 100,
-              height: 100,
+              width: 150,
+              height: 150,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
-                Icons.chat_bubble_outline,
-                size: 60,
-                color: Colors.blue,
-              ),
+              child: Image.asset('assets/img/common/logo_launch.png'),
             ),
 
             const SizedBox(height: 32),
 
-            // App 名称
-            const Text(
-              '铃鸟聊天',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+            // // App 名称
+            // const Text(
+            //   '铃鸟聊天',
+            //   style: TextStyle(
+            //     fontSize: 32,
+            //     fontWeight: FontWeight.bold,
+            //     color: Colors.white,
+            //   ),
+            // ),
 
             const SizedBox(height: 48),
 
