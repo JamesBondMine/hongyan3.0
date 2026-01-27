@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
-import 'package:bell_bird_talk/pages/community/models/community_role_model.dart';
+import 'package:bell_bird_talk/models/community_role_model.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -793,8 +793,8 @@ class CommunityController extends GetxController {
 
   /// 获取角色列表和权限模板
   /// @param cmtyId 社群ID
-  /// @return 角色列表和权限模板数据，失败返回null
-  Future<RoleModel?> getRolesAndTemplate(String cmtyId) async {
+  /// @return 角色权限模型，失败返回null
+  Future<CommunityRolePermissions?> getRolesAndTemplate(String cmtyId) async {
     try {
       isLoading.value = true;
 
@@ -806,8 +806,8 @@ class CommunityController extends GetxController {
         final dataStr = result['data'] as String? ?? '';
         if (dataStr.isNotEmpty) {
           final data = json.decode(dataStr) as List;
-          return RoleModel.fromJson({});
-          // return RoleModel.fromJson(data);
+          // 使用新的Model解析数据
+          return CommunityRolePermissions.fromJson(data);
         }
         return null;
       } else {

@@ -847,50 +847,110 @@ static void GetRolesAndTemplateCallback(int errorCode, const char* data, int dat
         if (completion) {
             NSString *dataStr = nil;
             NSString *message = @"成功";
+            
             if (errorCode != 0) {
-                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"获取角色权限失败";
                 completion(errorCode, reqId, message);
             } else {
-                // 成功时返回响应数据
+                // 成功时解析响应数据
                 if (responseData && responseData.length > 0) {
                     NSError *parseError = nil;
                     CmtyMemberRolePermissions *result = [CmtyMemberRolePermissions parseFromData:responseData error:&parseError];
+                    
                     if (result && !parseError) {
-                        NSLog(@"🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎。角色权限数量2: %d",result.rolePermissions);
+                        NSLog(@"✅ 角色权限解析成功，权限配置存在: %@", result.rolePermissions ? @"是" : @"否");
                         
-                        RolePermissionConfig * cf = result.rolePermissions;
-                         //转换角色数组
-                        NSMutableArray *rolesArray = [NSMutableArray array];
-                        for (PermissionItem *role in result.rolePermissions.permissionsArray) {
-                            NSLog(@"🍌🍌🍌🍌🍌🍌🍌🍌🍌角色信息: %@ ~ %@  ~%d",role.permissionKey, role.permissionName, role.defaultEnabled);
-                            
-                            NSMutableDictionary *roleDict = [NSMutableDictionary dictionary];
-                            if (role.permissionKey && role.permissionKey.length > 0) {
-                                roleDict[@"permissionKey"] = role.permissionKey;
+                        // 只返回权限数组
+                        NSMutableArray *permissionsArray = [NSMutableArray array];
+                        
+                        if (result.rolePermissions && result.rolePermissions.permissionsArray) {
+                            for (PermissionItem *permission in result.rolePermissions.permissionsArray) {
+                                NSMutableDictionary *permissionDict = [NSMutableDictionary dictionary];
+                                
+                                NSLog(@"🍊🍊🍊🍊🍊🍊🍊🍊权限配置: %@", permission.permissionKey);
+                                
+                                // 权限键
+                                if (permission.permissionKey && permission.permissionKey.length > 0) {
+                                    permissionDict[@"permission_key"] = permission.permissionKey;
+                                }
+                                
+                                // 权限名称
+                                if (permission.permissionName && permission.permissionName.length > 0) {
+                                    permissionDict[@"permission_name"] = permission.permissionName;
+                                }
+                                
+                                // 权限描述
+                                if (permission.description_p && permission.description_p.length > 0) {
+                                    permissionDict[@"description"] = permission.description_p;
+                                }
+                                
+                                // 默认启用状态
+                                permissionDict[@"default_enabled"] = @(permission.defaultEnabled);
+                                
+                                // 消息类型 - 特殊处理 send_message_types
+                                if (permission.messageTypes && permission.messageTypes.length > 0) {
+                                    NSString *messageTypes = permission.messageTypes;
+                                    
+                                    // 如果是 send_message_types 权限，需要转换格式
+                                    if ([permission.permissionKey isEqualToString:@"send_message_types"]) {
+                                        // 将 "cmty.permission.send_message_types.default_types" 转换为 "text,image"
+                                        if ([messageTypes containsString:@"default_types"]) {
+                                            messageTypes = @"text,image,audio,video,file";
+                                        } else if ([messageTypes containsString:@"text_only"]) {
+                                            messageTypes = @"text";
+                                        } else if ([messageTypes containsString:@"media_only"]) {
+                                            messageTypes = @"image,audio,video,file";
+                                        } else {
+                                            // 如果包含具体的类型标识，进行映射
+                                            NSMutableArray *types = [NSMutableArray array];
+                                            if ([messageTypes containsString:@"text"]) [types addObject:@"text"];
+                                            if ([messageTypes containsString:@"image"]) [types addObject:@"image"];
+                                            if ([messageTypes containsString:@"audio"]) [types addObject:@"audio"];
+                                            if ([messageTypes containsString:@"video"]) [types addObject:@"video"];
+                                            if ([messageTypes containsString:@"file"]) [types addObject:@"file"];
+                                            if ([messageTypes containsString:@"emoji"]) [types addObject:@"emoji"];
+                                            
+                                            if (types.count > 0) {
+                                                messageTypes = [types componentsJoinedByString:@","];
+                                            }
+                                        }
+                                    }
+                                    
+                                    permissionDict[@"message_types"] = messageTypes;
+                                }
+                                
+                                NSLog(@"🔑 权限项: %@ - %@ (默认: %@)", 
+                                      permission.permissionKey ?: @"未知", 
+                                      permission.permissionName ?: @"未命名",
+                                      permission.defaultEnabled ? @"启用" : @"禁用");
+                                
+                                [permissionsArray addObject:permissionDict];
                             }
-                            if (role.permissionName && role.permissionName.length > 0) {
-                                roleDict[@"permissionName"] = role.permissionName;
-                            }
-                            if (role.defaultEnabled) {
-                                roleDict[@"defaultEnabled"] = role.defaultEnabled ? @"1" : @"0";
-                            }
-                            if (role.messageTypes) {
-                                roleDict[@"message_types"] = role.messageTypes;
-                            }
-                            [rolesArray addObject:roleDict];
                         }
+                        
                         // 序列化为 JSON 字符串
-                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject: rolesArray options:0 error:nil];
-                        if (jsonData) {
+                        NSError *jsonError = nil;
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:permissionsArray 
+                                                                           options:0 
+                                                                             error:&jsonError];
+                        if (jsonData && !jsonError) {
                             dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                            NSLog(@"✅ 获取角色列表和权限模板响应解析成功，权限数量: %lu", (unsigned long)permissionsArray.count);
+                        } else {
+                            NSLog(@"❌ JSON序列化失败: %@", jsonError.localizedDescription);
+                            dataStr = @"[]";
                         }
-                        NSLog(@"✅ 获取角色列表和权限模板响应解析成功: %@", dataStr);
                     } else {
                         // Protobuf 解析失败，尝试直接作为 JSON 返回
                         dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
-                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                        NSLog(@"⚠️ Protobuf解析失败，错误: %@，尝试返回原始JSON: %@", 
+                              parseError ? parseError.localizedDescription : @"未知错误", dataStr);
                     }
+                } else {
+                    NSLog(@"⚠️ 响应数据为空");
+                    dataStr = @"[]";
                 }
+                
                 completion(errorCode, reqId, dataStr);
             }
             [manager.communityCallbacks removeObjectForKey:key];
