@@ -105,7 +105,7 @@ class _FriendsHomePageState extends State<FriendsHomePage> with SingleTickerProv
           Navigator.push<bool>(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddFriendPage(),
+              builder: (context) => AddFriendPage(),
             ),
           );
         },

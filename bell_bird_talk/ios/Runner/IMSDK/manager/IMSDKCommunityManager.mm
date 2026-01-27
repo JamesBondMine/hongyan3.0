@@ -13,6 +13,9 @@
 #import "CmtyChannelGroupPb.pbobjc.h"
 #import "CmtyMemberPb.pbobjc.h"
 #import "CmtySecurityPb.pbobjc.h"
+
+#import "CmtyPermissionPb.pbobjc.h"
+
 #import "SystemPb.pbobjc.h"
 #import <UIKit/UIKit.h>
 #include "network_lib.h"
@@ -827,6 +830,117 @@ static void GetCommunitySettingsCallback(int errorCode, const char* data, int da
     });
 }
 
+/// 获取角色列表和权限模板回调
+static void GetRolesAndTemplateCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
+    NSLog(@"🎭 获取角色列表和权限模板回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
+    
+    NSData *responseData = nil;
+    if (data && dataLen > 0) {
+        responseData = [NSData dataWithBytes:data length:dataLen];
+    }
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        IMSDKCommunityManager *manager = [IMSDKCommunityManager sharedManager];
+        NSNumber *key = @(reqId);
+        IMSDKCommunityCompletion completion = manager.communityCallbacks[key];
+        
+        if (completion) {
+            NSString *dataStr = nil;
+            NSString *message = @"成功";
+            if (errorCode != 0) {
+                message = responseData ? [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding] : @"失败";
+                completion(errorCode, reqId, message);
+            } else {
+                // 成功时返回响应数据
+                if (responseData && responseData.length > 0) {
+                    NSError *parseError = nil;
+                    CmtyMemberRolePermissions *result = [CmtyMemberRolePermissions parseFromData:responseData error:&parseError];
+                    if (result && !parseError) {
+                        NSLog(@"🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎。角色权限数量2: %d",result.rolePermissions);
+                        // 转换角色数组
+                        NSMutableArray *rolesArray = [NSMutableArray array];
+                        for (PermissionItem *role in result.rolePermissions.permissionsArray) {
+                            if (rolesArray.count > 0) {
+                                break;
+                            }
+                            NSLog(@"🍌🍌🍌🍌🍌🍌🍌🍌🍌角色信息: %@ ~ %@",role.permissionKey, role.permissionName);
+                            NSMutableDictionary *roleDict = [NSMutableDictionary dictionary];
+//                            
+//                            // 角色基本信息 - 使用正确的protobuf字段名
+//                            if (role.code && role.code.length > 0) {
+//                                roleDict[@"role_id"] = role.code;
+//                                if (![role.code  isEqual: @"cmty_member"]) {
+//                                    continue;;
+//                                }
+//                            }
+//                            if (role.name && role.name.length > 0) {
+//                                roleDict[@"role_name"] = role.name;
+//                            }
+//                            if (role.description_p && role.description_p.length > 0) {
+//                                roleDict[@"role_desc"] = role.description_p;
+//                            }
+//                            
+//                            
+//                            // 角色权限配置列表
+//                            if (role.permissionConfigsArray && role.permissionConfigsArray.count > 0) {
+//                                NSMutableArray *permissionsArray = [NSMutableArray array];
+//                                for (PermissionConfig *permConfig in role.permissionConfigsArray) {
+//                                    NSMutableDictionary *permDict = [NSMutableDictionary dictionary];
+//                                    if (permConfig.methodName && permConfig.methodName.length > 0) {
+//                                        permDict[@"method_name"] = permConfig.methodName;
+//                                    }
+//                                    if (permConfig.attributes && permConfig.attributes.count > 0) {
+//                                        permDict[@"attributes"] = permConfig.attributes;
+//                                    }
+//                                    if (permConfig.status && permConfig.status.length > 0) {
+//                                        permDict[@"status"] = permConfig.status;
+//                                    }
+//                                    permDict[@"expire_time"] = @(permConfig.expireTime);
+//                                    if (permConfig.configDesc && permConfig.configDesc.length > 0) {
+//                                        permDict[@"config_desc"] = permConfig.configDesc;
+//                                    }
+//                                    [permissionsArray addObject:permDict];
+//                                }
+//                                roleDict[@"permissions"] = permissionsArray;
+//                            }
+//                            
+//                            // 其他角色属性
+//                            if (role.status && role.status.length > 0) {
+//                                roleDict[@"status"] = role.status;
+//                            }
+//                            roleDict[@"expire_time"] = @(role.expireTime);
+//                            roleDict[@"assigned_time"] = @(role.assignedTime);
+//                            roleDict[@"created_at"] = @(role.createdAt);
+//                            roleDict[@"updated_at"] = @(role.updatedAt);
+//                            if (role.assignedBy && role.assignedBy.length > 0) {
+//                                roleDict[@"assigned_by"] = role.assignedBy;
+//                            }
+//                            
+//                            // 设置默认值（protobuf中没有这些字段，设为默认值）
+//                            roleDict[@"is_default"] = @(NO);
+//                            roleDict[@"member_count"] = @(0);
+                            
+                            [rolesArray addObject:roleDict];
+                        }
+                        // 序列化为 JSON 字符串
+//                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject: [rolesArray firstObject] options:0 error:nil];
+//                        if (jsonData) {
+//                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//                        }
+                        NSLog(@"✅ 获取角色列表和权限模板响应解析成功: %@", dataStr);
+                    } else {
+                        // Protobuf 解析失败，尝试直接作为 JSON 返回
+                        dataStr = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+                        NSLog(@"⚠️ Protobuf解析失败，尝试JSON: %@", dataStr);
+                    }
+                }
+                completion(errorCode, reqId, dataStr);
+            }
+            [manager.communityCallbacks removeObjectForKey:key];
+        }
+    });
+}
+
 /// 查询加入申请列表回调
 static void ListJoinRequestsCallback(int errorCode, const char* data, int dataLen, uint64_t reqId) {
     NSLog(@"📋 查询加入申请列表回调: errorCode=%d, dataLen=%d, reqId=%llu", errorCode, dataLen, reqId);
@@ -1555,6 +1669,27 @@ static void UpdateCommunitySettingsCallback(int errorCode, const char* data, int
     uint64_t reqId = 0;
     int code = get_community_settings(
         GetCommunitySettingsCallback,
+        [cmtyId UTF8String],
+        reqId
+    );
+    
+    if (code == 0 && completion) {
+        self.communityCallbacks[@(reqId)] = completion;
+    }
+    return code;
+}
+
+- (int)getRolesAndTemplateWithCmtyId:(NSString *)cmtyId
+                          completion:(IMSDKCommunityCompletion)completion {
+    NSLog(@"🎭 获取角色列表和权限模板: cmtyId=%@", cmtyId);
+    
+    if (!cmtyId || cmtyId.length == 0) {
+        return -1; // 参数错误
+    }
+    
+    uint64_t reqId = 0;
+    int code = get_member_role_permissions(
+        GetRolesAndTemplateCallback,
         [cmtyId UTF8String],
         reqId
     );

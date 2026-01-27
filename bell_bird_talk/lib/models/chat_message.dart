@@ -142,7 +142,10 @@ class ChatMessage {
   String? ext;
   
   /// 错误信息（发送失败时）
-  String? errorMessage;
+  String? errorMessage; 
+
+  /// 错误信息（发送失败时）code
+  String? errorMessageCode;
   
   /// 重试次数
   int retryCount;
@@ -185,6 +188,7 @@ class ChatMessage {
     this.isAll,
     this.ext,
     this.errorMessage,
+    this.errorMessageCode,
     this.retryCount = 0, 
   });
 
@@ -376,6 +380,7 @@ class ChatMessage {
       'at_info_list': atInfoList != null ? json.encode(atInfoList) : null,
       'ext': ext,
       'error_message': errorMessage,
+      // 'errorCode': errorMessageCode,//暂不保存
       'retry_count': retryCount,
     };
   }
@@ -423,6 +428,7 @@ class ChatMessage {
       atInfoList: atInfoList,
       ext: map['ext'] as String?,
       errorMessage: map['error_message'] as String?,
+      // errorMessageCode: map['errorCode'] as String?,
       retryCount: map['retry_count'] as int? ?? 0,
     );
   }
@@ -437,6 +443,7 @@ class ChatMessage {
     String? imageThumbnailUrl,
     String? fileUrl,
     String? errorMessage,
+    String? errorMessageCode,
     int? retryCount,
     bool? isAll,
     List<Map<String, dynamic>>? atInfoList,
@@ -472,6 +479,7 @@ class ChatMessage {
       atInfoList: atInfoList ?? this.atInfoList,
       ext: ext,
       errorMessage: errorMessage ?? this.errorMessage,
+      // errorMessageCode: errorMessageCode ?? this.errorMessageCode,
       retryCount: retryCount ?? this.retryCount,
     );
   }

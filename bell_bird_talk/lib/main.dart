@@ -145,7 +145,7 @@ class MyApp extends StatelessWidget {
             GetPage(name: '/login', page: () => const LoginPage()),
             GetPage(name: '/home', page: () => const HomePage()),
             GetPage(name: '/friends', page: () => const FriendsHomePage()),
-            GetPage(name: '/add-friend', page: () => const AddFriendPage()),
+            GetPage(name: '/add-friend', page: () => AddFriendPage()),
             GetPage(name: '/demo', page: () => const NativeDemoPage()),
             GetPage(name: '/test', page: () => const FrameworkTestPage()),
           ],

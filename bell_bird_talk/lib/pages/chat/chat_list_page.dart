@@ -861,7 +861,7 @@ class _ChatListPageState extends State<ChatListPage> {
           Navigator.pop(context); // 先关闭弹出菜单
           Navigator.push<bool>(
             context,
-            MaterialPageRoute(builder: (context) => const AddFriendPage()),
+            MaterialPageRoute(builder: (context) => AddFriendPage()),
           );
         },
       ),

@@ -1,0 +1,725 @@
+Launching lib/main.dart on 伊伊爸爸 in debug mode...
+Automatically signing iOS for device deployment using specified development team in Xcode project: 38544L6R8V
+Xcode build done.                                            9.8s
+(lldb) 2026-01-27 11:51:52.227991+0800 Runner[31189:1649992] [theme][applyTheme] invalid resurce, themeID:dark, module:512
+[PreviewsAgentExecutorLibrary] Looking up debug dylib relative path
+[PreviewsAgentExecutorLibrary] Found debug dylib relative path string `Runner.debug.dylib`
+[PreviewsAgentExecutorLibrary] Looking up debug dylib entry point name
+[PreviewsAgentExecutorLibrary] No debug dylib entry point name defined.
+[PreviewsAgentExecutorLibrary] Looking up debug dylib install name
+[PreviewsAgentExecutorLibrary] Found debug dylib install name string `@rpath/Runner.debug.dylib`
+[PreviewsAgentExecutorLibrary] Looking for Previews JIT link entry point.
+[PreviewsAgentExecutorLibrary] No Previews JIT entry point found.
+[PreviewsAgentExecutorLibrary] Gave PreviewsInjection a chance to run and it returned, continuing with debug dylib.
+[PreviewsAgentExecutorLibrary] Looking for main entry point.
+[PreviewsAgentExecutorLibrary] Opening debug dylib with '@rpath/Runner.debug.dylib'
+[PreviewsAgentExecutorLibrary] Debug dylib handle: 0xb66a19b0
+[PreviewsAgentExecutorLibrary] No entry point found. Checking for alias.
+[PreviewsAgentExecutorLibrary] Calling provided entry point.
+[UIFocus] FlutterView implements focusItemsInRect: - caching for linear focus movement is limited as long as this view is on screen.
+Dart execution mode: JIT
+D/Swift: [AWESOME NOTIFICATIONS] LiceCycleManager listener successfully attached to iOS (LifeCycleManager:81)
+D/Swift: [AWESOME NOTIFICATIONS] App is now Terminated (LifeCycleManager:134)
+D/Swift: [AWESOME NOTIFICATIONS] LiceCycleManager listener successfully attached to iOS (LifeCycleManager:81)
+D/Swift: [AWESOME NOTIFICATIONS] Awesome Notifications plugin attached to iOS 1946.0 (AwesomeNotificationsPlugin:60)
+D/Swift: [AWESOME NOTIFICATIONS] Awesome Notifications - App Group : group.awn.f23ff089 (AwesomeNotificationsPlugin:61)
+[I][01-27/11:51:52.425+8.0][31189,259][thread_manager.cc:369]cores num:6
+[I][01-27/11:51:52.426+8.0][31189,44291][log_setting.cc:141]Initialize success. path:/var/mobile/Containers/Data/Application/7092E9BF-E495-415F-ACB5-FA32FEB8FEC1/Documents/log
+[I][01-27/11:51:52.426+8.0][31189,86787][crash_report_impl.cc:114]exceptions record path:/var/mobile/Containers/Data/Application/7092E9BF-E495-415F-ACB5-FA32FEB8FEC1/Library/Caches/liteav/exceptions
+[I][01-27/11:51:52.427+8.0][31189,84227][recycle_flow_manager.cc:56]Recycle flow manager add reference when created: 0x102223a60, create and release count: 1
+[I][01-27/11:51:52.428+8.0][31189,259][volume_adjuster.cc:19]create volume adjuster linear curve
+[I][01-27/11:51:52.429+8.0][31189,259][TUICallEngine.mm:94]Tuikit: |-[TUICallEngine addObserver:]_block_invoke|call_engine - observer added: [tencent_calls_uikit.VoIPDataSyncHandler]
+[I][01-27/11:51:52.430+8.0][31189,84739][ntp_time_domain_info.cc:35]NTP service resolved {trtc.time.tencent-cloud.com} to ip [120.53.64.253:123, ]
+✅ NativeBridgeHandler 初始化完成
+✅ AppDelegate Native Bridge 已初始化
+✅ AppDelegate Platform Views 已注册
+[I][01-27/11:51:52.432+8.0][31189,48899][reliable_report_channel_https.cc:585]load completion_report.mmap successfully, data size is 0
+[I][01-27/11:51:52.427+8.0][31189,259][network_factory.cc:73]NetworkGlobalInit Done
+[I][01-27/11:51:52.427+8.0][31189,84739][udp_async_channel.cc:119]UdpAsyncChannel::Init enable_socks5_=false
+[I][01-27/11:51:52.427+8.0][31189,84739][ntp_time_manager_impl.cc:150]Start NTP time sync
+[I][01-27/11:51:52.428+8.0][31189,259][audio_frame_list_track.cc:31][audio_log][kExternalAecReferenceTrackId_[1:3a60]]create track, type is kAecReference
+[I][01-27/11:51:52.428+8.0][31189,259][audio_effect_manager_impl.cc:79][audio-effect][1:3a60]Audio effect construct.
+[I][01-27/11:51:52.428+8.0][31189,259][trtc_pipeline2.cc:121][trtc-api][1:3a60]PipelineV2 synchronized initialized, object:0x102223a60
+[I][01-27/11:51:52.428+8.0][31189,84227][trtc_pipeline2.cc:127][trtc-api][1:3a60]sdk target: professional
+[I][01-27/11:51:52.430+8.0][31189,84739][ntp_time_manager_impl.cc:180]Start request: trtc.time.tencent-cloud.com
+[I][01-27/11:51:52.431+8.0][31189,84227][remote_channel_manager.cc:858][remote-trtc][1:3a60]SetCacheParams:{chorus:0, min_cache:300, max_cache:1600}, role_params:{role:20, play_type:0, level:1}, chorus latency:Default, need_saving_bandwidth: false
+[I][01-27/11:51:52.431+8.0][31189,84227][force_buffering_controller.cc:44][remote-trtc][1:3a60]SetCacheParams min_cache_ms: 300 max_cache_ms: 1600
+[I][01-27/11:51:52.431+8.0][31189,84227][remote_channel_manager.cc:888][remote-trtc][1:3a60]SetNetEQParams expired_duration[300] keep_factor[2]
+[I][01-27/11:51:52.432+8.0][31189,84227][network_impl.cc:124][local-trtc][1:3a60]Network module Initialized
+[I][01-27/11:51:52.435+8.0][31189,80131][audio_device_event_monitor.mm:470]OnRouteChange: Reason=0, PreviousRoute=, CurrentRoute=<AVAudioSessionRouteDescription: 0x283696210,
+inputs = (
+    "<AVAudioSessionPortDescription: 0x283696230, type = MicrophoneBuiltIn; name = iPhone \U9ea6\U514b\U98ce; UID = Built-In Microphone; selectedDataSource = \U4e0b>"
+);
+outputs = (
+    "<AVAudioSessionPortDescription: 0x2836962c0, type = Speaker; name = \U626c\U58f0\U5668; UID = Speaker; selectedDataSource = (null)>"
+)>
+[I][01-27/11:51:52.436+8.0][31189,84227][audio_recorder_manager_impl.cc:47][audio_log][audio-device]Audio recorder manager initialized.
+[I][01-27/11:51:52.436+8.0][31189,84227][volume_adjuster.cc:19]create volume adjuster linear curve
+[I][01-27/11:51:52.436+8.0][31189,84227][audio_player_manager_impl.cc:44][audio_log][audio-device]Audio speaker manager initialized.
+[I][01-27/11:51:52.436+8.0][31189,84227][audio_device_service_impl2.cc:47][audio_log][audio-device]AudioDevice2.0 initialized!
+[I][01-27/11:51:52.437+8.0][31189,84227][volume_adjuster.cc:19]create volume adjuster linear curve
+[I][01-27/11:51:52.437+8.0][31189,84227][volume_adjuster.cc:19]create volume adjuster linear curve
+[I][01-27/11:51:52.437+8.0][31189,84227][audio_frame_list_track.cc:31][audio_log][kCaptureTrackId]create track, type is VoicePublish
+[I][01-27/11:51:52.437+8.0][31189,84227][audio_frame_list_track.cc:31][audio_log][kPlayoutTrackId]create track, type is kAecReference
+[I][01-27/11:51:52.437+8.0][31189,84227][audio_3a_config_decider.cc:104][audio_log][audio-dsp]create default 3a decider for mobile.
+[I][01-27/11:51:52.437+8.0][31189,84227][volume_adjuster.cc:19]create volume adjuster linear curve
+[I][01-27/11:51:52.438+8.0][31189,80131][audio_route_manager.mm:66]set audio capture direction=Front
+[I][01-27/11:51:52.437+8.0][31189,84227][local_audio_module.cc:135][local-audio][1:3a60]Local audio module initialized.
+[I][01-27/11:51:52.437+8.0][31189,84227][remote_audio_module.cc:63][remote-audio][1:3a60]Remote audio module initialized.
+[I][01-27/11:51:52.437+8.0][31189,84227][extension_center.cc:44][1:3a60]extension: TRTCVideoUltimateQualityExt has been disabled
+[I][01-27/11:51:52.437+8.0][31189,84227][local_video_module4.cc:70][local-video][1:3a60]Local video module initialized.
+[I][01-27/11:51:52.437+8.0][31189,84227][remote_video_module_impl.cc:51][remote-video][1:3a60]Remote video module initialized.
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: AudioAACDecoderExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: AudioAACEncoderExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: AudioSessionHookExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: AudioSpatialEffectorExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.438+8.0][31189,84227][audio_vad_processor.cc:31]Initialize
+[I][01-27/11:51:52.438+8.0][31189,78851][audio_preprocessor2.cc:188][audio_log][audio-io]Add record filter position: kVad, filter:0x102236488
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: AudioVadProcessorExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.438+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: CloudConfigExtension. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.439+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: CrashReportExtension. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.439+8.0][31189,84227][video_codec_manager_impl.cc:110]Register decoder: internal-ffmpeg-software-video-decoder
+[I][01-27/11:51:52.440+8.0][31189,84227][video_codec_manager_impl.cc:110]Register decoder: internal-videotoolbox-hardware-video-decoder
+[I][01-27/11:51:52.440+8.0][31189,84227][video_codec_manager_impl.cc:137]Register encoder: vt264-internal
+[I][01-27/11:51:52.440+8.0][31189,84227][video_codec_manager_impl.cc:137]Register encoder: vt265-internal
+[I][01-27/11:51:52.440+8.0][31189,84227][video_codec_manager_impl.cc:137]Register encoder: o264-internal
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: H264SoftwareEncoderExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: LogUploaderExtension. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: MultipathTransportExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: NetworkDetectionToolExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: SpeedTestExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][trtc_audio_capture_abnormal_detector_ext.cc:34][audio-abnormal-detect][1:3a60]Audio capture abnormal detector extension initialized.
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCAudioCaptureAbnormalDetectorExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][audio_frame_customize_impl.cc:530]enable include loopback: false
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCAudioFrameCustomizeExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][trtc_audio_music_detector_ext.cc:26][music-detect][1:3a60]Music detector extension initialized.
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCAudioMusicDetectorExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][trtc_audio_tap_dsp_ext.cc:93][audio-tap-dsp][1:3a60]Enable Tap dsp: false
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCAudioTapDspExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.440+8.0][31189,84227][audio_interceptor_filter.cc:98][audio_log][audio-io]Add new interceptor: 0x280189c98 for position: kInterceptor_RawCapture, location: @../../sdk/common/capture_silence_detector/capture_silence_detector_internal.cc:70, format: [sample_rate:0 channels:0 num_samples:0]
+[I][01-27/11:51:52.440+8.0][31189,84227][audio_interceptor_filter.cc:98][audio_log][audio-io]Add new interceptor: 0x280189c98 for position: kInterceptor_After3A, location: @../../sdk/common/capture_silence_detector/capture_silence_detector_internal.cc:73, format: [sample_rate:0 channels:0 num_samples:0]
+[I][01-27/11:51:52.440+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCDataReporterExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.442+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCQosStrategyExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.442+8.0][31189,77315][video_preprocessor_v3.cc:109][local_video]|[BigStream][1:3a60] Preprocessor3 initialize.
+[I][01-27/11:51:52.442+8.0][31189,84227][trtc_quality_sampling_service.cc:267][quality-sampling]0 Clear sampling result 0
+[I][01-27/11:51:52.442+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCQualitySamplingExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.442+8.0][31189,84227][trtc_video_abnormal_checker_ext.cc:32][[video-abnormal-check]]TRTCVideoAbnormalCheckerExt. Initialize.
+[I][01-27/11:51:52.442+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCVideoAbnormalCheckerExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.442+8.0][31189,77315][frame_transform_controller.cc:110][local_video]|[BigStream][1:3a60] SetEncoderSize. size=Size{720x1280}
+[I][01-27/11:51:52.442+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCVideoScreenCaptureExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.442+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCVideoSeiMessageExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.443+8.0][31189,84227][audio_interceptor_filter.cc:98][audio_log][audio-io]Add new interceptor: 0x2801800d8 for position: kInterceptor_RemoteSingleStreamBeforeVolumeAdjust, location: @../../sdk/extensions/volume_evaluate_calculator/volume_evaluate_calculator.cc:22, format: [sample_rate:0 channels:0 num_samples:0]
+[I][01-27/11:51:52.443+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TRTCVolumeEvaluateCalculatorExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.443+8.0][31189,78851][audio_3a_config_decider.cc:104][audio_log][audio-dsp]create default 3a decider for mobile.
+[I][01-27/11:51:52.443+8.0][31189,84227][extension_center.cc:113][1:3a60]Notify to extension: TrtcNonLinearGainCalculateExt. pipeline event: kPipelineInitialize
+[I][01-27/11:51:52.443+8.0][31189,84227][trtc_pipeline_extension.cc:24][trtc-api][1:3a60]Extension module initialized.
+[I][01-27/11:51:52.443+8.0][31189,84227][trtc_pipeline2.cc:145][trtc-api][1:3a60]PipelineV2 asynchronous initialized.
+[I][01-27/11:51:52.443+8.0][31189,84227][audio_event_dispatcher.cc:623][audio-device][1:3a60]OnAudioPlayoutDeviceVolumeChanged [AudioDevice: speaker hardware volume changed to 0]
+[I][01-27/11:51:52.444+8.0][31189,86787][apple_video_encoder_factory.mm:80]query hevc support = true
+D/Swift: [AWESOME NOTIFICATIONS] Awesome Notifications attached for iOS (AwesomeNotifications:531)
+[I][01-27/11:51:52.631+8.0][31189,84739][ntp_time_manager_impl.cc:332]NTP time sync successful, took(ms): 201, last request took(ms): 201, use sample count:10, success offset(us): 62282, ntp time:2026-01-27 11:51:52.693 UTC, trtc.time.tencent-cloud.com, IP:120.53.64.253:123
+[I][01-27/11:51:52.643+8.0][31189,259][TXCAppStateMonitor.mm:186]AppState: Active
+D/Swift: [AWESOME NOTIFICATIONS] App is now Foreground (LifeCycleManager:134)
+[I][01-27/11:51:52.672+8.0][31189,259][audio_device_event_monitor.mm:358]AudioDeviceEventMonitor OnApplicationBecomeActive
+Connecting to VM Service at ws://127.0.0.1:60119/VCyQGFFOz-M=/ws
+Connected to the VM Service.
+flutter: ✅ Storage 初始化成功
+D/Swift: [AWESOME NOTIFICATIONS] Awesome Notifications service initialized (AwesomeNotificationsPlugin:1030)
+flutter: ✅ 通知插件初始化成功
+[GETX] Instance "GlobalController" has been created
+flutter: 🚀 开始初始化 IM SDK...
+[GETX] Instance "GlobalController" has been initialized
+📱 IMSDKManager 初始化
+🚀 初始化 IM SDK（按照官方文档顺序）
+2026-01-27 11:51:55 [TID:1649992] =======================================LOG START=======================================
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_session.cpp:127] INFO 🔵 MqttSession instance created, this=0x1071b3bd8
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:48] INFO The MQTT reconnection manager has been started
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:7] INFO MessageDispatcher created
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:25] INFO MessageDispatcher started
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1337] INFO ⏰ Starting timeout checker thread, this=0x1071b3bd8
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_session.cpp:121] INFO Client info set in MqttSession - platform: ios, platformVersion: 16.0, deviceId: D03C7819-286A-45FB-BEDB-4D8CAEFB488E, tz: Asia/Shanghai
+📱 设备ID: D03C7819-286A-45FB-BEDB-4D8CAEFB488E
+2026-01-27 11:51:55 [TID:1650094] [/Users/phl/developer/project/src/network/message_dispatcher.cpp:72] INFO MessageDispatcher worker thread started
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:419] INFO call network_start=====
+2026-01-27 11:51:55 [TID:1650095] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1339] INFO ⏰ Timeout checker thread started, this=0x1071b3bd8
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_session.cpp:867] INFO MqttSession started, waiting for CONNACK to determine security requirements
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/thread/thread_manager.cpp:242] INFO Started event loops for business thread
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:427] INFO end network_start=====
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:56] DEBUG [HttpDnsManager] Constructor
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:99] INFO [HttpDnsManager] Added HttpDns server: https://223.5.5.5/resolve (total: 1)
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:506] INFO [network_add_httpdns_server] Added HttpDns server: https://223.5.5.5/resolve
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1129] INFO [set_user_auth_info] Starting token auth with network initialization, user_domain=
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:167] DEBUG [HttpDnsManager] AES key derived from invite_code: 9626c7444717aab7a3bbdd509bcafa35
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:178] INFO [HttpDnsManager] HttpDns params set - domain: a1234567.loadingworks.com, uid: , type: 28
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1169] INFO [set_user_auth_info] userId=UY3OJMGM, token set, refreshToken set, invite_code=a1234567, domain=a1234567.loadingworks.com, user_domain=
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:597] INFO [set_user_auth_info] Starting HttpDns resolve and network connection
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:112] INFO [HttpDnsManager] Initializing with 1 pre-configured servers
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:114] INFO [HttpDnsManager] Server [1]: https://223.5.5.5/resolve
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:596] INFO [NetSpeedManager] Race mode set to: TCP_CONNECT
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:607] DEBUG [NetSpeedManager] Auto connect set to: false
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:422] INFO [HttpDnsManager] Starting HttpDns resolve...
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/thread/thread_manager.cpp:95] DEBUG Added business task: HttpDnsResolve (ID: 1)
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/thread/thread_manager.cpp:204] DEBUG Executing task: HttpDnsResolve (ID: 1)
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1946] INFO [HttpDnsManager] Periodic check started - quality check: 360000ms, HttpDns refresh: 3600000ms
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:303] DEBUG [HttpDnsManager] Built request URL: https://223.5.5.5/resolve?name=a1234567.loadingworks.com&type=28&short=true
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:612] INFO [set_user_auth_info] Network initialization started, waiting for connection...
+2026-01-27 11:51:55 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1205] INFO [set_user_auth_info] Network initialization started, waiting for connection...
+✅ 已设置用户认证信息: userId=UY3OJMGM
+2026-01-27 11:51:55 [TID:1650096] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1982] INFO [HttpDnsManager] Periodic check worker started
+⏳ 等待 SDK 初始化成功回调 (event_code=6)...
+HTTP/1.1 200 OK
+
+Access-Control-Allow-Origin: *
+
+Alt-Svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+
+Cache-Control: max-age=536.000000
+
+Content-Length: 175
+
+Content-Type: application/json
+
+S: 123.14.86.208
+
+Date: Tue, 27 Jan 2026 03:51:55 GMT
+
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:685] DEBUG [HttpDnsManager] Response: ["3:5dfd:6259:eb45:be13:cb24:a5b0:7d1b","2:4a55:a86f:5a2a:79b6:e8b1:a120:9053","5:83c5:6a5e:4000::","1:76:bca0:16d7:d61c:531a:abf7:2cac","4:8883:8162:c098:23e:8117:736e:8cc7"]
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1209] DEBUG [HttpDnsManager] Using provided hex key directly (assuming already derived)
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:874] DEBUG [HttpDnsManager] key_hex Hex: 9626c7444717aab7a3bbdd509bcafa35
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:876] DEBUG [HttpDnsManager] IV Hex: bca016d7d61c531aabf72cac4a55a86f
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:879] DEBUG [HttpDnsManager] Tag Hex: 62c098023e8117736e8cc783c56a5e40
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:882] DEBUG [HttpDnsManager] Ciphertext Only Hex: 5a2a79b6e8b1a12090535dfd6259eb45be13cb24a5b07d1b888381
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:981] DEBUG [HttpDnsManager] Initialized AES-128-GCM decryption with 16-byte IV
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1008] DEBUG [HttpDnsManager] EVP_DecryptUpdate: decrypted 27 bytes (ciphertext: 27 bytes)
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1024] DEBUG [HttpDnsManager] Authentication tag set successfully
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1046] DEBUG [HttpDnsManager] EVP_DecryptFinal_ex: final_len=0, total plaintext=27
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1051] DEBUG [HttpDnsManager] AES-128-GCM decryption successful, plaintext length: 27
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1462] INFO [HttpDnsManager] Decoded response: ["tcp://10.226.7.213:5280"]
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1351] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 10.226.7.213:5280 (from tcp://10.226.7.213:5280)
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1362] INFO [HttpDnsManager] Parsed 1 nodes from JSON array format
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1465] INFO [HttpDnsManager] Parsed 1 nodes from hex-encoded response
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:527] INFO [HttpDnsManager] Parsed 1 accelerate nodes
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:364] DEBUG [HttpDnsManager] Resolving hostnames for 1 nodes
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:409] INFO [HttpDnsManager] Hostname resolution completed, 1 nodes remaining
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:538] INFO [HttpDnsManager] 1 nodes available after hostname resolution
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:183] INFO [NetSpeedManager] All hosts cleared
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 10.226.7.213:5280, triggering immediate race
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-27 11:51:55 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1618] INFO [HttpDnsManager] Starting TCP race with 1 nodes, timeout: 3000ms
+⏱️ SDK 初始化超时: 未收到 event_code=6 回调
+flutter: 🌐 未设置应用语言，跟随系统语言: zh_Hans_CN -> zh_CN
+flutter: 🌐 语言已设置为: zh_CN (zh_CN)
+flutter: ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅ IM SDK 初始化成功
+flutter:
+===================================
+✅ 1055ms
+[imInitialize]
+null
+----
+false
+===================================
+🚀 启动网络服务
+2026-01-27 11:51:56 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:419] INFO call network_start=====
+2026-01-27 11:51:56 [TID:1649992] [/Users/phl/developer/project/src/network/mqtt_session.cpp:867] INFO MqttSession started, waiting for CONNACK to determine security requirements
+2026-01-27 11:51:56 [TID:1649992] [/Users/phl/developer/project/src/thread/thread_manager.cpp:232] WARN Event loops already running
+2026-01-27 11:51:56 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:427] INFO end network_start=====
+📊 启动结果: 0
+flutter: 🌐 未设置应用语言，跟随系统语言: zh_Hans_CN -> zh_CN
+[GETX] Instance "GetMaterialController" has been created
+[GETX] Instance "GetMaterialController" has been initialized
+flutter: CallHandler method:appEnterForeground, arguments:null
+flutter:
+===================================
+✅ 359ms
+[imStart]
+null
+----
+true
+===================================
+[I][01-27/11:51:56.660+8.0][31189,259][foo.c:90]Tuikit: TUICallKitPlugin: TUICallKitNavigatorObserver Init
+[I][01-27/11:51:56.660+8.0][31189,259][foo.c:90]Tuikit: TUICallKitPlugin: CallManager handleAppEnterForeground()
+flutter: ✅ IM SDK 网络服务启动成功
+flutter: 📱 没有本地 Token，跳转登录页
+[GETX] REPLACE ROUTE /
+[GETX] NEW ROUTE /LoginPage
+[GETX] Instance "LoginController" has been created
+[GETX] Instance "LoginController" has been initialized
+flutter: ╔════════════════════════════════════════════════════════════════
+flutter: ║ 📤 REQUEST [GET] https://niumowangai.top/api/tasks?page=0&size=10&sortBy=createdAt&sortDir=desc
+flutter: ║ Headers: {Content-Type: application/json, Accept: application/json, Platform: iOS, App-Version: 1.0.0}
+flutter: ╚════════════════════════════════════════════════════════════════
+flutter: ╔════════════════════════════════════════════════════════════════
+flutter: ║ ❌ ERROR [400] https://niumowangai.top/api/tasks?page=0&size=10&sortBy=createdAt&sortDir=desc
+flutter: ║ Message: This exception was thrown because the response has a status code of 400 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 400 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+flutter: ║ Error Data: {
+  "code": 1,
+  "msg": "用户未登录",
+  "timestamp": 1769485917822
+}
+flutter: ╚════════════════════════════════════════════════════════════════
+flutter: ❌ Error: 请求参数错误
+flutter: ResponseModel(code: 400, message: , data: null)
+2026-01-27 11:51:58 [TID:1650099] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1889] INFO [HttpDnsManager] Connect failed: closing socket 25
+2026-01-27 11:51:58 [TID:1650099] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1684] DEBUG [HttpDnsManager] Node 10.226.7.213:5280 failed to connect
+2026-01-27 11:51:58 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1737] WARN [HttpDnsManager] No winner found, waiting for all threads
+2026-01-27 11:51:58 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:577] WARN [HttpDnsManager] No available node after race
+2026-01-27 11:51:58 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:610] INFO [HttpDnsManager] HttpDns resolve failed, scheduling retry 1/5 in 3000ms (error: No available node)
+2026-01-27 11:51:58 [TID:1650091] [/Users/phl/developer/project/src/thread/thread_manager.cpp:95] DEBUG Added business task: HttpDnsResolveRetry (ID: 2)
+2026-01-27 11:51:58 [TID:1650091] [/Users/phl/developer/project/src/thread/thread_manager.cpp:204] DEBUG Executing task: HttpDnsResolveRetry (ID: 2)
+[I][01-27/11:52:00.430+8.0][31189,33283][thread_watchdog.cc:82]can_notify_exception:true, system_hangs:false, high_cpu:false
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:627] INFO [HttpDnsManager] Executing HttpDns resolve retry 1/5...
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:303] DEBUG [HttpDnsManager] Built request URL: https://223.5.5.5/resolve?name=a1234567.loadingworks.com&type=28&short=true
+HTTP/1.1 200 OK
+
+Access-Control-Allow-Origin: *
+
+Alt-Svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+
+Cache-Control: max-age=536.000000
+
+Content-Length: 175
+
+Content-Type: application/json
+
+S: 123.14.86.208
+
+Date: Tue, 27 Jan 2026 03:52:01 GMT
+
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:685] DEBUG [HttpDnsManager] Response: ["4:8883:8162:c098:23e:8117:736e:8cc7","5:83c5:6a5e:4000::","1:76:bca0:16d7:d61c:531a:abf7:2cac","2:4a55:a86f:5a2a:79b6:e8b1:a120:9053","3:5dfd:6259:eb45:be13:cb24:a5b0:7d1b"]
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1209] DEBUG [HttpDnsManager] Using provided hex key directly (assuming already derived)
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:874] DEBUG [HttpDnsManager] key_hex Hex: 9626c7444717aab7a3bbdd509bcafa35
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:876] DEBUG [HttpDnsManager] IV Hex: bca016d7d61c531aabf72cac4a55a86f
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:879] DEBUG [HttpDnsManager] Tag Hex: 62c098023e8117736e8cc783c56a5e40
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:882] DEBUG [HttpDnsManager] Ciphertext Only Hex: 5a2a79b6e8b1a12090535dfd6259eb45be13cb24a5b07d1b888381
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:981] DEBUG [HttpDnsManager] Initialized AES-128-GCM decryption with 16-byte IV
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1008] DEBUG [HttpDnsManager] EVP_DecryptUpdate: decrypted 27 bytes (ciphertext: 27 bytes)
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1024] DEBUG [HttpDnsManager] Authentication tag set successfully
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1046] DEBUG [HttpDnsManager] EVP_DecryptFinal_ex: final_len=0, total plaintext=27
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1051] DEBUG [HttpDnsManager] AES-128-GCM decryption successful, plaintext length: 27
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1462] INFO [HttpDnsManager] Decoded response: ["tcp://10.226.7.213:5280"]
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1351] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 10.226.7.213:5280 (from tcp://10.226.7.213:5280)
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1362] INFO [HttpDnsManager] Parsed 1 nodes from JSON array format
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1465] INFO [HttpDnsManager] Parsed 1 nodes from hex-encoded response
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:527] INFO [HttpDnsManager] Parsed 1 accelerate nodes
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:364] DEBUG [HttpDnsManager] Resolving hostnames for 1 nodes
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:409] INFO [HttpDnsManager] Hostname resolution completed, 1 nodes remaining
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:538] INFO [HttpDnsManager] 1 nodes available after hostname resolution
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:183] INFO [NetSpeedManager] All hosts cleared
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 10.226.7.213:5280, triggering immediate race
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-27 11:52:01 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1618] INFO [HttpDnsManager] Starting TCP race with 1 nodes, timeout: 3000ms
+🔐 用户登录: login_type=password
+📋 密码登录: account_id=15701594500, phone=15701594500, email=nil
+🔐 IMSDKAuthManager 初始化
+📱 设备ID: D03C7819-286A-45FB-BEDB-4D8CAEFB488E
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:991] INFO [login_by_user_id] Starting login with network initialization (timeout=30000ms), user_domain=
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1022] INFO [login_by_user_id] Parsed invite_code: 666666
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/utils/snowflake.cpp:29] INFO SnowflakeIdGenerator initialized - Datacenter: 14, Worker: 21, Epoch: 1577836800000
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1040] INFO [login_by_user_id] Pending login request saved, reqId=803834684883423232, timeout=30000ms
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:167] DEBUG [HttpDnsManager] AES key derived from invite_code: 94edf28c6d6da38fd35d7ad53e485307
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:178] INFO [HttpDnsManager] HttpDns params set - domain: 666666.loadingworks.com, uid: , type: 28
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1051] INFO [login_by_user_id] HttpDns params set - domain: 666666.loadingworks.com, invite_code: 666666
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:597] INFO [login_by_user_id] Starting HttpDns resolve and network connection
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:112] INFO [HttpDnsManager] Initializing with 1 pre-configured servers
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:114] INFO [HttpDnsManager] Server [1]: https://223.5.5.5/resolve
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:596] INFO [NetSpeedManager] Race mode set to: TCP_CONNECT
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:607] DEBUG [NetSpeedManager] Auto connect set to: false
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:422] INFO [HttpDnsManager] Starting HttpDns resolve...
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:471] INFO [HttpDnsManager] Domain changed during resolve: a1234567.loadingworks.com -> 666666.loadingworks.com, updating callback
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1934] WARN [HttpDnsManager] Periodic check already running
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:612] INFO [login_by_user_id] Network initialization started, waiting for connection...
+2026-01-27 11:52:03 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:1120] INFO [login_by_user_id] Network initialization started, waiting for connection...
+✅ 登录请求发送成功: reqId=803834684883423232
+2026-01-27 11:52:04 [TID:1650202] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1889] INFO [HttpDnsManager] Connect failed: closing socket 25
+2026-01-27 11:52:04 [TID:1650202] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1684] DEBUG [HttpDnsManager] Node 10.226.7.213:5280 failed to connect
+2026-01-27 11:52:04 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1737] WARN [HttpDnsManager] No winner found, waiting for all threads
+2026-01-27 11:52:04 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:577] WARN [HttpDnsManager] No available node after race
+2026-01-27 11:52:04 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:610] INFO [HttpDnsManager] HttpDns resolve failed, scheduling retry 2/5 in 6000ms (error: No available node)
+2026-01-27 11:52:04 [TID:1650091] [/Users/phl/developer/project/src/thread/thread_manager.cpp:95] DEBUG Added business task: HttpDnsResolveRetry (ID: 3)
+2026-01-27 11:52:04 [TID:1650091] [/Users/phl/developer/project/src/thread/thread_manager.cpp:204] DEBUG Executing task: HttpDnsResolveRetry (ID: 3)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:627] INFO [HttpDnsManager] Executing HttpDns resolve retry 2/5...
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:303] DEBUG [HttpDnsManager] Built request URL: https://223.5.5.5/resolve?name=666666.loadingworks.com&type=28&short=true
+HTTP/1.1 200 OK
+
+Access-Control-Allow-Origin: *
+
+Alt-Svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+
+Cache-Control: max-age=1.000000
+
+Content-Length: 172
+
+Content-Type: application/json
+
+S: 123.14.86.208
+
+Date: Tue, 27 Jan 2026 03:52:10 GMT
+
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:685] DEBUG [HttpDnsManager] Response: ["3:46ac:ead5:7a7b:917a:c756:57e5:28e","1:78:711b:8b60:d39a:ec7b:7605:2a57","4:ecf7:aaf2:37bd:dfe5:20b4:8865:2929","5:83cc:c3e9:ff9e::","2:5c02:268:ffa7:a059:da1a:ecd:c7a"]
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1209] DEBUG [HttpDnsManager] Using provided hex key directly (assuming already derived)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:874] DEBUG [HttpDnsManager] key_hex Hex: 94edf28c6d6da38fd35d7ad53e485307
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:876] DEBUG [HttpDnsManager] IV Hex: 711b8b60d39aec7b76052a575c020268
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:879] DEBUG [HttpDnsManager] Tag Hex: 37bddfe520b48865292983ccc3e9ff9e
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:882] DEBUG [HttpDnsManager] Ciphertext Only Hex: ffa7a059da1a0ecd0c7a46acead57a7b917ac75657e5028eecf7aaf2
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:981] DEBUG [HttpDnsManager] Initialized AES-128-GCM decryption with 16-byte IV
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1008] DEBUG [HttpDnsManager] EVP_DecryptUpdate: decrypted 28 bytes (ciphertext: 28 bytes)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1024] DEBUG [HttpDnsManager] Authentication tag set successfully
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1046] DEBUG [HttpDnsManager] EVP_DecryptFinal_ex: final_len=0, total plaintext=28
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1051] DEBUG [HttpDnsManager] AES-128-GCM decryption successful, plaintext length: 28
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1462] INFO [HttpDnsManager] Decoded response: ["tcp://119.91.130.69:8885"]
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1351] DEBUG [HttpDnsManager] Parsed decoded node from JSON array: 119.91.130.69:8885 (from tcp://119.91.130.69:8885)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1362] INFO [HttpDnsManager] Parsed 1 nodes from JSON array format
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1465] INFO [HttpDnsManager] Parsed 1 nodes from hex-encoded response
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:527] INFO [HttpDnsManager] Parsed 1 accelerate nodes
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:364] DEBUG [HttpDnsManager] Resolving hostnames for 1 nodes
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:409] INFO [HttpDnsManager] Hostname resolution completed, 1 nodes remaining
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:538] INFO [HttpDnsManager] 1 nodes available after hostname resolution
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:183] INFO [NetSpeedManager] All hosts cleared
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:148] INFO [NetSpeedManager] Host added: 119.91.130.69:8885, triggering immediate race
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/net_speed_manager.cpp:189] WARN [NetSpeedManager] Periodic race not running, cannot trigger immediate race
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1618] INFO [HttpDnsManager] Starting TCP race with 1 nodes, timeout: 3000ms
+2026-01-27 11:52:10 [TID:1650238] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1876] DEBUG [HttpDnsManager] TCP connect successful, keeping socket 25 for 119.91.130.69:8885
+2026-01-27 11:52:10 [TID:1650238] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1658] DEBUG [HttpDnsManager] Node 119.91.130.69:8885 connected in 68ms, socket=25
+2026-01-27 11:52:10 [TID:1650238] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1668] INFO [HttpDnsManager] Winner: 119.91.130.69:8885 (RTT: 68ms, socket=25)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1717] INFO [HttpDnsManager] Race completed with winner, proceeding immediately
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2157] INFO [HttpDnsManager] First race: closing race socket 25 (will create fresh connection)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2170] INFO [HttpDnsManager] Initializing MqttSession with broker URL: tcp://119.91.130.69:8885
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/mqtt_session.cpp:198] DEBUG [DEBUG] setConfig() ENTRY - broker_url=tcp://119.91.130.69:8885
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/socket_client.cpp:1069] DEBUG [CCSocketClient] set_host_port: no active connection, calling reset_status for buffer init
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2175] INFO [HttpDnsManager] Starting fresh connection to 119.91.130.69:8885
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2207] INFO [HttpDnsManager] Best node updated: 119.91.130.69:8885 (RTT: 68ms)
+2026-01-27 11:52:10 [TID:1650091] [/Users/phl/developer/project/src/network_lib.cpp:1185] INFO [set_user_auth_info] HttpDns resolve completed successfully
+2026-01-27 11:52:10 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:742] DEBUG ============================================================================
+2026-01-27 11:52:10 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:743] DEBUG 😊😊😊 >>>>>> SOCKET CONNECTING: 119.91.130.69:8885 <<<<<< 😊😊😊
+2026-01-27 11:52:10 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:744] DEBUG ============================================================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 网络事件回调
+   事件代码: 1
+   描述长度: 2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2026-01-27 11:52:10 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:818] DEBUG Cancelled pending reconnect timer - TCP connected, starting MQTT handshake
+2026-01-27 11:52:10 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:334] INFO socket connect success, then mqtt start to connect, broker=tcp://119.91.130.69:8885, keepalive=40, cleanstart=1
+✅ 网络事件已发送到 Flutter
+[MQTT_PARSE] Parsed packet type=2 (CONNACK), remaining_length=136
+[MQTT_PARSE] Added packet type=2 to pkgList, list count=1
+2026-01-27 11:52:10 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=139, remaining=0, current_socket=25
+2026-01-27 11:52:10 [TID:1650242] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:698] WARN MQTTVersion is 5
+2026-01-27 11:52:10 [TID:1650242] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:703] WARN Before Thread_post_sem, connack_sem=0x28179b200
+2026-01-27 11:52:10 [TID:1650242] [/Users/phl/developer/project/src/mqtt/thread.cpp:320] DEBUG Thread_post_sem: sem=0x28179b200 (0=no waiter, non-zero=woke thread)
+2026-01-27 11:52:10 [TID:1650242] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:705] WARN After Thread_post_sem
+Connection Status: SUCCESS
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:1128] DEBUG === End of CONNACK Properties ===
+
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1052] INFO SCRAM authentication required by server, starting SCRAM flow
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1166] INFO Connection ready state changed: 0 -> 2
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1062] INFO Starting SCRAM authentication process
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1080] INFO SCRAM first message sent
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1166] INFO Connection ready state changed: 2 -> 1
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/mqtt/mqtt_client.cpp:1161] DEBUG === End of CONNACK Message ===
+
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:384] INFO MQTT connect success! CONNACK reasonCode=0, socket=25, local_port=59243, broker=tcp://119.91.130.69:8885
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1438] INFO 🔄 Starting MQTT yield thread for retransmission support, this=0x1071b3bd8
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:826] INFO MQTT CONNACK callback triggered, success=1, reasonCode=0
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:828] DEBUG MQTT CONNACK received - Reason Code: 0x00 (0), waiting for security flow
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:111] INFO MQTT connection established
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:380] WARN updateState=======================
+2026-01-27 11:52:11 [TID:1650245] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1440] INFO 🔄 Yield thread started, this=0x1071b3bd8
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:384] INFO MQTT reconnection status changed:0 -> 2, reason: Connection successful
+2026-01-27 11:52:11 [TID:1650245] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1467] INFO MQTT yield loop started - enabling retransmission support
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:134] INFO 🟡 Reconnect callback triggered, this=0x1071b3bd8, state=2, reason=Connection successful
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1284] INFO MQTT reconnect success
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:175] DEBUG Reconnection count has been reset
+2026-01-27 11:52:11 [TID:1650092] [/Users/phl/developer/project/src/network/mqtt_reconnect_manager.cpp:122] INFO [RECONNECT_TIMELINE] Reconnection process completed successfully
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: $sys/auth/scram/first, topiclen=21, datalen=110
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: $sys/auth/scram/first, payloadlen=86
+Property[0]: ID=38, Name=USER_PROPERTY, Type=6Property[1]: ID=38, Name=USER_PROPERTY, Type=6Property[2]: ID=38, Name=USER_PROPERTY, Type=6Property[3]: ID=38, Name=USER_PROPERTY, Type=6Property[4]: ID=38, Name=USER_PROPERTY, Type=6[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=110
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=1
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=112, remaining=4, current_socket=25
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=2
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=0, current_socket=25
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: $sys/auth/scram/first, QoS: 0, Retained: 0, Dup: 0 scramState: 1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:923] DEBUG SCRAM salted password computed successfully
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: $sys/auth/scram/final, topiclen=21, datalen=70
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: $sys/auth/scram/final, payloadlen=46
+[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=70
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=2
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=72, remaining=4, current_socket=25
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=3
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=0, current_socket=25
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:724] WARN PUBACK received but no reqId mapping found - deliveryToken: 1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: $sys/auth/scram/final, QoS: 0, Retained: 0, Dup: 0 scramState: 2
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:970] INFO SCRAM authentication successful
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1089] INFO Encryption not required by server, security flow completed
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1166] INFO Connection ready state changed: 1 -> 3
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1179] DEBUG No pending retransmit task to execute
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1124] INFO Security flow completed, ready to send business data
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1166] INFO Connection ready state changed: 3 -> 3
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1179] DEBUG No pending retransmit task to execute
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:879] DEBUG User token and begin auth token: eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQxNjgxOSwiZXhwIjoxNzY5NDE2ODc5LCJqdGkiOiI0N2U0ZGJkYy03MTU3LTQ3MmEtODRhMC1mMjliMTMxMTBlZmYiLCJhY2NvdW50SWQiOiJMNlpWM1FLMCIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJ1c2VySWQiOiJVWTNPSk1HTSIsImRldmljZUlkIjoiRDAzQzc4MTktMjg2QS00NUZCLUJFREItNEQ4Q0FFRkI0ODhFIn0.w7oPrFGDaS9kYQuvQS_rYmGbrWCM9PLOiQFFuFqVXww
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:1139] INFO Calling user connection callback after security flow completed
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network_lib.cpp:1056] INFO [login_by_user_id] MQTT connection successful, sending login request
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network_lib.cpp:315] INFO [login_by_user_id] MQTT connected, sending pending login request
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network_lib.cpp:190] DEBUG login_by_user_id - reqId: 803834684883423232, topic: /im/USER/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/login, payload size: 69
+2026-01-27 11:52:11 [TID:1650093] [/Users/phl/developer/project/src/service/service_manager.cpp:234] DEBUG -------NET_EVENT_AUTH----------
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 网络事件回调
+   事件代码: 6
+   描述长度: 15
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ 网络事件已发送到 Flutter
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=2
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=158, current_socket=25
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/auth/error, topiclen=56, datalen=155
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/auth/error, payloadlen=28
+[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=155
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=3
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=158, remaining=0, current_socket=25
+2026-01-27 11:52:11 [TID:1650214] [/Users/phl/developer/project/src/network_lib.cpp:272] DEBUG [login_by_user_id] Login completed before timeout
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=4
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=0, current_socket=25
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:724] WARN PUBACK received but no reqId mapping found - deliveryToken: 2
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: /im/user/UY3OJMGM/login, topiclen=23, datalen=1163
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: /im/user/UY3OJMGM/login, payloadlen=1060
+[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=1163
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=4
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=1166, remaining=0, current_socket=25
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:722] INFO PUBACK received - deliveryToken: 3, reqId: 10794631856 (mapping removed)
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/auth/error, QoS: 0, Retained: 0, Dup: 0 scramState: 3
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.cpp:93] ERROR [ServiceManager] Detected error code: 5011040 for path: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/auth/error
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.cpp:102] WARN [ServiceManager] Token expired error detected (code: 5011040), notifying via event...
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.cpp:120] INFO ServiceManager::refreshToken - sending refresh token request for user: UY3OJMGM
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:722] INFO PUBACK received - deliveryToken: 4, reqId: 803834684883423232 (mapping removed)
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:166] ERROR auth user failed - data length: 28
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:172] ERROR [auth user] Error Code: 5011040
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:173] ERROR [auth user] Error Message Template: 认证令牌已过期
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:197] ERROR [auth user] Full Error Message: 认证令牌已过期
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:198] ERROR ========================================
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/user/user_service.cpp:417] ERROR Auth user failed - reqId: 10794631856, error: 认证令牌已过期
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=2
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=0, current_socket=25
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/refreshToken/error, topiclen=64, datalen=176
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/refreshToken/error, payloadlen=31
+[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=176
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=3
+2026-01-27 11:52:11 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=179, remaining=0, current_socket=25
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:11 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: /im/user/UY3OJMGM/login, QoS: 1, Retained: 0, Dup: 0 scramState: 3
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/login/login_service.cpp:136] INFO Login success - userId: UY3OJMGM, username: 4500q
+2026-01-27 11:52:11 [TID:1650094] [/Users/phl/developer/project/src/service/login/login_service.cpp:137] INFO Login success - token: eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzY5NDg1OTkxLCJqdGkiOiIzOWI4YTFlZC05ZjM0LTQ3M2ItYmIzZi1iYTI3NTdiMzk5MWQiLCJhY2NvdW50SWQiOiJMNlpWM1FLMCIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJ1c2VySWQiOiJVWTNPSk1HTSIsImRldmljZUlkIjoiRDAzQzc4MTktMjg2QS00NUZCLUJFREItNEQ4Q0FFRkI0ODhFIn0.AXEpqyt553w3Wg04c8Cwz1JJxwvE-h4h9AFHehRv8mw, target_ip: 127.0.0.1  target_port:8885
+🔔 登录回调: errorCode=0, dataLen=1060, reqId=803834684883423232
+⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 保存登录信息: Token=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzY5NDg1OTkxLCJqdGkiOiIzOWI4YTFlZC05ZjM0LTQ3M2ItYmIzZi1iYTI3NTdiMzk5MWQiLCJhY2NvdW50SWQiOiJMNlpWM1FLMCIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJ1c2VySWQiOiJVWTNPSk1HTSIsImRldmljZUlkIjoiRDAzQzc4MTktMjg2QS00NUZCLUJFREItNEQ4Q0FFRkI0ODhFIn0.AXEpqyt553w3Wg04c8Cwz1JJxwvE-h4h9AFHehRv8mw
+⚠️⚠️⚠️⚠️⚠️⚠️⚠️ 保存登录信息: refreshToken=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzcyMDc3OTMxLCJqdGkiOiIxNzZiN2UwYS1jM2ExLTQ1ODgtYWJkYS04ZTVjYjhkZDljOTkiLCJ0eXBlIjoicmVmcmVzaF90b2tlbiIsInVzZXJJZCI6IlVZM09KTUdNIiwiZGV2aWNlSWQiOiJEMDNDNzgxOS0yODZBLTQ1RkItQkVEQi00RDhDQUVGQjQ4OEUifQ.8BDQt6ygVrFjLl90nFZWcw1dR1OeI-FxfDJRwi1m3HA
+✅ 登录响应解析成功: {"user":{"status":1,"phone":"15701594500","avatar":"https:\/\/v3-server-1333564217.cos.ap-guangzhou.myqcloud.com\/V7ZNKR\/AVATAR\/20260102\/avatar_1767343746545_616b83db.jpg","nickname":"4500q","created_at":1766737288615,"user_id":"UY3OJMGM","updated_at":1769416819773,"sex":0,"account_id":"L6ZV3QK0"},"refresh_expires_at":1772077931,"expires_at":1769485991,"refresh_token":"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzcyMDc3OTMxLCJqdGkiOiIxNzZiN2UwYS1jM2ExLTQ1ODgtYWJkYS04ZTVjYjhkZDljOTkiLCJ0eXBlIjoicmVmcmVzaF90b2tlbiIsInVzZXJJZCI6IlVZM09KTUdNIiwiZGV2aWNlSWQiOiJEMDNDNzgxOS0yODZBLTQ1RkItQkVEQi00RDhDQUVGQjQ4OEUifQ.8BDQt6ygVrFjLl90nFZWcw1dR1OeI-FxfDJRwi1m3HA","target_ip":"127.0.0.1","token":"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzY5NDg1OTkxLCJqdGkiOiIzOWI4YTFlZC05ZjM0LTQ3M2ItYmIzZi1iYTI3NTdiMzk5MWQiLCJhY2NvdW50SWQiOiJMNlpWM1FLMCIsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJ1c2VySWQiOiJ
+💾 已保存认证信息: userId=UY3OJMGM, token=***, refreshToken=***
+flutter:
+===================================
+✅ 8545ms
+[imLogin]
+{"login_type":"password","account_id":"15701594500","password":"aa123451","phone":"15701594500","invite_code":"666666","domain":"666666.loadingworks.com","business_code":"","biz_code":""}
+----
+{"errorCode":0,"data":"{\"user\":{\"status\":1,\"phone\":\"15701594500\",\"avatar\":\"https:\\/\\/v3-server-1333564217.cos.ap-guangzhou.myqcloud.com\\/V7ZNKR\\/AVATAR\\/20260102\\/avatar_1767343746545_616b83db.jpg\",\"nickname\":\"4500q\",\"created_at\":1766737288615,\"user_id\":\"UY3OJMGM\",\"updated_at\":1769416819773,\"sex\":0,\"account_id\":\"L6ZV3QK0\"},\"refresh_expires_at\":1772077931,\"expires_at\":1769485991,\"refresh_token\":\"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJWN1pOS1IiLCJzdWIiOiJVWTNPSk1HTSIsImlhdCI6MTc2OTQ4NTkzMSwiZXhwIjoxNzcyMDc3OTMxLCJqdGkiOiIxNzZiN2UwYS1jM2ExLTQ1ODgtYWJkYS04ZTVjYjhkZDljOTkiLCJ0eXBlIjoicmVmcmVzaF90b2tlbiIsInVzZXJJZCI6IlVZM09KTUdNIiwiZGV2aWNlSWQiOiJEMDNDNzgxOS0yODZBLTQ1RkItQkVEQi00RDhDQUVGQjQ4OEUifQ.8BDQt6ygVrFjLl90nFZWcw
+👤 批量获取用户公开信息: userIds=["UY3OJMGM"]
+📤 批量获取用户公开信息: userIds=(
+    UY3OJMGM
+)
+📋 准备批量请求 1 个用户的公开信息
+📦 序列化成功: 10 字节, 用户数量=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:12 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:722] INFO PUBACK received - deliveryToken: 5, reqId: 5928236109836151087 (mapping removed)
+2026-01-27 11:52:12 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:190] DEBUG batch_user_public_info - reqId: 1769485931957, topic: /im/USER/UY3OJMGM/batchPublicInfo, payload size: 10
+✅ 批量获取用户公开信息请求已发送: reqId=1769485931957, 用户数量=1
+flutter: ✅ 用户登录成功: 4500q
+flutter: 💾 已保存手机号密码: phone=15701594500
+[GETX] GOING TO ROUTE /home
+[GETX] REMOVING ROUTE /LoginPage
+[MQTT_PARSE] Parsed packet type=4 (PUBACK), remaining_length=2
+[MQTT_PARSE] Added packet type=4 to pkgList, list count=2
+2026-01-27 11:52:12 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=4, remaining=246, current_socket=25
+2026-01-27 11:52:12 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:654] DEBUG [MQTT_PUBLISH_PARSE] Parsed PUBLISH topic: /im/user/UY3OJMGM/batchPublicInfo, topiclen=33, datalen=243
+2026-01-27 11:52:12 [TID:1650241] [/Users/phl/developer/project/src/mqtt/mqtt_packet.cpp:688] DEBUG [MQTT_PUBLISH_PARSE] Topic: /im/user/UY3OJMGM/batchPublicInfo, payloadlen=137
+[MQTT_PARSE] Parsed packet type=3 (PUBLISH), remaining_length=243
+[MQTT_PARSE] Added packet type=3 to pkgList, list count=3
+2026-01-27 11:52:12 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=246, remaining=0, current_socket=25
+flutter: ✅ 消息监听器已设置
+flutter: 📦 从本地数据库加载会话列表...
+[GETX] Instance "UserController" has been created
+[GETX] Instance "UserController" has been initialized
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:12 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/refreshToken/error, QoS: 1, Retained: 0, Dup: 0 scramState: 3
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.cpp:93] ERROR [ServiceManager] Detected error code: 5011000 for path: /im/user/D03C7819-286A-45FB-BEDB-4D8CAEFB488E/refreshToken/error
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:166] ERROR auth user failed - data length: 31
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:172] ERROR [auth user] Error Code: 5011000
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:173] ERROR [auth user] Error Message Template: 用户名或密码错误
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:197] ERROR [auth user] Full Error Message: 用户名或密码错误
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/service_manager.h:198] ERROR ========================================
+2026-01-27 11:52:12 [TID:1650094] [/Users/phl/developer/project/src/service/user/user_service.cpp:392] ERROR Auth user failed - reqId: 5928236109836151087, error: 用户名或密码错误
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 网络事件回调
+   事件代码: 8
+   描述长度: 14
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[GETX] Instance "CommunityController" has been created
+[GETX] Instance "CommunityController" has been initialized
+flutter: 🌐 GlobalController 处理网络事件: code=6, desc=network authed
+flutter: 📊 网络状态更新:
+📝 注册消息回调...
+📝 注册消息回调: 单聊、群聊、社区、系统、命令
+✅ 消息回调注册完成
+📋 获取好友申请列表: status=0, page=1, pageSize=1
+📋 获取好友申请列表: status=0, page=1, pageSize=1
+📤 好友申请查询数据(hex): 10011801
+2026-01-27 11:52:12 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:121] ERROR get_friend_requests: User not logged in
+❌ 获取好友申请请求失败: 10003
+flutter: 🌐 GlobalController 处理网络事件: code=8, desc=event callback
+flutter: 📊 网络状态更新: 未知状态(8)
+✅ 网络事件已发送到 Flutter
+📁 获取社群列表: page=1, pageSize=12
+2026-01-27 11:52:12 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:121] ERROR list_communities: User not logged in
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:12 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:722] INFO PUBACK received - deliveryToken: 6, reqId: 1769485931957 (mapping removed)
+flutter:
+===================================
+✅ 159ms
+[imRegisterMessageCallbacks]
+null
+----
+{"errorCode":0,"message":"消息回调注册成功"}
+===================================
+flutter: ✅ 消息回调注册成功（单聊、群聊、社区、系统、命令）
+flutter:
+===================================
+❌ 119ms
+[imGetFriendRequests]
+{"status":0,"page":1,"page_size":1}
+----
+{"error":"获取好友申请列表请求发送失败: 10003"}
+===================================
+flutter:
+===================================
+❌ 12ms
+[imGetCommunityList]
+{"page":1,"pageSize":12}
+----
+PlatformException(GET_COMMUNITY_LIST_ERROR, 获取社群列表请求发送失败: 10003, null, null)
+===================================
+flutter: 获取社群列表失败: PlatformException(GET_COMMUNITY_LIST_ERROR, 获取社群列表请求发送失败: 10003, null, null)
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+2026-01-27 11:52:12 [TID:1650242] [/Users/phl/developer/project/src/network/mqtt_session.cpp:627] DEBUG ------arrived message info - Topic: /im/user/UY3OJMGM/batchPublicInfo, QoS: 0, Retained: 0, Dup: 0 scramState: 3
+📨 批量获取用户公开信息回调: errorCode=0, dataLen=137, reqId=1769485931957
+✅ 批量获取用户公开信息成功: 1 个用户
+flutter:
+===================================
+✅ 421ms
+[imBatchGetUserPublicInfo]
+{"user_ids":["UY3OJMGM"]}
+----
+{"errorCode":0,"message":"批量获取公开信息成功","data":"[{\"avatar\":\"https:\\/\\/v3-server-1333564217.cos.ap-guangzhou.myqcloud.com\\/V7ZNKR\\/AVATAR\\/20260102\\/avatar_1767343746545_616b83db.jpg\",\"avatar_bg\":\"\",\"user_id\":\"UY3OJMGM\",\"nickname\":\"4500q\"}]","reqId":1769485931957}
+===================================
+flutter: 📦 本地会话数: 4
+[GETX] Instance "ChatController" has been created
+[GETX] Instance "ChatController" has been initialized
+📋 获取会话列表: page=1, pageSize=20, convType=0
+
+***************
+🍎 会话列表查询数据: 会话列表 第1页,长度20  会话类型 0
+***************
+2026-01-27 11:52:12 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:121] ERROR get_conversation_list: User not logged in
+❌ 获取会话列表请求失败: 10003
+flutter:
+===================================
+❌ 4ms
+[imGetConversationList]
+{"page":1,"page_size":20,"conv_type":0,"is_at_me":false,"is_unread":false}
+----
+{"error":"获取会话列表请求发送失败: 10003"}
+===================================
+[GETX] "LoginController" onDelete() called
+[GETX] "LoginController" deleted from memory
+flutter: 💾 已存储我的用户信息到数据库
+flutter: 获取数据库会话最新消息: {local_id: local_1769484491056_47, server_id: null, conv_id: 2Wask4u7U4n1I7YyJhJqx9, msg_id: , sender_id: UY3OJMGM, receiver_id: 75QLIAJO, type: 0, status: 5, is_mine: 1, created_at: 1769484491056, sent_at: null, is_read: 0, text_content: 你好, image_local_path: null, image_url: null, image_thumbnail_url: null, image_width: null, image_height: null, file_local_path: null, file_url: null, file_name: null, file_size: null, file_mime_type: null, voice_duration: null, video_duration: null, video_cover_url: null, is_all: 0, at_info_list: null, ext: null, error_message: 对方还不是您的好友, retry_count: 0}
+📋 获取会话列表: page=1, pageSize=20, convType=0
+
+***************
+🍎 会话列表查询数据: 会话列表 第1页,长度20  会话类型 0
+***************
+2026-01-27 11:52:12 [TID:1649992] [/Users/phl/developer/project/src/network_lib.cpp:121] ERROR get_conversation_list: User not logged in
+❌ 获取会话列表请求失败: 10003
+flutter:
+===================================
+❌ 0ms
+[imGetConversationList]
+{"page":1,"page_size":20,"conv_type":0,"is_at_me":false,"is_unread":false}
+----
+{"error":"获取会话列表请求发送失败: 10003"}
+===================================
+flutter: 💾 已保存 0 个会话到本地
+D/Swift: [AWESOME NOTIFICATIONS] Notification Category Identifier: BIGPICTURE (NotificationBuilder:172)
+[I][01-27/11:52:22.632+8.0][31189,84739][ntp_time_manager_impl.cc:127]Stop ntp queue
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:52:55 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:53:47 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:54:31 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:55:20 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:56:04 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:56:52 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:57:40 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0
+2026-01-27 11:57:56 [TID:1650096] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1901] DEBUG [HttpDnsManager] Measuring RTT for 1 nodes (test only, not keeping sockets)
+2026-01-27 11:57:56 [TID:1652114] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:1880] INFO [HttpDnsManager] RTT test: closing socket 15 for 119.91.130.69:8885
+2026-01-27 11:57:56 [TID:1650096] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2070] DEBUG [HttpDnsManager] Updated best node status: 119.91.130.69:8885 (RTT: 37ms, connected: 1)
+2026-01-27 11:57:56 [TID:1650096] [/Users/phl/developer/project/src/network/http_dns_manager.cpp:2101] DEBUG [HttpDnsManager] Quality check cycle completed
+[MQTT_PARSE] Parsed packet type=13 (PINGRESP), remaining_length=0
+[MQTT_PARSE] Added packet type=13 to pkgList, list count=1
+2026-01-27 11:58:29 [TID:1650241] [/Users/phl/developer/project/src/network/socket_client.cpp:446] DEBUG [SOCKET_RECV] Parsed MQTT packet, used_len=2, remaining=0, current_socket=25
+[MQTT_CYCLE] Handling PINGRESP, sock=1
+[clientSocketCompare] client=0x10230c8f0, client->net.socket=0, input_sock=1, comparing with 1, result=1
+[MQTT_CYCLE] PINGRESP handled, rc=0

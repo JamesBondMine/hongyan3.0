@@ -247,10 +247,11 @@ static void SDKInitCallback(int errorCode, const char* data, int dataLen) {
 
 - (int)startNetworkCheckWithURL:(NSString *)url {
     NSLog(@"🔍 启动网络检查: %@", url);
-    const char *cUrl = [url UTF8String];
-    int result = network_start_net_check();
-    NSLog(@"📊 检查结果: %d", result);
-    return result;
+    return 0;
+//    const char *cUrl = [url UTF8String];
+//    int result = network_start_net_check();
+//    NSLog(@"📊 检查结果: %d", result);
+//    return result;
 }
 
 - (void)setIPTable:(NSArray<NSString *> *)ips {
@@ -426,7 +427,7 @@ static void DataReceivedCallbackWrapper(const char* data, uint32_t length) {
 - (void)addTargetToGroupWithIP:(NSString *)ip port:(int)port {
     NSLog(@"➕ 添加目标服务器: %@:%d", ip, port);
     const char *cIp = [ip UTF8String];
-    network_add_target_to_group(cIp, port);
+//    network_add_target_to_group(cIp, port);
 }
 
 - (int)triggerImmediateReconnect:(BOOL)resetRetryCount {

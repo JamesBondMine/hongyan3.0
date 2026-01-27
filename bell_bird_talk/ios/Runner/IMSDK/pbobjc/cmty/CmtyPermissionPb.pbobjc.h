@@ -468,6 +468,26 @@ GPB_FINAL @interface CmtyRolesAndTemplate : GPBMessage
 
 @end
 
+#pragma mark - CmtyMemberRolePermissions
+
+typedef GPB_ENUM(CmtyMemberRolePermissions_FieldNumber) {
+  CmtyMemberRolePermissions_FieldNumber_RolePermissions = 1,
+};
+
+/**
+ * CmtyMemberRolePermissions - 普通成员角色权限配置响应（用于getMemberRolePermissions方法）
+ * 返回 cmty_member 角色的完整权限配置（与模版合并后）
+ * 注意：请求使用空请求体，社群ID从路由键（targetId/toId）获取
+ **/
+GPB_FINAL @interface CmtyMemberRolePermissions : GPBMessage
+
+/** 普通成员角色权限配置（返回字段） */
+@property(nonatomic, readwrite, strong, null_resettable) RolePermissionConfig *rolePermissions;
+/** Test to see if @c rolePermissions has been set. */
+@property(nonatomic, readwrite) BOOL hasRolePermissions;
+
+@end
+
 NS_ASSUME_NONNULL_END
 
 CF_EXTERN_C_END

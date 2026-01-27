@@ -78,7 +78,7 @@ GPBEnumDescriptor *CmtyRoleStatus_EnumDescriptor(void) {
                                      enumVerifier:CmtyRoleStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//   //   [worker release];
+//      [worker release];
     }
   }
   return descriptor;
@@ -113,7 +113,7 @@ GPBEnumDescriptor *CmtyMemberRoleStatus_EnumDescriptor(void) {
                                      enumVerifier:CmtyMemberRoleStatus_IsValidValue];
     GPBEnumDescriptor *expected = nil;
     if (!atomic_compare_exchange_strong(&descriptor, &expected, worker)) {
-//   //   [worker release];
+//      [worker release];
     }
   }
   return descriptor;
@@ -1021,6 +1021,51 @@ typedef struct CmtyRolesAndTemplate__storage_ {
                                         fields:fields
                                     fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
                                    storageSize:sizeof(CmtyRolesAndTemplate__storage_)
+                                         flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
+    #if defined(DEBUG) && DEBUG
+      NSAssert(descriptor == nil, @"Startup recursed!");
+    #endif  // DEBUG
+    descriptor = localDescriptor;
+  }
+  return descriptor;
+}
+
+@end
+
+#pragma mark - CmtyMemberRolePermissions
+
+@implementation CmtyMemberRolePermissions
+
+@dynamic hasRolePermissions, rolePermissions;
+
+typedef struct CmtyMemberRolePermissions__storage_ {
+  uint32_t _has_storage_[1];
+  RolePermissionConfig *rolePermissions;
+} CmtyMemberRolePermissions__storage_;
+
+// This method is threadsafe because it is initially called
+// in +initialize for each subclass.
++ (GPBDescriptor *)descriptor {
+  static GPBDescriptor *descriptor = nil;
+  if (!descriptor) {
+    static GPBMessageFieldDescription fields[] = {
+      {
+        .name = "rolePermissions",
+        .dataTypeSpecific.clazz = GPBObjCClass(RolePermissionConfig),
+        .number = CmtyMemberRolePermissions_FieldNumber_RolePermissions,
+        .hasIndex = 0,
+        .offset = (uint32_t)offsetof(CmtyMemberRolePermissions__storage_, rolePermissions),
+        .flags = GPBFieldOptional,
+        .dataType = GPBDataTypeMessage,
+      },
+    };
+    GPBDescriptor *localDescriptor =
+        [GPBDescriptor allocDescriptorForClass:[CmtyMemberRolePermissions class]
+                                     rootClass:[CmtyPermissionPbRoot class]
+                                          file:CmtyPermissionPbRoot_FileDescriptor()
+                                        fields:fields
+                                    fieldCount:(uint32_t)(sizeof(fields) / sizeof(GPBMessageFieldDescription))
+                                   storageSize:sizeof(CmtyMemberRolePermissions__storage_)
                                          flags:(GPBDescriptorInitializationFlags)(GPBDescriptorInitializationFlag_UsesClassRefs | GPBDescriptorInitializationFlag_Proto3OptionalKnown)];
     #if defined(DEBUG) && DEBUG
       NSAssert(descriptor == nil, @"Startup recursed!");

@@ -111,6 +111,7 @@ class FlutterAPIHandler {
                 method.hasPrefix("imDeleteChannel") || method.hasPrefix("imEnterChannel") ||
                 method.hasPrefix("imMuteCommunityMember") || method.hasPrefix("imKickCommunityMember") ||
                 method.hasPrefix("imGetCommunitySettings") || method.hasPrefix("imUpdateCommunitySettings") ||
+                method.hasPrefix("imGetRolesAndTemplate") ||
                 method.hasPrefix("imListJoinRequests") {
             communityHandler.handle(call, result: result)
         }

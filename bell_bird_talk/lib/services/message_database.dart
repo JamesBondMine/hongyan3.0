@@ -66,6 +66,7 @@ class MessageDatabase {
         at_info_list TEXT,
         ext TEXT,
         error_message TEXT,
+        errorCode TEXT,
         retry_count INTEGER DEFAULT 0
       )
     ''');
@@ -610,8 +611,6 @@ class MessageDatabase {
   /// 插入消息
   Future<ChatMessage> insertMessage(ChatMessage message) async {
     final db = await database;
-
-    print("message.ext: ${message.ext}");
     // 查询本地消息 ---  因为要删除
     final existingMessage = await db.query(
       'messages',
@@ -619,7 +618,6 @@ class MessageDatabase {
       whereArgs: [message.serverId],
       limit: 1,
     );
-    print("existingMessage: $existingMessage");
     if (existingMessage.isNotEmpty) {
       // 删除本地消息
       int count = await db.delete(
@@ -629,9 +627,6 @@ class MessageDatabase {
       );
       print("删除本地消息: $count");
     }
-    
-
-    print('插入消息数据库--单条: ${message.toDbMap()}');
     await db.insert(
       'messages',
       message.toDbMap(),
@@ -645,7 +640,6 @@ class MessageDatabase {
     final db = await database;
     final batch = db.batch();
     for (final message in messages) {
-      print('插入消息数据库--批量: ${message.displayContent}');
       batch.insert(
         'messages',
         message.toDbMap(),

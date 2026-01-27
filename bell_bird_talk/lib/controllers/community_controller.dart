@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:bell_bird_talk/services/native_bridge.dart';
 import 'package:bell_bird_talk/pages/community/models/community_model.dart';
 import 'package:bell_bird_talk/pages/community/models/community_setting_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_role_model.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,29 +25,27 @@ class CommunityController extends GetxController {
   // 是否正在加载
   final RxBool isLoading = false.obs;
 
-
   // 刷新发送消息的选择状态
   String roleSendMsgSelRefreshId = 'roleSendMsgSelRefreshId';
-  void updateRoleSendMsgSel(){
+  void updateRoleSendMsgSel() {
     update([roleSendMsgSelRefreshId]);
   }
 
-
   // 刷新社群发送消息的选择状态
   String cmtSendMsgSelRefreshId = 'cmtSendMsgSelRefreshId';
-  void updateCmtSendMsgSel(){
+  void updateCmtSendMsgSel() {
     update([cmtSendMsgSelRefreshId]);
   }
 
   // 发言上限刷新
   String cmtSendMaxRefreshId = 'cmtSendMaxRefreshId';
-  void updateCmtSendMax(){
+  void updateCmtSendMax() {
     update([cmtSendMaxRefreshId]);
   }
 
   // 社群隐私设置刷新
   String cmtPriSettingRefreshId = 'cmtPriSettingRefreshId';
-  void updateCmtPriSettingRefresh(){
+  void updateCmtPriSettingRefresh() {
     update([cmtPriSettingRefreshId]);
   }
 
@@ -105,17 +104,13 @@ class CommunityController extends GetxController {
           final communitiesData = data['communities'] as List<dynamic>? ?? [];
 
           for (var i = 0; i < communitiesData.length; i++) {
-            
             final community = communitiesData[i];
             print('\n社群列表信息: \n$community');
           }
 
           List<CommunityModel> communities = communitiesData.map((item) {
-            
             return CommunityModel.fromJson(Map<String, dynamic>.from(item));
           }).toList();
-
-
 
           if (page == 1) {
             communityList.value = communities;
@@ -148,7 +143,9 @@ class CommunityController extends GetxController {
     bool success = false;
     try {
       EasyLoading.show();
-      final result = await _nativeService.community.joinCommunity(cmtyId: cmtyId);
+      final result = await _nativeService.community.joinCommunity(
+        cmtyId: cmtyId,
+      );
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         success = true;
@@ -171,7 +168,9 @@ class CommunityController extends GetxController {
     bool success = false;
     try {
       EasyLoading.show();
-      final result = await _nativeService.community.leaveCommunity(cmtyId: cmtyId);
+      final result = await _nativeService.community.leaveCommunity(
+        cmtyId: cmtyId,
+      );
       EasyLoading.dismiss();
       if (result['errorCode'] == 0) {
         success = true;
@@ -192,7 +191,9 @@ class CommunityController extends GetxController {
   /// @param cmtyId 社群ID
   Future<CommunityModel?> getCommunityInfo({required String cmtyId}) async {
     try {
-      final result = await _nativeService.community.getCommunityInfo(cmtyId: cmtyId);
+      final result = await _nativeService.community.getCommunityInfo(
+        cmtyId: cmtyId,
+      );
 
       if (result['errorCode'] == 0) {
         // 解析社群信息
@@ -241,7 +242,9 @@ class CommunityController extends GetxController {
   static Future<List<ChannelModel>> getChannel(String cmtyId) async {
     try {
       final nativeService = IOSNativeService(); // Create new instance
-      final channelsResult = await nativeService.community.getChannels(cmtyId: cmtyId);
+      final channelsResult = await nativeService.community.getChannels(
+        cmtyId: cmtyId,
+      );
       if (channelsResult['errorCode'] != 0) {
         return [];
       }
@@ -391,7 +394,7 @@ class CommunityController extends GetxController {
         // 创建成功后，刷新分组和频道列表
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('创建频道失败: ${result['message']}');
         return false;
       }
@@ -432,7 +435,7 @@ class CommunityController extends GetxController {
         // 更新成功后，可以刷新分组和频道列表
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('更新频道失败: ${result['message']}');
         return false;
       }
@@ -451,13 +454,15 @@ class CommunityController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _nativeService.community.deleteChannel(channelId: channelId);
+      final result = await _nativeService.community.deleteChannel(
+        channelId: channelId,
+      );
 
       if (result['errorCode'] == 0) {
         // 删除成功后，可以刷新分组和频道列表
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('删除频道失败: ${result['message']}');
         return false;
       }
@@ -475,11 +480,13 @@ class CommunityController extends GetxController {
   Future<bool> enterChannel({required String channelId}) async {
     try {
       isLoading.value = true;
-      final result = await _nativeService.community.enterChannel(channelId: channelId);
+      final result = await _nativeService.community.enterChannel(
+        channelId: channelId,
+      );
       if (result['errorCode'] == 0) {
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('进入频道失败: ${result['message']}');
         return false;
       }
@@ -510,7 +517,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('创建频道分组失败: ${result['message']}');
         return false;
       }
@@ -544,7 +551,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('更新频道分组失败: ${result['message']}');
         return false;
       }
@@ -575,7 +582,7 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         return true;
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('删除频道分组失败: ${result['message']}');
         return false;
       }
@@ -624,7 +631,7 @@ class CommunityController extends GetxController {
           return members;
         }
       } else {
-        EasyLoading.showError(result['data']?? result['message'] ?? '操作失败'.tr);
+        EasyLoading.showError(result['data'] ?? result['message'] ?? '操作失败'.tr);
         print('获取社群成员列表失败: ${result['message']}');
       }
       return [];
@@ -778,6 +785,36 @@ class CommunityController extends GetxController {
       }
     } catch (e) {
       print('获取社群设置异常: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// 获取角色列表和权限模板
+  /// @param cmtyId 社群ID
+  /// @return 角色列表和权限模板数据，失败返回null
+  Future<RoleModel?> getRolesAndTemplate(String cmtyId) async {
+    try {
+      isLoading.value = true;
+
+      final result = await _nativeService.community.getRolesAndTemplate(
+        cmtyId: cmtyId,
+      );
+
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String? ?? '';
+        if (dataStr.isNotEmpty) {
+          final data = json.decode(dataStr) as Map<String, dynamic>;
+          return RoleModel.fromJson(data);
+        }
+        return null;
+      } else {
+        print('获取角色列表和权限模板失败: ${result['message']}');
+        return null;
+      }
+    } catch (e) {
+      print('获取角色列表和权限模板异常: $e');
       return null;
     } finally {
       isLoading.value = false;

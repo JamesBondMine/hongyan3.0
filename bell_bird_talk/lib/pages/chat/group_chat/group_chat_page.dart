@@ -255,7 +255,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
       popviewItem(context, '添加好友', 'msgitemadd', () {
         Navigator.push<bool>(
           context,
-          MaterialPageRoute(builder: (context) => const AddFriendPage()),
+          MaterialPageRoute(builder: (context) => AddFriendPage()),
         );
       }),
       popviewItem(context, '搜索聊天', 'msgitemchat', () {

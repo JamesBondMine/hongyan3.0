@@ -223,7 +223,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
         click: () {
           Navigator.push<bool>(
             context,
-            MaterialPageRoute(builder: (context) => const AddFriendPage()),
+            MaterialPageRoute(builder: (context) => AddFriendPage()),
           );
         },
       ),

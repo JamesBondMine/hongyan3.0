@@ -1,13 +1,17 @@
 import 'package:bell_bird_talk/config/global.dart';
+import 'package:bell_bird_talk/controllers/community_controller.dart';
+import 'package:bell_bird_talk/pages/community/models/community_model.dart';
+import 'package:bell_bird_talk/pages/community/models/community_role_model.dart';
 import 'package:bell_bird_talk/pages/community/views/cmt_role_msgsend_selview.dart';
-import 'package:bell_bird_talk/pages/community/views/community_pri_setting_view.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:bell_bird_talk/widgets/common_appbar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CommunityRolesPage extends StatefulWidget {
-  const CommunityRolesPage({Key? key}) : super(key: key);
+  CommunityRolesPage({Key? key,  required this.cmtyModel}) : super(key: key);
+
+  final CommunityModel cmtyModel; // 社群ID（可选）
 
   @override
   State<CommunityRolesPage> createState() => CommunityChildPageState();
@@ -18,11 +22,26 @@ class CommunityChildPageState extends State<CommunityRolesPage> {
 
   MemberSendMsg sendMsgs = MemberSendMsg();
 
+  RoleModel? _roleModel;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     sendMsgs = MemberSendMsg();
+    _loadRoleConfig();
+    
+  }
+
+  void _loadRoleConfig() async {
+    _roleModel = await CommunityController.to.getRolesAndTemplate(widget.cmtyModel.id);
+    if (_roleModel!= null) {
+      List<PermissionConfigModel> list = _roleModel!.permissions;
+      for (PermissionConfigModel item in list) {
+        print('权限哈哈: ${item.methodName} =  ${item.status}');
+      }
+    }
+    
   }
 
   @override

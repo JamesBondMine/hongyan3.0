@@ -4,6 +4,7 @@ import 'package:bell_bird_talk/controllers/chat_controller.dart';
 import 'package:bell_bird_talk/controllers/group_controller.dart';
 import 'package:bell_bird_talk/pages/chat/views/chat_gas_arrow.dart';
 import 'package:bell_bird_talk/pages/chat/views/chat_title_view.dart';
+import 'package:bell_bird_talk/pages/friends/add_friend_page.dart';
 import 'package:bell_bird_talk/utils/gbs_colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,7 @@ class _ChatPageState extends State<ChatPage> {
   bool _showBlacklistWarning = false; // 是否显示黑名单提示卡片
   bool _isBlockedByMe = false; // 我是否拉黑了对方
   bool _isBlockedByOther = false; // 我是否被对方拉黑
-  String? _sendErrorMessage; // 发送失败的错误信息
+  ChatMessage? _sendErrorMessage; // 发送失败的错误信息
   final FriendController _friendController = FriendController.to;
 
   @override
@@ -345,11 +346,12 @@ class _ChatPageState extends State<ChatPage> {
             message.errorMessage != null &&
             message.errorMessage!.isNotEmpty) {
           // 消息发送失败，显示错误信息在提示卡片上
-          _sendErrorMessage = message.errorMessage;
+          _sendErrorMessage = message;
+          message.errorMessageCode;
           _showBlacklistWarning = true;
         } else if (message.status == MessageStatus.sent) {
           // 消息发送成功，清除发送失败的错误信息（但保留黑名单提示）
-          if (_sendErrorMessage != null) {
+          if (_sendErrorMessage!=null && _sendErrorMessage!.errorMessage != null) {
             _sendErrorMessage = null;
             // 如果只有发送错误信息（没有黑名单状态），则隐藏提示卡片
             if (!_isBlockedByMe && !_isBlockedByOther) {
@@ -1550,32 +1552,13 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  /// 检查黑名单状态
-  // Future<void> _checkBlacklistStatus() async {
-  //   if (widget.convType != 0) return; // 仅单聊时检查
-
-  //   try {
-  //     final status = await _friendController.checkBlacklistStatus(widget.targetUserId);
-  //     setState(() {
-  //       _isBlockedByMe = status['isBlockedByMe'] ?? false;
-  //       _isBlockedByOther = status['isBlockedByOther'] ?? false;
-  //       // 如果对方在我黑名单，或我在对方黑名单，则显示提示
-  //       // 如果已经有发送错误信息，保持显示状态
-  //       if (_isBlockedByMe || _isBlockedByOther) {
-  //         _showBlacklistWarning = true;
-  //       }
-  //     });
-  //   } catch (e) {
-  //     print('❌ 检查黑名单状态失败: $e');
-  //   }
-  // }
 
   /// 构建黑名单提示卡片（也用于显示发送失败的错误信息）
   Widget _buildBlacklistWarningCard() {
     // 优先显示发送失败的错误信息，否则显示黑名单提示
     final String displayText;
-    if (_sendErrorMessage != null && _sendErrorMessage!.isNotEmpty) {
-      displayText = _sendErrorMessage!;
+    if (_sendErrorMessage != null && _sendErrorMessage!.errorMessage !=null && _sendErrorMessage!.errorMessage!.isNotEmpty ) {
+      displayText = _sendErrorMessage!.errorMessage!;
     } else if (_isBlockedByMe || _isBlockedByOther) {
       displayText = '消息已发出，但被对方拒收';
     } else {
@@ -1595,9 +1578,19 @@ class _ChatPageState extends State<ChatPage> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.orange[200]!, width: 1),
                 ),
-          child: s.hasData && s.data == 2
+          child: _sendErrorMessage!= null && _sendErrorMessage!.errorMessageCode == '11033050'
               ? InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    // 添加好友
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddFriendPage(
+                          targetUserId: widget.targetUserId,
+                        ),
+                      ),
+                    );
+                  },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

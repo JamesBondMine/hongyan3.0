@@ -196,6 +196,13 @@ typedef void (^IMSDKCommunityCompletion)(int errorCode, uint64_t reqId, NSString
 - (int)getCommunitySettingsWithCmtyId:(NSString *)cmtyId
                             completion:(IMSDKCommunityCompletion)completion;
 
+/// 获取角色列表和权限模板
+/// @param cmtyId 社群ID
+/// @param completion 结果回调
+/// @return 0表示请求发送成功，其他为错误码
+- (int)getRolesAndTemplateWithCmtyId:(NSString *)cmtyId
+                          completion:(IMSDKCommunityCompletion)completion;
+
 /// 更新社群设置
 /// @param cmtyId 社群ID
 /// @param settings 设置项字典（键值对形式：{"allow_add_friend": true, ...}）

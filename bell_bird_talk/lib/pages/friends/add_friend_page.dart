@@ -15,7 +15,9 @@ import '../../utils/gbs_colors.dart';
 
 /// 添加好友页面
 class AddFriendPage extends StatefulWidget {
-  const AddFriendPage({super.key});
+  AddFriendPage({super.key, this.targetUserId = ''});
+
+  String targetUserId = '';
 
   @override
   State<AddFriendPage> createState() => _AddFriendPageState();
@@ -47,6 +49,66 @@ class _AddFriendPageState extends State<AddFriendPage> {
     });
     // 获取好友分组
     _loadFriendGroups();
+
+    _searchPassedMember();
+  }
+
+  // 搜索传递过来的成员
+  Future<void> _searchPassedMember() async {
+    if (widget.targetUserId.isEmpty) {
+      return;
+    }
+    final query = widget.targetUserId;
+    setState(() {
+      _isSearching = true;
+      _hasSearched = true;
+      _searchResults = [];
+    });
+    EasyLoading.show();
+    try {
+      String? userId;
+      String? accountId;
+      // 自动判断搜索类型
+      userId = query;
+        _lastSearchType = 'id';
+      final result = await _nativeService.imSearchUser(
+        userId: userId,
+        accountId: accountId,
+      );
+      EasyLoading.dismiss();
+      if (result['errorCode'] == 0) {
+        final dataStr = result['data'] as String?;
+        if (dataStr != null && dataStr.isNotEmpty) {
+          try {
+            final data = json.decode(dataStr);
+            // 检查是否有用户数据
+            if (data is Map) {
+              // 单个用户
+              if (data['user_id'] != null || data['id'] != null) {
+                setState(() {
+                  _searchResults = [
+                    SearchUserModel.fromJson(data.cast<String, dynamic>()),
+                  ];
+                });
+              }
+            }
+          } catch (e) {
+            print('解析搜索结果失败: $e');
+          }
+        }
+        if (_searchResults.isEmpty) {
+          EasyLoading.showInfo('未找到用户'.tr);
+        }
+      } else {
+        EasyLoading.showError(result['message'] ?? '搜索失败'.tr);
+      }
+    } catch (e) {
+      print('❌ 搜索用户失败: $e');
+      EasyLoading.dismiss();
+    } finally {
+      setState(() => _isSearching = false);
+      EasyLoading.dismiss();
+    }
   }
 
   @override

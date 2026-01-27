@@ -70,13 +70,14 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
     });
   }
 
-  Future<void> _loadMembers() async {
+  Future<void> _loadMembers({bool fouceRefresh = false}) async {
     setState(() => _loading = true);
 
     final result = await _groupController.getGroupMembersFullInfo(
       widget.groupId,
       page: 1,
       pageSize: 12,
+      forceRefresh: fouceRefresh
     );
 
     if (!mounted) return;
@@ -410,10 +411,10 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildAvatar(avatar, avatarBG, nickname),
+          _buildAvatar(avatar, avatarBG, alias.isNotEmpty ? name : nickname),
           const SizedBox(height: 4),
           Text(
-            nickname.isNotEmpty ? nickname : name,
+            alias.isNotEmpty ? name : nickname,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12),
@@ -605,10 +606,13 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   }
 
   Widget _buildSettingSection() {
+    final currentUserId = _globalCtrl.currentUser.value?.id ?? '';
+    Map<String, dynamic>? cm = _members.firstWhereOrNull((element) => element['user_id'] == currentUserId);
+    String memberAlias = cm!=null && cm['member_alias'] != null ? cm['member_alias'] : '';
     return Column(
       children: [
         _cardView('群名', _groupName, _editGroupName),
-        _cardView('设置我的群昵称', '', _editGroupAlias),
+        _cardView('设置我的群昵称', memberAlias, _editGroupAlias),
       ],
     );
   }
@@ -791,7 +795,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
               if (!mounted) return;
               if (res['errorCode'] == 0) {
                 EasyLoading.showSuccess('设置成功');
-                _loadMembers();
+                _loadMembers(fouceRefresh: true);
               } else {
                 EasyLoading.showError(res['message']?.toString() ?? '设置失败');
               }

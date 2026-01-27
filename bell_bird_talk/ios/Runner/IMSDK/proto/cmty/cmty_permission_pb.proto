@@ -122,3 +122,10 @@ message CmtyRolesAndTemplate {
     PermissionTemplate template = 2;                          // 权限模版（返回字段）
 }
 
+// CmtyMemberRolePermissions - 普通成员角色权限配置响应（用于getMemberRolePermissions方法）
+// 返回 cmty_member 角色的完整权限配置（与模版合并后）
+// 注意：请求使用空请求体，社群ID从路由键（targetId/toId）获取
+message CmtyMemberRolePermissions {
+    RolePermissionConfig role_permissions = 1;  // 普通成员角色权限配置（返回字段）
+}
+

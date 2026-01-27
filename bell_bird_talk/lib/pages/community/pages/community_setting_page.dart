@@ -32,7 +32,7 @@ class CommunitySettingPage extends StatelessWidget {
           },),
           _buildDivider(),
           _buildElement('角色'.tr, 'setting_set', () {  
-            Get.to(CommunityRolesPage());
+            Get.to(CommunityRolesPage(cmtyModel: cmtyModel,));
           },),
           _buildDivider(),
           _buildElement('邀请'.tr, 'setting_invate', () { 

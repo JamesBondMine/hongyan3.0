@@ -601,6 +601,32 @@ class CommunityBridge {
     }
   }
 
+  /// 获取角色列表和权限模板
+  /// @param cmtyId 社群ID
+  /// @return 角色列表和权限模板结果
+  Future<Map<String, dynamic>> getRolesAndTemplate({
+    required String cmtyId,
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final Map<String, dynamic> params = {
+        'cmtyId': cmtyId,
+      };
+
+      final result = await _bridge.invokeMethod<Map>('imGetRolesAndTemplate', params);
+      final resultMap = result?.cast<String, dynamic>() ?? {'errorCode': -1, 'message': '未知错误'};
+      stopwatch.stop();
+      NativeLogger.log('imGetRolesAndTemplate', params, resultMap, stopwatch.elapsed);
+      return resultMap;
+    } catch (e) {
+      stopwatch.stop();
+      NativeLogger.log('imGetRolesAndTemplate', {
+        'cmtyId': cmtyId,
+      }, e.toString(), stopwatch.elapsed, isError: true);
+      return {'errorCode': -999, 'message': e.toString()};
+    }
+  }
+
   /// 更新社群设置
   /// @param cmtyId 社群ID
   /// @param settings 设置项字典（键值对形式：{"allow_add_friend": true, ...}）

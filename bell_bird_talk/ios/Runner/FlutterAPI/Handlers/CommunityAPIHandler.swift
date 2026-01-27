@@ -54,6 +54,8 @@ class CommunityAPIHandler {
             kickCommunityMember(call: call, result: result)
         case "imGetCommunitySettings":
             getCommunitySettings(call: call, result: result)
+        case "imGetRolesAndTemplate":
+            getRolesAndTemplate(call: call, result: result)
         case "imUpdateCommunitySettings":
             updateCommunitySettings(call: call, result: result)
         case "imListJoinRequests":
@@ -509,6 +511,31 @@ class CommunityAPIHandler {
         if code != 0 {
             result(FlutterError(code: "GET_COMMUNITY_SETTINGS_ERROR",
                               message: "获取社群设置请求发送失败: \(code)",
+                              details: nil))
+        }
+    }
+    
+    private func getRolesAndTemplate(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
+        let cmtyId = args["cmtyId"] as? String ?? ""
+        
+        print("🎭 获取角色列表和权限模板: cmtyId=\(cmtyId)")
+        
+        let code = IMSDKCommunityManager.shared().getRolesAndTemplate(
+            withCmtyId: cmtyId,
+            completion: { errorCode, reqId, data in
+                print("🎭 获取角色列表和权限模板回调: errorCode=\(errorCode), reqId=\(reqId)")
+                result([
+                    "errorCode": errorCode,
+                    "reqId": reqId,
+                    "message": errorCode == 0 ? "获取成功" : "获取失败",
+                    "data": data ?? ""
+                ])
+            })
+        
+        if code != 0 {
+            result(FlutterError(code: "GET_ROLES_AND_TEMPLATE_ERROR",
+                              message: "获取角色列表和权限模板请求发送失败: \(code)",
                               details: nil))
         }
     }

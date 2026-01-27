@@ -33,17 +33,17 @@ NET_API int network_init();
 // @return 0表示成功，其他为错误码
 NET_API int network_start();
 
-/**
- * 启动网络检测和 HttpDns 加速节点选择
- * 
- * 流程：
- * 1. 请求 HttpDns 服务器（需先通过 network_add_httpdns_server 添加），获取加速节点列表
- * 2. TCP 竞速连接所有节点，选择最先连上的节点进行业务
- * 3. 开启定时网络质量检测，从服务器获取加速节点进行 RTT 排序，选择最优节点
- * 
- * @return 0 表示成功，负数表示错误
- */
-NET_API int network_start_net_check();
+// /**
+//  * 启动网络检测和 HttpDns 加速节点选择
+//  * 
+//  * 流程：
+//  * 1. 请求 HttpDns 服务器（需先通过 network_add_httpdns_server 添加），获取加速节点列表
+//  * 2. TCP 竞速连接所有节点，选择最先连上的节点进行业务
+//  * 3. 开启定时网络质量检测，从服务器获取加速节点进行 RTT 排序，选择最优节点
+//  * 
+//  * @return 0 表示成功，负数表示错误
+//  */
+// NET_API int network_start_net_check();
 
 /**
  * 添加 HttpDns 备份服务器
@@ -122,17 +122,17 @@ NET_API void network_set_event_callback(EventReceivedCallback callback);
 // 设置数据回调
 NET_API void network_set_data_callback(DataReceivedCallback callback);
 
-// 添加目标到组
-NET_API void network_add_target_to_group(const char* ip, int port);
+// // 添加目标到组
+// NET_API void network_add_target_to_group(const char* ip, int port);
 
-// 从组中移除目标
-// @param ip IP地址
-// @param port 端口
-// @return true表示移除成功，false表示未找到该目标
-NET_API bool network_remove_target_from_group(const char* ip, int port);
+// // 从组中移除目标
+// // @param ip IP地址
+// // @param port 端口
+// // @return true表示移除成功，false表示未找到该目标
+// NET_API bool network_remove_target_from_group(const char* ip, int port);
 
-// 清空所有目标
-NET_API void network_clear_all_targets();
+// // 清空所有目标
+// NET_API void network_clear_all_targets();
 
 // 主线程事件驱动,主要是实现跨线程驱动数据回调
 NET_API void network_event_loop();
@@ -1159,6 +1159,39 @@ NET_API int update_community_settings(CB_I_S_I_U cCallback, const char* data, in
  * @return 0表示成功，其它表示错误码
  */
 NET_API int get_community_banned_members(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取角色列表和权限模板
+ * Topic: /im/CMTY/{cmtyId}/getRolesAndTemplate
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId），data 为CmtyRolesAndTemplate 序列化后的数据
+  * @param cmtyId 社群ID
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_roles_and_template(CB_I_S_I_U cCallback, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 获取普通成员角色权限配置
+ * Topic: /im/CMTY/{cmtyId}/getMemberRolePermissions
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId，data为CmtyMemberRolePermissions序列化后的数据）
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int get_member_role_permissions(CB_I_S_I_U cCallback, const char* cmtyId, uint64_t &reqId);
+
+/**
+ * 配置权限
+ * Topic: /im/CMTY/{cmtyId}/configurePermissions
+ * @param cCallback 回调函数（用于接收响应，参数：errorCode, data, dataLen, reqId，data为EmptyResponse 序列化后的数据
+ * @param data 序列化后的ConfigurePermissions数据
+ * @param len 数据长度
+ * @param cmtyId 社群ID
+ * @param reqId 请求ID（输出参数，返回本次请求的唯一标识）
+ * @return 0表示成功，其它表示错误码
+ */
+NET_API int configure_permissions(CB_I_S_I_U cCallback, const char* data, int len, const char* cmtyId, uint64_t &reqId);
 
 /**
  * 进入频道

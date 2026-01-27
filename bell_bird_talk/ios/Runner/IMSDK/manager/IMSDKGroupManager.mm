@@ -151,7 +151,7 @@ static void GetGroupMembersCallback(int errorCode, const char* data, int dataLen
                         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                         dict[@"group_id"] = m.groupId ?: @"";
                         dict[@"user_id"] = m.userId ?: @"";
-//                        dict[@"member_alias"] = m.memberAlias ?: @"";
+                        dict[@"member_alias"] = m.memberAlias ?: @"";
 //                        dict[@"join_type"] = @(m.joinType);   会造成闪退
 //                        dict[@"join_time"] = @(m.joinTime);
 //                        dict[@"inviter_user_id"] = m.inviterUserId ?: @"";

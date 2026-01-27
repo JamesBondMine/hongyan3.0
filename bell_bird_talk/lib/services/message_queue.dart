@@ -253,6 +253,7 @@ class MessageQueueManager {
       }
       return true;
     } else {
+      message.errorMessageCode =  '${result['errorCode'] ?? 0}';
       message.errorMessage = result['data'] ?? result['message'] ?? '发送失败';
       return false;
     }
