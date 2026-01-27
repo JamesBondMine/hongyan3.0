@@ -805,8 +805,9 @@ class CommunityController extends GetxController {
       if (result['errorCode'] == 0) {
         final dataStr = result['data'] as String? ?? '';
         if (dataStr.isNotEmpty) {
-          final data = json.decode(dataStr) as Map<String, dynamic>;
-          return RoleModel.fromJson(data);
+          final data = json.decode(dataStr) as List;
+          return RoleModel.fromJson({});
+          // return RoleModel.fromJson(data);
         }
         return null;
       } else {

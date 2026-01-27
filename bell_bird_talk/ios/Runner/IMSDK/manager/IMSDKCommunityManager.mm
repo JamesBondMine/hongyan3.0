@@ -857,76 +857,33 @@ static void GetRolesAndTemplateCallback(int errorCode, const char* data, int dat
                     CmtyMemberRolePermissions *result = [CmtyMemberRolePermissions parseFromData:responseData error:&parseError];
                     if (result && !parseError) {
                         NSLog(@"🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎。角色权限数量2: %d",result.rolePermissions);
-                        // 转换角色数组
+                        
+                        RolePermissionConfig * cf = result.rolePermissions;
+                         //转换角色数组
                         NSMutableArray *rolesArray = [NSMutableArray array];
                         for (PermissionItem *role in result.rolePermissions.permissionsArray) {
-                            if (rolesArray.count > 0) {
-                                break;
-                            }
-                            NSLog(@"🍌🍌🍌🍌🍌🍌🍌🍌🍌角色信息: %@ ~ %@",role.permissionKey, role.permissionName);
-                            NSMutableDictionary *roleDict = [NSMutableDictionary dictionary];
-//                            
-//                            // 角色基本信息 - 使用正确的protobuf字段名
-//                            if (role.code && role.code.length > 0) {
-//                                roleDict[@"role_id"] = role.code;
-//                                if (![role.code  isEqual: @"cmty_member"]) {
-//                                    continue;;
-//                                }
-//                            }
-//                            if (role.name && role.name.length > 0) {
-//                                roleDict[@"role_name"] = role.name;
-//                            }
-//                            if (role.description_p && role.description_p.length > 0) {
-//                                roleDict[@"role_desc"] = role.description_p;
-//                            }
-//                            
-//                            
-//                            // 角色权限配置列表
-//                            if (role.permissionConfigsArray && role.permissionConfigsArray.count > 0) {
-//                                NSMutableArray *permissionsArray = [NSMutableArray array];
-//                                for (PermissionConfig *permConfig in role.permissionConfigsArray) {
-//                                    NSMutableDictionary *permDict = [NSMutableDictionary dictionary];
-//                                    if (permConfig.methodName && permConfig.methodName.length > 0) {
-//                                        permDict[@"method_name"] = permConfig.methodName;
-//                                    }
-//                                    if (permConfig.attributes && permConfig.attributes.count > 0) {
-//                                        permDict[@"attributes"] = permConfig.attributes;
-//                                    }
-//                                    if (permConfig.status && permConfig.status.length > 0) {
-//                                        permDict[@"status"] = permConfig.status;
-//                                    }
-//                                    permDict[@"expire_time"] = @(permConfig.expireTime);
-//                                    if (permConfig.configDesc && permConfig.configDesc.length > 0) {
-//                                        permDict[@"config_desc"] = permConfig.configDesc;
-//                                    }
-//                                    [permissionsArray addObject:permDict];
-//                                }
-//                                roleDict[@"permissions"] = permissionsArray;
-//                            }
-//                            
-//                            // 其他角色属性
-//                            if (role.status && role.status.length > 0) {
-//                                roleDict[@"status"] = role.status;
-//                            }
-//                            roleDict[@"expire_time"] = @(role.expireTime);
-//                            roleDict[@"assigned_time"] = @(role.assignedTime);
-//                            roleDict[@"created_at"] = @(role.createdAt);
-//                            roleDict[@"updated_at"] = @(role.updatedAt);
-//                            if (role.assignedBy && role.assignedBy.length > 0) {
-//                                roleDict[@"assigned_by"] = role.assignedBy;
-//                            }
-//                            
-//                            // 设置默认值（protobuf中没有这些字段，设为默认值）
-//                            roleDict[@"is_default"] = @(NO);
-//                            roleDict[@"member_count"] = @(0);
+                            NSLog(@"🍌🍌🍌🍌🍌🍌🍌🍌🍌角色信息: %@ ~ %@  ~%d",role.permissionKey, role.permissionName, role.defaultEnabled);
                             
+                            NSMutableDictionary *roleDict = [NSMutableDictionary dictionary];
+                            if (role.permissionKey && role.permissionKey.length > 0) {
+                                roleDict[@"permissionKey"] = role.permissionKey;
+                            }
+                            if (role.permissionName && role.permissionName.length > 0) {
+                                roleDict[@"permissionName"] = role.permissionName;
+                            }
+                            if (role.defaultEnabled) {
+                                roleDict[@"defaultEnabled"] = role.defaultEnabled ? @"1" : @"0";
+                            }
+                            if (role.messageTypes) {
+                                roleDict[@"message_types"] = role.messageTypes;
+                            }
                             [rolesArray addObject:roleDict];
                         }
                         // 序列化为 JSON 字符串
-//                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject: [rolesArray firstObject] options:0 error:nil];
-//                        if (jsonData) {
-//                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-//                        }
+                        NSData *jsonData = [NSJSONSerialization dataWithJSONObject: rolesArray options:0 error:nil];
+                        if (jsonData) {
+                            dataStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        }
                         NSLog(@"✅ 获取角色列表和权限模板响应解析成功: %@", dataStr);
                     } else {
                         // Protobuf 解析失败，尝试直接作为 JSON 返回
